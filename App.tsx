@@ -1,5 +1,5 @@
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import PromoBanners from './components/PromoBanners';
 import ProductGrid from './components/ProductGrid';
@@ -14,6 +14,7 @@ import CustomerReviews from './components/CustomerReviews';
 import { MOCK_PRODUCTS, PREMIUM_PRODUCTS, COLORS } from './constants';
 import { Product, CartItem, AppView } from './types';
 import { ChevronRight } from 'lucide-react';
+import { client } from './sanityclient';
 
 const CATEGORIES = [
   { name: 'Bütün məhsullar', sub: '' },
@@ -29,11 +30,32 @@ const CATEGORIES = [
 
 const App: React.FC = () => {
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [sanityProducts, setSanityProducts] = useState<Product[]>([]);
   const [activeCategory, setActiveCategory] = useState('Bütün məhsullar');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [editingCartItem, setEditingCartItem] = useState<CartItem | null>(null);
   const [currentView, setCurrentView] = useState<AppView>('home');
   const [isCartOpen, setIsCartOpen] = useState(false);
+  useEffect(() => {
+  const fetchProducts = async () => {
+    try {
+      const query = `*[_type == "product"]{
+        "id": _id,
+        name,
+        category,
+        price,
+        rating,
+        "images": [image.asset->url] 
+      }`;
+      const data = await client.fetch(query); 
+      setSanityProducts(data);
+    } catch (error) {
+      console.error("Sanity xətası:", error);
+    }
+  };
+
+  fetchProducts();
+}, []);
 
   const addToCart = useCallback((item: CartItem) => {
     setCart(prev => {
@@ -61,7 +83,7 @@ const App: React.FC = () => {
 
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
-  const filteredProducts = MOCK_PRODUCTS.filter(p => activeCategory === 'Bütün məhsullar' || p.category === activeCategory);
+  const filteredProducts = sanityProducts.filter(p => activeCategory === 'Bütün məhsullar' || p.category === activeCategory);
 
   const handleLogoClick = () => {
     setCurrentView('home');
