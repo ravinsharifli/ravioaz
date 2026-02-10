@@ -40,13 +40,14 @@ const App: React.FC = () => {
   const fetchProducts = async () => {
     try {
       const query = `*[_type == "product"]{
-        "id": _id,
-        name,
-        category,
-        price,
-        rating,
-        "images": [image.asset->url] 
-      }`;
+  "id": _id,
+  name,
+  "category": category->name,
+  price,
+  rating,
+  description,
+  "images": [image.asset->url] 
+}`;
       const data = await client.fetch(query); 
       setSanityProducts(data);
     } catch (error) {
