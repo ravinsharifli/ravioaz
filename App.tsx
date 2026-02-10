@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import PromoBanners from './components/PromoBanners';
@@ -16,47 +15,49 @@ import { Product, CartItem, AppView } from './types';
 import { ChevronRight } from 'lucide-react';
 import { client } from './sanityclient';
 
-const CATEGORIES = [
-  { name: 'Bütün məhsullar', sub: '' },
-  { name: 'Elektronika', sub: '' },
-  { name: 'Geyim', sub: 'sizə özəl dizayn' },
-  { name: 'Hədiyyə qutuları', sub: '' },
-  { name: 'Dəst hədiyyələr', sub: '' },
-  { name: 'Aksesuarlar', sub: '' },
-  { name: 'Foto çərçivə', sub: '' },
-  { name: 'Çap xidmətləri', sub: '' },
-  { name: 'Özəl hədiyyələr', sub: 'lazer yazı ilə' }
-];
-
 const App: React.FC = () => {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [sanityProducts, setSanityProducts] = useState<Product[]>([]);
+  const [sanityCategories, setSanityCategories] = useState<any[]>([]);
   const [activeCategory, setActiveCategory] = useState('Bütün məhsullar');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [editingCartItem, setEditingCartItem] = useState<CartItem | null>(null);
   const [currentView, setCurrentView] = useState<AppView>('home');
   const [isCartOpen, setIsCartOpen] = useState(false);
-  useEffect(() => {
-  const fetchProducts = async () => {
-    try {
-      const query = `*[_type == "product"]{
-  "id": _id,
-  name,
-  "category": category->name,
-  price,
-  rating,
-  description,
-  "images": [image.asset->url] 
-}`;
-      const data = await client.fetch(query); 
-      setSanityProducts(data);
-    } catch (error) {
-      console.error("Sanity xətası:", error);
-    }
-  };
 
-  fetchProducts();
-}, []);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Məhsulları çək
+        const productsQuery = `*[_type == "product"]{
+          "id": _id,
+          name,
+          "category": category->name,
+          price,
+          rating,
+          description,
+          "images": [image.asset->url] 
+        }`;
+        const products = await client.fetch(productsQuery);
+        setSanityProducts(products);
+
+        // Kateqoriyaları çək
+        const categoriesQuery = `*[_type == "category"]{
+          name,
+          description
+        }`;
+        const categories = await client.fetch(categoriesQuery);
+        setSanityCategories([
+          { name: 'Bütün məhsullar', sub: '' },
+          ...categories.map((cat: any) => ({ name: cat.name, sub: cat.description || '' }))
+        ]);
+      } catch (error) {
+        console.error("Sanity xətası:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const addToCart = useCallback((item: CartItem) => {
     setCart(prev => {
@@ -116,7 +117,7 @@ const App: React.FC = () => {
                 <div className="bg-white border border-gray-100 rounded-[2.5rem] p-8 shadow-sm">
                   <h3 className="text-xl font-black mb-6 text-[#1A1A1A] tracking-tight">Kateqoriyalar</h3>
                   <nav className="space-y-1">
-                    {CATEGORIES.map((cat) => (
+                    {sanityCategories.map((cat) => (
                       <button
                         key={cat.name}
                         onClick={() => {
