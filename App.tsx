@@ -1,6 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import Navbar from './components/Navbar';
-import PromoBanners from './components/PromoBanners';
 import ProductGrid from './components/ProductGrid';
 import ProductModal from './components/ProductModal';
 import Footer from './components/Footer';
@@ -12,13 +11,15 @@ import DeliveryInfo from './components/DeliveryInfo';
 import CustomerReviews from './components/CustomerReviews';
 import { MOCK_PRODUCTS, PREMIUM_PRODUCTS, COLORS } from './constants';
 import { Product, CartItem, AppView } from './types';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Zap } from 'lucide-react';
 import { client } from './sanityclient';
 
 const App: React.FC = () => {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [sanityProducts, setSanityProducts] = useState<Product[]>([]);
   const [sanityCategories, setSanityCategories] = useState<any[]>([]);
+  const [premiumProducts, setPremiumProducts] = useState<any[]>([]);
+  const [promoBanners, setPromoBanners] = useState<any[]>([]);
   const [activeCategory, setActiveCategory] = useState('Bütün məhsullar');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [editingCartItem, setEditingCartItem] = useState<CartItem | null>(null);
@@ -34,12 +35,23 @@ const App: React.FC = () => {
           name,
           "category": category->name,
           price,
+          discountPrice,
           rating,
           description,
-          "images": [image.asset->url] 
+          "images": [image.asset->url],
+          isPremium,
+          premiumOrder,
+          premiumSize
         }`;
         const products = await client.fetch(productsQuery);
         setSanityProducts(products);
+
+        // Premium məhsulları ayır
+        const premiums = products
+          .filter((p: any) => p.isPremium)
+          .sort((a: any, b: any) => (a.premiumOrder || 999) - (b.premiumOrder || 999))
+          .slice(0, 3);
+        setPremiumProducts(premiums);
 
         // Kateqoriyaları çək
         const categoriesQuery = `*[_type == "category"]{
@@ -51,6 +63,21 @@ const App: React.FC = () => {
           { name: 'Bütün məhsullar', sub: '' },
           ...categories.map((cat: any) => ({ name: cat.name, sub: cat.description || '' }))
         ]);
+
+        // Kampaniya banerlərini çək
+        const bannersQuery = `*[_type == "promoBanner" && isActive == true] | order(order asc){
+          title,
+          subtitle,
+          badge,
+          buttonText,
+          backgroundColor,
+          textColor,
+          accentColor,
+          size,
+          order
+        }`;
+        const banners = await client.fetch(bannersQuery);
+        setPromoBanners(banners);
       } catch (error) {
         console.error("Sanity xətası:", error);
       }
@@ -96,6 +123,147 @@ const App: React.FC = () => {
   const navigateTo = (view: AppView) => {
     setCurrentView(view);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Premium məhsullar layout-u
+  const renderPremiumProducts = () => {
+    if (premiumProducts.length === 0) return null;
+
+    const large = premiumProducts.find((p: any) => p.premiumSize === 'large');
+    const smallTop = premiumProducts.find((p: any) => p.premiumSize === 'small-top');
+    const smallBottom = premiumProducts.find((p: any) => p.premiumSize === 'small-bottom');
+
+    return (
+      <section className="py-8">
+        <div className="flex items-center justify-between mb-8">
+          <h2 className="text-3xl font-black text-[#1A1A1A] tracking-tight">Premium məhsullar</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Sol tərəf - Böyük məhsul */}
+          {large && (
+            <div 
+              onClick={() => setSelectedProduct(large)} 
+              className="bg-[#1A1A1A] rounded-[2.5rem] p-8 relative overflow-hidden cursor-pointer h-[280px] md:h-[400px] shadow-2xl"
+            >
+              <div className="relative z-10 h-full flex flex-col justify-center text-white">
+                <h3 className="text-3xl font-black mb-1">{large.name}</h3>
+                {large.discountPrice ? (
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl font-black text-gray-400 line-through">{large.price} AZN</span>
+                    <span className="text-3xl font-black text-[#FF8C00]">{large.discountPrice} AZN</span>
+                  </div>
+                ) : (
+                  <span className="text-3xl font-black text-[#FF8C00]">{large.price} AZN</span>
+                )}
+              </div>
+              {large.images && large.images[0] && (
+                <>
+                  <img src={large.images[0]} className="absolute right-0 top-0 h-full w-[45%] object-cover opacity-60 rounded-l-[5rem]" alt={large.name} />
+                  <div className="absolute inset-0 bg-gradient-to-r from-[#1A1A1A] via-[#1A1A1A]/90 to-transparent"></div>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* Sağ tərəf - 2 kiçik məhsul */}
+          <div className="flex flex-col gap-6">
+            {smallTop && (
+              <div 
+                onClick={() => setSelectedProduct(smallTop)} 
+                className="bg-gradient-to-br from-[#2A2A2A] to-[#1A1A1A] rounded-[2.5rem] p-6 relative overflow-hidden cursor-pointer h-[180px] md:h-[192px] shadow-xl"
+              >
+                <div className="relative z-10 h-full flex flex-col justify-center text-white">
+                  <h3 className="text-xl font-black mb-1">{smallTop.name}</h3>
+                  {smallTop.discountPrice ? (
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-bold text-gray-400 line-through">{smallTop.price} AZN</span>
+                      <span className="text-2xl font-black text-[#FF8C00]">{smallTop.discountPrice} AZN</span>
+                    </div>
+                  ) : (
+                    <span className="text-2xl font-black text-[#FF8C00]">{smallTop.price} AZN</span>
+                  )}
+                </div>
+                {smallTop.images && smallTop.images[0] && (
+                  <>
+                    <img src={smallTop.images[0]} className="absolute right-0 top-0 h-full w-[35%] object-cover opacity-40" alt={smallTop.name} />
+                    <div className="absolute inset-0 bg-gradient-to-r from-[#2A2A2A] via-[#2A2A2A]/90 to-transparent"></div>
+                  </>
+                )}
+              </div>
+            )}
+
+            {smallBottom && (
+              <div 
+                onClick={() => setSelectedProduct(smallBottom)} 
+                className="bg-gradient-to-br from-[#FF8C00] to-[#FF6B00] rounded-[2.5rem] p-6 relative overflow-hidden cursor-pointer h-[180px] md:h-[192px] shadow-xl"
+              >
+                <div className="relative z-10 h-full flex flex-col justify-center text-white">
+                  <h3 className="text-xl font-black mb-1">{smallBottom.name}</h3>
+                  {smallBottom.discountPrice ? (
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-bold text-white/70 line-through">{smallBottom.price} AZN</span>
+                      <span className="text-2xl font-black text-white">{smallBottom.discountPrice} AZN</span>
+                    </div>
+                  ) : (
+                    <span className="text-2xl font-black text-white">{smallBottom.price} AZN</span>
+                  )}
+                </div>
+                {smallBottom.images && smallBottom.images[0] && (
+                  <>
+                    <img src={smallBottom.images[0]} className="absolute right-0 top-0 h-full w-[35%] object-cover opacity-30" alt={smallBottom.name} />
+                    <div className="absolute inset-0 bg-gradient-to-r from-[#FF8C00] via-[#FF8C00]/90 to-transparent"></div>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+    );
+  };
+
+  // Kampaniya banerlərini göstər
+  const renderPromoBanners = () => {
+    if (promoBanners.length === 0) return null;
+
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        {promoBanners.map((banner, index) => {
+          const isLarge = banner.size === 'large';
+          return (
+            <div
+              key={index}
+              className={`${isLarge ? 'md:col-span-2' : ''} rounded-[2.5rem] p-8 relative overflow-hidden shadow-2xl`}
+              style={{
+                backgroundColor: banner.backgroundColor || '#1A1A1A',
+                color: banner.textColor || '#FFFFFF',
+              }}
+            >
+              <div className="relative z-10">
+                {banner.badge && (
+                  <span className="inline-block bg-white/20 backdrop-blur-sm px-4 py-1 rounded-full text-xs font-black mb-4">
+                    {banner.badge}
+                  </span>
+                )}
+                <h2 
+                  className="text-4xl md:text-5xl font-black mb-2 tracking-tight"
+                  style={{ color: banner.accentColor || '#FF8C00' }}
+                >
+                  {banner.title}
+                </h2>
+                <p className="text-xl md:text-2xl font-bold mb-6">{banner.subtitle}</p>
+                {banner.buttonText && (
+                  <button className="bg-white text-[#1A1A1A] px-6 py-3 rounded-2xl font-black text-sm hover:scale-105 transition-transform inline-flex items-center gap-2">
+                    {banner.buttonText}
+                    <Zap className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
   };
 
   return (
@@ -147,7 +315,10 @@ const App: React.FC = () => {
 
               <div className="flex-grow w-full space-y-8">
                 {activeCategory === 'Bütün məhsullar' ? (
-                  <PromoBanners />
+                  <>
+                    {renderPromoBanners()}
+                    {renderPremiumProducts()}
+                  </>
                 ) : (
                   <div className="bg-gray-50 rounded-[2rem] p-5 border border-gray-100 animate-in fade-in slide-in-from-top-2 duration-500">
                     <h1 className="text-lg font-black text-[#1A1A1A] tracking-tight">{activeCategory}</h1>
@@ -155,24 +326,6 @@ const App: React.FC = () => {
                       {activeCategory} kateqoriyasındakı premium kolleksiyamız
                     </p>
                   </div>
-                )}
-                
-                {activeCategory === 'Bütün məhsullar' && (
-                  <section className="py-8">
-                    <div className="flex items-center justify-between mb-8">
-                      <h2 className="text-3xl font-black text-[#1A1A1A] tracking-tight">Premium məhsullar</h2>
-                    </div>
-                    <div className="flex flex-col md:flex-row gap-6">
-                      <div onClick={() => setSelectedProduct(PREMIUM_PRODUCTS[0])} className="flex-1 bg-[#1A1A1A] rounded-[2.5rem] p-8 relative overflow-hidden cursor-pointer h-[280px] shadow-2xl">
-                        <div className="relative z-10 h-full flex flex-col justify-center text-white">
-                          <h3 className="text-3xl font-black mb-1">{PREMIUM_PRODUCTS[0].name}</h3>
-                          <span className="text-3xl font-black text-[#FF8C00]">{PREMIUM_PRODUCTS[0].price} AZN</span>
-                        </div>
-                        <img src={PREMIUM_PRODUCTS[0].images[0]} className="absolute right-0 top-0 h-full w-[45%] object-cover opacity-60 rounded-l-[5rem]" alt="Premium" />
-                        <div className="absolute inset-0 bg-gradient-to-r from-[#1A1A1A] via-[#1A1A1A]/90 to-transparent"></div>
-                      </div>
-                    </div>
-                  </section>
                 )}
 
                 <div className="pb-16">
