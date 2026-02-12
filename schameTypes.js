@@ -33,86 +33,52 @@ const promoBanner = {
   type: 'document',
   fields: [
     {
-      name: 'title',
-      title: 'Başlıq',
-      type: 'string',
-      description: 'Məsələn: BLACK FRIDAY',
-    },
-    {
-      name: 'subtitle',
-      title: 'Alt başlıq',
-      type: 'string',
-      description: 'Məsələn: Bütün məhsullarda 50% ENDİRİM',
-    },
-    {
-      name: 'badge',
-      title: 'Nişan',
-      type: 'string',
-      description: 'Məsələn: MƏHDUD ZAMAN',
+      name: 'image',
+      title: 'Baner Şəkli',
+      type: 'image',
+      description: 'Canva-da hazırladığınız şəkli buraya yükləyin (tövsiyə olunan ölçü: 1200x400px)',
+      options: {
+        hotspot: true,
+      },
     },
     {
       name: 'buttonText',
       title: 'Düymə mətni',
       type: 'string',
-      description: 'Məsələn: İndi kəşf et',
+      description: 'Məsələn: İndi kəşf et, Alışa başla',
     },
     {
-      name: 'backgroundColor',
-      title: 'Arxa fon rəngi',
+      name: 'buttonCategory',
+      title: 'Düymə kateqoriyası',
       type: 'string',
-      description: 'Hex kod: #1A1A1A və ya #FF8C00',
-    },
-    {
-      name: 'textColor',
-      title: 'Mətn rəngi',
-      type: 'string',
-      description: 'Hex kod: #FFFFFF və ya #000000',
-    },
-    {
-      name: 'accentColor',
-      title: 'Vurğu rəngi',
-      type: 'string',
-      description: 'Başlıq üçün rəng - Hex kod: #FF8C00',
+      description: 'Düyməyə basdıqda hansı kateqoriya açılsın? (Məsələn: Elektronika, Geyim). Boş buraxsanız bütün məhsullar açılacaq.',
     },
     {
       name: 'isActive',
       title: 'Aktiv?',
       type: 'boolean',
-      description: 'Baner göstərilsin?',
+      description: 'Baner saytda göstərilsin?',
       initialValue: true,
     },
     {
       name: 'order',
       title: 'Sıra',
       type: 'number',
-      description: 'Baner göstərilmə sırası (1, 2, 3...)',
+      description: 'Baner göstərilmə sırası (1 = birinci)',
       validation: Rule => Rule.required().min(1),
-    },
-    {
-      name: 'size',
-      title: 'Ölçü',
-      type: 'string',
-      options: {
-        list: [
-          { title: 'Böyük (Tam genişlik)', value: 'large' },
-          { title: 'Orta (Yarı genişlik - sol)', value: 'medium-left' },
-          { title: 'Orta (Yarı genişlik - sağ)', value: 'medium-right' },
-          { title: 'Kiçik (1/4 genişlik)', value: 'small' },
-        ],
-      },
-      initialValue: 'large',
     },
   ],
   preview: {
     select: {
-      title: 'title',
-      subtitle: 'subtitle',
+      title: 'buttonText',
       isActive: 'isActive',
+      media: 'image',
     },
-    prepare({ title, subtitle, isActive }) {
+    prepare({ title, isActive, media }) {
       return {
-        title: title,
-        subtitle: `${subtitle} ${isActive ? '✅ Aktiv' : '❌ Deaktiv'}`,
+        title: title || 'Baner',
+        subtitle: isActive ? '✅ Aktiv' : '❌ Deaktiv',
+        media: media,
       }
     },
   },

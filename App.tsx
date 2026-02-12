@@ -11,8 +11,12 @@ import DeliveryInfo from './components/DeliveryInfo';
 import CustomerReviews from './components/CustomerReviews';
 import { MOCK_PRODUCTS, PREMIUM_PRODUCTS, COLORS } from './constants';
 import { Product, CartItem, AppView } from './types';
-import { ChevronRight, Zap } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { client } from './sanityclient';
+import imageUrlBuilder from '@sanity/image-url';
+
+const builder = imageUrlBuilder(client);
+const urlFor = (source: any) => builder.image(source);
 
 const App: React.FC = () => {
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -66,14 +70,10 @@ const App: React.FC = () => {
 
         // Kampaniya banerlərini çək
         const bannersQuery = `*[_type == "promoBanner" && isActive == true] | order(order asc){
-          title,
-          subtitle,
-          badge,
+          image,
           buttonText,
-          backgroundColor,
-          textColor,
-          accentColor,
-          size,
+          buttonCategory,
+          isActive,
           order
         }`;
         const banners = await client.fetch(bannersQuery);
@@ -112,7 +112,9 @@ const App: React.FC = () => {
 
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
-  const filteredProducts = sanityProducts.filter(p => activeCategory === 'Bütün məhsullar' || p.category === activeCategory);
+  const filteredProducts = sanityProducts.filter(p =>
+    activeCategory === 'Bütün məhsullar' || p.category === activeCategory
+  );
 
   const handleLogoClick = () => {
     setCurrentView('home');
@@ -123,6 +125,47 @@ const App: React.FC = () => {
   const navigateTo = (view: AppView) => {
     setCurrentView(view);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Kampaniya banerlərini göstər
+  const renderPromoBanners = () => {
+    if (promoBanners.length === 0) return null;
+
+    return (
+      <div className="flex flex-col gap-4 mb-8">
+        {promoBanners.map((banner, index) => (
+          <div
+            key={index}
+            className="relative w-full rounded-[2.5rem] overflow-hidden shadow-2xl"
+            style={{ aspectRatio: '3/1' }}
+          >
+            {/* Baner şəkli */}
+            {banner.image && (
+              <img
+                src={urlFor(banner.image).width(1200).height(400).url()}
+                alt="Kampaniya"
+                className="w-full h-full object-cover"
+              />
+            )}
+
+            {/* Düymə */}
+            {banner.buttonText && (
+              <div className="absolute inset-0 flex items-end justify-start p-8">
+                <button
+                  onClick={() => {
+                    setActiveCategory(banner.buttonCategory || 'Bütün məhsullar');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="bg-white text-[#1A1A1A] px-6 py-3 rounded-2xl font-black text-sm hover:scale-105 transition-transform shadow-lg"
+                >
+                  {banner.buttonText} →
+                </button>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    );
   };
 
   // Premium məhsullar layout-u
@@ -139,10 +182,9 @@ const App: React.FC = () => {
           <h2 className="text-3xl font-black text-[#1A1A1A] tracking-tight">Premium məhsullar</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Sol tərəf - Böyük məhsul */}
           {large && (
-            <div 
-              onClick={() => setSelectedProduct(large)} 
+            <div
+              onClick={() => setSelectedProduct(large)}
               className="bg-[#1A1A1A] rounded-[2.5rem] p-8 relative overflow-hidden cursor-pointer h-[280px] md:h-[400px] shadow-2xl"
             >
               <div className="relative z-10 h-full flex flex-col justify-center text-white">
@@ -165,11 +207,10 @@ const App: React.FC = () => {
             </div>
           )}
 
-          {/* Sağ tərəf - 2 kiçik məhsul */}
           <div className="flex flex-col gap-6">
             {smallTop && (
-              <div 
-                onClick={() => setSelectedProduct(smallTop)} 
+              <div
+                onClick={() => setSelectedProduct(smallTop)}
                 className="bg-gradient-to-br from-[#2A2A2A] to-[#1A1A1A] rounded-[2.5rem] p-6 relative overflow-hidden cursor-pointer h-[180px] md:h-[192px] shadow-xl"
               >
                 <div className="relative z-10 h-full flex flex-col justify-center text-white">
@@ -193,8 +234,8 @@ const App: React.FC = () => {
             )}
 
             {smallBottom && (
-              <div 
-                onClick={() => setSelectedProduct(smallBottom)} 
+              <div
+                onClick={() => setSelectedProduct(smallBottom)}
                 className="bg-gradient-to-br from-[#FF8C00] to-[#FF6B00] rounded-[2.5rem] p-6 relative overflow-hidden cursor-pointer h-[180px] md:h-[192px] shadow-xl"
               >
                 <div className="relative z-10 h-full flex flex-col justify-center text-white">
@@ -222,55 +263,11 @@ const App: React.FC = () => {
     );
   };
 
-  // Kampaniya banerlərini göstər
-  const renderPromoBanners = () => {
-    if (promoBanners.length === 0) return null;
-
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        {promoBanners.map((banner, index) => {
-          const isLarge = banner.size === 'large';
-          return (
-            <div
-              key={index}
-              className={`${isLarge ? 'md:col-span-2' : ''} rounded-[2.5rem] p-8 relative overflow-hidden shadow-2xl`}
-              style={{
-                backgroundColor: banner.backgroundColor || '#1A1A1A',
-                color: banner.textColor || '#FFFFFF',
-              }}
-            >
-              <div className="relative z-10">
-                {banner.badge && (
-                  <span className="inline-block bg-white/20 backdrop-blur-sm px-4 py-1 rounded-full text-xs font-black mb-4">
-                    {banner.badge}
-                  </span>
-                )}
-                <h2 
-                  className="text-4xl md:text-5xl font-black mb-2 tracking-tight"
-                  style={{ color: banner.accentColor || '#FF8C00' }}
-                >
-                  {banner.title}
-                </h2>
-                <p className="text-xl md:text-2xl font-bold mb-6">{banner.subtitle}</p>
-                {banner.buttonText && (
-                  <button className="bg-white text-[#1A1A1A] px-6 py-3 rounded-2xl font-black text-sm hover:scale-105 transition-transform inline-flex items-center gap-2">
-                    {banner.buttonText}
-                    <Zap className="h-4 w-4" />
-                  </button>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    );
-  };
-
   return (
     <div className="min-h-screen flex flex-col selection:bg-orange-100">
-      <Navbar 
-        cartCount={cartCount} 
-        onLogoClick={handleLogoClick} 
+      <Navbar
+        cartCount={cartCount}
+        onLogoClick={handleLogoClick}
         onCartClick={() => setIsCartOpen(true)}
         onAboutClick={() => navigateTo('about')}
         onContactClick={() => navigateTo('contact')}
@@ -293,9 +290,9 @@ const App: React.FC = () => {
                           window.scrollTo({ top: 0, behavior: 'smooth' });
                         }}
                         className={`w-full flex flex-col items-start px-4 py-3.5 rounded-2xl transition-all duration-300 ${
-                          activeCategory === cat.name 
-                          ? 'bg-[#FF8C00] text-white shadow-lg shadow-orange-100' 
-                          : 'text-gray-500 hover:bg-gray-50 hover:text-[#1A1A1A]'
+                          activeCategory === cat.name
+                            ? 'bg-[#FF8C00] text-white shadow-lg shadow-orange-100'
+                            : 'text-gray-500 hover:bg-gray-50 hover:text-[#1A1A1A]'
                         }`}
                       >
                         <div className="flex items-center justify-between w-full">
@@ -329,7 +326,11 @@ const App: React.FC = () => {
                 )}
 
                 <div className="pb-16">
-                  <ProductGrid products={filteredProducts} onAddToCart={(p) => setSelectedProduct(p)} onViewProduct={setSelectedProduct} />
+                  <ProductGrid
+                    products={filteredProducts}
+                    onAddToCart={(p) => setSelectedProduct(p)}
+                    onViewProduct={setSelectedProduct}
+                  />
                 </div>
               </div>
             </div>
@@ -345,13 +346,13 @@ const App: React.FC = () => {
       </main>
 
       {(selectedProduct || editingCartItem) && (
-        <ProductModal 
-          product={editingCartItem || selectedProduct!} 
+        <ProductModal
+          product={editingCartItem || selectedProduct!}
           initialData={editingCartItem || undefined}
           onClose={() => {
             setSelectedProduct(null);
             setEditingCartItem(null);
-          }} 
+          }}
           onAddToCart={addToCart}
           onOpenCategory={(cat) => {
             setActiveCategory(cat);
@@ -360,11 +361,11 @@ const App: React.FC = () => {
         />
       )}
 
-      <CartDrawer 
-        isOpen={isCartOpen} 
-        onClose={() => setIsCartOpen(false)} 
-        items={cart} 
-        onRemove={removeFromCart} 
+      <CartDrawer
+        isOpen={isCartOpen}
+        onClose={() => setIsCartOpen(false)}
+        items={cart}
+        onRemove={removeFromCart}
         onEdit={handleEditCartItem}
       />
       <AIAssistant />
