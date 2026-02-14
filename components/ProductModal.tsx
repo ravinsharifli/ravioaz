@@ -1,6 +1,5 @@
-
-import React, { useState, useEffect } from 'react';
-import { X, MessageCircle, Star, ChevronLeft, ChevronRight, Edit3, User, Truck, Clock, Zap, Gift, Info, ShieldCheck, NotebookPen, ShoppingCart, MapPin } from 'lucide-react';
+import React, { useState } from 'react';
+import { X, ChevronLeft, ChevronRight, Edit3, User, Truck, Clock, Zap, Info, ShoppingCart, MapPin } from 'lucide-react';
 import { Product, CartItem } from '../types';
 
 interface ProductModalProps {
@@ -14,7 +13,6 @@ interface ProductModalProps {
 const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClose, onAddToCart, onOpenCategory }) => {
   const [currentImgIndex, setCurrentImgIndex] = useState(0);
   
-  // Form State
   const [customText, setCustomText] = useState(initialData?.customText || '');
   const [customerName, setCustomerName] = useState(initialData?.customerName || '');
   const [phone, setPhone] = useState(initialData?.phone || '');
@@ -27,20 +25,29 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
   const nextImg = () => setCurrentImgIndex((prev) => (prev + 1) % product.images.length);
   const prevImg = () => setCurrentImgIndex((prev) => (prev - 1 + product.images.length) % product.images.length);
 
+  // Sanity-dən gələn endirimli qiymət
+  const discountPrice = (product as any).discountPrice;
+  const basePrice = discountPrice || product.price;
+
   const getDeliveryPrice = () => {
     if (deliveryType === 'urgent') return 5.49;
     if (deliveryType === 'express') return 9.99;
     return 0;
   };
 
-  const getDiscountAmount = () => {
-    return isFirstOrSecondOrder ? product.price * 0.1 : 0;
+  // İlk/ikinci sifariş endirimi yalnız discountPrice yoxdursa tətbiq olunur
+  const getLoyaltyDiscount = () => {
+    return isFirstOrSecondOrder ? basePrice * 0.1 : 0;
   };
 
   const calculateTotal = () => {
-    const discountedPrice = product.price - getDiscountAmount();
-    return discountedPrice + getDeliveryPrice();
+    return basePrice - getLoyaltyDiscount() + getDeliveryPrice();
   };
+
+  // Endirim faizi
+  const discountPercent = discountPrice 
+    ? Math.round(((product.price - discountPrice) / product.price) * 100) 
+    : 0;
 
   const handleAddToCartClick = () => {
     const cartItem: CartItem = {
@@ -71,6 +78,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
           <X className="h-6 w-6" />
         </button>
 
+        {/* Sol tərəf - Şəkil */}
         <div className="md:w-1/2 relative bg-gray-50 flex flex-col h-full overflow-hidden border-r border-gray-100">
           <div className="flex-grow relative overflow-hidden group">
             <img 
@@ -78,6 +86,12 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
               alt={product.name}
               className="w-full h-full object-cover transition-all duration-500"
             />
+            {/* Endirim nişanı */}
+            {discountPrice && (
+              <div className="absolute top-4 left-4 bg-[#FF8C00] text-white font-black px-3 py-1.5 rounded-full text-sm shadow-lg">
+                -{discountPercent}% ENDİRİM
+              </div>
+            )}
             {product.images.length > 1 && (
               <>
                 <button onClick={prevImg} className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-white/50 hover:bg-white rounded-full transition-all opacity-0 group-hover:opacity-100"><ChevronLeft className="h-5 w-5" /></button>
@@ -94,36 +108,55 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
           </div>
         </div>
 
+        {/* Sağ tərəf - Məlumatlar */}
         <div className="md:w-1/2 flex flex-col overflow-y-auto bg-white">
           <div className="p-8 md:p-12 space-y-8">
             <section className="space-y-4">
               <h2 className="text-3xl font-black text-[#1A1A1A] tracking-tight">{product.name}</h2>
-              <div className="bg-orange-50 p-4 rounded-2xl border border-orange-100">
-                <h4 className="text-[10px] font-black text-[#1A1A1A] uppercase tracking-widest mb-1 flex items-center gap-1">
-                   <Info className="h-3 w-3 text-orange-600" /> Məhsul haqqında
-                </h4>
-                <p className="text-xs font-bold text-[#1A1A1A] leading-relaxed">
-                  Bu premium məhsul sizin fərdi istəklərinizə uyğun hazırlanacaq.
-                </p>
-              </div>
-              <div className="flex items-baseline space-x-3">
-                <span className="text-3xl font-black text-[#FF8C00]">{calculateTotal().toFixed(2)} AZN</span>
-                {isFirstOrSecondOrder && (
-                  <span className="text-lg font-bold text-gray-400 line-through">{product.price.toFixed(2)} AZN</span>
+              
+              {(product as any).description && (
+                <div className="bg-orange-50 p-4 rounded-2xl border border-orange-100">
+                  <h4 className="text-[10px] font-black text-[#1A1A1A] uppercase tracking-widest mb-1 flex items-center gap-1">
+                    <Info className="h-3 w-3 text-orange-600" /> Məhsul haqqında
+                  </h4>
+                  <p className="text-xs font-bold text-[#1A1A1A] leading-relaxed">
+                    {(product as any).description}
+                  </p>
+                </div>
+              )}
+
+              {/* Qiymət bölməsi */}
+              <div className="flex items-baseline gap-3 flex-wrap">
+                {discountPrice ? (
+                  <>
+                    <span className="text-3xl font-black text-[#FF8C00]">
+                      {discountPrice.toFixed(2)} AZN
+                    </span>
+                    <span className="text-xl font-bold text-gray-400 line-through">
+                      {product.price.toFixed(2)} AZN
+                    </span>
+                    <span className="bg-orange-100 text-[#FF8C00] text-xs font-black px-2 py-1 rounded-full">
+                      {discountPercent}% endirim
+                    </span>
+                  </>
+                ) : (
+                  <span className="text-3xl font-black text-[#FF8C00]">
+                    {product.price.toFixed(2)} AZN
+                  </span>
                 )}
               </div>
             </section>
 
-            {/* Loyalty Question */}
+            {/* İlk/ikinci sifariş */}
             <section className="p-6 bg-gray-50 border border-gray-100 rounded-[2.5rem] space-y-4 shadow-sm">
-               <h4 className="text-xs font-black text-[#1A1A1A] uppercase tracking-tight italic">Bu sizin ilk və ya ikinci sifarişinizdir?</h4>
-               <div className="flex gap-3">
-                  <button onClick={() => setIsFirstOrSecondOrder(true)} className={`flex-1 py-3 rounded-2xl text-xs font-black transition-all ${isFirstOrSecondOrder === true ? 'bg-[#FF8C00] text-white shadow-lg' : 'bg-white text-[#1A1A1A] border border-gray-200 hover:border-orange-200'}`}>BƏLİ</button>
-                  <button onClick={() => setIsFirstOrSecondOrder(false)} className={`flex-1 py-3 rounded-2xl text-xs font-black transition-all ${isFirstOrSecondOrder === false ? 'bg-[#1A1A1A] text-white shadow-lg' : 'bg-white text-[#1A1A1A] border border-gray-200 hover:border-orange-200'}`}>XEYR</button>
-               </div>
+              <h4 className="text-xs font-black text-[#1A1A1A] uppercase tracking-tight italic">Bu sizin ilk və ya ikinci sifarişinizdir?</h4>
+              <div className="flex gap-3">
+                <button onClick={() => setIsFirstOrSecondOrder(true)} className={`flex-1 py-3 rounded-2xl text-xs font-black transition-all ${isFirstOrSecondOrder === true ? 'bg-[#FF8C00] text-white shadow-lg' : 'bg-white text-[#1A1A1A] border border-gray-200 hover:border-orange-200'}`}>BƏLİ</button>
+                <button onClick={() => setIsFirstOrSecondOrder(false)} className={`flex-1 py-3 rounded-2xl text-xs font-black transition-all ${isFirstOrSecondOrder === false ? 'bg-[#1A1A1A] text-white shadow-lg' : 'bg-white text-[#1A1A1A] border border-gray-200 hover:border-orange-200'}`}>XEYR</button>
+              </div>
             </section>
 
-            {/* Custom Text Area */}
+            {/* Məhsul üzərinə yazı */}
             <section className="space-y-3 p-6 border border-orange-100 bg-white rounded-[2.5rem] shadow-sm">
               <h4 className="text-xs font-black text-[#1A1A1A] uppercase tracking-widest flex items-center space-x-2">
                 <Edit3 className="h-4 w-4 text-[#FF8C00]" /> <span>Məhsul üzərinə yazı</span>
@@ -136,7 +169,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
               />
             </section>
 
-            {/* Contact Information */}
+            {/* Əlaqə məlumatları */}
             <section className="space-y-4">
               <h4 className="text-xs font-black text-[#1A1A1A] uppercase tracking-widest flex items-center space-x-2">
                 <User className="h-4 w-4 text-[#FF8C00]" /> <span>Əlaqə Məlumatları</span>
@@ -148,7 +181,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
               </div>
             </section>
 
-            {/* Delivery Choices */}
+            {/* Çatdırılma */}
             <section className="space-y-4 pt-4 border-t border-gray-100">
               <h4 className="text-[11px] font-black text-[#1A1A1A] uppercase tracking-widest flex items-center gap-2">
                 <Truck className="h-4 w-4 text-[#FF8C00]" /> Çatdırılma Seçimi
@@ -198,34 +231,32 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
               </div>
             </section>
 
-            {/* Gift Toggle & Final CTA */}
+            {/* Hədiyyə seçimi və yekun */}
             <div className="sticky bottom-0 bg-white pt-6 pb-4 border-t border-gray-50 space-y-6">
               <div className="flex items-center justify-between px-2">
                 <span className="text-[10px] font-black text-[#1A1A1A] uppercase tracking-widest">Hədiyyəlik bağlama olsun?</span>
                 <div className="flex gap-2">
-                  <button 
-                    onClick={() => setIsGift(false)} 
-                    className={`px-8 py-2.5 rounded-xl text-[11px] font-black transition-all ${isGift === false ? 'bg-[#1A1A1A] text-white shadow-lg' : 'bg-gray-100 text-[#1A1A1A] hover:bg-gray-200'}`}
-                  >
-                    XEYR
-                  </button>
-                  <button 
-                    onClick={() => setIsGift(true)} 
-                    className={`px-8 py-2.5 rounded-xl text-[11px] font-black transition-all ${isGift === true ? 'bg-[#FF8C00] text-white shadow-lg' : 'bg-gray-100 text-[#1A1A1A] hover:bg-gray-200'}`}
-                  >
-                    BƏLİ
-                  </button>
+                  <button onClick={() => setIsGift(false)} className={`px-8 py-2.5 rounded-xl text-[11px] font-black transition-all ${isGift === false ? 'bg-[#1A1A1A] text-white shadow-lg' : 'bg-gray-100 text-[#1A1A1A] hover:bg-gray-200'}`}>XEYR</button>
+                  <button onClick={() => setIsGift(true)} className={`px-8 py-2.5 rounded-xl text-[11px] font-black transition-all ${isGift === true ? 'bg-[#FF8C00] text-white shadow-lg' : 'bg-gray-100 text-[#1A1A1A] hover:bg-gray-200'}`}>BƏLİ</button>
                 </div>
               </div>
 
               <div className="bg-[#1A1A1A] p-7 rounded-[2.5rem] flex items-center justify-between text-white shadow-2xl">
-                 <div className="flex flex-col">
-                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 flex items-center gap-2">
-                      YEKUN MƏBLƏĞ {getDiscountAmount() > 0 && <span className="text-green-400 text-[9px]">(-{getDiscountAmount().toFixed(2)} AZN Endirim)</span>}
-                    </span>
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 flex items-center gap-2">
+                    YEKUN MƏBLƏĞ
+                    {getLoyaltyDiscount() > 0 && (
+                      <span className="text-green-400 text-[9px]">(-{getLoyaltyDiscount().toFixed(2)} AZN)</span>
+                    )}
+                  </span>
+                  <div className="flex items-baseline gap-2">
                     <span className="text-3xl font-black text-[#FF8C00]">{calculateTotal().toFixed(2)} AZN</span>
-                 </div>
-                 <button 
+                    {(discountPrice || getLoyaltyDiscount() > 0) && (
+                      <span className="text-sm font-bold text-gray-500 line-through">{product.price.toFixed(2)} AZN</span>
+                    )}
+                  </div>
+                </div>
+                <button 
                   onClick={handleAddToCartClick}
                   disabled={!isFormValid}
                   className="bg-[#FF8C00] text-white px-10 py-5 rounded-full font-black text-sm flex items-center space-x-3 hover:scale-105 active:scale-95 transition-all shadow-xl disabled:opacity-30 disabled:grayscale disabled:pointer-events-none"

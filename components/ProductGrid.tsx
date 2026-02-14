@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Star, ShoppingCart, Plus, Eye } from 'lucide-react';
 import { Product } from '../types';
@@ -32,6 +31,12 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart, onView
                 alt={product.name}
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
               />
+              {/* Endirim nişanı */}
+              {(product as any).discountPrice && (
+                <div className="absolute top-3 left-3 bg-[#FF8C00] text-white text-[10px] font-black px-2 py-1 rounded-full">
+                  -{Math.round(((product.price - (product as any).discountPrice) / product.price) * 100)}%
+                </div>
+              )}
               <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                  <div className="bg-white/90 backdrop-blur p-3 rounded-full shadow-xl transform scale-50 group-hover:scale-100 transition-transform">
                     <Eye className="h-5 w-5 text-[#FF8C00]" />
@@ -56,9 +61,20 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart, onView
                 {product.name}
               </h3>
               <div className="flex items-center justify-between mt-2">
-                <span className="text-base font-black text-[#1A1A1A]">
-                  {product.price.toFixed(2)} AZN
-                </span>
+                {(product as any).discountPrice ? (
+                  <div className="flex flex-col">
+                    <span className="text-xs font-bold text-gray-400 line-through">
+                      {product.price.toFixed(2)} AZN
+                    </span>
+                    <span className="text-base font-black text-[#FF8C00]">
+                      {(product as any).discountPrice.toFixed(2)} AZN
+                    </span>
+                  </div>
+                ) : (
+                  <span className="text-base font-black text-[#1A1A1A]">
+                    {product.price.toFixed(2)} AZN
+                  </span>
+                )}
                 <ShoppingCart className="h-4 w-4 text-gray-300 group-hover:text-[#FF8C00] transition-colors" />
               </div>
             </div>
