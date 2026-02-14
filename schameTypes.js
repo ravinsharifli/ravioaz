@@ -55,9 +55,9 @@ const promoBanner = {
     // --- ŞƏKİL ---
     {
       name: 'image',
-      title: '🖼 Baner Şəkli (Canva-dan yükləyin)',
+      title: '🖼 Baner Şəkli',
       type: 'image',
-      description: 'Canva-da hazırladığınız şəkli buraya yükləyin. Şəkil varsa, mətn sahələri arxa fonda görünür.',
+      description: 'İstənilən şəkil yükləyə bilərsiniz - Canva, Google, telefon şəkli. Şəkil arxa fon olacaq, üstündə yazdığınız başlıq və mətnlər görünəcək. Bütün yazıları şəklin üzərindən yazacaqsınızsa, başlıq/alt başlıq sahələrini boş buraxın.',
       options: {
         hotspot: true,
       },
