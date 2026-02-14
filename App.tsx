@@ -144,7 +144,7 @@ const App: React.FC = () => {
         className={`relative w-full rounded-[2rem] overflow-hidden shadow-xl ${aspectClass}`}
         style={{ backgroundColor: bgColor }}
       >
-        {/* Arxa fon şəkli */}
+        {/* Arxa fon şəkli - tam görünsün, heç bir örtük yoxdur */}
         {banner.image && (
           <img
             src={urlFor(banner.image).url()}
@@ -153,13 +153,13 @@ const App: React.FC = () => {
           />
         )}
 
-        {/* Mətn varsa - üstündə göstər */}
-        {hasText && (
+        {/* Şəkil varsa - tam üzərinə 40% örtük */}
+        {banner.image && (
           <div className="absolute inset-0 bg-black/40" />
         )}
 
-        {/* Məzmun */}
-        <div className="absolute inset-0 flex flex-col justify-center p-8 gap-3">
+        {/* Məzmun - yazılar şəklin üzərində */}
+        <div className="absolute inset-0 flex flex-col justify-center px-8 py-6 gap-3">
           {banner.badge && (
             <span className="inline-block self-start bg-white/20 backdrop-blur-sm text-white px-4 py-1 rounded-full text-xs font-black">
               {banner.badge}
@@ -167,14 +167,14 @@ const App: React.FC = () => {
           )}
           {banner.title && (
             <h2
-              className="text-4xl md:text-5xl font-black tracking-tight leading-none"
+              className="text-3xl md:text-5xl font-black tracking-tight leading-none"
               style={{ color: titleColor }}
             >
               {banner.title}
             </h2>
           )}
           {banner.subtitle && (
-            <p className="text-white text-lg md:text-xl font-bold">
+            <p className="text-white text-base md:text-xl font-bold drop-shadow-md">
               {banner.subtitle}
             </p>
           )}
