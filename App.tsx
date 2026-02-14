@@ -18,14 +18,13 @@ import imageUrlBuilder from '@sanity/image-url';
 const builder = imageUrlBuilder(client);
 const urlFor = (source: any) => builder.image(source);
 
-// Ölçü konfiqurasiyası
-const SIZE_CONFIG: Record<string, { aspectRatio: string; canvasSize: string }> = {
-  'square':       { aspectRatio: 'aspect-square',     canvasSize: '500x500px' },
-  'wide-thin':    { aspectRatio: 'aspect-[4/1]',      canvasSize: '1200x300px' },
-  'wide-medium':  { aspectRatio: 'aspect-[3/1]',      canvasSize: '1200x400px' },
-  'wide-thick':   { aspectRatio: 'aspect-[2/1]',      canvasSize: '1200x600px' },
-  'tall-small':   { aspectRatio: 'aspect-[2/3]',      canvasSize: '400x600px' },
-  'tall-large':   { aspectRatio: 'aspect-[1/2]',      canvasSize: '400x800px' },
+const SIZE_CONFIG: Record<string, string> = {
+  'square':      'aspect-square',
+  'wide-thin':   'aspect-[4/1]',
+  'wide-medium': 'aspect-[3/1]',
+  'wide-thick':  'aspect-[2/1]',
+  'tall-small':  'aspect-[2/3]',
+  'tall-large':  'aspect-[1/2]',
 };
 
 const App: React.FC = () => {
@@ -73,7 +72,8 @@ const App: React.FC = () => {
         ]);
 
         const bannersQuery = `*[_type == "promoBanner" && isActive == true] | order(order asc){
-          image, buttonText, buttonCategory, isActive, order, size
+          image, title, subtitle, badge, titleColor, backgroundColor,
+          buttonText, buttonCategory, isActive, order, size
         }`;
         const banners = await client.fetch(bannersQuery);
         setPromoBanners(banners);
@@ -132,86 +132,85 @@ const App: React.FC = () => {
     window.scrollTo({ top: 400, behavior: 'smooth' });
   };
 
-  // Kampaniya banerlərini göstər
+  const renderSingleBanner = (banner: any, index: number) => {
+    const aspectClass = SIZE_CONFIG[banner.size] || SIZE_CONFIG['wide-medium'];
+    const hasText = banner.title || banner.subtitle || banner.badge;
+    const bgColor = banner.backgroundColor || '#1A1A1A';
+    const titleColor = banner.titleColor || '#FF8C00';
+
+    return (
+      <div
+        key={index}
+        className={`relative w-full rounded-[2rem] overflow-hidden shadow-xl ${aspectClass}`}
+        style={{ backgroundColor: bgColor }}
+      >
+        {/* Arxa fon şəkli */}
+        {banner.image && (
+          <img
+            src={urlFor(banner.image).url()}
+            alt="Kampaniya"
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        )}
+
+        {/* Mətn varsa - üstündə göstər */}
+        {hasText && (
+          <div className="absolute inset-0 bg-black/40" />
+        )}
+
+        {/* Məzmun */}
+        <div className="absolute inset-0 flex flex-col justify-center p-8 gap-3">
+          {banner.badge && (
+            <span className="inline-block self-start bg-white/20 backdrop-blur-sm text-white px-4 py-1 rounded-full text-xs font-black">
+              {banner.badge}
+            </span>
+          )}
+          {banner.title && (
+            <h2
+              className="text-4xl md:text-5xl font-black tracking-tight leading-none"
+              style={{ color: titleColor }}
+            >
+              {banner.title}
+            </h2>
+          )}
+          {banner.subtitle && (
+            <p className="text-white text-lg md:text-xl font-bold">
+              {banner.subtitle}
+            </p>
+          )}
+          {banner.buttonText && (
+            <div className="mt-2">
+              <button
+                onClick={() => handleBannerButtonClick(banner.buttonCategory)}
+                className="bg-white text-[#1A1A1A] px-6 py-3 rounded-2xl font-black text-sm hover:scale-105 transition-transform shadow-lg hover:bg-[#FF8C00] hover:text-white"
+              >
+                {banner.buttonText} →
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   const renderPromoBanners = () => {
     if (promoBanners.length === 0) return null;
 
-    // Şaquli banerləri sağa, geniş banerləri tam genişliyə qoy
     const wideBanners = promoBanners.filter(b => !b.size?.startsWith('tall') && b.size !== 'square');
-    const tallAndSquareBanners = promoBanners.filter(b => b.size?.startsWith('tall') || b.size === 'square');
+    const compactBanners = promoBanners.filter(b => b.size?.startsWith('tall') || b.size === 'square');
 
     return (
       <div className="flex flex-col gap-4 mb-8">
-        {/* Geniş banerlər - tam genişlik */}
-        {wideBanners.map((banner, index) => {
-          const sizeConfig = SIZE_CONFIG[banner.size] || SIZE_CONFIG['wide-medium'];
-          return (
-            <div
-              key={`wide-${index}`}
-              className={`relative w-full rounded-[2rem] overflow-hidden shadow-xl ${sizeConfig.aspectRatio}`}
-            >
-              {banner.image ? (
-                <img
-                  src={urlFor(banner.image).url()}
-                  alt="Kampaniya"
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full bg-gradient-to-r from-[#1A1A1A] to-[#333]" />
-              )}
-              {banner.buttonText && (
-                <div className="absolute inset-0 flex items-end justify-start p-6">
-                  <button
-                    onClick={() => handleBannerButtonClick(banner.buttonCategory)}
-                    className="bg-white text-[#1A1A1A] px-5 py-2.5 rounded-2xl font-black text-sm hover:scale-105 transition-transform shadow-lg hover:bg-[#FF8C00] hover:text-white"
-                  >
-                    {banner.buttonText} →
-                  </button>
-                </div>
-              )}
-            </div>
-          );
-        })}
-
-        {/* Kvadrat və şaquli banerlər - yan-yana */}
-        {tallAndSquareBanners.length > 0 && (
+        {wideBanners.map((banner, i) => renderSingleBanner(banner, i))}
+        {compactBanners.length > 0 && (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {tallAndSquareBanners.map((banner, index) => {
-              const sizeConfig = SIZE_CONFIG[banner.size] || SIZE_CONFIG['square'];
-              return (
-                <div
-                  key={`tall-${index}`}
-                  className={`relative w-full rounded-[2rem] overflow-hidden shadow-xl ${sizeConfig.aspectRatio}`}
-                >
-                  {banner.image ? (
-                    <img
-                      src={urlFor(banner.image).url()}
-                      alt="Kampaniya"
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gradient-to-b from-[#1A1A1A] to-[#333]" />
-                  )}
-                  {banner.buttonText && (
-                    <div className="absolute inset-0 flex items-end justify-start p-4">
-                      <button
-                        onClick={() => handleBannerButtonClick(banner.buttonCategory)}
-                        className="bg-white text-[#1A1A1A] px-4 py-2 rounded-xl font-black text-xs hover:scale-105 transition-transform shadow-lg hover:bg-[#FF8C00] hover:text-white"
-                      >
-                        {banner.buttonText} →
-                      </button>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+            {compactBanners.map((banner, i) => renderSingleBanner(banner, i + 100))}
           </div>
         )}
       </div>
     );
   };
 
-  // Premium məhsullar
   const renderPremiumProducts = () => {
     if (premiumProducts.length === 0) return null;
 
@@ -244,7 +243,6 @@ const App: React.FC = () => {
               )}
             </div>
           )}
-
           <div className="flex flex-col gap-6">
             {smallTop && (
               <div onClick={() => setSelectedProduct(smallTop)} className="bg-gradient-to-br from-[#2A2A2A] to-[#1A1A1A] rounded-[2.5rem] p-6 relative overflow-hidden cursor-pointer h-[192px] shadow-xl">
@@ -267,7 +265,6 @@ const App: React.FC = () => {
                 )}
               </div>
             )}
-
             {smallBottom && (
               <div onClick={() => setSelectedProduct(smallBottom)} className="bg-gradient-to-br from-[#FF8C00] to-[#FF6B00] rounded-[2.5rem] p-6 relative overflow-hidden cursor-pointer h-[192px] shadow-xl">
                 <div className="relative z-10 h-full flex flex-col justify-center text-white">
@@ -305,7 +302,6 @@ const App: React.FC = () => {
         onContactClick={() => navigateTo('contact')}
         onDeliveryClick={() => navigateTo('delivery')}
       />
-
       <main className="flex-grow">
         {currentView === 'home' && (
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
@@ -341,7 +337,6 @@ const App: React.FC = () => {
                   </nav>
                 </div>
               </aside>
-
               <div className="flex-grow w-full space-y-8">
                 {activeCategory === 'Bütün məhsullar' ? (
                   <>
@@ -367,13 +362,11 @@ const App: React.FC = () => {
             </div>
           </div>
         )}
-
         {currentView === 'about' && <AboutUs />}
         {currentView === 'contact' && <Contact />}
         {currentView === 'delivery' && <DeliveryInfo onHomeClick={() => navigateTo('home')} />}
         {currentView === 'reviews' && <CustomerReviews />}
       </main>
-
       {(selectedProduct || editingCartItem) && (
         <ProductModal
           product={editingCartItem || selectedProduct!}
@@ -383,7 +376,6 @@ const App: React.FC = () => {
           onOpenCategory={(cat) => { setActiveCategory(cat); setCurrentView('home'); }}
         />
       )}
-
       <CartDrawer
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}

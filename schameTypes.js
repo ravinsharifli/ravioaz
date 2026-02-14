@@ -32,18 +32,7 @@ const promoBanner = {
   title: 'Kampaniya Baneri',
   type: 'document',
   fields: [
-    // --- ŞƏKIL ---
-    {
-      name: 'image',
-      title: '🖼 Baner Şəkli',
-      type: 'image',
-      description: 'Canva-da hazırladığınız şəkli buraya yükləyin',
-      options: {
-        hotspot: true,
-      },
-    },
-
-    // --- ÖLÇÜ SEÇİMİ ---
+    // --- ÖLÇÜ ---
     {
       name: 'size',
       title: '📐 Baner Ölçüsü',
@@ -63,21 +52,66 @@ const promoBanner = {
       initialValue: 'wide-medium',
     },
 
+    // --- ŞƏKİL ---
+    {
+      name: 'image',
+      title: '🖼 Baner Şəkli (Canva-dan yükləyin)',
+      type: 'image',
+      description: 'Canva-da hazırladığınız şəkli buraya yükləyin. Şəkil varsa, mətn sahələri arxa fonda görünür.',
+      options: {
+        hotspot: true,
+      },
+    },
+
+    // --- MƏTN SAHƏLƏRİ ---
+    {
+      name: 'badge',
+      title: '🏷 Nişan mətni',
+      type: 'string',
+      description: 'Məsələn: MƏHDUD ZAMAN, YENİ, XÜSUSI TEKLİF',
+    },
+    {
+      name: 'title',
+      title: '✏️ Başlıq',
+      type: 'string',
+      description: 'Məsələn: BLACK FRIDAY, YAZ ENDİRİMİ, 8 MART',
+    },
+    {
+      name: 'subtitle',
+      title: '📝 Alt başlıq',
+      type: 'string',
+      description: 'Məsələn: Bütün məhsullarda 50% ENDİRİM',
+    },
+    {
+      name: 'titleColor',
+      title: '🎨 Başlıq rəngi',
+      type: 'string',
+      description: 'Hex kod: #FF8C00 (narıncı), #FFFFFF (ağ), #1A1A1A (qara)',
+      initialValue: '#FF8C00',
+    },
+    {
+      name: 'backgroundColor',
+      title: '🎨 Arxa fon rəngi (şəkil yoxdursa)',
+      type: 'string',
+      description: 'Hex kod: #1A1A1A (qara), #FF8C00 (narıncı). Şəkil varsa bu sahə istifadə edilmir.',
+      initialValue: '#1A1A1A',
+    },
+
     // --- DÜYMƏ ---
     {
       name: 'buttonText',
       title: '🔘 Düymə mətni',
       type: 'string',
-      description: 'Məsələn: Sifariş et, Dəstək ol, İndi kəşf et',
+      description: 'Məsələn: Sifariş et, Dəstək ol, İndi kəşf et, Alışa başla',
     },
     {
       name: 'buttonCategory',
       title: '📂 Düymə kateqoriyası',
       type: 'string',
-      description: 'Düyməyə basdıqda hansı kateqoriya açılsın? (Sanity-dəki kateqoriya adını dəqiq yazın. Boş buraxsanız bütün məhsullar açılır)',
+      description: 'Düyməyə basdıqda hansı kateqoriya açılsın? Sanity-dəki kateqoriya adını dəqiq yazın. Boş buraxsanız bütün məhsullar açılır.',
     },
 
-    // --- AKTİV/DEAKTIV ---
+    // --- AKTİV/SIRA ---
     {
       name: 'isActive',
       title: '✅ Aktiv?',
@@ -85,8 +119,6 @@ const promoBanner = {
       description: 'Baner saytda göstərilsin?',
       initialValue: true,
     },
-
-    // --- SIRA ---
     {
       name: 'order',
       title: '🔢 Sıra',
@@ -97,12 +129,13 @@ const promoBanner = {
   ],
   preview: {
     select: {
-      title: 'buttonText',
+      title: 'title',
+      subtitle: 'subtitle',
       isActive: 'isActive',
       size: 'size',
       media: 'image',
     },
-    prepare({ title, isActive, size, media }) {
+    prepare({ title, subtitle, isActive, size, media }) {
       const sizeLabels = {
         'square': 'Kvadrat',
         'wide-thin': 'Geniş-İncə',
@@ -112,8 +145,8 @@ const promoBanner = {
         'tall-large': 'Şaquli-Böyük',
       }
       return {
-        title: title || 'Baner',
-        subtitle: `${sizeLabels[size] || size} | ${isActive ? '✅ Aktiv' : '❌ Deaktiv'}`,
+        title: title || subtitle || 'Baner',
+        subtitle: `${sizeLabels[size] || 'Ölçü seçilməyib'} | ${isActive ? '✅ Aktiv' : '❌ Deaktiv'}`,
         media: media,
       }
     },
