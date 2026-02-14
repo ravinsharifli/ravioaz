@@ -18,6 +18,16 @@ import imageUrlBuilder from '@sanity/image-url';
 const builder = imageUrlBuilder(client);
 const urlFor = (source: any) => builder.image(source);
 
+// Ölçü konfiqurasiyası
+const SIZE_CONFIG: Record<string, { aspectRatio: string; canvasSize: string }> = {
+  'square':       { aspectRatio: 'aspect-square',     canvasSize: '500x500px' },
+  'wide-thin':    { aspectRatio: 'aspect-[4/1]',      canvasSize: '1200x300px' },
+  'wide-medium':  { aspectRatio: 'aspect-[3/1]',      canvasSize: '1200x400px' },
+  'wide-thick':   { aspectRatio: 'aspect-[2/1]',      canvasSize: '1200x600px' },
+  'tall-small':   { aspectRatio: 'aspect-[2/3]',      canvasSize: '400x600px' },
+  'tall-large':   { aspectRatio: 'aspect-[1/2]',      canvasSize: '400x800px' },
+};
+
 const App: React.FC = () => {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [sanityProducts, setSanityProducts] = useState<Product[]>([]);
@@ -33,7 +43,6 @@ const App: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Məhsulları çək
         const productsQuery = `*[_type == "product"]{
           "id": _id,
           name,
@@ -50,31 +59,21 @@ const App: React.FC = () => {
         const products = await client.fetch(productsQuery);
         setSanityProducts(products);
 
-        // Premium məhsulları ayır
         const premiums = products
           .filter((p: any) => p.isPremium)
           .sort((a: any, b: any) => (a.premiumOrder || 999) - (b.premiumOrder || 999))
           .slice(0, 3);
         setPremiumProducts(premiums);
 
-        // Kateqoriyaları çək
-        const categoriesQuery = `*[_type == "category"]{
-          name,
-          description
-        }`;
+        const categoriesQuery = `*[_type == "category"]{ name, description }`;
         const categories = await client.fetch(categoriesQuery);
         setSanityCategories([
           { name: 'Bütün məhsullar', sub: '' },
           ...categories.map((cat: any) => ({ name: cat.name, sub: cat.description || '' }))
         ]);
 
-        // Kampaniya banerlərini çək
         const bannersQuery = `*[_type == "promoBanner" && isActive == true] | order(order asc){
-          image,
-          buttonText,
-          buttonCategory,
-          isActive,
-          order
+          image, buttonText, buttonCategory, isActive, order, size
         }`;
         const banners = await client.fetch(bannersQuery);
         setPromoBanners(banners);
@@ -82,7 +81,6 @@ const App: React.FC = () => {
         console.error("Sanity xətası:", error);
       }
     };
-
     fetchData();
   }, []);
 
@@ -127,48 +125,93 @@ const App: React.FC = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleBannerButtonClick = (buttonCategory: string) => {
+    const target = buttonCategory?.trim() || 'Bütün məhsullar';
+    setActiveCategory(target);
+    setCurrentView('home');
+    window.scrollTo({ top: 400, behavior: 'smooth' });
+  };
+
   // Kampaniya banerlərini göstər
   const renderPromoBanners = () => {
     if (promoBanners.length === 0) return null;
 
+    // Şaquli banerləri sağa, geniş banerləri tam genişliyə qoy
+    const wideBanners = promoBanners.filter(b => !b.size?.startsWith('tall') && b.size !== 'square');
+    const tallAndSquareBanners = promoBanners.filter(b => b.size?.startsWith('tall') || b.size === 'square');
+
     return (
       <div className="flex flex-col gap-4 mb-8">
-        {promoBanners.map((banner, index) => (
-          <div
-            key={index}
-            className="relative w-full rounded-[2.5rem] overflow-hidden shadow-2xl"
-            style={{ aspectRatio: '3/1' }}
-          >
-            {/* Baner şəkli */}
-            {banner.image && (
-              <img
-                src={urlFor(banner.image).width(1200).height(400).url()}
-                alt="Kampaniya"
-                className="w-full h-full object-cover"
-              />
-            )}
+        {/* Geniş banerlər - tam genişlik */}
+        {wideBanners.map((banner, index) => {
+          const sizeConfig = SIZE_CONFIG[banner.size] || SIZE_CONFIG['wide-medium'];
+          return (
+            <div
+              key={`wide-${index}`}
+              className={`relative w-full rounded-[2rem] overflow-hidden shadow-xl ${sizeConfig.aspectRatio}`}
+            >
+              {banner.image ? (
+                <img
+                  src={urlFor(banner.image).url()}
+                  alt="Kampaniya"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-r from-[#1A1A1A] to-[#333]" />
+              )}
+              {banner.buttonText && (
+                <div className="absolute inset-0 flex items-end justify-start p-6">
+                  <button
+                    onClick={() => handleBannerButtonClick(banner.buttonCategory)}
+                    className="bg-white text-[#1A1A1A] px-5 py-2.5 rounded-2xl font-black text-sm hover:scale-105 transition-transform shadow-lg hover:bg-[#FF8C00] hover:text-white"
+                  >
+                    {banner.buttonText} →
+                  </button>
+                </div>
+              )}
+            </div>
+          );
+        })}
 
-            {/* Düymə */}
-            {banner.buttonText && (
-              <div className="absolute inset-0 flex items-end justify-start p-8">
-                <button
-                  onClick={() => {
-                    setActiveCategory(banner.buttonCategory || 'Bütün məhsullar');
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                  }}
-                  className="bg-white text-[#1A1A1A] px-6 py-3 rounded-2xl font-black text-sm hover:scale-105 transition-transform shadow-lg"
+        {/* Kvadrat və şaquli banerlər - yan-yana */}
+        {tallAndSquareBanners.length > 0 && (
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {tallAndSquareBanners.map((banner, index) => {
+              const sizeConfig = SIZE_CONFIG[banner.size] || SIZE_CONFIG['square'];
+              return (
+                <div
+                  key={`tall-${index}`}
+                  className={`relative w-full rounded-[2rem] overflow-hidden shadow-xl ${sizeConfig.aspectRatio}`}
                 >
-                  {banner.buttonText} →
-                </button>
-              </div>
-            )}
+                  {banner.image ? (
+                    <img
+                      src={urlFor(banner.image).url()}
+                      alt="Kampaniya"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-b from-[#1A1A1A] to-[#333]" />
+                  )}
+                  {banner.buttonText && (
+                    <div className="absolute inset-0 flex items-end justify-start p-4">
+                      <button
+                        onClick={() => handleBannerButtonClick(banner.buttonCategory)}
+                        className="bg-white text-[#1A1A1A] px-4 py-2 rounded-xl font-black text-xs hover:scale-105 transition-transform shadow-lg hover:bg-[#FF8C00] hover:text-white"
+                      >
+                        {banner.buttonText} →
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
-        ))}
+        )}
       </div>
     );
   };
 
-  // Premium məhsullar layout-u
+  // Premium məhsullar
   const renderPremiumProducts = () => {
     if (premiumProducts.length === 0) return null;
 
@@ -178,15 +221,10 @@ const App: React.FC = () => {
 
     return (
       <section className="py-8">
-        <div className="flex items-center justify-between mb-8">
-          <h2 className="text-3xl font-black text-[#1A1A1A] tracking-tight">Premium məhsullar</h2>
-        </div>
+        <h2 className="text-3xl font-black text-[#1A1A1A] tracking-tight mb-8">Premium məhsullar</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {large && (
-            <div
-              onClick={() => setSelectedProduct(large)}
-              className="bg-[#1A1A1A] rounded-[2.5rem] p-8 relative overflow-hidden cursor-pointer h-[280px] md:h-[400px] shadow-2xl"
-            >
+            <div onClick={() => setSelectedProduct(large)} className="bg-[#1A1A1A] rounded-[2.5rem] p-8 relative overflow-hidden cursor-pointer h-[280px] md:h-[400px] shadow-2xl">
               <div className="relative z-10 h-full flex flex-col justify-center text-white">
                 <h3 className="text-3xl font-black mb-1">{large.name}</h3>
                 {large.discountPrice ? (
@@ -198,10 +236,10 @@ const App: React.FC = () => {
                   <span className="text-3xl font-black text-[#FF8C00]">{large.price} AZN</span>
                 )}
               </div>
-              {large.images && large.images[0] && (
+              {large.images?.[0] && (
                 <>
                   <img src={large.images[0]} className="absolute right-0 top-0 h-full w-[45%] object-cover opacity-60 rounded-l-[5rem]" alt={large.name} />
-                  <div className="absolute inset-0 bg-gradient-to-r from-[#1A1A1A] via-[#1A1A1A]/90 to-transparent"></div>
+                  <div className="absolute inset-0 bg-gradient-to-r from-[#1A1A1A] via-[#1A1A1A]/90 to-transparent" />
                 </>
               )}
             </div>
@@ -209,10 +247,7 @@ const App: React.FC = () => {
 
           <div className="flex flex-col gap-6">
             {smallTop && (
-              <div
-                onClick={() => setSelectedProduct(smallTop)}
-                className="bg-gradient-to-br from-[#2A2A2A] to-[#1A1A1A] rounded-[2.5rem] p-6 relative overflow-hidden cursor-pointer h-[180px] md:h-[192px] shadow-xl"
-              >
+              <div onClick={() => setSelectedProduct(smallTop)} className="bg-gradient-to-br from-[#2A2A2A] to-[#1A1A1A] rounded-[2.5rem] p-6 relative overflow-hidden cursor-pointer h-[192px] shadow-xl">
                 <div className="relative z-10 h-full flex flex-col justify-center text-white">
                   <h3 className="text-xl font-black mb-1">{smallTop.name}</h3>
                   {smallTop.discountPrice ? (
@@ -224,20 +259,17 @@ const App: React.FC = () => {
                     <span className="text-2xl font-black text-[#FF8C00]">{smallTop.price} AZN</span>
                   )}
                 </div>
-                {smallTop.images && smallTop.images[0] && (
+                {smallTop.images?.[0] && (
                   <>
                     <img src={smallTop.images[0]} className="absolute right-0 top-0 h-full w-[35%] object-cover opacity-40" alt={smallTop.name} />
-                    <div className="absolute inset-0 bg-gradient-to-r from-[#2A2A2A] via-[#2A2A2A]/90 to-transparent"></div>
+                    <div className="absolute inset-0 bg-gradient-to-r from-[#2A2A2A] via-[#2A2A2A]/90 to-transparent" />
                   </>
                 )}
               </div>
             )}
 
             {smallBottom && (
-              <div
-                onClick={() => setSelectedProduct(smallBottom)}
-                className="bg-gradient-to-br from-[#FF8C00] to-[#FF6B00] rounded-[2.5rem] p-6 relative overflow-hidden cursor-pointer h-[180px] md:h-[192px] shadow-xl"
-              >
+              <div onClick={() => setSelectedProduct(smallBottom)} className="bg-gradient-to-br from-[#FF8C00] to-[#FF6B00] rounded-[2.5rem] p-6 relative overflow-hidden cursor-pointer h-[192px] shadow-xl">
                 <div className="relative z-10 h-full flex flex-col justify-center text-white">
                   <h3 className="text-xl font-black mb-1">{smallBottom.name}</h3>
                   {smallBottom.discountPrice ? (
@@ -249,10 +281,10 @@ const App: React.FC = () => {
                     <span className="text-2xl font-black text-white">{smallBottom.price} AZN</span>
                   )}
                 </div>
-                {smallBottom.images && smallBottom.images[0] && (
+                {smallBottom.images?.[0] && (
                   <>
                     <img src={smallBottom.images[0]} className="absolute right-0 top-0 h-full w-[35%] object-cover opacity-30" alt={smallBottom.name} />
-                    <div className="absolute inset-0 bg-gradient-to-r from-[#FF8C00] via-[#FF8C00]/90 to-transparent"></div>
+                    <div className="absolute inset-0 bg-gradient-to-r from-[#FF8C00] via-[#FF8C00]/90 to-transparent" />
                   </>
                 )}
               </div>
@@ -324,7 +356,6 @@ const App: React.FC = () => {
                     </p>
                   </div>
                 )}
-
                 <div className="pb-16">
                   <ProductGrid
                     products={filteredProducts}
@@ -339,9 +370,7 @@ const App: React.FC = () => {
 
         {currentView === 'about' && <AboutUs />}
         {currentView === 'contact' && <Contact />}
-        {currentView === 'delivery' && (
-          <DeliveryInfo onHomeClick={() => navigateTo('home')} />
-        )}
+        {currentView === 'delivery' && <DeliveryInfo onHomeClick={() => navigateTo('home')} />}
         {currentView === 'reviews' && <CustomerReviews />}
       </main>
 
@@ -349,15 +378,9 @@ const App: React.FC = () => {
         <ProductModal
           product={editingCartItem || selectedProduct!}
           initialData={editingCartItem || undefined}
-          onClose={() => {
-            setSelectedProduct(null);
-            setEditingCartItem(null);
-          }}
+          onClose={() => { setSelectedProduct(null); setEditingCartItem(null); }}
           onAddToCart={addToCart}
-          onOpenCategory={(cat) => {
-            setActiveCategory(cat);
-            setCurrentView('home');
-          }}
+          onOpenCategory={(cat) => { setActiveCategory(cat); setCurrentView('home'); }}
         />
       )}
 
