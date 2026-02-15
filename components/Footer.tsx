@@ -1,7 +1,5 @@
-
 import React from 'react';
 import { Instagram, Mail, Phone, MapPin, MessageSquare } from 'lucide-react';
-import { COLORS } from '../constants';
 
 const TikTokIcon = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
@@ -20,17 +18,31 @@ const Footer: React.FC<FooterProps> = ({ onReviewsClick }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 mb-16">
           {/* Brand Info */}
           <div className="space-y-6">
-            <span className="text-2xl font-black tracking-tighter">
-              RA<span style={{ color: COLORS.primary }}>VIO</span>
-            </span>
+            <img 
+              src="/ravio-logo.jpeg" 
+              alt="Ravio.az" 
+              className="h-14 w-auto object-contain"
+            />
             <p className="text-gray-400 text-sm leading-relaxed">
               Azərbaycanın ən minimalist və premium alış-veriş platforması. Ravio ilə həm tərzini tamamla, həm də sahibsiz heyvanlara dəstək ol.
             </p>
             <div className="flex space-x-4">
-              <a href="https://instagram.com/rawio_shop" target="_blank" rel="noreferrer" className="h-10 w-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-[#FF8C00] transition-colors outline-none">
+              <a 
+                href="https://instagram.com/ravio.az" 
+                target="_blank" 
+                rel="noreferrer" 
+                className="h-10 w-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-[#FF8C00] transition-colors outline-none"
+                title="Instagram: @ravio.az"
+              >
                 <Instagram className="h-5 w-5" />
               </a>
-              <a href="https://tiktok.com/@rawio_shop" target="_blank" rel="noreferrer" className="h-10 w-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-[#FF8C00] transition-colors outline-none">
+              <a 
+                href="https://tiktok.com/@ravio.az" 
+                target="_blank" 
+                rel="noreferrer" 
+                className="h-10 w-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-[#FF8C00] transition-colors outline-none"
+                title="TikTok: @ravio.az"
+              >
                 <TikTokIcon className="h-5 w-5" />
               </a>
             </div>
@@ -65,7 +77,7 @@ const Footer: React.FC<FooterProps> = ({ onReviewsClick }) => {
             </div>
             <div className="flex items-center space-x-3 text-gray-400 text-sm">
               <Mail className="h-5 w-5 text-[#FF8C00]" />
-              <span className="font-bold">info@ravio.shop</span>
+              <span className="font-bold">info@ravio.az</span>
             </div>
             <div className="flex items-start space-x-3 text-gray-400 text-sm">
               <MapPin className="h-5 w-5 text-[#FF8C00] mt-1" />
@@ -75,9 +87,9 @@ const Footer: React.FC<FooterProps> = ({ onReviewsClick }) => {
         </div>
         
         <div className="border-t border-white/5 pt-8 flex flex-col md:flex-row justify-between items-center text-xs text-gray-500">
-          <p className="font-medium">© 2024 Ravio.shop. Bütün hüquqlar qorunur.</p>
+          <p className="font-medium">© 2025 Ravio.az. Bütün hüquqlar qorunur.</p>
           <div className="flex items-center space-x-4 mt-4 md:mt-0">
-             <span className="font-black text-gray-400 tracking-widest">@RAWIO_SHOP</span>
+            <span className="font-black text-gray-400 tracking-widest">@RAVIO.AZ</span>
           </div>
         </div>
       </div>

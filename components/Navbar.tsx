@@ -1,7 +1,5 @@
-
 import React from 'react';
 import { ShoppingCart, Phone, Users, PackageCheck } from 'lucide-react';
-import { COLORS } from '../constants';
 
 interface NavbarProps {
   cartCount: number;
@@ -29,9 +27,11 @@ const Navbar: React.FC<NavbarProps> = ({
             onClick={onLogoClick}
             className="flex items-center flex-shrink-0 hover:opacity-80 transition-opacity outline-none"
           >
-            <span className="text-3xl font-black tracking-tighter" style={{ color: COLORS.secondary }}>
-              RA<span style={{ color: COLORS.primary }}>VIO</span>
-            </span>
+            <img 
+              src="/ravio-logo.jpeg" 
+              alt="Ravio.az" 
+              className="h-10 sm:h-12 w-auto object-contain"
+            />
           </button>
 
           {/* Desktop Nav */}
