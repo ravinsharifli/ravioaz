@@ -30,23 +30,23 @@ const Contact: React.FC = () => {
             </div>
           </a>
 
-          <a href="https://instagram.com/rawio_shop" target="_blank" rel="noreferrer" className="flex items-center gap-6 p-8 bg-white border border-gray-100 rounded-[2.5rem] hover:border-orange-200 hover:shadow-xl hover:shadow-orange-50 transition-all group">
+          <a href="https://instagram.com/ravio.az" target="_blank" rel="noreferrer" className="flex items-center gap-6 p-8 bg-white border border-gray-100 rounded-[2.5rem] hover:border-orange-200 hover:shadow-xl hover:shadow-orange-50 transition-all group">
             <div className="bg-orange-50 p-5 rounded-2xl group-hover:bg-[#FF8C00] transition-colors">
               <Instagram className="h-8 w-8 text-[#FF8C00] group-hover:text-white" />
             </div>
             <div>
               <p className="text-gray-400 text-xs font-black uppercase tracking-widest mb-1">Instagram</p>
-              <h3 className="text-2xl font-black text-[#1A1A1A]">@rawio_shop</h3>
+              <h3 className="text-2xl font-black text-[#1A1A1A]">@ravio.az</h3>
             </div>
           </a>
 
-          <a href="https://tiktok.com/@rawio_shop" target="_blank" rel="noreferrer" className="flex items-center gap-6 p-8 bg-white border border-gray-100 rounded-[2.5rem] hover:border-orange-200 hover:shadow-xl hover:shadow-orange-50 transition-all group">
+          <a href="https://tiktok.com/@ravio.az" target="_blank" rel="noreferrer" className="flex items-center gap-6 p-8 bg-white border border-gray-100 rounded-[2.5rem] hover:border-orange-200 hover:shadow-xl hover:shadow-orange-50 transition-all group">
             <div className="bg-orange-50 p-5 rounded-2xl group-hover:bg-[#FF8C00] transition-colors">
               <TikTokIcon className="h-8 w-8 text-[#FF8C00] group-hover:text-white" />
             </div>
             <div>
               <p className="text-gray-400 text-xs font-black uppercase tracking-widest mb-1">TikTok</p>
-              <h3 className="text-2xl font-black text-[#1A1A1A]">@rawio_shop</h3>
+              <h3 className="text-2xl font-black text-[#1A1A1A]">@ravio.az</h3>
             </div>
           </a>
         </div>
