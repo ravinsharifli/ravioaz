@@ -50,7 +50,7 @@ const App: React.FC = () => {
           discountPrice,
           rating,
           description,
-          "images": [image.asset->url],
+          "images": images[].asset->url,
           isPremium,
           premiumOrder,
           premiumSize

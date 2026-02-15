@@ -32,12 +32,19 @@ export default {
       type: 'text',
     },
     {
-      name: 'image',
-      title: 'Şəkil',
-      type: 'image',
-      options: {
-        hotspot: true,
-      },
+      name: 'images',
+      title: '🖼 Şəkillər (minimum 1, maksimum 5)',
+      type: 'array',
+      description: 'Minimum 1, maksimum 5 şəkil yükləyin. İlk şəkil əsas şəkil olacaq.',
+      of: [
+        {
+          type: 'image',
+          options: {
+            hotspot: true,
+          },
+        }
+      ],
+      validation: Rule => Rule.min(1).max(5),
     },
     {
       name: 'isPremium',
@@ -73,7 +80,7 @@ export default {
       title: 'name',
       price: 'price',
       discountPrice: 'discountPrice',
-      media: 'image',
+      media: 'images.0',
       isPremium: 'isPremium',
     },
     prepare({ title, price, discountPrice, media, isPremium }) {
@@ -81,7 +88,6 @@ export default {
       const priceText = discountPrice 
         ? `${discountPrice} AZN (${discount}% endirim)` 
         : `${price} AZN`;
-      
       return {
         title: title,
         subtitle: `${priceText} ${isPremium ? '⭐ Premium' : ''}`,
