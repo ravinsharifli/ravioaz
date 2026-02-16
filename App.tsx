@@ -304,9 +304,33 @@ const App: React.FC = () => {
       />
       <main className="flex-grow">
         {currentView === 'home' && (
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 lg:pt-8">
+
+            {/* MOBİL: Üfüqi sürüşən kateqoriya düymələri */}
+            <div className="lg:hidden mb-4 -mx-4 px-4">
+              <div className="flex gap-2 overflow-x-auto pb-2" style={{scrollbarWidth:'none'}}>
+                {sanityCategories.map((cat) => (
+                  <button
+                    key={cat.name}
+                    onClick={() => {
+                      setActiveCategory(cat.name);
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    className={`flex-shrink-0 px-4 py-2 rounded-2xl text-xs font-black transition-all ${
+                      activeCategory === cat.name
+                        ? 'bg-[#FF8C00] text-white shadow-lg'
+                        : 'bg-white text-gray-500 border border-gray-200'
+                    }`}
+                  >
+                    {cat.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <div className="flex flex-col lg:flex-row gap-8 items-start">
-              <aside className="lg:w-72 w-full flex-shrink-0 lg:sticky lg:top-24">
+              {/* DESKTOP: Sol panel kateqoriyalar */}
+              <aside className="hidden lg:block lg:w-72 flex-shrink-0 lg:sticky lg:top-24">
                 <div className="bg-white border border-gray-100 rounded-[2.5rem] p-8 shadow-sm">
                   <h3 className="text-xl font-black mb-6 text-[#1A1A1A] tracking-tight">Kateqoriyalar</h3>
                   <nav className="space-y-1">
