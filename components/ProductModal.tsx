@@ -142,7 +142,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
                   <Sparkles className="h-4 w-4 text-[#FF8C00] flex-shrink-0" />
                   <h4 className="text-sm font-black text-[#1A1A1A]">Sizə özəl endirim!</h4>
                 </div>
-                <p className="text-xs text-gray-500 font-bold">🎁 Sizə özəl 10% endirimi aktivləşdirin:</p>
+                <p className="text-xs text-gray-500 font-bold">🎁 Sizə özəl endirimi aktivləşdirin:</p>
 
                 {/* Radio seçimlər */}
                 <div className="space-y-2">
