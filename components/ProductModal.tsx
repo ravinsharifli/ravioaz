@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, ChevronLeft, ChevronRight, Edit3, User, Truck, Clock, Zap, Info, ShoppingCart, MapPin, Gift, Star } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Edit3, User, Truck, Clock, Zap, Info, ShoppingCart, MapPin, Gift, Sparkles } from 'lucide-react';
 import { Product, CartItem } from '../types';
 
 interface ProductModalProps {
@@ -17,7 +17,11 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
   const [phone, setPhone] = useState(initialData?.phone || '');
   const [birthDate, setBirthDate] = useState(initialData?.birthDate || '');
   const [isGift, setIsGift] = useState<boolean | null>(initialData?.isGift !== undefined ? initialData.isGift : null);
-  const [isFirstOrSecondOrder, setIsFirstOrSecondOrder] = useState<boolean | null>(initialData?.isFirstOrSecondOrder !== undefined ? initialData.isFirstOrSecondOrder : null);
+  // 'new' = yeni müştəri, 'loyal' = daimi müştəri, null = seçilməyib
+  const [customerType, setCustomerType] = useState<'new' | 'loyal' | null>(
+    initialData?.isFirstOrSecondOrder === true ? 'new' : initialData?.isFirstOrSecondOrder === false ? null : null
+  );
+  const [showCustomerTypeError, setShowCustomerTypeError] = useState(false);
   const [deliveryType, setDeliveryType] = useState<'standard' | 'urgent' | 'express'>(initialData?.deliveryType || 'standard');
   const [deliveryDetails, setDeliveryDetails] = useState(initialData?.deliveryDetails || '');
 
@@ -30,21 +34,34 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
   const basePrice = discountPrice || product.price;
   const discountPercent = discountPrice ? Math.round(((product.price - discountPrice) / product.price) * 100) : 0;
   const getDeliveryPrice = () => deliveryType === 'urgent' ? 5.49 : deliveryType === 'express' ? 9.99 : 0;
-  const getLoyaltyDiscount = () => isFirstOrSecondOrder ? basePrice * 0.1 : 0;
+  // Həm yeni həm daimi müştəriyə 10% endirim
+  const getLoyaltyDiscount = () => customerType !== null ? basePrice * 0.1 : 0;
   const calculateTotal = () => basePrice - getLoyaltyDiscount() + getDeliveryPrice();
 
   const handleAddToCartClick = () => {
+    if (customerType === null) {
+      setShowCustomerTypeError(true);
+      // Endirim bölməsinə scroll et
+      document.getElementById('customer-type-section')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
     onAddToCart({
       ...product,
       cartId: initialData?.cartId || Math.random().toString(36).substr(2, 9),
       quantity: initialData?.quantity || 1,
       customText, customerName, phone, birthDate,
-      isGift: isGift!, isFirstOrSecondOrder: isFirstOrSecondOrder!,
+      isGift: isGift!,
+      isFirstOrSecondOrder: customerType === 'new',
       deliveryType, deliveryDetails
     });
   };
 
-  const isFormValid = customerName && phone && birthDate && isGift !== null && isFirstOrSecondOrder !== null && deliveryDetails;
+  const isFormValid = customerName && phone && birthDate && isGift !== null && deliveryDetails;
+
+  const customerTypeMessages = {
+    new: 'Bizi seçdiyiniz üçün 10% xoş gəldin endirimi!',
+    loyal: 'Yenidən bizimlə olduğunuz üçün 10% sadiqlik endirimi!'
+  };
 
   return (
     <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md animate-in fade-in duration-300 overflow-y-auto">
@@ -56,7 +73,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
             <X className="h-5 w-5" />
           </button>
 
-          {/* ŞƏKİL HISSƏSI */}
+          {/* ŞƏKİL HİSSƏSİ */}
           <div className="md:w-1/2 relative bg-gray-100 flex flex-col flex-shrink-0 md:border-r border-gray-100 md:rounded-l-[3rem] overflow-hidden">
             <div className="relative overflow-hidden" style={{height: 'min(75vw, 440px)'}}>
               {images[currentImgIndex] ? (
@@ -71,15 +88,9 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
               )}
               {images.length > 1 && (
                 <>
-                  <button onClick={prevImg} className="absolute left-3 top-1/2 -translate-y-1/2 p-2 bg-white/80 hover:bg-white rounded-full shadow transition-all outline-none">
-                    <ChevronLeft className="h-5 w-5" />
-                  </button>
-                  <button onClick={nextImg} className="absolute right-3 top-1/2 -translate-y-1/2 p-2 bg-white/80 hover:bg-white rounded-full shadow transition-all outline-none">
-                    <ChevronRight className="h-5 w-5" />
-                  </button>
-                  <div className="absolute bottom-3 right-3 bg-black/50 text-white text-xs font-black px-2 py-1 rounded-full">
-                    {currentImgIndex + 1}/{images.length}
-                  </div>
+                  <button onClick={prevImg} className="absolute left-3 top-1/2 -translate-y-1/2 p-2 bg-white/80 hover:bg-white rounded-full shadow transition-all outline-none"><ChevronLeft className="h-5 w-5" /></button>
+                  <button onClick={nextImg} className="absolute right-3 top-1/2 -translate-y-1/2 p-2 bg-white/80 hover:bg-white rounded-full shadow transition-all outline-none"><ChevronRight className="h-5 w-5" /></button>
+                  <div className="absolute bottom-3 right-3 bg-black/50 text-white text-xs font-black px-2 py-1 rounded-full">{currentImgIndex + 1}/{images.length}</div>
                 </>
               )}
             </div>
@@ -94,7 +105,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
             )}
           </div>
 
-          {/* MƏLUMAT HISSƏSI */}
+          {/* MƏLUMAT HİSSƏSİ */}
           <div className="md:w-1/2 flex flex-col overflow-y-auto bg-white md:rounded-r-[3rem]">
             <div className="p-5 md:p-8 space-y-5">
 
@@ -122,33 +133,60 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
                 </div>
               </section>
 
-              {/* 🎁 İLK/İKİNCİ SİFARİŞ - özəl endirim */}
-              <section className="p-4 rounded-[1.5rem] space-y-3 border-2 border-orange-200 bg-gradient-to-br from-orange-50 to-white">
-                <div className="flex items-start gap-3">
-                  <div className="bg-[#FF8C00] p-2 rounded-xl flex-shrink-0">
-                    <Star className="h-4 w-4 text-white" />
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-black text-[#1A1A1A]">Bu sizin ilk və ya ikinci sifarişinizdir?</h4>
-                    <p className="text-xs text-[#FF8C00] font-bold mt-0.5">
-                      Yeni müştərilərimizə və daimi müştərilərimizin ikinci sifarişinə xüsusi olaraq <span className="font-black underline">10% endirim</span> hədiyyə edirik! 🎉
-                    </p>
-                  </div>
+              {/* 🎁 SİZƏ ÖZƏL ENDİRİM - qiymət altında, radio düymələr */}
+              <section
+                id="customer-type-section"
+                className={`p-4 rounded-[1.5rem] space-y-3 border-2 transition-all ${showCustomerTypeError && customerType === null ? 'border-red-400 bg-red-50' : 'border-orange-200 bg-gradient-to-br from-orange-50 to-white'}`}
+              >
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-[#FF8C00] flex-shrink-0" />
+                  <h4 className="text-sm font-black text-[#1A1A1A]">Sizə özəl endirim!</h4>
                 </div>
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => setIsFirstOrSecondOrder(true)}
-                    className={`flex-1 py-3 rounded-2xl text-xs font-black transition-all ${isFirstOrSecondOrder === true ? 'bg-[#FF8C00] text-white shadow-lg shadow-orange-200' : 'bg-white text-[#1A1A1A] border-2 border-orange-200'}`}
+                <p className="text-xs text-gray-500 font-bold">🎁 Sizə özəl 10% endirimi aktivləşdirin:</p>
+
+                {/* Radio seçimlər */}
+                <div className="space-y-2">
+                  {/* Yeni müştəri */}
+                  <label
+                    onClick={() => { setCustomerType('new'); setShowCustomerTypeError(false); }}
+                    className={`flex items-start gap-3 p-3.5 rounded-2xl border-2 cursor-pointer transition-all ${customerType === 'new' ? 'border-[#FF8C00] bg-orange-50' : 'border-gray-200 bg-white hover:border-orange-200'}`}
                   >
-                    BƏLİ ✓ (10% ENDİRİM)
-                  </button>
-                  <button
-                    onClick={() => setIsFirstOrSecondOrder(false)}
-                    className={`flex-1 py-3 rounded-2xl text-xs font-black transition-all ${isFirstOrSecondOrder === false ? 'bg-[#1A1A1A] text-white shadow-lg' : 'bg-white text-[#1A1A1A] border-2 border-gray-200'}`}
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all ${customerType === 'new' ? 'border-[#FF8C00]' : 'border-gray-300'}`}>
+                      {customerType === 'new' && <div className="w-2.5 h-2.5 rounded-full bg-[#FF8C00]" />}
+                    </div>
+                    <div>
+                      <p className="text-xs font-black text-[#1A1A1A]">Yeni müştəriyəm</p>
+                      <p className="text-[11px] font-bold text-gray-400">İlk alış-verişiniz üçün</p>
+                      {customerType === 'new' && (
+                        <p className="text-[11px] font-black text-[#FF8C00] mt-1">"Bizi seçdiyiniz üçün 10% xoş gəldin endirimi!" 🎉</p>
+                      )}
+                    </div>
+                  </label>
+
+                  {/* Daimi müştəri */}
+                  <label
+                    onClick={() => { setCustomerType('loyal'); setShowCustomerTypeError(false); }}
+                    className={`flex items-start gap-3 p-3.5 rounded-2xl border-2 cursor-pointer transition-all ${customerType === 'loyal' ? 'border-[#FF8C00] bg-orange-50' : 'border-gray-200 bg-white hover:border-orange-200'}`}
                   >
-                    XEYR
-                  </button>
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all ${customerType === 'loyal' ? 'border-[#FF8C00]' : 'border-gray-300'}`}>
+                      {customerType === 'loyal' && <div className="w-2.5 h-2.5 rounded-full bg-[#FF8C00]" />}
+                    </div>
+                    <div>
+                      <p className="text-xs font-black text-[#1A1A1A]">Daimi müştəriyəm</p>
+                      <p className="text-[11px] font-bold text-gray-400">Sadiqliyiniz üçün təşəkkür edirik</p>
+                      {customerType === 'loyal' && (
+                        <p className="text-[11px] font-black text-[#FF8C00] mt-1">"Yenidən bizimlə olduğunuz üçün 10% sadiqlik endirimi!" ❤️</p>
+                      )}
+                    </div>
+                  </label>
                 </div>
+
+                {/* Xəta mesajı */}
+                {showCustomerTypeError && customerType === null && (
+                  <p className="text-xs font-black text-red-500 flex items-center gap-1">
+                    ⚠️ Zəhmət olmasa, müştəri növünü seçin
+                  </p>
+                )}
               </section>
 
               {/* Yazı */}
@@ -166,8 +204,6 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
                 </h4>
                 <input type="text" placeholder="Adınız" value={customerName} onChange={(e) => setCustomerName(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-100 focus:border-orange-200 rounded-xl outline-none font-bold text-sm placeholder:text-gray-300" />
                 <input type="tel" placeholder="Mobil Nömrəniz" value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-100 focus:border-orange-200 rounded-xl outline-none font-bold text-sm placeholder:text-gray-300" />
-
-                {/* 🎂 DOĞUM GÜNÜ - izahat ilə */}
                 <div className="space-y-1">
                   <input type="text" placeholder="Doğum Tarixi (12.05.1998)" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-100 focus:border-orange-200 rounded-xl outline-none font-bold text-sm placeholder:text-gray-300" />
                   <div className="flex items-start gap-2 px-1 pt-1">
@@ -179,71 +215,40 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
                 </div>
               </section>
 
-              {/* 🚚 ÇATDIRILMA - addım izahatı ilə */}
+              {/* Çatdırılma */}
               <section className="space-y-3 pt-3 border-t border-gray-100">
                 <h4 className="text-xs font-black text-[#1A1A1A] uppercase tracking-widest flex items-center gap-2">
                   <Truck className="h-3 w-3 text-[#FF8C00]" /> Çatdırılma Seçimi
                 </h4>
 
-                {/* Standart çatdırılma - addımlarla izahat */}
-                <button
-                  onClick={() => setDeliveryType('standard')}
-                  className={`w-full p-4 rounded-2xl border-2 transition-all text-left ${deliveryType === 'standard' ? 'border-[#FF8C00] bg-orange-50' : 'border-gray-100 bg-white'}`}
-                >
+                <button onClick={() => setDeliveryType('standard')} className={`w-full p-4 rounded-2xl border-2 transition-all text-left ${deliveryType === 'standard' ? 'border-[#FF8C00] bg-orange-50' : 'border-gray-100 bg-white'}`}>
                   <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-3">
-                      <Truck className="h-4 w-4 text-[#FF8C00]" />
-                      <p className="text-sm font-black text-[#1A1A1A]">Standart — 3 Gün</p>
-                    </div>
+                    <div className="flex items-center gap-3"><Truck className="h-4 w-4 text-[#FF8C00]" /><p className="text-sm font-black text-[#1A1A1A]">Standart — 3 Gün</p></div>
                     <span className="text-xs font-black text-green-600">PULSUZ</span>
                   </div>
-                  <div className="flex items-center gap-2 mt-2 pl-7">
-                    <div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-500">
-                      <span className="bg-[#FF8C00] text-white rounded-full w-4 h-4 flex items-center justify-center font-black text-[9px] flex-shrink-0">1</span>
-                      Hazırlanır
-                    </div>
-                    <span className="text-gray-300 font-black">→</span>
-                    <div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-500">
-                      <span className="bg-[#FF8C00] text-white rounded-full w-4 h-4 flex items-center justify-center font-black text-[9px] flex-shrink-0">2</span>
-                      Paketlənir
-                    </div>
-                    <span className="text-gray-300 font-black">→</span>
-                    <div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-500">
-                      <span className="bg-[#FF8C00] text-white rounded-full w-4 h-4 flex items-center justify-center font-black text-[9px] flex-shrink-0">3</span>
-                      Çatdırılır
-                    </div>
+                  <div className="flex items-center gap-2 pl-7 flex-wrap">
+                    {[['1','Hazırlanır'],['2','Paketlənir'],['3','Çatdırılır']].map(([n, label], i, arr) => (
+                      <React.Fragment key={n}>
+                        <div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-500">
+                          <span className="bg-[#FF8C00] text-white rounded-full w-4 h-4 flex items-center justify-center font-black text-[9px] flex-shrink-0">{n}</span>
+                          {label}
+                        </div>
+                        {i < arr.length - 1 && <span className="text-gray-300 font-black">→</span>}
+                      </React.Fragment>
+                    ))}
                   </div>
                 </button>
 
-                <button
-                  onClick={() => setDeliveryType('urgent')}
-                  className={`w-full flex items-center justify-between p-4 rounded-2xl border-2 transition-all ${deliveryType === 'urgent' ? 'border-[#FF8C00] bg-orange-50' : 'border-gray-100 bg-white'}`}
-                >
-                  <div className="flex items-center gap-3">
-                    <Clock className="h-4 w-4 text-[#FF8C00]" />
-                    <div className="text-left">
-                      <p className="text-sm font-black text-[#1A1A1A]">Təcili — 2 Gün</p>
-                      <p className="text-[10px] font-bold text-gray-500">Sürətləndirilmiş hazırlıq və çatdırılma</p>
-                    </div>
-                  </div>
+                <button onClick={() => setDeliveryType('urgent')} className={`w-full flex items-center justify-between p-4 rounded-2xl border-2 transition-all ${deliveryType === 'urgent' ? 'border-[#FF8C00] bg-orange-50' : 'border-gray-100 bg-white'}`}>
+                  <div className="flex items-center gap-3"><Clock className="h-4 w-4 text-[#FF8C00]" /><div className="text-left"><p className="text-sm font-black text-[#1A1A1A]">Təcili — 2 Gün</p><p className="text-[10px] font-bold text-gray-500">Sürətləndirilmiş hazırlıq</p></div></div>
                   <span className="text-xs font-black text-[#FF8C00]">+5.49 AZN</span>
                 </button>
 
-                <button
-                  onClick={() => setDeliveryType('express')}
-                  className={`w-full flex items-center justify-between p-4 rounded-2xl border-2 transition-all ${deliveryType === 'express' ? 'border-[#FF8C00] bg-orange-50' : 'border-gray-100 bg-white'}`}
-                >
-                  <div className="flex items-center gap-3">
-                    <Zap className="h-4 w-4 text-[#FF8C00]" />
-                    <div className="text-left">
-                      <p className="text-sm font-black text-[#1A1A1A]">Ekspress — 24 Saat</p>
-                      <p className="text-[10px] font-bold text-gray-500">Prioritet hazırlıq, eyni gün kuryer</p>
-                    </div>
-                  </div>
+                <button onClick={() => setDeliveryType('express')} className={`w-full flex items-center justify-between p-4 rounded-2xl border-2 transition-all ${deliveryType === 'express' ? 'border-[#FF8C00] bg-orange-50' : 'border-gray-100 bg-white'}`}>
+                  <div className="flex items-center gap-3"><Zap className="h-4 w-4 text-[#FF8C00]" /><div className="text-left"><p className="text-sm font-black text-[#1A1A1A]">Ekspress — 24 Saat</p><p className="text-[10px] font-bold text-gray-500">Prioritet hazırlıq, eyni gün kuryer</p></div></div>
                   <span className="text-xs font-black text-[#FF8C00]">+9.99 AZN</span>
                 </button>
 
-                {/* Ünvan */}
                 <div className="space-y-2 pt-1">
                   <h4 className="text-xs font-black text-[#1A1A1A] uppercase tracking-widest flex items-center gap-2">
                     <MapPin className="h-3 w-3 text-[#FF8C00]" /> Çatdırılma Ünvanı
@@ -252,7 +257,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
                 </div>
               </section>
 
-              {/* Hədiyyə + Yekun məbləğ */}
+              {/* Hədiyyə + Yekun */}
               <div className="sticky bottom-0 bg-white pt-4 pb-3 border-t border-gray-100 space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
