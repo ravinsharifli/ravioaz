@@ -12,16 +12,10 @@ interface CartDrawerProps {
 
 const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, items, onRemove, onEdit }) => {
   const total = items.reduce((sum, item) => {
-    // Əvvəlcə Sanity endirimini yoxla
     const discountPrice = (item as any).discountPrice;
     const basePrice = discountPrice || item.price;
-    
-    // Müştəri endirimi (10%)
     const loyaltyDiscount = item.isFirstOrSecondOrder ? basePrice * 0.1 : 0;
-    
-    // Çatdırılma qiyməti
     const deliveryPrice = item.deliveryType === 'urgent' ? 5.49 : item.deliveryType === 'express' ? 9.99 : 0;
-    
     return sum + (basePrice - loyaltyDiscount + deliveryPrice) * item.quantity;
   }, 0);
 
@@ -34,44 +28,48 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, items, onRemov
       const deliveryPrice = item.deliveryType === 'urgent' ? 5.49 : item.deliveryType === 'express' ? 9.99 : 0;
       const finalPrice = basePrice - loyaltyDiscount + deliveryPrice;
       
+      const productImageUrl = item.images && item.images[0] ? item.images[0] : '';
+      
       let priceBreakdown = `- Qiymət: ${basePrice.toFixed(2)} AZN\n`;
       
-      // Sanity endirimi varsa göstər
       if (discountPrice && discountPrice < item.price) {
         const sanityDiscountPercent = Math.round(((item.price - discountPrice) / item.price) * 100);
         priceBreakdown += `  (Kampaniya endirimi: -${sanityDiscountPercent}%)\n`;
       }
       
-      // Müştəri endirimi varsa göstər
       if (loyaltyDiscount > 0) {
         priceBreakdown += `  (Müştəri endirimi: -${loyaltyDiscount.toFixed(2)} AZN)\n`;
       }
       
-      // Çatdırılma əlavə qiymət varsa göstər
       if (deliveryPrice > 0) {
         priceBreakdown += `  (Çatdırılma: +${deliveryPrice.toFixed(2)} AZN)\n`;
       }
       
       priceBreakdown += `  *Son qiymət: ${finalPrice.toFixed(2)} AZN*\n`;
       
-      return `*MƏHSUL ${idx + 1}:*\n` +
+      return `━━━━━━━━━━━━━━━━\n` +
+             `*📦 MƏHSUL ${idx + 1}:*\n` +
              `- Ad: ${item.name}\n` +
-             `- Müştəri: ${item.customerName}\n` +
+             `🖼 Şəkil: ${productImageUrl}\n\n` +
+             `👤 *MÜŞTƏRİ MƏLUMATLARI:*\n` +
+             `- Ad: ${item.customerName}\n` +
              `- Telefon: ${item.phone}\n` +
-             `- Doğum tarixi: ${item.birthDate}\n` +
+             `- Doğum tarixi: ${item.birthDate}\n\n` +
+             `✏️ *SİFARİŞ DETALLARI:*\n` +
              `- Yazı: ${item.customText || 'Yoxdur'}\n` +
              `- Ünvan: ${item.deliveryDetails || 'Qeyd edilməyib'}\n` +
-             `- Çatdırılma: ${item.deliveryType === 'standard' ? 'Standart (3 gün)' : item.deliveryType === 'urgent' ? 'Təcili (2 gün)' : 'Ekspress (24 saat)'}\n` +
-             `- Hədiyyə bağlama: ${item.isGift ? 'Bəli' : 'Xeyr'}\n` +
+             `- Çatdırılma: ${item.deliveryType === 'standard' ? 'Standart (3 gün) 🚚' : item.deliveryType === 'urgent' ? 'Təcili (2 gün) ⚡' : 'Ekspress (24 saat) 🔥'}\n` +
+             `- Hədiyyə bağlama: ${item.isGift ? 'Bəli 🎁' : 'Xeyr'}\n\n` +
+             `💰 *QİYMƏT:*\n` +
              priceBreakdown;
-    }).join('\n');
+    }).join('\n\n');
 
     const message = encodeURIComponent(
       `*🎁 YENİ SİFARİŞ - RAVIO.AZ*\n\n` +
-      `${itemsText}\n` +
+      `${itemsText}\n\n` +
       `━━━━━━━━━━━━━━━━\n` +
-      `*YEKUN CƏM:* ${total.toFixed(2)} AZN\n\n` +
-      `Sifarişi təsdiqləmək üçün geri dönüş gözləyirəm! 🙏`
+      `*💵 YEKUN CƏM:* ${total.toFixed(2)} AZN\n\n` +
+      `✅ Sifarişi təsdiqləmək üçün geri dönüş gözləyirəm! 🙏`
     );
     window.open(`https://wa.me/${phoneNumber}?text=${message}`, '_blank');
   };
