@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { X, Trash2, ShoppingBag, MessageCircle, ArrowRight, MapPin, Edit3, Gift } from 'lucide-react';
 import { CartItem } from '../types';
@@ -13,32 +12,66 @@ interface CartDrawerProps {
 
 const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, items, onRemove, onEdit }) => {
   const total = items.reduce((sum, item) => {
-    const discount = item.isFirstOrSecondOrder ? item.price * 0.1 : 0;
+    // Əvvəlcə Sanity endirimini yoxla
+    const discountPrice = (item as any).discountPrice;
+    const basePrice = discountPrice || item.price;
+    
+    // Müştəri endirimi (10%)
+    const loyaltyDiscount = item.isFirstOrSecondOrder ? basePrice * 0.1 : 0;
+    
+    // Çatdırılma qiyməti
     const deliveryPrice = item.deliveryType === 'urgent' ? 5.49 : item.deliveryType === 'express' ? 9.99 : 0;
-    return sum + (item.price - discount + deliveryPrice) * item.quantity;
+    
+    return sum + (basePrice - loyaltyDiscount + deliveryPrice) * item.quantity;
   }, 0);
 
   const handleWhatsAppCheckout = () => {
     const phoneNumber = '994519831483';
     const itemsText = items.map((item, idx) => {
-      const discount = item.isFirstOrSecondOrder ? item.price * 0.1 : 0;
+      const discountPrice = (item as any).discountPrice;
+      const basePrice = discountPrice || item.price;
+      const loyaltyDiscount = item.isFirstOrSecondOrder ? basePrice * 0.1 : 0;
       const deliveryPrice = item.deliveryType === 'urgent' ? 5.49 : item.deliveryType === 'express' ? 9.99 : 0;
-      const finalPrice = item.price - discount + deliveryPrice;
+      const finalPrice = basePrice - loyaltyDiscount + deliveryPrice;
+      
+      let priceBreakdown = `- Qiymət: ${basePrice.toFixed(2)} AZN\n`;
+      
+      // Sanity endirimi varsa göstər
+      if (discountPrice && discountPrice < item.price) {
+        const sanityDiscountPercent = Math.round(((item.price - discountPrice) / item.price) * 100);
+        priceBreakdown += `  (Kampaniya endirimi: -${sanityDiscountPercent}%)\n`;
+      }
+      
+      // Müştəri endirimi varsa göstər
+      if (loyaltyDiscount > 0) {
+        priceBreakdown += `  (Müştəri endirimi: -${loyaltyDiscount.toFixed(2)} AZN)\n`;
+      }
+      
+      // Çatdırılma əlavə qiymət varsa göstər
+      if (deliveryPrice > 0) {
+        priceBreakdown += `  (Çatdırılma: +${deliveryPrice.toFixed(2)} AZN)\n`;
+      }
+      
+      priceBreakdown += `  *Son qiymət: ${finalPrice.toFixed(2)} AZN*\n`;
       
       return `*MƏHSUL ${idx + 1}:*\n` +
              `- Ad: ${item.name}\n` +
+             `- Müştəri: ${item.customerName}\n` +
+             `- Telefon: ${item.phone}\n` +
+             `- Doğum tarixi: ${item.birthDate}\n` +
              `- Yazı: ${item.customText || 'Yoxdur'}\n` +
              `- Ünvan: ${item.deliveryDetails || 'Qeyd edilməyib'}\n` +
-             `- Çatdırılma: ${item.deliveryType.toUpperCase()}\n` +
-             `- Hədiyyə: ${item.isGift ? 'Hə' : 'Yox'}\n` +
-             `- Qiymət: ${finalPrice.toFixed(2)} AZN\n`;
+             `- Çatdırılma: ${item.deliveryType === 'standard' ? 'Standart (3 gün)' : item.deliveryType === 'urgent' ? 'Təcili (2 gün)' : 'Ekspress (24 saat)'}\n` +
+             `- Hədiyyə bağlama: ${item.isGift ? 'Bəli' : 'Xeyr'}\n` +
+             priceBreakdown;
     }).join('\n');
 
     const message = encodeURIComponent(
-      `*SƏBƏT SİFARİŞİ - RAVIO*\n\n` +
+      `*🎁 YENİ SİFARİŞ - RAVIO.AZ*\n\n` +
       `${itemsText}\n` +
-      `*YEKUN CƏMİ:* ${total.toFixed(2)} AZN\n\n` +
-      `Sifarişi təsdiqləmək üçün geri dönüş gözləyirəm.`
+      `━━━━━━━━━━━━━━━━\n` +
+      `*YEKUN CƏM:* ${total.toFixed(2)} AZN\n\n` +
+      `Sifarişi təsdiqləmək üçün geri dönüş gözləyirəm! 🙏`
     );
     window.open(`https://wa.me/${phoneNumber}?text=${message}`, '_blank');
   };
@@ -71,49 +104,70 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, items, onRemov
                 <button onClick={onClose} className="text-[#FF8C00] font-black underline underline-offset-4">Məhsullara bax</button>
               </div>
             ) : (
-              items.map((item) => (
-                <div key={item.cartId} className="bg-gray-50 rounded-[2rem] p-5 border border-gray-100 space-y-4 group">
-                  <div className="flex gap-4">
-                    <div className="w-16 h-20 bg-white rounded-xl overflow-hidden shrink-0 shadow-sm">
-                      <img src={item.images[0]} className="w-full h-full object-cover" alt={item.name} />
-                    </div>
-                    <div className="flex-grow flex flex-col justify-center">
-                      <h3 className="font-black text-sm text-gray-800 line-clamp-1">{item.name}</h3>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-[#FF8C00] font-black text-base">{item.price.toFixed(2)} AZN</span>
-                        {/* Removed non-existent 'title' prop from Gift component to fix TS error */}
-                        {item.isGift && <Gift className="h-3 w-3 text-red-500" />}
+              items.map((item) => {
+                const discountPrice = (item as any).discountPrice;
+                const basePrice = discountPrice || item.price;
+                const loyaltyDiscount = item.isFirstOrSecondOrder ? basePrice * 0.1 : 0;
+                const deliveryPrice = item.deliveryType === 'urgent' ? 5.49 : item.deliveryType === 'express' ? 9.99 : 0;
+                const finalPrice = basePrice - loyaltyDiscount + deliveryPrice;
+                const hasSanityDiscount = discountPrice && discountPrice < item.price;
+                const sanityDiscountPercent = hasSanityDiscount ? Math.round(((item.price - discountPrice) / item.price) * 100) : 0;
+
+                return (
+                  <div key={item.cartId} className="bg-gray-50 rounded-[2rem] p-5 border border-gray-100 space-y-4 group">
+                    <div className="flex gap-4">
+                      <div className="w-16 h-20 bg-white rounded-xl overflow-hidden shrink-0 shadow-sm">
+                        <img src={item.images[0]} className="w-full h-full object-cover" alt={item.name} />
+                      </div>
+                      <div className="flex-grow flex flex-col justify-center">
+                        <h3 className="font-black text-sm text-gray-800 line-clamp-1">{item.name}</h3>
+                        <div className="flex items-baseline gap-2 mt-1 flex-wrap">
+                          <span className="text-[#FF8C00] font-black text-base">{basePrice.toFixed(2)} AZN</span>
+                          {hasSanityDiscount && (
+                            <>
+                              <span className="text-xs font-bold text-gray-400 line-through">{item.price.toFixed(2)} AZN</span>
+                              <span className="text-[9px] font-black text-green-600 bg-green-50 px-1.5 py-0.5 rounded">-{sanityDiscountPercent}%</span>
+                            </>
+                          )}
+                          {item.isGift && <Gift className="h-3 w-3 text-red-500" />}
+                        </div>
+                        {loyaltyDiscount > 0 && (
+                          <div className="mt-1">
+                            <span className="text-[9px] font-black text-[#FF8C00] bg-orange-50 px-2 py-0.5 rounded-full">
+                              Müştəri endirimi: -{loyaltyDiscount.toFixed(2)} AZN
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <button 
+                          onClick={() => onRemove(item.cartId)}
+                          className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                        <button 
+                          onClick={() => onEdit(item)}
+                          className="p-2 text-gray-300 hover:text-[#FF8C00] hover:bg-orange-50 rounded-xl transition-all"
+                        >
+                          <Edit3 className="h-4 w-4" />
+                        </button>
                       </div>
                     </div>
-                    <div className="flex flex-col gap-2">
-                       <button 
-                        onClick={() => onRemove(item.cartId)}
-                        className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                      <button 
-                        onClick={() => onEdit(item)}
-                        className="p-2 text-gray-300 hover:text-[#FF8C00] hover:bg-orange-50 rounded-xl transition-all"
-                      >
-                        <Edit3 className="h-4 w-4" />
-                      </button>
+                    
+                    <div className="pt-3 border-t border-gray-200/50 space-y-2">
+                      <div className="flex items-start gap-2 text-[10px] text-gray-500">
+                        <MapPin className="h-3 w-3 text-[#FF8C00] shrink-0 mt-0.5" />
+                        <p className="line-clamp-1 font-bold italic">{item.deliveryDetails || 'Ünvan qeyd edilməyib'}</p>
+                      </div>
+                      <div className="flex items-center justify-between text-[9px] font-black uppercase tracking-widest text-gray-400">
+                        <span>{item.deliveryType === 'standard' ? 'Standart' : item.deliveryType === 'urgent' ? 'Təcili' : 'Ekspress'}</span>
+                        <span className="text-gray-800">Yazı: {item.customText ? 'Bəli' : 'Xeyr'}</span>
+                      </div>
                     </div>
                   </div>
-                  
-                  {/* Individual Address/Customization Summary */}
-                  <div className="pt-3 border-t border-gray-200/50 space-y-2">
-                    <div className="flex items-start gap-2 text-[10px] text-gray-500">
-                      <MapPin className="h-3 w-3 text-[#FF8C00] shrink-0 mt-0.5" />
-                      <p className="line-clamp-1 font-bold italic">{item.deliveryDetails || 'Ünvan qeyd edilməyib'}</p>
-                    </div>
-                    <div className="flex items-center justify-between text-[9px] font-black uppercase tracking-widest text-gray-400">
-                      <span>{item.deliveryType} çatdırılma</span>
-                      <span className="text-gray-800">Yazı: {item.customText ? 'Bəli' : 'Yox'}</span>
-                    </div>
-                  </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
 
