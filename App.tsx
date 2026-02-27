@@ -51,6 +51,7 @@ const App: React.FC = () => {
           rating,
           description,
           "images": images[].asset->url,
+          "colorVariants": colorVariants[]{colorName, stock},
           isPremium,
           premiumOrder,
           premiumSize
@@ -134,7 +135,6 @@ const App: React.FC = () => {
 
   const renderSingleBanner = (banner: any, index: number) => {
     const aspectClass = SIZE_CONFIG[banner.size] || SIZE_CONFIG['wide-medium'];
-    const hasText = banner.title || banner.subtitle || banner.badge;
     const bgColor = banner.backgroundColor || '#1A1A1A';
     const titleColor = banner.titleColor || '#FF8C00';
 
@@ -144,7 +144,6 @@ const App: React.FC = () => {
         className={`relative w-full rounded-[2rem] overflow-hidden shadow-xl ${aspectClass}`}
         style={{ backgroundColor: bgColor }}
       >
-        {/* Arxa fon şəkli - tam görünsün, heç bir örtük yoxdur */}
         {banner.image && (
           <img
             src={urlFor(banner.image).url()}
@@ -152,13 +151,9 @@ const App: React.FC = () => {
             className="absolute inset-0 w-full h-full object-cover"
           />
         )}
-
-        {/* Şəkil varsa - tam üzərinə 40% örtük */}
         {banner.image && (
           <div className="absolute inset-0 bg-black/40" />
         )}
-
-        {/* Məzmun - yazılar şəklin üzərində */}
         <div className="absolute inset-0 flex flex-col justify-center px-8 py-6 gap-3">
           {banner.badge && (
             <span className="inline-block self-start bg-white/20 backdrop-blur-sm text-white px-4 py-1 rounded-full text-xs font-black">
@@ -306,7 +301,6 @@ const App: React.FC = () => {
         {currentView === 'home' && (
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 lg:pt-8">
 
-            {/* MOBİL: Üfüqi sürüşən kateqoriya düymələri */}
             <div className="lg:hidden mb-4 -mx-4 px-4">
               <div className="flex gap-2 overflow-x-auto pb-2" style={{scrollbarWidth:'none'}}>
                 {sanityCategories.map((cat) => (
@@ -329,7 +323,6 @@ const App: React.FC = () => {
             </div>
 
             <div className="flex flex-col lg:flex-row gap-8 items-start">
-              {/* DESKTOP: Sol panel kateqoriyalar */}
               <aside className="hidden lg:block lg:w-72 flex-shrink-0 lg:sticky lg:top-24">
                 <div className="bg-white border border-gray-100 rounded-[2.5rem] p-8 shadow-sm">
                   <h3 className="text-xl font-black mb-6 text-[#1A1A1A] tracking-tight">Kateqoriyalar</h3>
@@ -361,6 +354,7 @@ const App: React.FC = () => {
                   </nav>
                 </div>
               </aside>
+
               <div className="flex-grow w-full space-y-8">
                 {activeCategory === 'Bütün məhsullar' ? (
                   <>

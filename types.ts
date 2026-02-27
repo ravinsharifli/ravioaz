@@ -1,3 +1,7 @@
+export interface ColorVariant {
+  colorName: string;
+  stock: number;
+}
 
 export interface Product {
   id: string;
@@ -7,10 +11,11 @@ export interface Product {
   images: string[];
   category: string;
   rating: number;
+  colorVariants?: ColorVariant[];
 }
 
 export interface CartItem extends Product {
-  cartId: string; // Səbətdəki hər giriş üçün unikal ID
+  cartId: string;
   quantity: number;
   customText?: string;
   customerName?: string;
@@ -20,6 +25,8 @@ export interface CartItem extends Product {
   isFirstOrSecondOrder?: boolean;
   deliveryType: 'standard' | 'urgent' | 'express';
   deliveryDetails?: string;
+  selectedColor?: string;
+  orderNote?: string;
 }
 
 export type Category = 'Bütün məhsullar' | 'Elektronika' | 'Geyim' | 'Ev & Dekorsiya' | 'Dəst hədiyyələr' | 'Aksesuarlar' | 'Foto çərçivə' | 'Çap xidmətləri' | 'Özəl hədiyyələr';

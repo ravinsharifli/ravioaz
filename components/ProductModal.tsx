@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, ChevronLeft, ChevronRight, Edit3, User, Truck, Clock, Zap, Info, ShoppingCart, MapPin, Gift, Sparkles } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Edit3, User, Truck, Clock, Zap, Info, ShoppingCart, MapPin, Gift, Sparkles, AlertCircle, Palette, FileText } from 'lucide-react';
 import { Product, CartItem } from '../types';
 
 interface ProductModalProps {
@@ -17,31 +17,46 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
   const [phone, setPhone] = useState(initialData?.phone || '');
   const [birthDate, setBirthDate] = useState(initialData?.birthDate || '');
   const [isGift, setIsGift] = useState<boolean | null>(initialData?.isGift !== undefined ? initialData.isGift : null);
-  // 'new' = yeni müştəri, 'loyal' = daimi müştəri, null = seçilməyib
   const [customerType, setCustomerType] = useState<'new' | 'loyal' | null>(
-    initialData?.isFirstOrSecondOrder === true ? 'new' : initialData?.isFirstOrSecondOrder === false ? null : null
+    initialData?.isFirstOrSecondOrder === true ? 'new' : null
   );
   const [showCustomerTypeError, setShowCustomerTypeError] = useState(false);
   const [deliveryType, setDeliveryType] = useState<'standard' | 'urgent' | 'express'>(initialData?.deliveryType || 'standard');
   const [deliveryDetails, setDeliveryDetails] = useState(initialData?.deliveryDetails || '');
+  const [selectedColor, setSelectedColor] = useState<string>(initialData?.selectedColor || '');
+  const [orderNote, setOrderNote] = useState(initialData?.orderNote || '');
 
   const images = (product.images || []).filter(Boolean);
-  const total = images.length || 1;
-  const nextImg = () => setCurrentImgIndex((p) => (p + 1) % total);
-  const prevImg = () => setCurrentImgIndex((p) => (p - 1 + total) % total);
+  const totalImages = images.length || 1;
+  const nextImg = () => setCurrentImgIndex((p) => (p + 1) % totalImages);
+  const prevImg = () => setCurrentImgIndex((p) => (p - 1 + totalImages) % totalImages);
 
   const discountPrice = (product as any).discountPrice;
   const basePrice = discountPrice || product.price;
   const discountPercent = discountPrice ? Math.round(((product.price - discountPrice) / product.price) * 100) : 0;
+
+  // colorVariants Sanity-dən gəlir: [{colorName: 'Qızılı', stock: 5}, ...]
+  const colorVariants: { colorName: string; stock: number }[] = product.colorVariants || (product as any).colorVariants || [];
+  const hasColors = colorVariants.length > 0;
+
+  const selectedVariant = colorVariants.find(v => v.colorName === selectedColor);
+  const selectedColorStock = selectedVariant ? selectedVariant.stock : null;
+
+  const totalStock = hasColors
+    ? colorVariants.reduce((sum, v) => sum + (v.stock || 0), 0)
+    : null;
+
+  const isCompletelyOutOfStock = totalStock !== null && totalStock === 0;
+  const isSelectedColorOutOfStock = !!(selectedColor && selectedColorStock !== null && selectedColorStock === 0);
+  const isOutOfStock = isCompletelyOutOfStock || isSelectedColorOutOfStock;
+
   const getDeliveryPrice = () => deliveryType === 'urgent' ? 5.49 : deliveryType === 'express' ? 9.99 : 0;
-  // Həm yeni həm daimi müştəriyə 10% endirim
   const getLoyaltyDiscount = () => customerType !== null ? basePrice * 0.1 : 0;
   const calculateTotal = () => basePrice - getLoyaltyDiscount() + getDeliveryPrice();
 
   const handleAddToCartClick = () => {
     if (customerType === null) {
       setShowCustomerTypeError(true);
-      // Endirim bölməsinə scroll et
       document.getElementById('customer-type-section')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
@@ -52,23 +67,19 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
       customText, customerName, phone, birthDate,
       isGift: isGift!,
       isFirstOrSecondOrder: customerType === 'new',
-      deliveryType, deliveryDetails
+      deliveryType, deliveryDetails,
+      selectedColor,
+      orderNote,
     });
   };
 
   const isFormValid = customerName && phone && birthDate && isGift !== null && deliveryDetails;
-
-  const customerTypeMessages = {
-    new: 'Bizi seçdiyiniz üçün 10% xoş gəldin endirimi!',
-    loyal: 'Yenidən bizimlə olduğunuz üçün 10% sadiqlik endirimi!'
-  };
 
   return (
     <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md animate-in fade-in duration-300 overflow-y-auto">
       <div className="min-h-full flex items-start justify-center sm:items-center sm:p-4">
         <div className="bg-white w-full sm:max-w-5xl sm:rounded-[3rem] relative flex flex-col md:flex-row md:max-h-[95vh]">
 
-          {/* Bağla düyməsi */}
           <button onClick={onClose} className="absolute top-4 right-4 z-50 bg-white/90 backdrop-blur p-2 rounded-full shadow-lg hover:bg-orange-500 hover:text-white transition-all outline-none">
             <X className="h-5 w-5" />
           </button>
@@ -84,6 +95,23 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
               {discountPrice && (
                 <div className="absolute top-4 left-4 bg-[#FF8C00] text-white font-black px-3 py-1.5 rounded-full text-sm shadow-lg">
                   -{discountPercent}% ENDİRİM
+                </div>
+              )}
+              {/* Stok badge */}
+              {hasColors && (
+                <div className={`absolute top-4 right-4 font-black px-3 py-1.5 rounded-full text-xs shadow-lg ${
+                  isCompletelyOutOfStock ? 'bg-red-500 text-white' :
+                  selectedColor && selectedColorStock !== null
+                    ? selectedColorStock === 0 ? 'bg-red-500 text-white' :
+                      selectedColorStock < 5 ? 'bg-yellow-400 text-black' : 'bg-green-500 text-white'
+                    : totalStock !== null && totalStock < 5 ? 'bg-yellow-400 text-black' : 'bg-green-500 text-white'
+                }`}>
+                  {isCompletelyOutOfStock ? '❌ Bitib' :
+                   selectedColor && selectedColorStock !== null
+                     ? selectedColorStock === 0 ? `❌ ${selectedColor} bitib`
+                       : selectedColorStock < 5 ? `⚠️ Son ${selectedColorStock}`
+                       : `✅ ${selectedColorStock} ədəd`
+                     : totalStock !== null && totalStock < 10 ? `⚠️ Az qalıb` : '✅ Stokda var'}
                 </div>
               )}
               {images.length > 1 && (
@@ -109,9 +137,16 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
           <div className="md:w-1/2 flex flex-col overflow-y-auto bg-white md:rounded-r-[3rem]">
             <div className="p-5 md:p-8 space-y-5">
 
-              {/* Ad, açıqlama, qiymət */}
               <section className="space-y-3">
                 <h2 className="text-2xl font-black text-[#1A1A1A] tracking-tight">{product.name}</h2>
+
+                {/* Ümumi stok xəbərdarlığı */}
+                {hasColors && isCompletelyOutOfStock && (
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-black bg-red-50 text-red-600">
+                    ❌ Bu məhsul hal-hazırda tamamilə bitib
+                  </div>
+                )}
+
                 {(product as any).description && (
                   <div className="bg-orange-50 p-3 rounded-2xl border border-orange-100">
                     <h4 className="text-[10px] font-black text-[#1A1A1A] uppercase tracking-widest mb-1 flex items-center gap-1">
@@ -120,6 +155,15 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
                     <p className="text-xs font-bold text-[#1A1A1A] leading-relaxed">{(product as any).description}</p>
                   </div>
                 )}
+
+                {/* 50% ön ödəniş xəbərdarlığı */}
+                <div className="bg-amber-50 border border-amber-200 p-3 rounded-2xl flex items-start gap-2">
+                  <AlertCircle className="h-4 w-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                  <p className="text-[11px] font-bold text-amber-800 leading-relaxed">
+                    <span className="font-black">Özəl hazırlanmış məhsul!</span> Hər sifariş fərdi olaraq hazırlandığından, sifariş zamanı <span className="font-black text-amber-900">50% ön ödəniş</span> kart-karta alınır. Qalan məbləğ çatdırılma zamanı ödənilir.
+                  </p>
+                </div>
+
                 <div className="flex items-baseline gap-3 flex-wrap">
                   {discountPrice ? (
                     <>
@@ -133,7 +177,93 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
                 </div>
               </section>
 
-              {/* 🎁 SİZƏ ÖZƏL ENDİRİM - qiymət altında, radio düymələr */}
+              {/* 🎨 RƏNG SEÇİMİ - CHECKBOX */}
+              {hasColors && (
+                <section className="space-y-3 p-4 border border-orange-100 rounded-[1.5rem]">
+                  <h4 className="text-xs font-black text-[#1A1A1A] uppercase tracking-widest flex items-center gap-2">
+                    <Palette className="h-3 w-3 text-[#FF8C00]" /> Rəng Seçimi
+                    {!selectedColor && <span className="text-[10px] text-gray-400 normal-case font-bold ml-1">(seçin)</span>}
+                  </h4>
+                  <div className="space-y-2">
+                    {colorVariants.map((variant) => {
+                      const isChecked = selectedColor === variant.colorName;
+                      const isVariantOutOfStock = variant.stock === 0;
+                      const isLowStock = variant.stock > 0 && variant.stock < 5;
+
+                      return (
+                        <label
+                          key={variant.colorName}
+                          onClick={() => {
+                            if (!isVariantOutOfStock) {
+                              setSelectedColor(isChecked ? '' : variant.colorName);
+                            }
+                          }}
+                          className={`flex items-center justify-between p-3.5 rounded-2xl border-2 transition-all select-none ${
+                            isVariantOutOfStock
+                              ? 'border-gray-100 bg-gray-50 opacity-50 cursor-not-allowed'
+                              : isChecked
+                              ? 'border-[#FF8C00] bg-orange-50 cursor-pointer shadow-sm'
+                              : 'border-gray-200 bg-white hover:border-orange-200 cursor-pointer'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            {/* Checkbox */}
+                            <div className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-all ${
+                              isChecked ? 'bg-[#FF8C00] border-[#FF8C00]' : 'border-gray-300 bg-white'
+                            }`}>
+                              {isChecked && (
+                                <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                </svg>
+                              )}
+                            </div>
+                            <span className={`text-sm font-black ${
+                              isVariantOutOfStock ? 'line-through text-gray-400' :
+                              isChecked ? 'text-[#FF8C00]' : 'text-[#1A1A1A]'
+                            }`}>
+                              {variant.colorName}
+                            </span>
+                          </div>
+
+                          {/* Stok pill */}
+                          <span className={`text-[10px] font-black px-2.5 py-1 rounded-full ${
+                            isVariantOutOfStock ? 'bg-red-100 text-red-600' :
+                            isLowStock ? 'bg-yellow-100 text-yellow-700' :
+                            'bg-green-100 text-green-700'
+                          }`}>
+                            {isVariantOutOfStock ? '❌ Bitib' :
+                             isLowStock ? `⚠️ Son ${variant.stock} ədəd` :
+                             `✅ ${variant.stock} ədəd`}
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
+
+                  {isSelectedColorOutOfStock && (
+                    <p className="text-xs font-black text-red-500">❌ Bu rəng bitib, digər rəng seçin</p>
+                  )}
+                  {selectedColor && !isSelectedColorOutOfStock && selectedColorStock !== null && selectedColorStock < 5 && (
+                    <p className="text-xs font-black text-yellow-600">⚠️ {selectedColor} rəngindən yalnız {selectedColorStock} ədəd qalıb!</p>
+                  )}
+                </section>
+              )}
+
+              {/* 📝 ÖZƏL SİFARİŞ QEYDİ */}
+              <section className="space-y-2 p-4 border border-orange-100 rounded-[1.5rem]">
+                <h4 className="text-xs font-black text-[#1A1A1A] uppercase tracking-widest flex items-center gap-2">
+                  <FileText className="h-3 w-3 text-[#FF8C00]" /> Özəl Sifariş Qeydi
+                </h4>
+                <textarea
+                  value={orderNote}
+                  onChange={(e) => setOrderNote(e.target.value)}
+                  placeholder="Məsələn: üzərində qızıl işləmə olsun, fırçalama toxunuşu istəyirəm, ölçüsü S olsun..."
+                  className="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl text-sm min-h-[70px] outline-none text-[#1A1A1A] font-bold placeholder:text-gray-300 focus:border-orange-200 transition-all"
+                />
+                <p className="text-[10px] text-gray-400 font-bold">Özəl istəklərinizi buraya yazın.</p>
+              </section>
+
+              {/* 🎁 SİZƏ ÖZƏL ENDİRİM */}
               <section
                 id="customer-type-section"
                 className={`p-4 rounded-[1.5rem] space-y-3 border-2 transition-all ${showCustomerTypeError && customerType === null ? 'border-red-400 bg-red-50' : 'border-orange-200 bg-gradient-to-br from-orange-50 to-white'}`}
@@ -143,49 +273,32 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
                   <h4 className="text-sm font-black text-[#1A1A1A]">Sizə özəl endirim!</h4>
                 </div>
                 <p className="text-xs text-gray-500 font-bold">🎁 Sizə özəl endirimi aktivləşdirin:</p>
-
-                {/* Radio seçimlər */}
                 <div className="space-y-2">
-                  {/* Yeni müştəri */}
-                  <label
-                    onClick={() => { setCustomerType('new'); setShowCustomerTypeError(false); }}
-                    className={`flex items-start gap-3 p-3.5 rounded-2xl border-2 cursor-pointer transition-all ${customerType === 'new' ? 'border-[#FF8C00] bg-orange-50' : 'border-gray-200 bg-white hover:border-orange-200'}`}
-                  >
-                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all ${customerType === 'new' ? 'border-[#FF8C00]' : 'border-gray-300'}`}>
+                  <label onClick={() => { setCustomerType('new'); setShowCustomerTypeError(false); }}
+                    className={`flex items-start gap-3 p-3.5 rounded-2xl border-2 cursor-pointer transition-all ${customerType === 'new' ? 'border-[#FF8C00] bg-orange-50' : 'border-gray-200 bg-white hover:border-orange-200'}`}>
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${customerType === 'new' ? 'border-[#FF8C00]' : 'border-gray-300'}`}>
                       {customerType === 'new' && <div className="w-2.5 h-2.5 rounded-full bg-[#FF8C00]" />}
                     </div>
                     <div>
                       <p className="text-xs font-black text-[#1A1A1A]">Yeni müştəriyəm</p>
                       <p className="text-[11px] font-bold text-gray-400">İlk alış-verişiniz üçün</p>
-                      {customerType === 'new' && (
-                        <p className="text-[11px] font-black text-[#FF8C00] mt-1">"Bizi seçdiyiniz üçün 10% xoş gəldin endirimi!" 🎉</p>
-                      )}
+                      {customerType === 'new' && <p className="text-[11px] font-black text-[#FF8C00] mt-1">"Bizi seçdiyiniz üçün 10% xoş gəldin endirimi!" 🎉</p>}
                     </div>
                   </label>
-
-                  {/* Daimi müştəri */}
-                  <label
-                    onClick={() => { setCustomerType('loyal'); setShowCustomerTypeError(false); }}
-                    className={`flex items-start gap-3 p-3.5 rounded-2xl border-2 cursor-pointer transition-all ${customerType === 'loyal' ? 'border-[#FF8C00] bg-orange-50' : 'border-gray-200 bg-white hover:border-orange-200'}`}
-                  >
-                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all ${customerType === 'loyal' ? 'border-[#FF8C00]' : 'border-gray-300'}`}>
+                  <label onClick={() => { setCustomerType('loyal'); setShowCustomerTypeError(false); }}
+                    className={`flex items-start gap-3 p-3.5 rounded-2xl border-2 cursor-pointer transition-all ${customerType === 'loyal' ? 'border-[#FF8C00] bg-orange-50' : 'border-gray-200 bg-white hover:border-orange-200'}`}>
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${customerType === 'loyal' ? 'border-[#FF8C00]' : 'border-gray-300'}`}>
                       {customerType === 'loyal' && <div className="w-2.5 h-2.5 rounded-full bg-[#FF8C00]" />}
                     </div>
                     <div>
                       <p className="text-xs font-black text-[#1A1A1A]">Daimi müştəriyəm</p>
                       <p className="text-[11px] font-bold text-gray-400">Sadiqliyiniz üçün təşəkkür edirik</p>
-                      {customerType === 'loyal' && (
-                        <p className="text-[11px] font-black text-[#FF8C00] mt-1">"Yenidən bizimlə olduğunuz üçün 10% sadiqlik endirimi!" ❤️</p>
-                      )}
+                      {customerType === 'loyal' && <p className="text-[11px] font-black text-[#FF8C00] mt-1">"Yenidən bizimlə olduğunuz üçün 10% sadiqlik endirimi!" ❤️</p>}
                     </div>
                   </label>
                 </div>
-
-                {/* Xəta mesajı */}
                 {showCustomerTypeError && customerType === null && (
-                  <p className="text-xs font-black text-red-500 flex items-center gap-1">
-                    ⚠️ Zəhmət olmasa, müştəri növünü seçin
-                  </p>
+                  <p className="text-xs font-black text-red-500">⚠️ Zəhmət olmasa, müştəri növünü seçin</p>
                 )}
               </section>
 
@@ -220,7 +333,6 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
                 <h4 className="text-xs font-black text-[#1A1A1A] uppercase tracking-widest flex items-center gap-2">
                   <Truck className="h-3 w-3 text-[#FF8C00]" /> Çatdırılma Seçimi
                 </h4>
-
                 <button onClick={() => setDeliveryType('standard')} className={`w-full p-4 rounded-2xl border-2 transition-all text-left ${deliveryType === 'standard' ? 'border-[#FF8C00] bg-orange-50' : 'border-gray-100 bg-white'}`}>
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-3"><Truck className="h-4 w-4 text-[#FF8C00]" /><p className="text-sm font-black text-[#1A1A1A]">Standart — 3 Gün</p></div>
@@ -238,17 +350,14 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
                     ))}
                   </div>
                 </button>
-
                 <button onClick={() => setDeliveryType('urgent')} className={`w-full flex items-center justify-between p-4 rounded-2xl border-2 transition-all ${deliveryType === 'urgent' ? 'border-[#FF8C00] bg-orange-50' : 'border-gray-100 bg-white'}`}>
                   <div className="flex items-center gap-3"><Clock className="h-4 w-4 text-[#FF8C00]" /><div className="text-left"><p className="text-sm font-black text-[#1A1A1A]">Təcili — 2 Gün</p><p className="text-[10px] font-bold text-gray-500">Sürətləndirilmiş hazırlıq</p></div></div>
                   <span className="text-xs font-black text-[#FF8C00]">+5.49 AZN</span>
                 </button>
-
                 <button onClick={() => setDeliveryType('express')} className={`w-full flex items-center justify-between p-4 rounded-2xl border-2 transition-all ${deliveryType === 'express' ? 'border-[#FF8C00] bg-orange-50' : 'border-gray-100 bg-white'}`}>
                   <div className="flex items-center gap-3"><Zap className="h-4 w-4 text-[#FF8C00]" /><div className="text-left"><p className="text-sm font-black text-[#1A1A1A]">Ekspress — 24 Saat</p><p className="text-[10px] font-bold text-gray-500">Prioritet hazırlıq, eyni gün kuryer</p></div></div>
                   <span className="text-xs font-black text-[#FF8C00]">+9.99 AZN</span>
                 </button>
-
                 <div className="space-y-2 pt-1">
                   <h4 className="text-xs font-black text-[#1A1A1A] uppercase tracking-widest flex items-center gap-2">
                     <MapPin className="h-3 w-3 text-[#FF8C00]" /> Çatdırılma Ünvanı
@@ -270,6 +379,13 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
                   </div>
                 </div>
 
+                <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-2xl px-3 py-2">
+                  <AlertCircle className="h-3.5 w-3.5 text-amber-600 flex-shrink-0" />
+                  <p className="text-[10px] font-bold text-amber-800">
+                    Sifarişin <span className="font-black">50%-i</span> kart-karta ön ödəniş tələb olunur.
+                  </p>
+                </div>
+
                 <div className="bg-[#1A1A1A] p-5 rounded-[2rem] flex items-center justify-between text-white shadow-2xl">
                   <div className="flex flex-col">
                     <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">
@@ -281,14 +397,15 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
                         <span className="text-xs font-bold text-gray-500 line-through">{product.price.toFixed(2)} AZN</span>
                       )}
                     </div>
+                    <span className="text-[9px] text-amber-400 font-bold mt-0.5">Ön ödəniş: {(calculateTotal() * 0.5).toFixed(2)} AZN</span>
                   </div>
                   <button
                     onClick={handleAddToCartClick}
-                    disabled={!isFormValid}
+                    disabled={!isFormValid || isOutOfStock}
                     className="bg-[#FF8C00] text-white px-6 py-4 rounded-full font-black text-sm flex items-center gap-2 hover:scale-105 active:scale-95 transition-all shadow-xl disabled:opacity-30 disabled:pointer-events-none outline-none"
                   >
                     <ShoppingCart className="h-5 w-5" />
-                    <span>{initialData ? 'YENİLƏ' : 'SƏBƏTƏ'}</span>
+                    <span>{isOutOfStock ? 'BİTİB' : initialData ? 'YENİLƏ' : 'SƏBƏTƏ'}</span>
                   </button>
                 </div>
               </div>

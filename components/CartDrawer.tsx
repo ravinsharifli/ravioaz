@@ -27,26 +27,28 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, items, onRemov
       const loyaltyDiscount = item.isFirstOrSecondOrder ? basePrice * 0.1 : 0;
       const deliveryPrice = item.deliveryType === 'urgent' ? 5.49 : item.deliveryType === 'express' ? 9.99 : 0;
       const finalPrice = basePrice - loyaltyDiscount + deliveryPrice;
-      
+      const prepayment = (finalPrice * 0.5).toFixed(2);
+
       const productImageUrl = item.images && item.images[0] ? item.images[0] : '';
-      
+
       let priceBreakdown = `- Qiymət: ${basePrice.toFixed(2)} AZN\n`;
-      
+
       if (discountPrice && discountPrice < item.price) {
         const sanityDiscountPercent = Math.round(((item.price - discountPrice) / item.price) * 100);
         priceBreakdown += `  (Kampaniya endirimi: -${sanityDiscountPercent}%)\n`;
       }
-      
+
       if (loyaltyDiscount > 0) {
         priceBreakdown += `  (Müştəri endirimi: -${loyaltyDiscount.toFixed(2)} AZN)\n`;
       }
-      
+
       if (deliveryPrice > 0) {
         priceBreakdown += `  (Çatdırılma: +${deliveryPrice.toFixed(2)} AZN)\n`;
       }
-      
+
       priceBreakdown += `  *Son qiymət: ${finalPrice.toFixed(2)} AZN*\n`;
-      
+      priceBreakdown += `  💳 *Ön ödəniş (50%): ${prepayment} AZN* (kart-karta)\n`;
+
       return `━━━━━━━━━━━━━━━━\n` +
              `*📦 MƏHSUL ${idx + 1}:*\n` +
              `- Ad: ${item.name}\n` +
@@ -56,7 +58,9 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, items, onRemov
              `- Telefon: ${item.phone}\n` +
              `- Doğum tarixi: ${item.birthDate}\n\n` +
              `✏️ *SİFARİŞ DETALLARI:*\n` +
-             `- Yazı: ${item.customText || 'Yoxdur'}\n` +
+             `- Rəng seçimi: ${item.selectedColor || 'Seçilməyib'}\n` +
+             `- Özəl qeyd: ${item.orderNote || 'Yoxdur'}\n` +
+             `- Məhsul üzəri yazı: ${item.customText || 'Yoxdur'}\n` +
              `- Ünvan: ${item.deliveryDetails || 'Qeyd edilməyib'}\n` +
              `- Çatdırılma: ${item.deliveryType === 'standard' ? 'Standart (3 gün) 🚚' : item.deliveryType === 'urgent' ? 'Təcili (2 gün) ⚡' : 'Ekspress (24 saat) 🔥'}\n` +
              `- Hədiyyə bağlama: ${item.isGift ? 'Bəli 🎁' : 'Xeyr'}\n\n` +
@@ -68,7 +72,8 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, items, onRemov
       `*🎁 YENİ SİFARİŞ - RAVIO.AZ*\n\n` +
       `${itemsText}\n\n` +
       `━━━━━━━━━━━━━━━━\n` +
-      `*💵 YEKUN CƏM:* ${total.toFixed(2)} AZN\n\n` +
+      `*💵 YEKUN CƏM:* ${total.toFixed(2)} AZN\n` +
+      `*💳 ÖN ÖDƏNİŞ (50%):* ${(total * 0.5).toFixed(2)} AZN (kart-karta)\n\n` +
       `✅ Sifarişi təsdiqləmək üçün geri dönüş gözləyirəm! 🙏`
     );
     window.open(`https://wa.me/${phoneNumber}?text=${message}`, '_blank');
@@ -76,7 +81,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, items, onRemov
 
   return (
     <>
-      <div 
+      <div
         className={`fixed inset-0 z-[150] bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
         onClick={onClose}
       />
@@ -129,6 +134,12 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, items, onRemov
                           )}
                           {item.isGift && <Gift className="h-3 w-3 text-red-500" />}
                         </div>
+                        {/* Rəng seçimi göstər */}
+                        {item.selectedColor && (
+                          <span className="text-[10px] font-black text-[#FF8C00] bg-orange-50 px-2 py-0.5 rounded-full mt-1 self-start">
+                            🎨 {item.selectedColor}
+                          </span>
+                        )}
                         {loyaltyDiscount > 0 && (
                           <div className="mt-1">
                             <span className="text-[9px] font-black text-[#FF8C00] bg-orange-50 px-2 py-0.5 rounded-full">
@@ -138,13 +149,13 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, items, onRemov
                         )}
                       </div>
                       <div className="flex flex-col gap-2">
-                        <button 
+                        <button
                           onClick={() => onRemove(item.cartId)}
                           className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
-                        <button 
+                        <button
                           onClick={() => onEdit(item)}
                           className="p-2 text-gray-300 hover:text-[#FF8C00] hover:bg-orange-50 rounded-xl transition-all"
                         >
@@ -152,8 +163,15 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, items, onRemov
                         </button>
                       </div>
                     </div>
-                    
+
                     <div className="pt-3 border-t border-gray-200/50 space-y-2">
+                      {/* Özəl qeyd göstər */}
+                      {item.orderNote && (
+                        <div className="flex items-start gap-2 text-[10px] text-gray-500 bg-amber-50 rounded-xl px-2 py-1.5">
+                          <span className="text-amber-500 font-black flex-shrink-0">📝</span>
+                          <p className="font-bold italic line-clamp-2 text-amber-800">{item.orderNote}</p>
+                        </div>
+                      )}
                       <div className="flex items-start gap-2 text-[10px] text-gray-500">
                         <MapPin className="h-3 w-3 text-[#FF8C00] shrink-0 mt-0.5" />
                         <p className="line-clamp-1 font-bold italic">{item.deliveryDetails || 'Ünvan qeyd edilməyib'}</p>
@@ -161,6 +179,10 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, items, onRemov
                       <div className="flex items-center justify-between text-[9px] font-black uppercase tracking-widest text-gray-400">
                         <span>{item.deliveryType === 'standard' ? 'Standart' : item.deliveryType === 'urgent' ? 'Təcili' : 'Ekspress'}</span>
                         <span className="text-gray-800">Yazı: {item.customText ? 'Bəli' : 'Xeyr'}</span>
+                      </div>
+                      {/* 50% ön ödəniş xatırlatması */}
+                      <div className="flex items-center gap-1.5 bg-amber-50 rounded-xl px-2 py-1.5">
+                        <span className="text-[9px] font-black text-amber-700">💳 Ön ödəniş (50%): {(finalPrice * 0.5).toFixed(2)} AZN</span>
                       </div>
                     </div>
                   </div>
@@ -170,12 +192,17 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, items, onRemov
           </div>
 
           {items.length > 0 && (
-            <div className="p-8 bg-gray-50 border-t border-gray-100 space-y-6">
+            <div className="p-8 bg-gray-50 border-t border-gray-100 space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-gray-400 font-bold uppercase text-xs tracking-widest">Yekun Cəm</span>
                 <span className="text-3xl font-black text-[#1A1A1A]">{total.toFixed(2)} AZN</span>
               </div>
-              <button 
+              {/* Ön ödəniş cəmi */}
+              <div className="flex items-center justify-between bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3">
+                <span className="text-xs font-black text-amber-800">💳 Ön ödəniş (50%) — kart-karta</span>
+                <span className="text-base font-black text-amber-700">{(total * 0.5).toFixed(2)} AZN</span>
+              </div>
+              <button
                 onClick={handleWhatsAppCheckout}
                 className="w-full bg-[#1A1A1A] text-white py-5 rounded-[2rem] font-black flex items-center justify-center gap-3 hover:bg-[#FF8C00] transition-all shadow-xl group"
               >
