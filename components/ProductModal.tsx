@@ -35,17 +35,13 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
   const basePrice = discountPrice || product.price;
   const discountPercent = discountPrice ? Math.round(((product.price - discountPrice) / product.price) * 100) : 0;
 
-  // colorVariants Sanity-dən gəlir: [{colorName: 'Qızılı', stock: 5}, ...]
   const colorVariants: { colorName: string; stock: number }[] = product.colorVariants || (product as any).colorVariants || [];
   const hasColors = colorVariants.length > 0;
 
   const selectedVariant = colorVariants.find(v => v.colorName === selectedColor);
   const selectedColorStock = selectedVariant ? selectedVariant.stock : null;
 
-  const totalStock = hasColors
-    ? colorVariants.reduce((sum, v) => sum + (v.stock || 0), 0)
-    : null;
-
+  const totalStock = hasColors ? colorVariants.reduce((sum, v) => sum + (v.stock || 0), 0) : null;
   const isCompletelyOutOfStock = totalStock !== null && totalStock === 0;
   const isSelectedColorOutOfStock = !!(selectedColor && selectedColorStock !== null && selectedColorStock === 0);
   const isOutOfStock = isCompletelyOutOfStock || isSelectedColorOutOfStock;
@@ -97,23 +93,6 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
                   -{discountPercent}% ENDİRİM
                 </div>
               )}
-              {/* Stok badge */}
-              {hasColors && (
-                <div className={`absolute top-4 right-4 font-black px-3 py-1.5 rounded-full text-xs shadow-lg ${
-                  isCompletelyOutOfStock ? 'bg-red-500 text-white' :
-                  selectedColor && selectedColorStock !== null
-                    ? selectedColorStock === 0 ? 'bg-red-500 text-white' :
-                      selectedColorStock < 5 ? 'bg-yellow-400 text-black' : 'bg-green-500 text-white'
-                    : totalStock !== null && totalStock < 5 ? 'bg-yellow-400 text-black' : 'bg-green-500 text-white'
-                }`}>
-                  {isCompletelyOutOfStock ? '❌ Bitib' :
-                   selectedColor && selectedColorStock !== null
-                     ? selectedColorStock === 0 ? `❌ ${selectedColor} bitib`
-                       : selectedColorStock < 5 ? `⚠️ Son ${selectedColorStock}`
-                       : `✅ ${selectedColorStock} ədəd`
-                     : totalStock !== null && totalStock < 10 ? `⚠️ Az qalıb` : '✅ Stokda var'}
-                </div>
-              )}
               {images.length > 1 && (
                 <>
                   <button onClick={prevImg} className="absolute left-3 top-1/2 -translate-y-1/2 p-2 bg-white/80 hover:bg-white rounded-full shadow transition-all outline-none"><ChevronLeft className="h-5 w-5" /></button>
@@ -135,35 +114,13 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
 
           {/* MƏLUMAT HİSSƏSİ */}
           <div className="md:w-1/2 flex flex-col overflow-y-auto bg-white md:rounded-r-[3rem]">
-            <div className="p-5 md:p-8 space-y-5">
+            <div className="p-5 md:p-8 space-y-4">
 
-              <section className="space-y-3">
+              {/* ═══ YUXARI HİSSƏ: Məlumatlandırıcı lövhələr ═══ */}
+
+              {/* Ad + qiymət */}
+              <section className="space-y-2">
                 <h2 className="text-2xl font-black text-[#1A1A1A] tracking-tight">{product.name}</h2>
-
-                {/* Ümumi stok xəbərdarlığı */}
-                {hasColors && isCompletelyOutOfStock && (
-                  <div className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-black bg-red-50 text-red-600">
-                    ❌ Bu məhsul hal-hazırda tamamilə bitib
-                  </div>
-                )}
-
-                {(product as any).description && (
-                  <div className="bg-orange-50 p-3 rounded-2xl border border-orange-100">
-                    <h4 className="text-[10px] font-black text-[#1A1A1A] uppercase tracking-widest mb-1 flex items-center gap-1">
-                      <Info className="h-3 w-3 text-orange-600" /> Məhsul haqqında
-                    </h4>
-                    <p className="text-xs font-bold text-[#1A1A1A] leading-relaxed">{(product as any).description}</p>
-                  </div>
-                )}
-
-                {/* 50% ön ödəniş xəbərdarlığı */}
-                <div className="bg-amber-50 border border-amber-200 p-3 rounded-2xl flex items-start gap-2">
-                  <AlertCircle className="h-4 w-4 text-amber-600 flex-shrink-0 mt-0.5" />
-                  <p className="text-[11px] font-bold text-amber-800 leading-relaxed">
-                    <span className="font-black">Özəl hazırlanmış məhsul!</span> Hər sifariş fərdi olaraq hazırlandığından, sifariş zamanı <span className="font-black text-amber-900">50% ön ödəniş</span> kart-karta alınır. Qalan məbləğ çatdırılma zamanı ödənilir.
-                  </p>
-                </div>
-
                 <div className="flex items-baseline gap-3 flex-wrap">
                   {discountPrice ? (
                     <>
@@ -177,65 +134,81 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
                 </div>
               </section>
 
-              {/* 🎨 RƏNG SEÇİMİ - CHECKBOX */}
+              {/* Məhsul haqqında */}
+              {(product as any).description && (
+                <div className="bg-orange-50 p-3 rounded-2xl border border-orange-100">
+                  <h4 className="text-[10px] font-black text-[#1A1A1A] uppercase tracking-widest mb-1 flex items-center gap-1">
+                    <Info className="h-3 w-3 text-orange-600" /> Məhsul haqqında
+                  </h4>
+                  <p className="text-xs font-bold text-[#1A1A1A] leading-relaxed">{(product as any).description}</p>
+                </div>
+              )}
+
+              {/* 50% ön ödəniş xəbərdarlığı */}
+              <div className="bg-amber-50 border border-amber-200 p-3 rounded-2xl flex items-start gap-2">
+                <AlertCircle className="h-4 w-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                <p className="text-[11px] font-bold text-amber-800 leading-relaxed">
+                  <span className="font-black">Özəl hazırlanmış məhsul!</span> Hər sifariş fərdi olaraq hazırlandığından sifariş zamanı <span className="font-black text-amber-900">50% ön ödəniş</span> kart-karta alınır. Qalan məbləğ çatdırılma zamanı ödənilir.
+                </p>
+              </div>
+
+              {/* 🎨 RƏNG SEÇİMİ — horizontal, yan-yana */}
               {hasColors && (
-                <section className="space-y-3 p-4 border border-orange-100 rounded-[1.5rem]">
+                <section className="space-y-2 p-4 border border-orange-100 rounded-[1.5rem]">
                   <h4 className="text-xs font-black text-[#1A1A1A] uppercase tracking-widest flex items-center gap-2">
                     <Palette className="h-3 w-3 text-[#FF8C00]" /> Rəng Seçimi
-                    {!selectedColor && <span className="text-[10px] text-gray-400 normal-case font-bold ml-1">(seçin)</span>}
                   </h4>
-                  <div className="space-y-2">
+
+                  {isCompletelyOutOfStock && (
+                    <p className="text-xs font-black text-red-500">❌ Bu məhsul hal-hazırda tamamilə bitib</p>
+                  )}
+
+                  {/* Rənglər horizontal — flex-wrap ilə */}
+                  <div className="flex flex-wrap gap-2">
                     {colorVariants.map((variant) => {
                       const isChecked = selectedColor === variant.colorName;
                       const isVariantOutOfStock = variant.stock === 0;
                       const isLowStock = variant.stock > 0 && variant.stock < 5;
 
                       return (
-                        <label
+                        <button
                           key={variant.colorName}
                           onClick={() => {
                             if (!isVariantOutOfStock) {
                               setSelectedColor(isChecked ? '' : variant.colorName);
                             }
                           }}
-                          className={`flex items-center justify-between p-3.5 rounded-2xl border-2 transition-all select-none ${
+                          disabled={isVariantOutOfStock}
+                          className={`flex items-center gap-2 px-3 py-2 rounded-xl border-2 transition-all select-none text-sm font-black ${
                             isVariantOutOfStock
-                              ? 'border-gray-100 bg-gray-50 opacity-50 cursor-not-allowed'
+                              ? 'border-gray-100 bg-gray-50 text-gray-300 cursor-not-allowed line-through'
                               : isChecked
-                              ? 'border-[#FF8C00] bg-orange-50 cursor-pointer shadow-sm'
-                              : 'border-gray-200 bg-white hover:border-orange-200 cursor-pointer'
+                              ? 'border-[#FF8C00] bg-orange-50 text-[#FF8C00] shadow-sm'
+                              : 'border-gray-200 bg-white text-[#1A1A1A] hover:border-orange-300 cursor-pointer'
                           }`}
                         >
-                          <div className="flex items-center gap-3">
-                            {/* Checkbox */}
-                            <div className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-all ${
-                              isChecked ? 'bg-[#FF8C00] border-[#FF8C00]' : 'border-gray-300 bg-white'
-                            }`}>
-                              {isChecked && (
-                                <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                                </svg>
-                              )}
-                            </div>
-                            <span className={`text-sm font-black ${
-                              isVariantOutOfStock ? 'line-through text-gray-400' :
-                              isChecked ? 'text-[#FF8C00]' : 'text-[#1A1A1A]'
-                            }`}>
-                              {variant.colorName}
-                            </span>
+                          {/* Mini checkbox */}
+                          <div className={`w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 transition-all ${
+                            isChecked ? 'bg-[#FF8C00] border-[#FF8C00]' : isVariantOutOfStock ? 'border-gray-200' : 'border-gray-300'
+                          }`}>
+                            {isChecked && (
+                              <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                              </svg>
+                            )}
                           </div>
-
+                          <span>{variant.colorName}</span>
                           {/* Stok pill */}
-                          <span className={`text-[10px] font-black px-2.5 py-1 rounded-full ${
-                            isVariantOutOfStock ? 'bg-red-100 text-red-600' :
+                          <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${
+                            isVariantOutOfStock ? 'bg-red-100 text-red-400' :
                             isLowStock ? 'bg-yellow-100 text-yellow-700' :
                             'bg-green-100 text-green-700'
                           }`}>
-                            {isVariantOutOfStock ? '❌ Bitib' :
-                             isLowStock ? `⚠️ Son ${variant.stock} ədəd` :
-                             `✅ ${variant.stock} ədəd`}
+                            {isVariantOutOfStock ? 'Bitib' :
+                             isLowStock ? `Son ${variant.stock} əd` :
+                             `Stokda var: ${variant.stock} əd`}
                           </span>
-                        </label>
+                        </button>
                       );
                     })}
                   </div>
@@ -244,24 +217,10 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
                     <p className="text-xs font-black text-red-500">❌ Bu rəng bitib, digər rəng seçin</p>
                   )}
                   {selectedColor && !isSelectedColorOutOfStock && selectedColorStock !== null && selectedColorStock < 5 && (
-                    <p className="text-xs font-black text-yellow-600">⚠️ {selectedColor} rəngindən yalnız {selectedColorStock} ədəd qalıb!</p>
+                    <p className="text-xs font-black text-yellow-600">⚠️ {selectedColor} rəngindən yalnız {selectedColorStock} əd qalıb!</p>
                   )}
                 </section>
               )}
-
-              {/* 📝 ÖZƏL SİFARİŞ QEYDİ */}
-              <section className="space-y-2 p-4 border border-orange-100 rounded-[1.5rem]">
-                <h4 className="text-xs font-black text-[#1A1A1A] uppercase tracking-widest flex items-center gap-2">
-                  <FileText className="h-3 w-3 text-[#FF8C00]" /> Özəl Sifariş Qeydi
-                </h4>
-                <textarea
-                  value={orderNote}
-                  onChange={(e) => setOrderNote(e.target.value)}
-                  placeholder="Məsələn: üzərində qızıl işləmə olsun, fırçalama toxunuşu istəyirəm, ölçüsü S olsun..."
-                  className="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl text-sm min-h-[70px] outline-none text-[#1A1A1A] font-bold placeholder:text-gray-300 focus:border-orange-200 transition-all"
-                />
-                <p className="text-[10px] text-gray-400 font-bold">Özəl istəklərinizi buraya yazın.</p>
-              </section>
 
               {/* 🎁 SİZƏ ÖZƏL ENDİRİM */}
               <section
@@ -272,28 +231,25 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
                   <Sparkles className="h-4 w-4 text-[#FF8C00] flex-shrink-0" />
                   <h4 className="text-sm font-black text-[#1A1A1A]">Sizə özəl endirim!</h4>
                 </div>
-                <p className="text-xs text-gray-500 font-bold">🎁 Sizə özəl endirimi aktivləşdirin:</p>
                 <div className="space-y-2">
                   <label onClick={() => { setCustomerType('new'); setShowCustomerTypeError(false); }}
-                    className={`flex items-start gap-3 p-3.5 rounded-2xl border-2 cursor-pointer transition-all ${customerType === 'new' ? 'border-[#FF8C00] bg-orange-50' : 'border-gray-200 bg-white hover:border-orange-200'}`}>
+                    className={`flex items-start gap-3 p-3 rounded-2xl border-2 cursor-pointer transition-all ${customerType === 'new' ? 'border-[#FF8C00] bg-orange-50' : 'border-gray-200 bg-white hover:border-orange-200'}`}>
                     <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${customerType === 'new' ? 'border-[#FF8C00]' : 'border-gray-300'}`}>
                       {customerType === 'new' && <div className="w-2.5 h-2.5 rounded-full bg-[#FF8C00]" />}
                     </div>
                     <div>
-                      <p className="text-xs font-black text-[#1A1A1A]">Yeni müştəriyəm</p>
+                      <p className="text-xs font-black text-[#1A1A1A]">Yeni müştəriyəm — 10% endirim 🎉</p>
                       <p className="text-[11px] font-bold text-gray-400">İlk alış-verişiniz üçün</p>
-                      {customerType === 'new' && <p className="text-[11px] font-black text-[#FF8C00] mt-1">"Bizi seçdiyiniz üçün 10% xoş gəldin endirimi!" 🎉</p>}
                     </div>
                   </label>
                   <label onClick={() => { setCustomerType('loyal'); setShowCustomerTypeError(false); }}
-                    className={`flex items-start gap-3 p-3.5 rounded-2xl border-2 cursor-pointer transition-all ${customerType === 'loyal' ? 'border-[#FF8C00] bg-orange-50' : 'border-gray-200 bg-white hover:border-orange-200'}`}>
+                    className={`flex items-start gap-3 p-3 rounded-2xl border-2 cursor-pointer transition-all ${customerType === 'loyal' ? 'border-[#FF8C00] bg-orange-50' : 'border-gray-200 bg-white hover:border-orange-200'}`}>
                     <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${customerType === 'loyal' ? 'border-[#FF8C00]' : 'border-gray-300'}`}>
                       {customerType === 'loyal' && <div className="w-2.5 h-2.5 rounded-full bg-[#FF8C00]" />}
                     </div>
                     <div>
-                      <p className="text-xs font-black text-[#1A1A1A]">Daimi müştəriyəm</p>
+                      <p className="text-xs font-black text-[#1A1A1A]">Daimi müştəriyəm — 10% endirim ❤️</p>
                       <p className="text-[11px] font-bold text-gray-400">Sadiqliyiniz üçün təşəkkür edirik</p>
-                      {customerType === 'loyal' && <p className="text-[11px] font-black text-[#FF8C00] mt-1">"Yenidən bizimlə olduğunuz üçün 10% sadiqlik endirimi!" ❤️</p>}
                     </div>
                   </label>
                 </div>
@@ -302,72 +258,91 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
                 )}
               </section>
 
-              {/* Yazı */}
-              <section className="space-y-2 p-4 border border-orange-100 rounded-[1.5rem]">
-                <h4 className="text-xs font-black text-[#1A1A1A] uppercase tracking-widest flex items-center gap-2">
-                  <Edit3 className="h-3 w-3 text-[#FF8C00]" /> Məhsul üzərinə yazı
-                </h4>
-                <textarea value={customText} onChange={(e) => setCustomText(e.target.value)} placeholder="Yazılacaq mətni daxil edin..." className="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl text-sm min-h-[60px] outline-none text-[#1A1A1A] font-bold placeholder:text-gray-300 focus:border-orange-200 transition-all" />
-              </section>
+              {/* ═══ AŞAĞI HİSSƏ: Form sahələri ═══ */}
+              <div className="border-t border-gray-100 pt-4 space-y-4">
 
-              {/* Əlaqə məlumatları */}
-              <section className="space-y-3">
-                <h4 className="text-xs font-black text-[#1A1A1A] uppercase tracking-widest flex items-center gap-2">
-                  <User className="h-3 w-3 text-[#FF8C00]" /> Əlaqə Məlumatları
-                </h4>
-                <input type="text" placeholder="Adınız" value={customerName} onChange={(e) => setCustomerName(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-100 focus:border-orange-200 rounded-xl outline-none font-bold text-sm placeholder:text-gray-300" />
-                <input type="tel" placeholder="Mobil Nömrəniz" value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-100 focus:border-orange-200 rounded-xl outline-none font-bold text-sm placeholder:text-gray-300" />
-                <div className="space-y-1">
-                  <input type="text" placeholder="Doğum Tarixi (12.05.1998)" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-100 focus:border-orange-200 rounded-xl outline-none font-bold text-sm placeholder:text-gray-300" />
-                  <div className="flex items-start gap-2 px-1 pt-1">
-                    <span className="text-base flex-shrink-0">🎂</span>
-                    <p className="text-[11px] text-[#FF8C00] font-bold leading-relaxed">
-                      Doğum günündə yaşınız qədər endirim qazanırsınız! <span className="text-gray-400 font-medium">(Məs: 25 yaşında 25% endirim)</span>
-                    </p>
-                  </div>
-                </div>
-              </section>
+                {/* Məhsul üzərinə yazı */}
+                <section className="space-y-2">
+                  <h4 className="text-xs font-black text-[#1A1A1A] uppercase tracking-widest flex items-center gap-2">
+                    <Edit3 className="h-3 w-3 text-[#FF8C00]" /> Məhsul üzərinə yazı
+                  </h4>
+                  <textarea
+                    value={customText}
+                    onChange={(e) => setCustomText(e.target.value)}
+                    placeholder="Yazılacaq mətni daxil edin..."
+                    className="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl text-sm min-h-[55px] outline-none text-[#1A1A1A] font-bold placeholder:text-gray-300 focus:border-orange-200 transition-all"
+                  />
+                </section>
 
-              {/* Çatdırılma */}
-              <section className="space-y-3 pt-3 border-t border-gray-100">
-                <h4 className="text-xs font-black text-[#1A1A1A] uppercase tracking-widest flex items-center gap-2">
-                  <Truck className="h-3 w-3 text-[#FF8C00]" /> Çatdırılma Seçimi
-                </h4>
-                <button onClick={() => setDeliveryType('standard')} className={`w-full p-4 rounded-2xl border-2 transition-all text-left ${deliveryType === 'standard' ? 'border-[#FF8C00] bg-orange-50' : 'border-gray-100 bg-white'}`}>
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-3"><Truck className="h-4 w-4 text-[#FF8C00]" /><p className="text-sm font-black text-[#1A1A1A]">Standart — 3 Gün</p></div>
-                    <span className="text-xs font-black text-green-600">PULSUZ</span>
+                {/* Özəl sifariş qeydi */}
+                <section className="space-y-2">
+                  <h4 className="text-xs font-black text-[#1A1A1A] uppercase tracking-widest flex items-center gap-2">
+                    <FileText className="h-3 w-3 text-[#FF8C00]" /> Özəl Sifariş Qeydi
+                  </h4>
+                  <textarea
+                    value={orderNote}
+                    onChange={(e) => setOrderNote(e.target.value)}
+                    placeholder="Sifarişə dair xüsusi istəyinizi bura qeyd edə bilərsiniz..."
+                    className="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl text-sm min-h-[65px] outline-none text-[#1A1A1A] font-bold placeholder:text-gray-300 focus:border-orange-200 transition-all"
+                  />
+                </section>
+
+                {/* Əlaqə məlumatları */}
+                <section className="space-y-2">
+                  <h4 className="text-xs font-black text-[#1A1A1A] uppercase tracking-widest flex items-center gap-2">
+                    <User className="h-3 w-3 text-[#FF8C00]" /> Əlaqə Məlumatları
+                  </h4>
+                  <input type="text" placeholder="Adınız" value={customerName} onChange={(e) => setCustomerName(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-100 focus:border-orange-200 rounded-xl outline-none font-bold text-sm placeholder:text-gray-300" />
+                  <input type="tel" placeholder="Mobil Nömrəniz" value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-100 focus:border-orange-200 rounded-xl outline-none font-bold text-sm placeholder:text-gray-300" />
+                  <div className="space-y-1">
+                    <input type="text" placeholder="Doğum Tarixi (12.05.1998)" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-100 focus:border-orange-200 rounded-xl outline-none font-bold text-sm placeholder:text-gray-300" />
+                    <div className="flex items-start gap-2 px-1 pt-0.5">
+                      <span className="text-sm flex-shrink-0">🎂</span>
+                      <p className="text-[11px] text-[#FF8C00] font-bold leading-relaxed">
+                        Doğum günündə yaşınız qədər endirim! <span className="text-gray-400 font-medium">(Məs: 25 yaşında 25%)</span>
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 pl-7 flex-wrap">
-                    {[['1','Hazırlanır'],['2','Paketlənir'],['3','Çatdırılır']].map(([n, label], i, arr) => (
-                      <React.Fragment key={n}>
-                        <div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-500">
-                          <span className="bg-[#FF8C00] text-white rounded-full w-4 h-4 flex items-center justify-center font-black text-[9px] flex-shrink-0">{n}</span>
-                          {label}
-                        </div>
-                        {i < arr.length - 1 && <span className="text-gray-300 font-black">→</span>}
-                      </React.Fragment>
-                    ))}
-                  </div>
-                </button>
-                <button onClick={() => setDeliveryType('urgent')} className={`w-full flex items-center justify-between p-4 rounded-2xl border-2 transition-all ${deliveryType === 'urgent' ? 'border-[#FF8C00] bg-orange-50' : 'border-gray-100 bg-white'}`}>
-                  <div className="flex items-center gap-3"><Clock className="h-4 w-4 text-[#FF8C00]" /><div className="text-left"><p className="text-sm font-black text-[#1A1A1A]">Təcili — 2 Gün</p><p className="text-[10px] font-bold text-gray-500">Sürətləndirilmiş hazırlıq</p></div></div>
-                  <span className="text-xs font-black text-[#FF8C00]">+5.49 AZN</span>
-                </button>
-                <button onClick={() => setDeliveryType('express')} className={`w-full flex items-center justify-between p-4 rounded-2xl border-2 transition-all ${deliveryType === 'express' ? 'border-[#FF8C00] bg-orange-50' : 'border-gray-100 bg-white'}`}>
-                  <div className="flex items-center gap-3"><Zap className="h-4 w-4 text-[#FF8C00]" /><div className="text-left"><p className="text-sm font-black text-[#1A1A1A]">Ekspress — 24 Saat</p><p className="text-[10px] font-bold text-gray-500">Prioritet hazırlıq, eyni gün kuryer</p></div></div>
-                  <span className="text-xs font-black text-[#FF8C00]">+9.99 AZN</span>
-                </button>
-                <div className="space-y-2 pt-1">
+                </section>
+
+                {/* Çatdırılma seçimi */}
+                <section className="space-y-2">
+                  <h4 className="text-xs font-black text-[#1A1A1A] uppercase tracking-widest flex items-center gap-2">
+                    <Truck className="h-3 w-3 text-[#FF8C00]" /> Çatdırılma Seçimi
+                  </h4>
+                  <button onClick={() => setDeliveryType('standard')} className={`w-full p-3.5 rounded-2xl border-2 transition-all text-left ${deliveryType === 'standard' ? 'border-[#FF8C00] bg-orange-50' : 'border-gray-100 bg-white'}`}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2"><Truck className="h-4 w-4 text-[#FF8C00]" /><p className="text-sm font-black text-[#1A1A1A]">Standart — 3 Gün</p></div>
+                      <span className="text-xs font-black text-green-600">PULSUZ</span>
+                    </div>
+                  </button>
+                  <button onClick={() => setDeliveryType('urgent')} className={`w-full flex items-center justify-between p-3.5 rounded-2xl border-2 transition-all ${deliveryType === 'urgent' ? 'border-[#FF8C00] bg-orange-50' : 'border-gray-100 bg-white'}`}>
+                    <div className="flex items-center gap-2"><Clock className="h-4 w-4 text-[#FF8C00]" /><div className="text-left"><p className="text-sm font-black text-[#1A1A1A]">Təcili — 2 Gün</p><p className="text-[10px] font-bold text-gray-400">Sürətləndirilmiş hazırlıq</p></div></div>
+                    <span className="text-xs font-black text-[#FF8C00]">+5.49 AZN</span>
+                  </button>
+                  <button onClick={() => setDeliveryType('express')} className={`w-full flex items-center justify-between p-3.5 rounded-2xl border-2 transition-all ${deliveryType === 'express' ? 'border-[#FF8C00] bg-orange-50' : 'border-gray-100 bg-white'}`}>
+                    <div className="flex items-center gap-2"><Zap className="h-4 w-4 text-[#FF8C00]" /><div className="text-left"><p className="text-sm font-black text-[#1A1A1A]">Ekspress — 24 Saat</p><p className="text-[10px] font-bold text-gray-400">Prioritet hazırlıq, eyni gün kuryer</p></div></div>
+                    <span className="text-xs font-black text-[#FF8C00]">+9.99 AZN</span>
+                  </button>
+                </section>
+
+                {/* Çatdırılma ünvanı */}
+                <section className="space-y-2">
                   <h4 className="text-xs font-black text-[#1A1A1A] uppercase tracking-widest flex items-center gap-2">
                     <MapPin className="h-3 w-3 text-[#FF8C00]" /> Çatdırılma Ünvanı
                   </h4>
-                  <textarea placeholder="Tam ünvan və kuryer üçün əlavə qeydlər..." value={deliveryDetails} onChange={(e) => setDeliveryDetails(e.target.value)} className="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl outline-none font-bold text-sm min-h-[90px] focus:border-orange-200 transition-all placeholder:text-gray-300" />
-                </div>
-              </section>
+                  <textarea
+                    placeholder="Tam ünvanınızı daxil edin..."
+                    value={deliveryDetails}
+                    onChange={(e) => setDeliveryDetails(e.target.value)}
+                    className="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl outline-none font-bold text-sm min-h-[80px] focus:border-orange-200 transition-all placeholder:text-gray-300"
+                  />
+                </section>
 
-              {/* Hədiyyə + Yekun */}
-              <div className="sticky bottom-0 bg-white pt-4 pb-3 border-t border-gray-100 space-y-4">
+              </div>
+
+              {/* Hədiyyə + Yekun — yapışqan alt */}
+              <div className="sticky bottom-0 bg-white pt-3 pb-3 border-t border-gray-100 space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Gift className="h-4 w-4 text-[#FF8C00]" />
