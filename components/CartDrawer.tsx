@@ -28,8 +28,8 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, items, onRemov
       const deliveryPrice = item.deliveryType === 'urgent' ? 5.49 : item.deliveryType === 'express' ? 9.99 : 0;
       const finalPrice = basePrice - loyaltyDiscount + deliveryPrice;
       const prepayment = (finalPrice * 0.5).toFixed(2);
-
       const productImageUrl = item.images && item.images[0] ? item.images[0] : '';
+      const colorsText = item.selectedColors && item.selectedColors.length > 0 ? item.selectedColors.join(', ') : 'Seçilməyib';
 
       let priceBreakdown = `- Qiymət: ${basePrice.toFixed(2)} AZN\n`;
 
@@ -58,14 +58,15 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, items, onRemov
              `- Telefon: ${item.phone}\n` +
              `- Doğum tarixi: ${item.birthDate}\n\n` +
              `✏️ *SİFARİŞ DETALLARI:*\n` +
-             `- Rəng seçimi: ${item.selectedColor || 'Seçilməyib'}\n` +
-             `- Özəl qeyd: ${item.orderNote || 'Yoxdur'}\n` +
+             `- Rəng seçimi: ${colorsText}\n` +
+             `- Özəl qeyd: ${item.specialRequest || 'Yoxdur'}\n` +
              `- Məhsul üzəri yazı: ${item.customText || 'Yoxdur'}\n` +
              `- Ünvan: ${item.deliveryDetails || 'Qeyd edilməyib'}\n` +
              `- Çatdırılma: ${item.deliveryType === 'standard' ? 'Standart (3 gün) 🚚' : item.deliveryType === 'urgent' ? 'Təcili (2 gün) ⚡' : 'Ekspress (24 saat) 🔥'}\n` +
              `- Hədiyyə bağlama: ${item.isGift ? 'Bəli 🎁' : 'Xeyr'}\n\n` +
              `💰 *QİYMƏT:*\n` +
-             priceBreakdown;
+             priceBreakdown +
+             `\n⚠️ *QEYD:* Bu məhsul özəl hazırlanır və geri qaytarılmır!`;
     }).join('\n\n');
 
     const message = encodeURIComponent(
@@ -120,7 +121,11 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, items, onRemov
                   <div key={item.cartId} className="bg-gray-50 rounded-[2rem] p-5 border border-gray-100 space-y-4 group">
                     <div className="flex gap-4">
                       <div className="w-16 h-20 bg-white rounded-xl overflow-hidden shrink-0 shadow-sm">
-                        <img src={item.images[0]} className="w-full h-full object-cover" alt={item.name} />
+                        {item.images && item.images[0] ? (
+                          <img src={item.images[0]} className="w-full h-full object-cover" alt={item.name} />
+                        ) : (
+                          <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-400 text-xs">?</div>
+                        )}
                       </div>
                       <div className="flex-grow flex flex-col justify-center">
                         <h3 className="font-black text-sm text-gray-800 line-clamp-1">{item.name}</h3>
@@ -135,10 +140,14 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, items, onRemov
                           {item.isGift && <Gift className="h-3 w-3 text-red-500" />}
                         </div>
                         {/* Rəng seçimi göstər */}
-                        {item.selectedColor && (
-                          <span className="text-[10px] font-black text-[#FF8C00] bg-orange-50 px-2 py-0.5 rounded-full mt-1 self-start">
-                            🎨 {item.selectedColor}
-                          </span>
+                        {item.selectedColors && item.selectedColors.length > 0 && (
+                          <div className="flex gap-1 mt-1 flex-wrap">
+                            {item.selectedColors.map((color, idx) => (
+                              <span key={idx} className="text-[10px] font-black text-[#FF8C00] bg-orange-50 px-2 py-0.5 rounded-full">
+                                🎨 {color}
+                              </span>
+                            ))}
+                          </div>
                         )}
                         {loyaltyDiscount > 0 && (
                           <div className="mt-1">
@@ -166,10 +175,10 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, items, onRemov
 
                     <div className="pt-3 border-t border-gray-200/50 space-y-2">
                       {/* Özəl qeyd göstər */}
-                      {item.orderNote && (
+                      {item.specialRequest && (
                         <div className="flex items-start gap-2 text-[10px] text-gray-500 bg-amber-50 rounded-xl px-2 py-1.5">
                           <span className="text-amber-500 font-black flex-shrink-0">📝</span>
-                          <p className="font-bold italic line-clamp-2 text-amber-800">{item.orderNote}</p>
+                          <p className="font-bold italic line-clamp-2 text-amber-800">{item.specialRequest}</p>
                         </div>
                       )}
                       <div className="flex items-start gap-2 text-[10px] text-gray-500">

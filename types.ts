@@ -1,34 +1,32 @@
-export interface ColorVariant {
-  colorName: string;
-  stock: number;
-}
-
 export interface Product {
   id: string;
   name: string;
-  description: string;
-  price: number;
-  images: string[];
   category: string;
+  price: number;
+  discountPrice?: number;
   rating: number;
-  colorVariants?: ColorVariant[];
+  description?: string;
+  images: string[];
+  availableColors?: string[];
+  stockQuantity?: number;
+  isPremium?: boolean;
+  premiumOrder?: number;
+  premiumSize?: 'large' | 'small-top' | 'small-bottom';
 }
 
 export interface CartItem extends Product {
   cartId: string;
   quantity: number;
+  selectedColors?: string[];
+  specialRequest?: string;
   customText?: string;
-  customerName?: string;
-  phone?: string;
-  birthDate?: string;
-  isGift?: boolean;
-  isFirstOrSecondOrder?: boolean;
+  customerName: string;
+  phone: string;
+  birthDate: string;
+  isGift: boolean;
+  isFirstOrSecondOrder: boolean;
   deliveryType: 'standard' | 'urgent' | 'express';
-  deliveryDetails?: string;
-  selectedColor?: string;
-  orderNote?: string;
+  deliveryDetails: string;
 }
-
-export type Category = 'Bütün məhsullar' | 'Elektronika' | 'Geyim' | 'Ev & Dekorsiya' | 'Dəst hədiyyələr' | 'Aksesuarlar' | 'Foto çərçivə' | 'Çap xidmətləri' | 'Özəl hədiyyələr';
 
 export type AppView = 'home' | 'about' | 'contact' | 'delivery' | 'reviews';
