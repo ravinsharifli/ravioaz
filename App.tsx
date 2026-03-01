@@ -50,7 +50,7 @@ const App: React.FC = () => {
           "price": coalesce(colorVariants[0].discountPrice, colorVariants[0].price, 0),
           rating,
           description,
-          "images": images[].asset->url,
+          "images": colorVariants[].image.asset->url,
           "colorVariants": colorVariants[]{
             colorName,
             stock,
