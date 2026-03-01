@@ -33,7 +33,6 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart, onView
         {products.map((product) => {
           const firstImage = product.images?.[0] || null;
           const { min, hasDiscount, oldMin } = getMinPrice(product);
-          const hasVariants = (product.colorVariants || []).length > 0;
 
           return (
             <div
@@ -82,17 +81,11 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart, onView
                   <div className="flex flex-col">
                     {hasDiscount && oldMin ? (
                       <>
-                        <span className="text-xs font-bold text-gray-400 line-through">
-                          {oldMin.toFixed(2)} AZN-dən
-                        </span>
-                        <span className="text-base font-black text-[#FF8C00]">
-                          {min.toFixed(2)} AZN-dən
-                        </span>
+                        <span className="text-xs font-bold text-gray-400 line-through">{oldMin.toFixed(2)} AZN</span>
+                        <span className="text-base font-black text-[#FF8C00]">{min.toFixed(2)} AZN</span>
                       </>
                     ) : (
-                      <span className="text-base font-black text-[#1A1A1A]">
-                        {min.toFixed(2)} AZN-dən
-                      </span>
+                      <span className="text-base font-black text-[#1A1A1A]">{min.toFixed(2)} AZN</span>
                     )}
                   </div>
                   <ShoppingCart className="h-4 w-4 text-gray-300 group-hover:text-[#FF8C00] transition-colors" />
@@ -103,7 +96,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart, onView
         })}
       </div>
       {products.length === 0 && (
-        <div className="py-20 text-center bg-gray-50 rounded-[2.5rem] border border-dashed border-gray-200">
+        <div className="py-20 text-center bg-gray-50 rounded-[2.5xl] border border-dashed border-gray-200">
           <p className="text-gray-400 font-bold italic">Bu kateqoriyada hələlik məhsul yoxdur.</p>
         </div>
       )}

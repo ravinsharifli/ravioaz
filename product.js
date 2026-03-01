@@ -19,14 +19,7 @@ export default {
       title: 'Məhsul haqqında',
       type: 'text',
     },
-    {
-      name: 'images',
-      title: '🖼 Şəkillər (minimum 1, maksimum 5)',
-      type: 'array',
-      description: 'Ümumi şəkillər. Hər rəngin öz şəkli varsa aşağıda rəng bölməsindən əlavə edin.',
-      of: [{ type: 'image', options: { hotspot: true } }],
-      validation: Rule => Rule.min(1).max(5),
-    },
+
 
     // 🎨 RƏNG VARİANTLARI
     {
