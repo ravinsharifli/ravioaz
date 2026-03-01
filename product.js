@@ -116,20 +116,24 @@ export default {
   preview: {
     select: {
       title: 'name',
-      media: 'colorVariants.0.image',
       isPremium: 'isPremium',
-      colorVariants: 'colorVariants',
+      v0: 'colorVariants.0',
+      v1: 'colorVariants.1',
+      v2: 'colorVariants.2',
+      v3: 'colorVariants.3',
+      v4: 'colorVariants.4',
     },
-    prepare({ title, media, isPremium, colorVariants }) {
-      const variants = colorVariants || [];
+    prepare({ title, isPremium, v0, v1, v2, v3, v4 }) {
+      const variants = [v0, v1, v2, v3, v4].filter(Boolean);
       const totalStock = variants.reduce((sum, v) => sum + (v.stock || 0), 0);
-      const stockBadge = totalStock === 0 ? '❌ BİTİB' : totalStock < 10 ? `⚠️ ${totalStock} əd` : `✅ ${totalStock} əd`;
+      const stockBadge = totalStock === 0 ? '❌ BİTİB' : `📦 ${totalStock} əd`;
       const minPrice = variants.length > 0
         ? Math.min(...variants.map(v => v.discountPrice || v.price || 0))
         : 0;
+      const media = v0?.image;
       return {
-        title: title,
-        subtitle: `${minPrice} AZN-dən ${isPremium ? '⭐ Premium' : ''} | ${stockBadge}`,
+        title: title || 'Məhsul',
+        subtitle: `${minPrice} AZN | ${isPremium ? '⭐ ' : ''}${stockBadge}`,
         media: media,
       }
     },
