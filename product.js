@@ -12,19 +12,7 @@ export default {
       name: 'category',
       title: 'Kateqoriya',
       type: 'reference',
-      to: [{type: 'category'}], 
-    },
-    {
-      name: 'price',
-      title: 'Əsas qiymət (AZN)',
-      type: 'number',
-      description: 'Köhnə qiymət - üzərindən xətt çəkiləcək',
-    },
-    {
-      name: 'discountPrice',
-      title: 'Endirimli qiymət (AZN)',
-      type: 'number',
-      description: 'Yeni qiymət - böyük göstəriləcək. Boş buraxsanız endirim olmayacaq.',
+      to: [{type: 'category'}],
     },
     {
       name: 'description',
@@ -35,24 +23,18 @@ export default {
       name: 'images',
       title: '🖼 Şəkillər (minimum 1, maksimum 5)',
       type: 'array',
-      description: 'Minimum 1, maksimum 5 şəkil yükləyin. İlk şəkil əsas şəkil olacaq.',
-      of: [
-        {
-          type: 'image',
-          options: {
-            hotspot: true,
-          },
-        }
-      ],
+      description: 'Ümumi şəkillər. Hər rəngin öz şəkli varsa aşağıda rəng bölməsindən əlavə edin.',
+      of: [{ type: 'image', options: { hotspot: true } }],
       validation: Rule => Rule.min(1).max(5),
     },
-    
-    // 🎨 RƏNG VƏ STOK İDARƏSİ
+
+    // 🎨 RƏNG VARİANTLARI
     {
       name: 'colorVariants',
-      title: '🎨 Rəng Variantları və Stok',
+      title: '🎨 Rəng Variantları (şəkil + qiymət + stok)',
       type: 'array',
-      description: 'Hər rəng üçün ayrıca stok sayını qeyd edin. Məsələn: Qızılı - 15 əd, Gümüşü - 8 əd',
+      description: 'Hər rəng üçün şəkil, qiymət və stok daxil edin. Maksimum 5.',
+      validation: Rule => Rule.max(5),
       of: [
         {
           type: 'object',
@@ -64,10 +46,27 @@ export default {
               validation: Rule => Rule.required()
             },
             {
-              name: 'stock',
-              title: 'Stok sayı',
+              name: 'image',
+              title: 'Şəkil (bu rəng üçün)',
+              type: 'image',
+              options: { hotspot: true },
+            },
+            {
+              name: 'price',
+              title: 'Əsas qiymət (AZN) — üzərindən xətt çəkilir',
               type: 'number',
-              description: '0 yazın bitibsə.',
+              validation: Rule => Rule.required().min(0),
+            },
+            {
+              name: 'discountPrice',
+              title: 'Endirimli qiymət (AZN) — böyük göstərilir',
+              type: 'number',
+              description: 'Boş buraxsanız endirim olmayacaq.',
+            },
+            {
+              name: 'stock',
+              title: 'Stok sayı (0 = bitib)',
+              type: 'number',
               validation: Rule => Rule.min(0).integer().required(),
               initialValue: 0
             }
@@ -75,32 +74,35 @@ export default {
           preview: {
             select: {
               title: 'colorName',
-              stock: 'stock'
+              stock: 'stock',
+              price: 'price',
+              discountPrice: 'discountPrice',
+              media: 'image'
             },
-            prepare({title, stock}) {
-              const stockBadge = stock === 0 ? '❌ Bitib' : stock < 5 ? `⚠️ ${stock} əd` : `✅ ${stock} əd`;
+            prepare({ title, stock, price, discountPrice, media }) {
+              const stockBadge = stock === 0 ? '❌ Bitib' : stock < 20 ? `⚠️ ${stock} əd` : `✅ ${stock} əd`;
+              const priceText = discountPrice ? `${discountPrice} AZN` : price ? `${price} AZN` : '';
               return {
                 title: title,
-                subtitle: stockBadge
+                subtitle: `${priceText} | ${stockBadge}`,
+                media: media
               }
             }
           }
         }
       ]
     },
-    
+
     {
       name: 'isPremium',
       title: 'Premium məhsuldur?',
       type: 'boolean',
-      description: 'Əsas səhifədə Premium bölməsində göstərilsin?',
       initialValue: false,
     },
     {
       name: 'premiumOrder',
       title: 'Premium sırası',
       type: 'number',
-      description: 'Premium bölməsində göstərilmə sırası (1=böyük, 2-3=kiçik)',
       hidden: ({ document }) => !document?.isPremium,
     },
     {
@@ -121,24 +123,20 @@ export default {
   preview: {
     select: {
       title: 'name',
-      price: 'price',
-      discountPrice: 'discountPrice',
-      media: 'images.0',
+      media: 'colorVariants.0.image',
       isPremium: 'isPremium',
       colorVariants: 'colorVariants',
     },
-    prepare({ title, price, discountPrice, media, isPremium, colorVariants }) {
-      const discount = discountPrice && price ? Math.round(((price - discountPrice) / price) * 100) : 0;
-      const priceText = discountPrice 
-        ? `${discountPrice} AZN (${discount}% endirim)` 
-        : `${price} AZN`;
-      
-      const totalStock = colorVariants ? colorVariants.reduce((sum, v) => sum + (v.stock || 0), 0) : 0;
+    prepare({ title, media, isPremium, colorVariants }) {
+      const variants = colorVariants || [];
+      const totalStock = variants.reduce((sum, v) => sum + (v.stock || 0), 0);
       const stockBadge = totalStock === 0 ? '❌ BİTİB' : totalStock < 10 ? `⚠️ ${totalStock} əd` : `✅ ${totalStock} əd`;
-      
+      const minPrice = variants.length > 0
+        ? Math.min(...variants.map(v => v.discountPrice || v.price || 0))
+        : 0;
       return {
         title: title,
-        subtitle: `${priceText} ${isPremium ? '⭐ Premium' : ''} | ${stockBadge}`,
+        subtitle: `${minPrice} AZN-dən ${isPremium ? '⭐ Premium' : ''} | ${stockBadge}`,
         media: media,
       }
     },

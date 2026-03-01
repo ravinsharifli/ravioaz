@@ -1,13 +1,21 @@
+export interface ColorVariant {
+  colorName: string;
+  stock: number;
+  price: number;
+  discountPrice?: number;
+  image?: string;
+}
+
 export interface Product {
   id: string;
   name: string;
   category: string;
-  price: number;
+  price: number;        // fallback üçün saxlanılır
   discountPrice?: number;
   rating: number;
   description?: string;
   images: string[];
-  colorVariants?: Array<{colorName: string; stock: number}>;
+  colorVariants?: ColorVariant[];
   isPremium?: boolean;
   premiumOrder?: number;
   premiumSize?: 'large' | 'small-top' | 'small-bottom';
