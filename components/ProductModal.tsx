@@ -200,7 +200,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
                             <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
                               isColorOutOfStock ? 'text-red-500' : 'text-gray-500'
                             }`}>
-                              {isColorOutOfStock ? 'Bitib' : `${variant.stock} əd`}
+                              {isColorOutOfStock ? 'Bitib' : `${variant.stock} stokda var: əd`}
                             </span>
                           </button>
                         );
@@ -323,7 +323,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
                   <input type="tel" placeholder="Mobil Nömrəniz" value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-100 focus:border-orange-200 rounded-xl outline-none font-bold text-sm placeholder:text-gray-300" />
                   <input type="text" placeholder="Doğum Tarixi (12.05.1998)" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-100 focus:border-orange-200 rounded-xl outline-none font-bold text-sm placeholder:text-gray-300" />
                   <p className="text-[10px] text-[#FF8C00] font-bold flex items-center gap-1 px-1">
-                    🎂 Doğum günündə yaşınız qədər endirim! <span className="text-gray-400 font-medium">(Məs: 25% @ 25 yaş)</span>
+                    🎂 Doğum günündə yaşınız qədər endirim! <span className="text-gray-400 font-medium">(Məs: 25 yaş - 25%)</span>
                   </p>
                 </div>
 
