@@ -47,26 +47,46 @@ export default {
       validation: Rule => Rule.min(1).max(5),
     },
     
-    // 🎨 RƏNG SEÇİMİ
+    // 🎨 RƏNG VƏ STOK İDARƏSİ
     {
-      name: 'availableColors',
-      title: '🎨 Mövcud Rənglər',
+      name: 'colorVariants',
+      title: '🎨 Rəng Variantları və Stok',
       type: 'array',
-      description: 'Məhsulun mövcud olduğu rəngləri yazın. Müştəri checkbox ilə seçəcək.',
-      of: [{type: 'string'}],
-      options: {
-        layout: 'tags'
-      }
-    },
-    
-    // 📦 STOK İDARƏSİ
-    {
-      name: 'stockQuantity',
-      title: '📦 Stok Sayı',
-      type: 'number',
-      description: 'Məhsulun stokdaki sayı. 0 yazın bitibsə.',
-      initialValue: 0,
-      validation: Rule => Rule.min(0).integer()
+      description: 'Hər rəng üçün ayrıca stok sayını qeyd edin. Məsələn: Qızılı - 15 əd, Gümüşü - 8 əd',
+      of: [
+        {
+          type: 'object',
+          fields: [
+            {
+              name: 'colorName',
+              title: 'Rəng adı',
+              type: 'string',
+              validation: Rule => Rule.required()
+            },
+            {
+              name: 'stock',
+              title: 'Stok sayı',
+              type: 'number',
+              description: '0 yazın bitibsə.',
+              validation: Rule => Rule.min(0).integer().required(),
+              initialValue: 0
+            }
+          ],
+          preview: {
+            select: {
+              title: 'colorName',
+              stock: 'stock'
+            },
+            prepare({title, stock}) {
+              const stockBadge = stock === 0 ? '❌ Bitib' : stock < 5 ? `⚠️ ${stock} əd` : `✅ ${stock} əd`;
+              return {
+                title: title,
+                subtitle: stockBadge
+              }
+            }
+          }
+        }
+      ]
     },
     
     {
@@ -105,15 +125,16 @@ export default {
       discountPrice: 'discountPrice',
       media: 'images.0',
       isPremium: 'isPremium',
-      stockQuantity: 'stockQuantity',
+      colorVariants: 'colorVariants',
     },
-    prepare({ title, price, discountPrice, media, isPremium, stockQuantity }) {
+    prepare({ title, price, discountPrice, media, isPremium, colorVariants }) {
       const discount = discountPrice && price ? Math.round(((price - discountPrice) / price) * 100) : 0;
       const priceText = discountPrice 
         ? `${discountPrice} AZN (${discount}% endirim)` 
         : `${price} AZN`;
       
-      const stockBadge = stockQuantity === 0 ? '❌ BİTİB' : stockQuantity < 5 ? `⚠️ ${stockQuantity} ədəd` : `✅ ${stockQuantity} ədəd`;
+      const totalStock = colorVariants ? colorVariants.reduce((sum, v) => sum + (v.stock || 0), 0) : 0;
+      const stockBadge = totalStock === 0 ? '❌ BİTİB' : totalStock < 10 ? `⚠️ ${totalStock} əd` : `✅ ${totalStock} əd`;
       
       return {
         title: title,

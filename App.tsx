@@ -51,8 +51,7 @@ const App: React.FC = () => {
           rating,
           description,
           "images": images[].asset->url,
-          availableColors,
-          stockQuantity,
+          colorVariants,
           isPremium,
           premiumOrder,
           premiumSize

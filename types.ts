@@ -7,8 +7,7 @@ export interface Product {
   rating: number;
   description?: string;
   images: string[];
-  availableColors?: string[];
-  stockQuantity?: number;
+  colorVariants?: Array<{colorName: string; stock: number}>;
   isPremium?: boolean;
   premiumOrder?: number;
   premiumSize?: 'large' | 'small-top' | 'small-bottom';
