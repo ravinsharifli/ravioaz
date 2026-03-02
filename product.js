@@ -20,7 +20,6 @@ export default {
       type: 'text',
     },
 
-
     // 🎨 RƏNG VARİANTLARI
     {
       name: 'colorVariants',
@@ -117,24 +116,28 @@ export default {
     select: {
       title: 'name',
       isPremium: 'isPremium',
-      v0: 'colorVariants.0',
-      v1: 'colorVariants.1',
-      v2: 'colorVariants.2',
-      v3: 'colorVariants.3',
-      v4: 'colorVariants.4',
+      colorVariants: 'colorVariants',
     },
-    prepare({ title, isPremium, v0, v1, v2, v3, v4 }) {
-      const variants = [v0, v1, v2, v3, v4].filter(Boolean);
-      const totalStock = variants.reduce((sum, v) => sum + (v.stock || 0), 0);
-      const stockBadge = totalStock === 0 ? '❌ BİTİB' : `📦 ${totalStock} əd`;
-      const minPrice = variants.length > 0
-        ? Math.min(...variants.map(v => v.discountPrice || v.price || 0))
-        : 0;
-      const media = v0?.image;
+    prepare(selection) {
+      const { title, isPremium, colorVariants } = selection;
+      
+      const variants = colorVariants && Array.isArray(colorVariants) ? colorVariants : [];
+      
+      // Hər rəng üçün ad və stok
+      const colorStocks = variants.map(v => {
+        if (!v || !v.colorName) return null;
+        const stock = v.stock || 0;
+        const stockText = stock === 0 ? 'Bitib' : `${stock} əd`;
+        return `${v.colorName}: ${stockText}`;
+      }).filter(Boolean);
+      
+      const subtitle = colorStocks.length > 0 
+        ? `${isPremium ? '⭐ ' : ''}${colorStocks.join(' | ')}`
+        : `${isPremium ? '⭐ ' : ''}Rəng əlavə edilməyib`;
+      
       return {
         title: title || 'Məhsul',
-        subtitle: `${minPrice} AZN | ${isPremium ? '⭐ ' : ''}${stockBadge}`,
-        media: media,
+        subtitle: subtitle,
       }
     },
   },
