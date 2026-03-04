@@ -1,30 +1,34 @@
-export interface ColorVariant {
-  colorName: string;
-  stock: number;
+export interface ProductVariant {
+  modelName?: string;
+  colorName?: string;
+  images: string[];
   price: number;
   discountPrice?: number;
-  image?: string;
+  stock: number;
 }
 
 export interface Product {
   id: string;
   name: string;
   category: string;
-  price: number;        // fallback üçün saxlanılır
-  discountPrice?: number;
-  rating: number;
   description?: string;
-  images: string[];
-  colorVariants?: ColorVariant[];
+  variants: ProductVariant[];
   isPremium?: boolean;
   premiumOrder?: number;
   premiumSize?: 'large' | 'small-top' | 'small-bottom';
 }
 
-export interface CartItem extends Product {
+export interface CartItem {
   cartId: string;
+  productId: string;
+  productName: string;
+  variantIndex: number;
+  modelName: string;
+  colorName: string;
+  images: string[];
+  price: number;
+  discountPrice?: number;
   quantity: number;
-  selectedColors?: string[];
   specialRequest?: string;
   customText?: string;
   customerName: string;
