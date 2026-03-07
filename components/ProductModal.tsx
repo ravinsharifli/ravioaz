@@ -253,9 +253,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
                     <Truck className="h-4 w-4 text-[#FF8C00]" />
                     <div className="text-left">
                       <p className="text-sm font-black text-[#1A1A1A]">Standart — 3 Gün</p>
-                      <p className="text-[9px] font-bold text-gray-400"> Hazırlanma</p>
-                      <p className="text-[9px] font-bold text-gray-400"> Paketlənmə</p>
-                      <p className="text-[9px] font-bold text-gray-400"> Çatdırılma</p>
+                      <p className="text-[9px] font-bold text-gray-400"> Hazırlanma - Paketlənmə - Çatdırılma </p>
                     </div>
                   </div>
                   <span className="text-xs font-black text-green-600">PULSUZ</span>
