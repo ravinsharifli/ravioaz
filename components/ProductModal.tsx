@@ -175,13 +175,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
                 </div>
               )}
 
-              {/* ÖN ÖDƏNİŞ */}
-              <div className="bg-amber-50 border-2 border-amber-300 p-3 rounded-2xl flex items-start gap-2">
-                <AlertCircle className="h-4 w-4 text-amber-600 flex-shrink-0 mt-0.5" />
-                <p className="text-[11px] font-bold text-amber-900 leading-relaxed">
-                  <span className="font-black">Özəl hazırlanmış məhsul!</span> 50% ödəniş kart hesabına ödənilməlidir. <span className="font-black">Çünki özəl hazırlanan məhsullar ləğv edilə bilməz.</span>
-                </p>
-              </div>
+
 
               {/* VARİANT SEÇİMİ */}
               {variants.length > 0 && (
@@ -259,7 +253,9 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
                     <Truck className="h-4 w-4 text-[#FF8C00]" />
                     <div className="text-left">
                       <p className="text-sm font-black text-[#1A1A1A]">Standart — 3 Gün</p>
-                      <p className="text-[9px] font-bold text-gray-400">Hazırlanır → Paketlənir → Çatdırılır</p>
+                      <p className="text-[9px] font-bold text-gray-400">1-ci gün: Hazırlanma</p>
+                      <p className="text-[9px] font-bold text-gray-400">2-ci gün: Paketlənmə</p>
+                      <p className="text-[9px] font-bold text-gray-400">3-cü gün: Çatdırılma</p>
                     </div>
                   </div>
                   <span className="text-xs font-black text-green-600">PULSUZ</span>
@@ -348,7 +344,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
                 <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-2xl px-3 py-2">
                   <AlertCircle className="h-3.5 w-3.5 text-amber-600 flex-shrink-0" />
                   <p className="text-[10px] font-bold text-amber-800">
-                    Sifarişin <span className="font-black">50%-i</span> kart-karta ön ödəniş tələb olunur.
+                    <span className="font-black">Özəl hazırlanmış məhsul!</span> 50% ödəniş kart hesabına ödənilməlidir. Çünki özəl hazırlanan məhsullar ləğv edilə bilməz.
                   </p>
                 </div>
                 <div className="bg-[#1A1A1A] p-5 rounded-[2rem] flex items-center justify-between text-white shadow-2xl">
