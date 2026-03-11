@@ -109,7 +109,10 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
           <div className="md:w-1/2 relative bg-gray-100 flex flex-col flex-shrink-0 md:border-r border-gray-100 md:rounded-l-[3rem] overflow-hidden">
             <div className="relative overflow-hidden aspect-square md:aspect-auto md:h-[440px]">
               {images[currentImgIndex] ? (
-                <img src={images[currentImgIndex]} alt={product.name} className="w-full h-full object-cover transition-all duration-300" />
+                <>
+                  <img src={images[currentImgIndex]} alt="" className="absolute inset-0 w-full h-full object-cover scale-110 blur-xl opacity-50 pointer-events-none" />
+                  <img src={images[currentImgIndex]} alt={product.name} className="relative z-10 w-full h-full object-contain transition-all duration-300" />
+                </>
               ) : (
                 <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-400 text-sm font-bold">Şəkil yoxdur</div>
               )}
