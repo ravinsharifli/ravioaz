@@ -102,7 +102,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
 
           {/* ŞƏKİL */}
           <div className="md:w-1/2 relative bg-gray-100 flex flex-col flex-shrink-0 md:border-r border-gray-100 md:rounded-l-[3rem] overflow-hidden">
-            <div className="relative overflow-hidden" style={{height: 'min(75vw, 440px)'}}>
+            <div className="relative overflow-hidden aspect-square md:aspect-auto md:h-[440px]">
               {images[currentImgIndex] ? (
                 <img src={images[currentImgIndex]} alt={product.name} className="w-full h-full object-cover transition-all duration-300" />
               ) : (
@@ -181,7 +181,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
               {variants.length > 0 && (
                 <div className="p-3 bg-gray-50 rounded-2xl border border-gray-100 space-y-3">
                   <p className="text-[10px] font-black text-[#1A1A1A] uppercase tracking-widest">Variant seçin</p>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="flex flex-col gap-2">
                     {variants.map((variant, idx) => {
                       const vPrice = variant.discountPrice || variant.price;
                       const vOldPrice = variant.price;
@@ -194,35 +194,32 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
                           key={idx}
                           onClick={() => { if (!isVarOutOfStock) handleVariantSelect(idx); }}
                           disabled={isVarOutOfStock}
-                          className={`flex items-center justify-between p-2.5 rounded-xl border-2 transition-all text-left ${
+                          className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-left ${
                             isVarOutOfStock ? 'border-gray-200 bg-gray-100 cursor-not-allowed opacity-60'
                             : isSelected ? 'border-[#FF8C00] bg-orange-50'
                             : 'border-gray-200 bg-white hover:border-orange-300'
                           }`}
                         >
-                          <div className="flex items-center gap-2">
-                            <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${isSelected ? 'bg-[#FF8C00] border-[#FF8C00]' : 'border-gray-300'}`}>
-                              {isSelected && <div className="w-2 h-2 rounded-full bg-white" />}
-                            </div>
-                            <div>
-                              {variant.modelName && <p className="text-[10px] font-black text-[#1A1A1A]">{variant.modelName}</p>}
-                              {variant.colorName && <p className="text-[10px] font-bold text-gray-500">{variant.colorName}</p>}
-                            </div>
+                          {/* Radio */}
+                          <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${isSelected ? 'bg-[#FF8C00] border-[#FF8C00]' : 'border-gray-300'}`}>
+                            {isSelected && <div className="w-2 h-2 rounded-full bg-white" />}
                           </div>
-                          <div className="flex flex-col items-end gap-0.5">
-                            {vHasDiscount ? (
-                              <>
-                                <span className="text-[10px] font-black text-[#FF8C00]">{vPrice.toFixed(2)} ₼</span>
-                                <span className="text-[9px] text-gray-400 line-through">{vOldPrice.toFixed(2)} ₼</span>
-                              </>
-                            ) : (
-                              <span className="text-[10px] font-black text-[#FF8C00]">{vPrice.toFixed(2)} ₼</span>
-                            )}
-                            {isVarOutOfStock ? (
-                              <span className="text-[9px] font-bold text-red-500">Bitib</span>
-                            ) : variant.stock < 20 ? (
-                              <span className="text-[9px] font-bold text-amber-500">{variant.stock} əd</span>
-                            ) : null}
+
+                          {/* Ad */}
+                          <div className="flex-1 min-w-0">
+                            {variant.modelName && <p className="text-xs font-black text-[#1A1A1A] truncate">{variant.modelName}</p>}
+                            {variant.colorName && <p className="text-[10px] font-bold text-gray-400 truncate">{variant.colorName}</p>}
+                          </div>
+
+                          {/* Qiymət + stok — sağda sabit */}
+                          <div className="flex flex-col items-end flex-shrink-0">
+                            <span className="text-sm font-black text-[#FF8C00]">{vPrice.toFixed(2)} ₼</span>
+                            {vHasDiscount && <span className="text-[9px] text-gray-400 line-through">{vOldPrice.toFixed(2)} ₼</span>}
+                            {isVarOutOfStock
+                              ? <span className="text-[9px] font-bold text-red-500">Bitib</span>
+                              : variant.stock < 20
+                              ? <span className="text-[9px] font-bold text-amber-500">{variant.stock} əd</span>
+                              : null}
                           </div>
                         </button>
                       );
@@ -253,7 +250,9 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
                     <Truck className="h-4 w-4 text-[#FF8C00]" />
                     <div className="text-left">
                       <p className="text-sm font-black text-[#1A1A1A]">Standart — 3 Gün</p>
-                      <p className="text-[9px] font-bold text-gray-400"> Hazırlanma - Paketlənmə - Çatdırılma </p>
+                      <p className="text-[9px] font-bold text-gray-400">1-ci gün: Hazırlanma</p>
+                      <p className="text-[9px] font-bold text-gray-400">2-ci gün: Paketlənmə</p>
+                      <p className="text-[9px] font-bold text-gray-400">3-cü gün: Çatdırılma</p>
                     </div>
                   </div>
                   <span className="text-xs font-black text-green-600">PULSUZ</span>
