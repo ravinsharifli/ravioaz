@@ -13,7 +13,12 @@ interface ProductModalProps {
 const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClose, onAddToCart }) => {
   const variants = product.variants || [];
 
-  const defaultVariantIndex = initialData?.variantIndex ?? 0;
+  const cheapestIndex = variants.reduce((minIdx, v, idx, arr) => {
+    const vPrice = v.discountPrice ?? v.price;
+    const minPrice = arr[minIdx].discountPrice ?? arr[minIdx].price;
+    return vPrice < minPrice ? idx : minIdx;
+  }, 0);
+  const defaultVariantIndex = initialData?.variantIndex ?? cheapestIndex;
   const [selectedVariantIndex, setSelectedVariantIndex] = useState(defaultVariantIndex);
   const [currentImgIndex, setCurrentImgIndex] = useState(0);
   const [specialRequest, setSpecialRequest] = useState(initialData?.specialRequest || '');
@@ -250,8 +255,8 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
                     <Truck className="h-4 w-4 text-[#FF8C00]" />
                     <div className="text-left">
                       <p className="text-sm font-black text-[#1A1A1A]">Standart — 3 Gün</p>
-                      <p className="text-[9px] font-bold text-gray-400"> Hazırlanma ; Paketlənmə ; Çatdırılma </p>
-                                  </div>
+                      <p className="text-[9px] font-bold text-gray-400"> Hazırlanma - Paketlənmə - Çatdırılma</p>
+                    </div>
                   </div>
                   <span className="text-xs font-black text-green-600">PULSUZ</span>
                 </button>
