@@ -50,9 +50,9 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart, onView
               onClick={() => onViewProduct(product)}
               className="group bg-white rounded-3xl overflow-hidden border border-gray-50 hover:border-orange-100 hover:shadow-2xl hover:shadow-orange-50 transition-all duration-500 cursor-pointer"
             >
-              <div className="relative aspect-[4/5] overflow-hidden bg-gray-50">
+              <div className="relative aspect-square overflow-hidden bg-white">
                 {firstImage ? (
-                  <img src={firstImage} alt={product.name} className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-700" />
+                  <img src={firstImage} alt={product.name} className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-700" />
                 ) : (
                   <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-300 text-xs font-bold">Şəkil yoxdur</div>
                 )}
