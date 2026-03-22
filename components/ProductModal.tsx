@@ -204,17 +204,22 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
                   )}
                 </div>
 
-                {/* KƏMİYYƏT ENDİRİMİ BİLDİRİŞİ — qırmızı xırda yazı + kvadrat */}
+                {/* KƏMİYYƏT ENDİRİMİ BİLDİRİŞİ — Bəli/Xeyr düymələri */}
                 {product.hasBulkDiscount && product.bulkDiscountNote && (
-                  <div className="mt-2 flex items-center gap-1.5">
+                  <div className="mt-2 space-y-1.5">
                     <p className="text-[10px] text-red-500 font-black leading-tight">{product.bulkDiscountNote}</p>
-                    <button
-                      onClick={() => setShowQuantityBox(v => !v)}
-                      className={`w-3.5 h-3.5 border-2 rounded-sm flex items-center justify-center flex-shrink-0 transition-colors ${showQuantityBox ? 'bg-red-500 border-red-500' : 'border-red-400 hover:bg-red-50'}`}
-                      title="Say daxil et"
-                    >
-                      {showQuantityBox && <div className="w-1.5 h-1.5 bg-white rounded-sm" />}
-                    </button>
+                    <div className="flex gap-1.5">
+                      <button
+                        onClick={() => setShowQuantityBox(true)}
+                        className={`px-3 py-1 rounded-lg text-[10px] font-black transition-all outline-none ${showQuantityBox ? 'bg-[#FF8C00] text-white' : 'bg-white text-gray-500 border border-gray-200'}`}>
+                        Bəli
+                      </button>
+                      <button
+                        onClick={() => setShowQuantityBox(false)}
+                        className={`px-3 py-1 rounded-lg text-[10px] font-black transition-all outline-none ${!showQuantityBox ? 'bg-[#1A1A1A] text-white' : 'bg-white text-gray-500 border border-gray-200'}`}>
+                        Xeyr
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
