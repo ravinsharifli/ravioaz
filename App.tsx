@@ -3,7 +3,6 @@ import Navbar from './components/Navbar';
 import ProductGrid from './components/ProductGrid';
 import ProductModal from './components/ProductModal';
 import Footer from './components/Footer';
-import AIAssistant from './components/AIAssistant';
 import CartDrawer from './components/CartDrawer';
 import AboutUs from './components/AboutUs';
 import Contact from './components/Contact';
@@ -120,7 +119,6 @@ const App: React.FC = () => {
     activeCategory === 'Bütün məhsullar' || p.category === activeCategory
   );
 
-  // CartItem-dən müvəqqəti Product yarat (edit üçün)
   const editingProduct: Product | null = editingCartItem ? {
     id: editingCartItem.productId,
     name: editingCartItem.productName,
@@ -151,6 +149,13 @@ const App: React.FC = () => {
     setActiveCategory(target);
     setCurrentView('home');
     window.scrollTo({ top: 400, behavior: 'smooth' });
+  };
+
+  // FIX #8: Boş səbətdən məhsullara qayıt
+  const handleGoToProducts = () => {
+    setCurrentView('home');
+    setActiveCategory('Bütün məhsullar');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const getProductMinPrice = (p: any) => {
@@ -280,6 +285,7 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col selection:bg-orange-100">
+      {/* FIX #2 & #10: Navbar-a products və onViewProduct ötürülür */}
       <Navbar
         cartCount={cartCount}
         onLogoClick={handleLogoClick}
@@ -287,6 +293,8 @@ const App: React.FC = () => {
         onAboutClick={() => navigateTo('about')}
         onContactClick={() => navigateTo('contact')}
         onDeliveryClick={() => navigateTo('delivery')}
+        products={sanityProducts}
+        onViewProduct={(p) => { setSelectedProduct(p); setCurrentView('home'); }}
       />
       <main className="flex-grow">
         {currentView === 'home' && (
@@ -350,14 +358,16 @@ const App: React.FC = () => {
           onOpenCategory={(cat) => { setActiveCategory(cat); setCurrentView('home'); }}
         />
       )}
+      {/* FIX #8: onGoToProducts əlavə edildi */}
       <CartDrawer
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}
         items={cart}
         onRemove={removeFromCart}
         onEdit={handleEditCartItem}
+        onGoToProducts={handleGoToProducts}
       />
-      <AIAssistant />
+      {/* FIX #6: AIAssistant silindi */}
       <Footer onReviewsClick={() => navigateTo('reviews')} />
     </div>
   );

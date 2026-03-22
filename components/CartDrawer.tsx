@@ -8,9 +8,10 @@ interface CartDrawerProps {
   items: CartItem[];
   onRemove: (cartId: string) => void;
   onEdit: (item: CartItem) => void;
+  onGoToProducts?: () => void; // FIX #8
 }
 
-const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, items, onRemove, onEdit }) => {
+const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, items, onRemove, onEdit, onGoToProducts }) => {
   const total = items.reduce((sum, item) => {
     const basePrice = item.discountPrice || item.price;
     const loyaltyDiscount = item.isFirstOrSecondOrder ? basePrice * 0.1 : 0;
@@ -78,6 +79,12 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, items, onRemov
     window.open(`https://wa.me/${phoneNumber}?text=${message}`, '_blank');
   };
 
+  // FIX #8: "Məhsullara bax" düyməsi işləyir
+  const handleGoToProducts = () => {
+    onClose();
+    if (onGoToProducts) onGoToProducts();
+  };
+
   return (
     <>
       <div className={`fixed inset-0 z-[150] bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`} onClick={onClose} />
@@ -100,7 +107,10 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, items, onRemov
                   <ShoppingBag className="h-12 w-12 text-[#FF8C00] opacity-20" />
                 </div>
                 <p className="text-gray-400 font-bold italic text-lg">Səbətiniz boşdur.</p>
-                <button onClick={onClose} className="text-[#FF8C00] font-black underline underline-offset-4">Məhsullara bax</button>
+                {/* FIX #8: Düymə indi işləyir */}
+                <button onClick={handleGoToProducts} className="bg-[#FF8C00] text-white px-6 py-3 rounded-2xl font-black text-sm hover:scale-105 transition-transform shadow-lg">
+                  Məhsullara bax →
+                </button>
               </div>
             ) : (
               items.map((item) => {

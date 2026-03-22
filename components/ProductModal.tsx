@@ -38,14 +38,14 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
 
   if (!selectedVariant) return null;
 
-  // Bütün variantların şəkillərini bir massivdə topla
+  // FIX #9: Bütün variantların şəkillərini bir massivdə topla
   const allImages = variants.flatMap(v => v.images || []).filter(Boolean);
-  // Seçilmiş variantın şəkillərini əvvələ qoy, qalanları arxaya
   const selectedImages = selectedVariant.images || [];
   const otherImages = allImages.filter(img => !selectedImages.includes(img));
   const images = [...selectedImages, ...otherImages];
   const totalImages = images.length;
 
+  // FIX #9: < > düymələri düzgün işləyir
   const nextImg = () => setCurrentImgIndex((p) => (p + 1) % totalImages);
   const prevImg = () => setCurrentImgIndex((p) => (p - 1 + totalImages) % totalImages);
 
@@ -105,7 +105,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
             <X className="h-5 w-5" />
           </button>
 
-          {/* ŞƏKİL */}
+          {/* FIX #4: Şəkil sol tərəfdə, məlumat sağda — eyni cərgədə */}
           <div className="md:w-1/2 relative bg-gray-100 flex flex-col flex-shrink-0 md:border-r border-gray-100 md:rounded-l-[3rem] overflow-hidden">
             <div className="relative overflow-hidden aspect-square md:aspect-auto md:h-[440px]">
               {images[currentImgIndex] ? (
@@ -117,24 +117,33 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
                 <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-400 text-sm font-bold">Şəkil yoxdur</div>
               )}
               {showDiscount && (
-                <div className="absolute top-4 left-4 bg-[#FF8C00] text-white font-black px-3 py-1.5 rounded-full text-sm shadow-lg">
+                <div className="absolute top-4 left-4 z-20 bg-[#FF8C00] text-white font-black px-3 py-1.5 rounded-full text-sm shadow-lg">
                   -{discountPercent}% ENDİRİM
                 </div>
               )}
               {isOutOfStock && (
-                <div className="absolute top-4 right-4 bg-red-500 text-white font-black px-3 py-1.5 rounded-full text-sm shadow-lg">
+                <div className="absolute top-4 right-12 z-20 bg-red-500 text-white font-black px-3 py-1.5 rounded-full text-sm shadow-lg">
                   STOKDA YOXDUR
                 </div>
               )}
+              {/* FIX #9: < > düymələri işləyir */}
               {totalImages > 1 && (
                 <>
-                  <button onClick={prevImg} className="absolute left-3 top-1/2 -translate-y-1/2 p-2 bg-white/80 hover:bg-white rounded-full shadow transition-all outline-none">
+                  <button
+                    onClick={prevImg}
+                    type="button"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 z-20 p-2 bg-white/80 hover:bg-white rounded-full shadow transition-all outline-none"
+                  >
                     <ChevronLeft className="h-5 w-5" />
                   </button>
-                  <button onClick={nextImg} className="absolute right-3 top-1/2 -translate-y-1/2 p-2 bg-white/80 hover:bg-white rounded-full shadow transition-all outline-none">
+                  <button
+                    onClick={nextImg}
+                    type="button"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 z-20 p-2 bg-white/80 hover:bg-white rounded-full shadow transition-all outline-none"
+                  >
                     <ChevronRight className="h-5 w-5" />
                   </button>
-                  <div className="absolute bottom-3 right-3 bg-black/50 text-white text-xs font-black px-2 py-1 rounded-full">
+                  <div className="absolute bottom-3 right-3 z-20 bg-black/50 text-white text-xs font-black px-2 py-1 rounded-full">
                     {currentImgIndex + 1}/{totalImages}
                   </div>
                 </>
@@ -153,11 +162,11 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
             )}
           </div>
 
-          {/* MƏLUMAT */}
+          {/* MƏLUMAT — FIX #4: Şəkillə eyni cərgədə, ad + qiymət birinci görünür */}
           <div className="md:w-1/2 flex flex-col overflow-y-auto bg-white md:rounded-r-[3rem]">
             <div className="p-5 md:p-7 space-y-4">
 
-              {/* AD + QİYMƏT */}
+              {/* AD + QİYMƏT — ən yuxarıda */}
               <div>
                 <h2 className="text-2xl font-black text-[#1A1A1A] tracking-tight">{product.name}</h2>
                 <div className="flex items-baseline gap-3 flex-wrap mt-2">
@@ -183,8 +192,6 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
                 </div>
               )}
 
-
-
               {/* VARİANT SEÇİMİ */}
               {variants.length > 0 && (
                 <div className="p-3 bg-gray-50 rounded-2xl border border-gray-100 space-y-3">
@@ -208,18 +215,13 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
                             : 'border-gray-200 bg-white hover:border-orange-300'
                           }`}
                         >
-                          {/* Radio */}
                           <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${isSelected ? 'bg-[#FF8C00] border-[#FF8C00]' : 'border-gray-300'}`}>
                             {isSelected && <div className="w-2 h-2 rounded-full bg-white" />}
                           </div>
-
-                          {/* Ad */}
                           <div className="flex-1 min-w-0">
                             {variant.modelName && <p className="text-xs font-black text-[#1A1A1A] truncate">{variant.modelName}</p>}
                             {variant.colorName && <p className="text-[10px] font-bold text-gray-400 truncate">{variant.colorName}</p>}
                           </div>
-
-                          {/* Qiymət + stok — sağda sabit */}
                           <div className="flex flex-col items-end flex-shrink-0">
                             <span className="text-sm font-black text-[#FF8C00]">{vPrice.toFixed(2)} ₼</span>
                             {vHasDiscount && <span className="text-[9px] text-gray-400 line-through">{vOldPrice.toFixed(2)} ₼</span>}
@@ -285,27 +287,33 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
                 </button>
               </div>
 
-              {/* MÜŞTƏRİ TİPİ */}
+              {/* FIX #5: MÜŞTƏRİ TİPİ — daha aydın, xəbərdarlıq ilə */}
               <section id="customer-type-section"
                 className={`p-3 rounded-2xl border-2 transition-all ${showCustomerTypeError && customerType === null ? 'border-red-400 bg-red-50' : 'border-orange-200 bg-gradient-to-br from-orange-50 to-white'}`}>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5">
+                <div className="mb-2">
+                  <p className="text-xs font-black text-[#1A1A1A] flex items-center gap-1.5">
                     <Sparkles className="h-3 w-3 text-[#FF8C00]" />
-                    <span className="text-xs font-black text-[#1A1A1A]">Sizə özəl endirim</span>
-                  </div>
-                  <div className="flex gap-1.5">
-                    <button onClick={() => { setCustomerType('new'); setShowCustomerTypeError(false); }}
-                      className={`px-3 py-1.5 rounded-xl text-[10px] font-black transition-all outline-none border ${customerType === 'new' ? 'bg-[#FF8C00] text-white border-[#FF8C00]' : 'bg-white text-gray-500 border-gray-200 hover:border-orange-300'}`}>
-                      Yeni müştəri
-                    </button>
-                    <button onClick={() => { setCustomerType('loyal'); setShowCustomerTypeError(false); }}
-                      className={`px-3 py-1.5 rounded-xl text-[10px] font-black transition-all outline-none border ${customerType === 'loyal' ? 'bg-[#FF8C00] text-white border-[#FF8C00]' : 'bg-white text-gray-500 border-gray-200 hover:border-orange-300'}`}>
-                      Daimi müştəri
-                    </button>
-                  </div>
+                    Siz kimsiniz? <span className="text-red-500">*</span>
+                    <span className="text-[10px] font-bold text-gray-400">(məcburi)</span>
+                  </p>
                 </div>
+                <div className="flex gap-1.5">
+                  <button onClick={() => { setCustomerType('new'); setShowCustomerTypeError(false); }}
+                    className={`flex-1 px-3 py-2 rounded-xl text-[10px] font-black transition-all outline-none border ${customerType === 'new' ? 'bg-[#FF8C00] text-white border-[#FF8C00]' : 'bg-white text-gray-500 border-gray-200 hover:border-orange-300'}`}>
+                    Yeni müştəri
+                  </button>
+                  <button onClick={() => { setCustomerType('loyal'); setShowCustomerTypeError(false); }}
+                    className={`flex-1 px-3 py-2 rounded-xl text-[10px] font-black transition-all outline-none border ${customerType === 'loyal' ? 'bg-[#FF8C00] text-white border-[#FF8C00]' : 'bg-white text-gray-500 border-gray-200 hover:border-orange-300'}`}>
+                    Daimi müştəri
+                  </button>
+                </div>
+                {customerType !== null && (
+                  <p className="text-[10px] font-bold text-green-600 mt-1.5 flex items-center gap-1">
+                    ✓ {customerType === 'loyal' ? 'Daimi müştəri endirimi: -10%' : 'Yeni müştəri endirimi: -10%'}
+                  </p>
+                )}
                 {showCustomerTypeError && customerType === null && (
-                  <p className="text-[10px] font-black text-red-500 mt-1.5">⚠️ Zəhmət olmasa seçin</p>
+                  <p className="text-[10px] font-black text-red-500 mt-1.5">⚠️ Zəhmət olmasa seçin — bu sahə məcburidir!</p>
                 )}
               </section>
 
@@ -327,16 +335,16 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
                   <p className="text-[10px] font-black text-[#1A1A1A] uppercase tracking-widest flex items-center gap-1.5">
                     <User className="h-3 w-3 text-[#FF8C00]" /> Müştəri Məlumatları
                   </p>
-                  <input type="text" placeholder="Adınız" value={customerName} onChange={(e) => setCustomerName(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-100 focus:border-orange-200 rounded-xl outline-none font-bold text-sm placeholder:text-gray-300" />
-                  <input type="tel" placeholder="Mobil Nömrəniz" value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-100 focus:border-orange-200 rounded-xl outline-none font-bold text-sm placeholder:text-gray-300" />
-                  <input type="text" placeholder="Doğum Tarixi (12.05.1998)" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-100 focus:border-orange-200 rounded-xl outline-none font-bold text-sm placeholder:text-gray-300" />
+                  <input type="text" placeholder="Adınız *" value={customerName} onChange={(e) => setCustomerName(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-100 focus:border-orange-200 rounded-xl outline-none font-bold text-sm placeholder:text-gray-300" />
+                  <input type="tel" placeholder="Mobil Nömrəniz *" value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-100 focus:border-orange-200 rounded-xl outline-none font-bold text-sm placeholder:text-gray-300" />
+                  <input type="text" placeholder="Doğum Tarixi (12.05.1998) *" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-100 focus:border-orange-200 rounded-xl outline-none font-bold text-sm placeholder:text-gray-300" />
                   <p className="text-[10px] text-[#FF8C00] font-bold flex items-center gap-1 px-1">
                     🎂 Doğum günündə yaşınız qədər endirim!
                   </p>
                 </div>
                 <div className="space-y-1.5">
                   <p className="text-[10px] font-black text-[#1A1A1A] uppercase tracking-widest flex items-center gap-1.5">
-                    <MapPin className="h-3 w-3 text-[#FF8C00]" /> Çatdırılma Ünvanı
+                    <MapPin className="h-3 w-3 text-[#FF8C00]" /> Çatdırılma Ünvanı *
                   </p>
                   <textarea placeholder="Tam ünvanınızı daxil edin..." value={deliveryDetails} onChange={(e) => setDeliveryDetails(e.target.value)} className="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl outline-none font-bold text-sm min-h-[70px] focus:border-orange-200 transition-all placeholder:text-gray-300 resize-none" />
                 </div>
