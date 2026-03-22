@@ -1,5 +1,5 @@
 import product from './product'
-
+import siteSettings from './siteSettings'
 const category = {
   name: 'category',
   title: 'Kateqoriya',
@@ -153,4 +153,4 @@ const promoBanner = {
   },
 }
 
-export const schemaTypes = [category, product, promoBanner]
+export const schemaTypes = [category, product, promoBanner, siteSettings]

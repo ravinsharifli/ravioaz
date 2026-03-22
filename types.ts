@@ -1,4 +1,11 @@
-export interface ProductVariant {
+export interface BulkTier {
+  minQty: number;
+  maxQty?: number;
+  discountAmount: number;
+  label?: string;
+}
+
+export interface Variant {
   modelName?: string;
   colorName?: string;
   images: string[];
@@ -10,12 +17,18 @@ export interface ProductVariant {
 export interface Product {
   id: string;
   name: string;
-  category: string;
+  category?: string;
   description?: string;
-  variants: ProductVariant[];
+  variants: Variant[];
   isPremium?: boolean;
   premiumOrder?: number;
-  premiumSize?: 'large' | 'small-top' | 'small-bottom';
+  premiumSize?: string;
+  isBestSeller?: boolean;
+  bestSellerOrder?: number;
+  orderCount?: number;
+  hasBulkDiscount?: boolean;
+  bulkDiscountNote?: string;
+  bulkTiers?: BulkTier[];
 }
 
 export interface CartItem {
@@ -36,8 +49,10 @@ export interface CartItem {
   birthDate: string;
   isGift: boolean;
   isFirstOrSecondOrder: boolean;
+  customerType: 'new' | 'loyal';
   deliveryType: 'standard' | 'urgent' | 'express';
   deliveryDetails: string;
+  bulkDiscountAmount?: number;
 }
 
 export type AppView = 'home' | 'about' | 'contact' | 'delivery' | 'reviews';

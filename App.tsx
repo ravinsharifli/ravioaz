@@ -9,12 +9,12 @@ import Contact from './components/Contact';
 import DeliveryInfo from './components/DeliveryInfo';
 import CustomerReviews from './components/CustomerReviews';
 import { Product, CartItem, AppView } from './types';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Star, Tag, Gem } from 'lucide-react';
 import { client } from './sanityclient';
 import { createImageUrlBuilder } from '@sanity/image-url';
 
 const builder = createImageUrlBuilder({ projectId: 'w7scii42', dataset: 'production' });
-const urlFor = (source: any) => builder.image(source);
+const urlFor = (source: any) => builder.image(source).url();
 
 const SIZE_CONFIG: Record<string, string> = {
   'square':      'aspect-square',
@@ -24,6 +24,8 @@ const SIZE_CONFIG: Record<string, string> = {
   'tall-small':  'aspect-[2/3]',
   'tall-large':  'aspect-[1/2]',
 };
+
+const BEST_SELLER_THRESHOLD = 10; // 10+ sifariş = avtomatik ən çox satılan
 
 const App: React.FC = () => {
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -47,16 +49,14 @@ const App: React.FC = () => {
           "category": category->name,
           description,
           "variants": variants[]{
-            modelName,
-            colorName,
+            modelName, colorName,
             "images": images[].asset->url,
-            price,
-            discountPrice,
-            stock
+            price, discountPrice, stock
           },
-          isPremium,
-          premiumOrder,
-          premiumSize
+          isPremium, premiumOrder, premiumSize,
+          isBestSeller, bestSellerOrder, orderCount,
+          hasBulkDiscount, bulkDiscountNote,
+          "bulkTiers": bulkTiers[]{ minQty, maxQty, discountAmount, label }
         }`;
         const products = await client.fetch(productsQuery);
         setSanityProducts(products || []);
@@ -88,6 +88,17 @@ const App: React.FC = () => {
     };
     fetchData();
   }, []);
+
+  // Ən çox satılanlar: manual işarə VƏ ya 10+ sifariş
+  const bestSellerProducts = sanityProducts
+    .filter(p => p.isBestSeller || (p.orderCount || 0) >= BEST_SELLER_THRESHOLD)
+    .sort((a, b) => (a.bestSellerOrder || 999) - (b.bestSellerOrder || 999))
+    .slice(0, 8);
+
+  // Endirimli məhsullar
+  const discountedProducts = sanityProducts
+    .filter(p => p.variants?.some(v => v.discountPrice && v.discountPrice < v.price))
+    .slice(0, 8);
 
   const addToCart = useCallback((item: CartItem) => {
     setCart(prev => {
@@ -144,18 +155,17 @@ const App: React.FC = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleGoToProducts = () => {
+    setCurrentView('home');
+    setActiveCategory('Bütün məhsullar');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const handleBannerButtonClick = (buttonCategory: string) => {
     const target = buttonCategory?.trim() || 'Bütün məhsullar';
     setActiveCategory(target);
     setCurrentView('home');
     window.scrollTo({ top: 400, behavior: 'smooth' });
-  };
-
-  // FIX #8: Boş səbətdən məhsullara qayıt
-  const handleGoToProducts = () => {
-    setCurrentView('home');
-    setActiveCategory('Bütün məhsullar');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const getProductMinPrice = (p: any) => {
@@ -175,7 +185,7 @@ const App: React.FC = () => {
     const titleColor = banner.titleColor || '#FF8C00';
     return (
       <div key={index} className={`relative w-full rounded-[2rem] overflow-hidden shadow-xl ${aspectClass}`} style={{ backgroundColor: bgColor }}>
-        {banner.image && <img src={urlFor(banner.image).url()} alt="Kampaniya" className="absolute inset-0 w-full h-full object-cover" />}
+        {banner.image && <img src={urlFor(banner.image)} alt="Kampaniya" className="absolute inset-0 w-full h-full object-cover" />}
         {banner.image && <div className="absolute inset-0 bg-black/40" />}
         <div className="absolute inset-0 flex flex-col justify-center px-8 py-6 gap-3">
           {banner.badge && <span className="inline-block self-start bg-white/20 backdrop-blur-sm text-white px-4 py-1 rounded-full text-xs font-black">{banner.badge}</span>}
@@ -209,15 +219,22 @@ const App: React.FC = () => {
     );
   };
 
+  // Bölmə başlığı komponenti
+  const SectionHeader = ({ icon, title, color }: { icon: React.ReactNode; title: string; color: string }) => (
+    <div className="flex items-center gap-3 mb-6">
+      <div className={`p-2 rounded-2xl ${color}`}>{icon}</div>
+      <h2 className="text-2xl font-black text-[#1A1A1A] tracking-tight">{title}</h2>
+    </div>
+  );
+
   const renderPremiumProducts = () => {
     if (premiumProducts.length === 0) return null;
     const large = premiumProducts.find((p: any) => p.premiumSize === 'large');
     const smallTop = premiumProducts.find((p: any) => p.premiumSize === 'small-top');
     const smallBottom = premiumProducts.find((p: any) => p.premiumSize === 'small-bottom');
-
     return (
-      <section className="py-8">
-        <h2 className="text-3xl font-black text-[#1A1A1A] tracking-tight mb-8">Premium məhsullar</h2>
+      <section className="py-4">
+        <SectionHeader icon={<Gem className="h-5 w-5 text-purple-600" />} title="Premium məhsullar" color="bg-purple-100" />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {large && (() => {
             const { display, old } = getProductMinPrice(large);
@@ -226,14 +243,7 @@ const App: React.FC = () => {
               <div onClick={() => setSelectedProduct(large)} className="bg-[#1A1A1A] rounded-[2.5rem] p-8 relative overflow-hidden cursor-pointer h-[280px] md:h-[400px] shadow-2xl">
                 <div className="relative z-10 h-full flex flex-col justify-center text-white">
                   <h3 className="text-3xl font-black mb-1">{large.name}</h3>
-                  {old ? (
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl font-black text-gray-400 line-through">{old} AZN</span>
-                      <span className="text-3xl font-black text-[#FF8C00]">{display} AZN</span>
-                    </div>
-                  ) : (
-                    <span className="text-3xl font-black text-[#FF8C00]">{display} AZN</span>
-                  )}
+                  {old ? (<div className="flex items-center gap-3"><span className="text-2xl font-black text-gray-400 line-through">{old} AZN</span><span className="text-3xl font-black text-[#FF8C00]">{display} AZN</span></div>) : (<span className="text-3xl font-black text-[#FF8C00]">{display} AZN</span>)}
                 </div>
                 {firstImg && (<><img src={firstImg} className="absolute right-0 top-0 h-full w-[45%] object-cover opacity-60 rounded-l-[5rem]" alt={large.name} /><div className="absolute inset-0 bg-gradient-to-r from-[#1A1A1A] via-[#1A1A1A]/90 to-transparent" /></>)}
               </div>
@@ -285,7 +295,6 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col selection:bg-orange-100">
-      {/* FIX #2 & #10: Navbar-a products və onViewProduct ötürülür */}
       <Navbar
         cartCount={cartCount}
         onLogoClick={handleLogoClick}
@@ -299,6 +308,7 @@ const App: React.FC = () => {
       <main className="flex-grow">
         {currentView === 'home' && (
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 lg:pt-8">
+            {/* Mobil kateqoriya */}
             <div className="lg:hidden mb-4 -mx-4 px-4">
               <div className="flex gap-2 overflow-x-auto pb-2" style={{scrollbarWidth:'none'}}>
                 {sanityCategories.map((cat) => (
@@ -309,7 +319,9 @@ const App: React.FC = () => {
                 ))}
               </div>
             </div>
+
             <div className="flex flex-col lg:flex-row gap-8 items-start">
+              {/* Sol panel - kateqoriyalar */}
               <aside className="hidden lg:block lg:w-72 flex-shrink-0 lg:sticky lg:top-24">
                 <div className="bg-white border border-gray-100 rounded-[2.5rem] p-8 shadow-sm">
                   <h3 className="text-xl font-black mb-6 text-[#1A1A1A] tracking-tight">Kateqoriyalar</h3>
@@ -327,17 +339,42 @@ const App: React.FC = () => {
                   </nav>
                 </div>
               </aside>
+
+              {/* Əsas məzmun */}
               <div className="flex-grow w-full space-y-8">
                 {activeCategory === 'Bütün məhsullar' ? (
-                  <>{renderPromoBanners()}{renderPremiumProducts()}</>
+                  <>
+                    {renderPromoBanners()}
+
+                    {/* ⭐ ƏN ÇOX SATILANLAR */}
+                    {bestSellerProducts.length > 0 && (
+                      <section>
+                        <SectionHeader icon={<Star className="h-5 w-5 text-yellow-500 fill-yellow-500" />} title="Ən çox satılanlar" color="bg-yellow-100" />
+                        <ProductGrid products={bestSellerProducts} onAddToCart={p => setSelectedProduct(p)} onViewProduct={setSelectedProduct} />
+                      </section>
+                    )}
+
+                    {/* 🏷 ENDİRİMLİ MƏHSULLAR */}
+                    {discountedProducts.length > 0 && (
+                      <section>
+                        <SectionHeader icon={<Tag className="h-5 w-5 text-red-500" />} title="Endirimli məhsullar" color="bg-red-100" />
+                        <ProductGrid products={discountedProducts} onAddToCart={p => setSelectedProduct(p)} onViewProduct={setSelectedProduct} />
+                      </section>
+                    )}
+
+                    {/* 💎 PREMİUM */}
+                    {renderPremiumProducts()}
+                  </>
                 ) : (
                   <div className="bg-gray-50 rounded-[2rem] p-5 border border-gray-100 animate-in fade-in slide-in-from-top-2 duration-500">
                     <h1 className="text-lg font-black text-[#1A1A1A] tracking-tight">{activeCategory}</h1>
                     <p className="text-gray-400 font-bold mt-1 text-[10px] italic">{activeCategory} kateqoriyasındakı premium kolleksiyamız</p>
                   </div>
                 )}
+
+                {/* Bütün məhsullar */}
                 <div className="pb-16">
-                  <ProductGrid products={filteredProducts} onAddToCart={(p) => setSelectedProduct(p)} onViewProduct={setSelectedProduct} />
+                  <ProductGrid products={filteredProducts} onAddToCart={p => setSelectedProduct(p)} onViewProduct={setSelectedProduct} />
                 </div>
               </div>
             </div>
@@ -358,7 +395,6 @@ const App: React.FC = () => {
           onOpenCategory={(cat) => { setActiveCategory(cat); setCurrentView('home'); }}
         />
       )}
-      {/* FIX #8: onGoToProducts əlavə edildi */}
       <CartDrawer
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}
@@ -367,7 +403,6 @@ const App: React.FC = () => {
         onEdit={handleEditCartItem}
         onGoToProducts={handleGoToProducts}
       />
-      {/* FIX #6: AIAssistant silindi */}
       <Footer onReviewsClick={() => navigateTo('reviews')} />
     </div>
   );
