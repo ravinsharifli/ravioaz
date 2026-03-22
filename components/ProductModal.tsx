@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { X, ChevronLeft, ChevronRight, Edit3, User, Truck, Clock, Zap, Info, ShoppingCart, MapPin, Gift, Sparkles, AlertCircle, FileText, Package } from 'lucide-react';
 import { Product, CartItem, BulkTier } from '../types';
 
@@ -67,28 +67,28 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
   const discountPercent = showDiscount ? Math.round(((price - discountPrice!) / price) * 100) : 0;
   const isOutOfStock = selectedVariant.stock === 0;
 
-  // Endirim hesablamaları (manatla)
-  const getDeliveryPrice = () => deliveryType === 'urgent' ? 5.49 : deliveryType === 'express' ? 9.99 : 0;
+  const getDeliveryPrice = () =>
+    deliveryType === 'urgent' ? 5.49 : deliveryType === 'express' ? 9.99 : 0;
 
-  // Müştəri endirimi: yeni=10%, daimi=20%
+  // Müştəri endirimi: yeni=10%, daimi=20% — manatla
   const getCustomerDiscount = () => {
     if (customerType === 'new') return Number((basePrice * quantity * 0.10).toFixed(2));
     if (customerType === 'loyal') return Number((basePrice * quantity * 0.20).toFixed(2));
     return 0;
   };
 
-  // Kəmiyyət endirimi (AZN)
+  // Kəmiyyət endirimi
   const activeTier = product.hasBulkDiscount && product.bulkTiers
     ? getBulkTier(product.bulkTiers, quantity)
     : null;
   const getBulkDiscountAmount = () => activeTier ? activeTier.discountAmount * quantity : 0;
 
   const subtotal = basePrice * quantity;
+  const campaignDiscount = showDiscount ? (price - basePrice) * quantity : 0;
   const customerDiscount = getCustomerDiscount();
   const bulkDiscount = getBulkDiscountAmount();
-  const totalDiscount = customerDiscount + bulkDiscount;
   const deliveryPrice = getDeliveryPrice();
-  const finalTotal = subtotal - totalDiscount + deliveryPrice;
+  const finalTotal = subtotal - customerDiscount - bulkDiscount + deliveryPrice;
 
   const handleQuantityChange = (val: string) => {
     setQuantityInput(val);
@@ -204,55 +204,61 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
                   )}
                 </div>
 
-                {/* KƏMİYYƏT ENDİRİMİ BİLDİRİŞİ */}
+                {/* KƏMİYYƏT ENDİRİMİ BİLDİRİŞİ — qırmızı xırda yazı + kvadrat */}
                 {product.hasBulkDiscount && product.bulkDiscountNote && (
-                  <div className="mt-2 flex items-center gap-2">
-                    <p className="text-[10px] text-red-500 font-black">{product.bulkDiscountNote}</p>
+                  <div className="mt-2 flex items-center gap-1.5">
+                    <p className="text-[10px] text-red-500 font-black leading-tight">{product.bulkDiscountNote}</p>
                     <button
                       onClick={() => setShowQuantityBox(v => !v)}
-                      className="w-4 h-4 border-2 border-red-400 rounded flex items-center justify-center hover:bg-red-50 transition-colors flex-shrink-0"
+                      className={`w-3.5 h-3.5 border-2 rounded-sm flex items-center justify-center flex-shrink-0 transition-colors ${showQuantityBox ? 'bg-red-500 border-red-500' : 'border-red-400 hover:bg-red-50'}`}
                       title="Say daxil et"
                     >
-                      {showQuantityBox && <div className="w-2 h-2 bg-red-500 rounded-sm" />}
+                      {showQuantityBox && <div className="w-1.5 h-1.5 bg-white rounded-sm" />}
                     </button>
                   </div>
                 )}
               </div>
 
-              {/* SAY XANASI */}
-              {(showQuantityBox || !product.hasBulkDiscount) && (
+              {/* SAY XANASI — kvadrata basanda açılır */}
+              {showQuantityBox && product.hasBulkDiscount && (
                 <div className="bg-gray-50 rounded-2xl p-3 border border-gray-100 space-y-2">
                   <div className="flex items-center gap-3">
                     <Package className="h-4 w-4 text-[#FF8C00] flex-shrink-0" />
                     <span className="text-[10px] font-black text-[#1A1A1A] uppercase tracking-widest">Sifariş sayı</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <button onClick={() => { const n = Math.max(1, quantity - 1); setQuantity(n); setQuantityInput(String(n)); }}
-                      className="w-8 h-8 bg-white border-2 border-gray-200 rounded-xl font-black text-lg hover:border-[#FF8C00] hover:text-[#FF8C00] transition-all outline-none flex items-center justify-center">−</button>
+                    <button
+                      onClick={() => { const n = Math.max(1, quantity - 1); setQuantity(n); setQuantityInput(String(n)); }}
+                      className="w-8 h-8 bg-white border-2 border-gray-200 rounded-xl font-black text-lg hover:border-[#FF8C00] hover:text-[#FF8C00] transition-all outline-none flex items-center justify-center">−
+                    </button>
                     <input
                       type="number" min="1"
                       value={quantityInput}
                       onChange={e => handleQuantityChange(e.target.value)}
                       className="w-16 text-center font-black text-lg border-2 border-gray-200 rounded-xl py-1 outline-none focus:border-[#FF8C00]"
                     />
-                    <button onClick={() => { const n = quantity + 1; setQuantity(n); setQuantityInput(String(n)); }}
-                      className="w-8 h-8 bg-white border-2 border-gray-200 rounded-xl font-black text-lg hover:border-[#FF8C00] hover:text-[#FF8C00] transition-all outline-none flex items-center justify-center">+</button>
+                    <button
+                      onClick={() => { const n = quantity + 1; setQuantity(n); setQuantityInput(String(n)); }}
+                      className="w-8 h-8 bg-white border-2 border-gray-200 rounded-xl font-black text-lg hover:border-[#FF8C00] hover:text-[#FF8C00] transition-all outline-none flex items-center justify-center">+
+                    </button>
                     <span className="text-xs font-bold text-gray-400">ədəd</span>
                   </div>
 
-                  {/* AKTİV PİLLƏ */}
-                  {product.hasBulkDiscount && product.bulkTiers && product.bulkTiers.length > 0 && (
+                  {/* Pillələr */}
+                  {product.bulkTiers && product.bulkTiers.length > 0 && (
                     <div className="space-y-1 pt-1 border-t border-gray-200">
-                      {[...product.bulkTiers].sort((a,b) => a.minQty - b.minQty).map((tier, i) => {
+                      {[...product.bulkTiers].sort((a, b) => a.minQty - b.minQty).map((tier, i) => {
                         const isActive = quantity >= tier.minQty && (!tier.maxQty || quantity <= tier.maxQty);
                         const range = tier.maxQty ? `${tier.minQty}-${tier.maxQty} ədəd` : `${tier.minQty}+ ədəd`;
                         return (
-                          <div key={i} className={`flex items-center justify-between px-2 py-1 rounded-lg transition-all ${isActive ? 'bg-orange-100 border border-orange-300' : 'bg-white border border-gray-100 opacity-50'}`}>
+                          <div key={i} className={`flex items-center justify-between px-2 py-1 rounded-lg transition-all ${isActive ? 'bg-orange-100 border border-orange-300' : 'bg-white border border-gray-100 opacity-60'}`}>
                             <span className="text-[10px] font-black text-gray-600">{tier.label || range}</span>
-                            <span className={`text-[10px] font-black ${isActive ? 'text-[#FF8C00]' : 'text-gray-400'}`}>
-                              hər ədəddən -{tier.discountAmount} AZN
-                            </span>
-                            {isActive && <span className="text-[9px] font-black text-green-600 bg-green-100 px-1 rounded">AKTİV ✓</span>}
+                            <div className="flex items-center gap-1.5">
+                              <span className={`text-[10px] font-black ${isActive ? 'text-[#FF8C00]' : 'text-gray-400'}`}>
+                                hər ədəddən -{tier.discountAmount} AZN
+                              </span>
+                              {isActive && <span className="text-[9px] font-black text-green-600 bg-green-100 px-1 rounded">AKTİV ✓</span>}
+                            </div>
                           </div>
                         );
                       })}
@@ -296,8 +302,11 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
                           <div className="flex flex-col items-end flex-shrink-0">
                             <span className="text-sm font-black text-[#FF8C00]">{vPrice.toFixed(2)} ₼</span>
                             {vHasDiscount && <span className="text-[9px] text-gray-400 line-through">{variant.price.toFixed(2)} ₼</span>}
-                            {isVarOutOfStock ? <span className="text-[9px] font-bold text-red-500">Bitib</span>
-                              : variant.stock < 20 ? <span className="text-[9px] font-bold text-amber-500">{variant.stock} əd</span> : null}
+                            {isVarOutOfStock
+                              ? <span className="text-[9px] font-bold text-red-500">Bitib</span>
+                              : variant.stock < 20
+                              ? <span className="text-[9px] font-bold text-amber-500">{variant.stock} əd</span>
+                              : null}
                           </div>
                         </button>
                       );
@@ -342,7 +351,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
                 ))}
               </div>
 
-              {/* MÜŞTƏRİ TİPİ */}
+              {/* MÜŞTƏRİ TİPİ — faiz yazılmır */}
               <section id="customer-type-section"
                 className={`p-3 rounded-2xl border-2 transition-all ${showCustomerTypeError && customerType === null ? 'border-red-400 bg-red-50' : 'border-orange-200 bg-gradient-to-br from-orange-50 to-white'}`}>
                 <div className="mb-2">
@@ -353,13 +362,15 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
                   </p>
                 </div>
                 <div className="flex gap-1.5">
-                  <button onClick={() => { setCustomerType('new'); setShowCustomerTypeError(false); }}
-                    className={`flex-1 px-3 py-2 rounded-xl text-[10px] font-black transition-all outline-none border ${customerType === 'new' ? 'bg-[#FF8C00] text-white border-[#FF8C00]' : 'bg-white text-gray-500 border-gray-200 hover:border-orange-300'}`}>
-                    Yeni müştəri (-10%)
+                  <button
+                    onClick={() => { setCustomerType('new'); setShowCustomerTypeError(false); }}
+                    className={`flex-1 px-3 py-2 rounded-xl text-[11px] font-black transition-all outline-none border ${customerType === 'new' ? 'bg-[#FF8C00] text-white border-[#FF8C00]' : 'bg-white text-gray-500 border-gray-200 hover:border-orange-300'}`}>
+                    Yeni müştəri
                   </button>
-                  <button onClick={() => { setCustomerType('loyal'); setShowCustomerTypeError(false); }}
-                    className={`flex-1 px-3 py-2 rounded-xl text-[10px] font-black transition-all outline-none border ${customerType === 'loyal' ? 'bg-[#FF8C00] text-white border-[#FF8C00]' : 'bg-white text-gray-500 border-gray-200 hover:border-orange-300'}`}>
-                    Daimi müştəri (-20%)
+                  <button
+                    onClick={() => { setCustomerType('loyal'); setShowCustomerTypeError(false); }}
+                    className={`flex-1 px-3 py-2 rounded-xl text-[11px] font-black transition-all outline-none border ${customerType === 'loyal' ? 'bg-[#FF8C00] text-white border-[#FF8C00]' : 'bg-white text-gray-500 border-gray-200 hover:border-orange-300'}`}>
+                    Daimi müştəri
                   </button>
                 </div>
                 {showCustomerTypeError && customerType === null && (
@@ -398,62 +409,83 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
                 </div>
               </div>
 
-              {/* ENDİRİM XÜLASƏSİ */}
-              {(customerDiscount > 0 || bulkDiscount > 0) && (
-                <div className="bg-green-50 border border-green-200 rounded-2xl p-3 space-y-1">
-                  <p className="text-[10px] font-black text-green-700 uppercase tracking-widest">🎉 Qazandığınız endirimlər</p>
-                  {showDiscount && (
-                    <div className="flex justify-between text-[10px] font-bold text-gray-600">
-                      <span>Kampaniya endirimi</span>
-                      <span className="text-green-600 font-black">-{((price - basePrice) * quantity).toFixed(2)} AZN</span>
-                    </div>
-                  )}
-                  {customerDiscount > 0 && (
-                    <div className="flex justify-between text-[10px] font-bold text-gray-600">
-                      <span>{customerType === 'loyal' ? 'Daimi müştəri endirimi (20%)' : 'Yeni müştəri endirimi (10%)'}</span>
-                      <span className="text-green-600 font-black">-{customerDiscount.toFixed(2)} AZN</span>
-                    </div>
-                  )}
-                  {bulkDiscount > 0 && (
-                    <div className="flex justify-between text-[10px] font-bold text-gray-600">
-                      <span>Kəmiyyət endirimi ({quantity} ədəd)</span>
-                      <span className="text-green-600 font-black">-{bulkDiscount.toFixed(2)} AZN</span>
-                    </div>
-                  )}
-                  <div className="flex justify-between text-xs font-black text-green-700 pt-1 border-t border-green-200">
-                    <span>Cəmi endirim</span>
-                    <span>-{totalDiscount.toFixed(2)} AZN</span>
-                  </div>
-                </div>
-              )}
-
-              {/* YEKUN */}
+              {/* YEKUN — endirim xülasəsi + ödəniləcək məbləğ */}
               <div className="sticky bottom-0 bg-white pt-3 pb-2 border-t border-gray-100 space-y-3">
+
                 <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-2xl px-3 py-2">
                   <AlertCircle className="h-3.5 w-3.5 text-amber-600 flex-shrink-0" />
                   <p className="text-[10px] font-bold text-amber-800">
                     <span className="font-black">Özəl hazırlanmış məhsul!</span> 50% ödəniş kart hesabına ödənilməlidir.
                   </p>
                 </div>
+
+                {/* ENDİRİM SƏTIRLƏRI */}
+                {(campaignDiscount > 0 || customerDiscount > 0 || bulkDiscount > 0 || deliveryPrice > 0) && (
+                  <div className="bg-gray-50 rounded-2xl px-4 py-3 space-y-1.5 border border-gray-100">
+
+                    {/* Əsas qiymət */}
+                    <div className="flex justify-between text-[11px] font-bold text-gray-500">
+                      <span>Məhsul qiyməti {quantity > 1 ? `(${quantity} ədəd)` : ''}</span>
+                      <span>{(price * quantity).toFixed(2)} AZN</span>
+                    </div>
+
+                    {/* Kampaniya endirimi */}
+                    {campaignDiscount > 0 && (
+                      <div className="flex justify-between text-[11px] font-bold text-green-600">
+                        <span>Kampaniya endirimi</span>
+                        <span>-{campaignDiscount.toFixed(2)} AZN</span>
+                      </div>
+                    )}
+
+                    {/* Müştəri endirimi */}
+                    {customerDiscount > 0 && (
+                      <div className="flex justify-between text-[11px] font-bold text-green-600">
+                        <span>{customerType === 'loyal' ? 'Daimi müştəri endirimi' : 'Yeni müştəri endirimi'}</span>
+                        <span>-{customerDiscount.toFixed(2)} AZN</span>
+                      </div>
+                    )}
+
+                    {/* Kəmiyyət endirimi */}
+                    {bulkDiscount > 0 && (
+                      <div className="flex justify-between text-[11px] font-bold text-green-600">
+                        <span>Kəmiyyət endirimi ({activeTier?.label || `${quantity} ədəd`})</span>
+                        <span>-{bulkDiscount.toFixed(2)} AZN</span>
+                      </div>
+                    )}
+
+                    {/* Çatdırılma */}
+                    {deliveryPrice > 0 && (
+                      <div className="flex justify-between text-[11px] font-bold text-gray-500">
+                        <span>Çatdırılma</span>
+                        <span>+{deliveryPrice.toFixed(2)} AZN</span>
+                      </div>
+                    )}
+
+                    {/* Ayırıcı xətt */}
+                    <div className="border-t border-gray-200 pt-1.5 flex justify-between text-xs font-black text-[#1A1A1A]">
+                      <span>Yekun</span>
+                      <span className="text-[#FF8C00]">{finalTotal.toFixed(2)} AZN</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* SƏBƏTƏ DÜYMƏ */}
                 <div className="bg-[#1A1A1A] p-5 rounded-[2rem] flex items-center justify-between text-white shadow-2xl">
                   <div className="flex flex-col">
-                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">
-                      YEKUN {quantity > 1 && <span className="text-gray-500">({quantity} ədəd)</span>}
-                    </span>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-2xl font-black text-[#FF8C00]">{finalTotal.toFixed(2)} AZN</span>
-                      {totalDiscount > 0 && <span className="text-xs font-bold text-gray-500 line-through">{(subtotal + deliveryPrice).toFixed(2)} AZN</span>}
-                    </div>
-                    <span className="text-[9px] text-amber-400 font-bold mt-0.5">Ön ödəniş: {(finalTotal * 0.5).toFixed(2)} AZN</span>
+                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Ödəniləcək məbləğ</span>
+                    <span className="text-2xl font-black text-[#FF8C00]">{finalTotal.toFixed(2)} AZN</span>
+                    <span className="text-[9px] text-amber-400 font-bold mt-0.5">Ön ödəniş (50%): {(finalTotal * 0.5).toFixed(2)} AZN</span>
                   </div>
-                  <button onClick={handleAddToCartClick} disabled={!isFormValid || isOutOfStock}
+                  <button
+                    onClick={handleAddToCartClick}
+                    disabled={!isFormValid || isOutOfStock}
                     className="bg-[#FF8C00] text-white px-6 py-4 rounded-full font-black text-sm flex items-center gap-2 hover:scale-105 active:scale-95 transition-all shadow-xl disabled:opacity-30 disabled:pointer-events-none outline-none">
                     <ShoppingCart className="h-5 w-5" />
                     <span>{isOutOfStock ? 'BİTİB' : initialData ? 'YENİLƏ' : 'SƏBƏTƏ'}</span>
                   </button>
                 </div>
-              </div>
 
+              </div>
             </div>
           </div>
         </div>
