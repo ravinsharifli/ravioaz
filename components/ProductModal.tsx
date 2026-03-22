@@ -204,19 +204,19 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
                   )}
                 </div>
 
-                {/* KƏMİYYƏT ENDİRİMİ BİLDİRİŞİ — Bəli/Xeyr düymələri */}
+                {/* KƏMİYYƏT ENDİRİMİ BİLDİRİŞİ — cümlə + Bəli/Xeyr yan-yana */}
                 {product.hasBulkDiscount && product.bulkDiscountNote && (
-                  <div className="mt-2 space-y-1.5">
+                  <div className="mt-2 flex items-center gap-2 flex-wrap">
                     <p className="text-[10px] text-red-500 font-black leading-tight">{product.bulkDiscountNote}</p>
-                    <div className="flex gap-1.5">
+                    <div className="flex gap-1 flex-shrink-0">
                       <button
                         onClick={() => setShowQuantityBox(true)}
-                        className={`px-3 py-1 rounded-lg text-[10px] font-black transition-all outline-none ${showQuantityBox ? 'bg-[#FF8C00] text-white' : 'bg-white text-gray-500 border border-gray-200'}`}>
+                        className={`px-2.5 py-0.5 rounded-lg text-[10px] font-black transition-all outline-none ${showQuantityBox ? 'bg-[#FF8C00] text-white' : 'bg-white text-gray-500 border border-gray-200'}`}>
                         Bəli
                       </button>
                       <button
                         onClick={() => setShowQuantityBox(false)}
-                        className={`px-3 py-1 rounded-lg text-[10px] font-black transition-all outline-none ${!showQuantityBox ? 'bg-[#1A1A1A] text-white' : 'bg-white text-gray-500 border border-gray-200'}`}>
+                        className={`px-2.5 py-0.5 rounded-lg text-[10px] font-black transition-all outline-none ${!showQuantityBox ? 'bg-[#1A1A1A] text-white' : 'bg-white text-gray-500 border border-gray-200'}`}>
                         Xeyr
                       </button>
                     </div>

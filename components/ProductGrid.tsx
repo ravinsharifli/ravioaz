@@ -1,14 +1,15 @@
 ﻿import React from 'react';
-import { Star, ShoppingCart, Plus, Eye } from 'lucide-react';
+import { ShoppingCart, Plus, Eye } from 'lucide-react';
 import { Product } from '../types';
 
 interface ProductGridProps {
   products: Product[];
   onAddToCart: (product: Product) => void;
   onViewProduct: (product: Product) => void;
+  title?: string; // İstəyə görə başlıq — vermesən heç nə görünmür
 }
 
-const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart, onViewProduct }) => {
+const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart, onViewProduct, title }) => {
 
   const getPriceRange = (product: Product) => {
     const variants = product.variants || [];
@@ -24,9 +25,12 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart, onView
 
   return (
     <div className="w-full">
-      <div className="flex items-center justify-between mb-8 border-b border-gray-100 pb-4">
-        <h2 className="text-2xl font-black text-[#1A1A1A]">Populyar Məhsullar</h2>
-      </div>
+      {/* Başlıq yalnız verildikcə görünür */}
+      {title && (
+        <div className="flex items-center justify-between mb-6 border-b border-gray-100 pb-4">
+          <h2 className="text-2xl font-black text-[#1A1A1A]">{title}</h2>
+        </div>
+      )}
       <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {products.map((product) => {
           const firstVariant = product.variants?.[0];
@@ -37,13 +41,13 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart, onView
           return (
             <div key={product.id} onClick={() => onViewProduct(product)}
               className="group bg-white rounded-3xl overflow-hidden border border-gray-50 hover:border-orange-100 hover:shadow-2xl hover:shadow-orange-50 transition-all duration-500 cursor-pointer">
-              {/* FIX #1: ENDİRİM badge z-20 ilə şəklin üstündə görünür */}
               <div className="relative aspect-square bg-white">
                 {firstImage ? (
                   <img src={firstImage} alt={product.name} className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-700" />
                 ) : (
                   <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-300 text-xs font-bold">Şəkil yoxdur</div>
                 )}
+                {/* ENDİRİM badge — z-20 ilə şəklin üstündə */}
                 {hasDiscount && (
                   <div className="absolute top-3 left-3 z-20 bg-[#FF8C00] text-white text-[10px] font-black px-2 py-1 rounded-full shadow-md">ENDİRİM</div>
                 )}
@@ -57,11 +61,8 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart, onView
                   <Plus className="h-4 w-4" />
                 </button>
               </div>
+              {/* Kart altı — ulduz və 4.8 silindi */}
               <div className="p-4">
-                <div className="flex items-center space-x-1 mb-1">
-                  <Star className="h-3 w-3 fill-[#FF8C00] text-[#FF8C00]" />
-                  <span className="text-[10px] font-bold text-gray-400">4.8</span>
-                </div>
                 <h3 className="text-sm font-bold text-gray-800 line-clamp-1 mb-1 group-hover:text-[#FF8C00] transition-colors">{product.name}</h3>
                 <div className="flex items-center justify-between mt-2">
                   <div className="flex flex-col">
