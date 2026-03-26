@@ -301,8 +301,8 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
                             {isSelected && <div className="w-2 h-2 rounded-full bg-white" />}
                           </div>
                           <div className="flex-1 min-w-0">
-                            {variant.modelName && <p className="text-xs font-black text-[#1A1A1A] truncate">{variant.modelName}</p>}
-                            {variant.colorName && <p className="text-[10px] font-bold text-gray-400 truncate">{variant.colorName}</p>}
+                            {variant.modelName && <p className="text-xs font-black text-[#1A1A1A] truncate">Model: {variant.modelName}</p>}
+                            {variant.colorName && <p className="text-[10px] font-bold text-gray-400 truncate">Rəng: {variant.colorName}</p>}
                           </div>
                           <div className="flex flex-col items-end flex-shrink-0">
                             <span className="text-sm font-black text-[#FF8C00]">{vPrice.toFixed(2)} ₼</span>
