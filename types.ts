@@ -49,10 +49,23 @@ export interface CartItem {
   birthDate: string;
   isGift: boolean;
   isFirstOrSecondOrder: boolean;
-  customerType: 'new' | 'loyal';
+  customerType: 'new' | 'loyal' | null;
   deliveryType: 'standard' | 'urgent' | 'express';
   deliveryDetails: string;
   bulkDiscountAmount?: number;
+  // Yeni sahələr — 2 addımlı forma üçün
+  boxType?: string;
+  boxPrice?: number;
+  couponCode?: string;
+  couponDiscount?: number;
+  hasQrCode?: boolean;
+  lazerPrice?: number;
+  deliveryMethod?: 'metro' | 'kuryer';
+  metroStation?: string;
+  metroDay?: string;
+  metroTime?: string;
+  finalTotal?: number;
+  behAmount?: number;
 }
 
 export type AppView = 'home' | 'about' | 'contact' | 'delivery' | 'reviews';
