@@ -18,7 +18,6 @@ import AIAssistant from './components/AIAssistant';
 const builder = createImageUrlBuilder({ projectId: 'w7scii42', dataset: 'production' });
 const urlFor = (source: any) => builder.image(source).url();
 
-// Sanity-dən gələn xam məhsulu bizim Product tipinə çeviririk
 function mapSanityProduct(raw: any): Product {
   const variants = (raw.variants || []).map((v: any) => ({
     modelName: v.modelName || '',
@@ -30,7 +29,6 @@ function mapSanityProduct(raw: any): Product {
     discountPrice: v.discountPrice ?? undefined,
     stock: v.stock ?? 0,
   }));
-
   return {
     id: raw._id,
     name: raw.name,
@@ -49,7 +47,6 @@ function mapSanityProduct(raw: any): Product {
   };
 }
 
-// Sanity GROQ sorğusu
 const PRODUCTS_QUERY = `*[_type == "product"] | order(bestSellerOrder asc) {
   _id, name, description,
   category->{ name },
@@ -67,19 +64,12 @@ export default function App() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<AppView>('home');
-
-  // Modal
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [editingItem, setEditingItem] = useState<CartItem | undefined>(undefined);
-
-  // Səbət
   const [cart, setCart] = useState<CartItem[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
-
-  // Kateqoriya filtri
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
-  // Sanity-dən məhsulları yüklə
   useEffect(() => {
     client
       .fetch(PRODUCTS_QUERY)
@@ -93,12 +83,10 @@ export default function App() {
       });
   }, []);
 
-  // Filtrlənmiş məhsullar
   const filteredProducts = activeCategory
     ? products.filter((p) => p.category === activeCategory)
     : products;
 
-  // Unikal kateqoriyalar
   const categories = Array.from(
     new Set(products.map((p) => p.category).filter(Boolean))
   ) as string[];
@@ -111,45 +99,36 @@ export default function App() {
   const handleAddToCart = (item: CartItem) => {
     setCart((prev) => {
       const idx = prev.findIndex((c) => c.cartId === item.cartId);
-      if (idx >= 0) {
-        const updated = [...prev];
-        updated[idx] = item;
-        return updated;
-      }
+      if (idx >= 0) { const updated = [...prev]; updated[idx] = item; return updated; }
       return [...prev, item];
     });
     setCartOpen(true);
   };
 
-  const handleRemove = (cartId: string) => {
-    setCart((prev) => prev.filter((c) => c.cartId !== cartId));
-  };
+  const handleRemove = (cartId: string) => setCart((prev) => prev.filter((c) => c.cartId !== cartId));
 
   const handleEdit = (item: CartItem) => {
     const product = products.find((p) => p.id === item.productId);
-    if (product) {
-      setCartOpen(false);
-      openProduct(product, item);
-    }
+    if (product) { setCartOpen(false); openProduct(product, item); }
   };
 
-  const goHome = () => {
-    setView('home');
-    setActiveCategory(null);
-  };
+  const goHome = () => { setView('home'); setActiveCategory(null); };
 
+  // ── DESIGN TOKENS ────────────────────────────────
   const T = {
-    bg: '#FAF8F5',
-    primary: '#2F4F4F',
-    border: '#E9E5DF',
-    muted: '#6B7280',
-    accent: '#C9A227',
+    bg:       '#FAF8F4',
+    bgDeep:   '#F2EDE5',
+    text:     '#1C1714',
+    muted:    '#8C7F77',
+    gold:     '#BF912E',
+    border:   '#E8E2D9',
+    dark:     '#1C1714',
   };
+  // ─────────────────────────────────────────────────
 
   return (
-    <div style={{ minHeight: '100vh', background: T.bg, fontFamily: 'Georgia, serif' }}>
+    <div style={{ minHeight: '100vh', background: T.bg, fontFamily: "'Nunito Sans', sans-serif" }}>
 
-      {/* NAVİQASİYA */}
       <Navbar
         cartCount={cart.reduce((s, i) => s + i.quantity, 0)}
         onLogoClick={goHome}
@@ -161,183 +140,209 @@ export default function App() {
         onViewProduct={openProduct}
       />
 
-      {/* ƏSAS KONTENİ */}
-      <main style={{ paddingTop: 80 }}>
-
-        {/* ═══════════════ ANA SƏHİFƏ ═══════════════ */}
+      <main>
         {view === 'home' && (
           <>
-            {/* HERO */}
-            <section style={{ padding: '48px 16px 32px', maxWidth: 1120, margin: '0 auto' }}>
-              <p style={{
-                display: 'inline-block',
-                background: '#ECE6DA',
-                color: T.primary,
-                borderRadius: 999,
-                padding: '8px 16px',
-                fontSize: 13,
-                fontWeight: 700,
-                marginBottom: 18,
-                letterSpacing: 0.3,
-              }}>
-                ✨ Lazer yazı ilə fərdiləşdirilmiş hədiyyələr
-              </p>
-              <h1 style={{
-                fontSize: 'clamp(28px, 6vw, 52px)',
-                lineHeight: 1.08,
-                margin: '0 0 14px',
-                color: '#1F1F1F',
-                maxWidth: 720,
-                fontWeight: 800,
-              }}>
-                Xüsusi insanlara,<br />xüsusi hədiyyə.
-              </h1>
-              <p style={{
-                fontSize: 17,
-                lineHeight: 1.7,
-                color: T.muted,
-                maxWidth: 580,
-                marginBottom: 28,
-              }}>
-                Bijuteriya, hədiyyə qutuları, məzun lentləri — hamısı sizin adınıza hazırlanır.
-              </p>
-              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                <a
-                  href="#mehsullar"
-                  onClick={() => setView('home')}
-                  style={{
+            {/* ═══ HERO ═══════════════════════════════════ */}
+            <section style={{
+              background: T.dark,
+              padding: 'clamp(56px,8vw,96px) 20px clamp(48px,7vw,80px)',
+              position: 'relative',
+              overflow: 'hidden',
+            }}>
+              {/* Decorative arc */}
+              <div style={{
+                position: 'absolute', bottom: -60, right: -60,
+                width: 360, height: 360,
+                borderRadius: '50%',
+                border: '1px solid rgba(191,145,46,0.18)',
+                pointerEvents: 'none',
+              }} />
+              <div style={{
+                position: 'absolute', bottom: -100, right: -100,
+                width: 500, height: 500,
+                borderRadius: '50%',
+                border: '1px solid rgba(191,145,46,0.09)',
+                pointerEvents: 'none',
+              }} />
+
+              <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+                <div className="fade-up" style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 7,
+                  background: 'rgba(191,145,46,0.12)',
+                  border: '1px solid rgba(191,145,46,0.3)',
+                  borderRadius: 999, padding: '6px 14px',
+                  marginBottom: 24,
+                }}>
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#BF912E', display: 'inline-block' }} />
+                  <span style={{ color: '#BF912E', fontSize: 11, fontWeight: 800, letterSpacing: 2, textTransform: 'uppercase', fontFamily: "'Nunito Sans', sans-serif" }}>
+                    Lazer yazı · Fərdiləşdirilmiş hədiyyə
+                  </span>
+                </div>
+
+                <h1 className="fade-up-2" style={{
+                  fontFamily: "'Cormorant Garamond', serif",
+                  fontSize: 'clamp(38px,7vw,72px)',
+                  fontWeight: 700,
+                  lineHeight: 1.06,
+                  color: '#FAF8F4',
+                  margin: '0 0 20px',
+                  maxWidth: 640,
+                  letterSpacing: '-0.5px',
+                }}>
+                  Xüsusi insanlara,<br />
+                  <span className="gold-text">xüsusi hədiyyə.</span>
+                </h1>
+
+                <p className="fade-up-3" style={{
+                  fontSize: 16, lineHeight: 1.75, color: 'rgba(250,248,244,0.65)',
+                  maxWidth: 480, marginBottom: 36,
+                  fontWeight: 400,
+                }}>
+                  Bijuteriya, hədiyyə qutuları, məzun lentləri —
+                  hamısı sizin adınıza, lazer dəqiqliyi ilə hazırlanır.
+                </p>
+
+                <div className="fade-up-4" style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                  <a href="#mehsullar" onClick={() => setView('home')} style={{
                     textDecoration: 'none',
-                    background: T.primary,
-                    color: '#fff',
-                    padding: '13px 24px',
-                    borderRadius: 12,
-                    fontWeight: 700,
-                    fontSize: 15,
-                  }}
-                >
-                  Məhsullara bax
-                </a>
-                <a
-                  href="https://wa.me/994519831483?text=Salam%2C%20saytdan%20sifariş%20vermək%20istəyirəm"
-                  target="_blank"
-                  rel="noreferrer"
-                  style={{
-                    textDecoration: 'none',
-                    border: `2px solid ${T.primary}`,
-                    color: T.primary,
-                    padding: '13px 24px',
-                    borderRadius: 12,
-                    fontWeight: 700,
-                    fontSize: 15,
-                  }}
-                >
-                  💬 WhatsApp ilə yaz
-                </a>
+                    background: '#BF912E', color: '#FAF8F4',
+                    padding: '13px 28px', borderRadius: 12,
+                    fontWeight: 800, fontSize: 14,
+                    letterSpacing: '0.3px', fontFamily: "'Nunito Sans', sans-serif",
+                    transition: 'all 0.2s',
+                    display: 'inline-block',
+                  }}>
+                    Məhsullara bax
+                  </a>
+                  <a
+                    href="https://wa.me/994519831483?text=Salam%2C%20saytdan%20sifariş%20vermək%20istəyirəm"
+                    target="_blank" rel="noreferrer"
+                    style={{
+                      textDecoration: 'none',
+                      border: '1.5px solid rgba(250,248,244,0.25)', color: '#FAF8F4',
+                      padding: '13px 28px', borderRadius: 12,
+                      fontWeight: 700, fontSize: 14,
+                      letterSpacing: '0.3px', fontFamily: "'Nunito Sans', sans-serif",
+                      display: 'inline-block',
+                    }}
+                  >
+                    💬 WhatsApp
+                  </a>
+                </div>
+
+                {/* Stats row */}
+                <div style={{
+                  display: 'flex', gap: 'clamp(20px,4vw,40px)',
+                  marginTop: 48, paddingTop: 36,
+                  borderTop: '1px solid rgba(250,248,244,0.1)',
+                  flexWrap: 'wrap',
+                }}>
+                  {[
+                    { n: '500+', l: 'Uğurlu sifariş' },
+                    { n: '4.9', l: 'Ortalama reytinq' },
+                    { n: '1–2 gün', l: 'Hazırlıq müddəti' },
+                  ].map(s => (
+                    <div key={s.n}>
+                      <div style={{
+                        fontFamily: "'Cormorant Garamond', serif",
+                        fontSize: 'clamp(24px,4vw,32px)', fontWeight: 700,
+                        color: '#BF912E', lineHeight: 1.1,
+                      }}>{s.n}</div>
+                      <div style={{ fontSize: 11, color: 'rgba(250,248,244,0.5)', fontWeight: 600, letterSpacing: '0.5px', marginTop: 2 }}>{s.l}</div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </section>
 
-            {/* PROMO BANERLƏR */}
-            <section style={{ maxWidth: 1120, margin: '0 auto', padding: '0 16px 40px' }}>
+            {/* ═══ TRUST BAR ═══════════════════════════════ */}
+            <div style={{
+              background: T.bgDeep,
+              borderBottom: `1px solid ${T.border}`,
+              padding: '0',
+              overflowX: 'auto',
+            }}>
+              <div style={{
+                maxWidth: 1200, margin: '0 auto',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                gap: 0, flexWrap: 'nowrap', whiteSpace: 'nowrap',
+              }}>
+                {[
+                  { icon: '⚡', text: 'Sürətli hazırlıq' },
+                  { icon: '🎁', text: 'Premium paketləmə' },
+                  { icon: '🚚', text: 'Bakı daxili çatdırılma' },
+                  { icon: '✍️', text: 'Fərdi lazer yazı' },
+                ].map((item, i) => (
+                  <React.Fragment key={item.text}>
+                    {i > 0 && <span style={{ color: T.border, padding: '0 4px', fontSize: 18 }}>·</span>}
+                    <div style={{
+                      display: 'flex', alignItems: 'center', gap: 7,
+                      padding: '14px 16px', fontSize: 12, fontWeight: 700,
+                      color: T.muted, letterSpacing: '0.3px',
+                    }}>
+                      <span>{item.icon}</span>
+                      <span>{item.text}</span>
+                    </div>
+                  </React.Fragment>
+                ))}
+              </div>
+            </div>
+
+            {/* ═══ PROMO BANNERS ═══════════════════════════ */}
+            <section style={{ maxWidth: 1200, margin: '0 auto', padding: '52px 20px 16px' }}>
               <PromoBanners />
             </section>
 
-            {/* ETIBAR ZOLAĞU */}
-            <section style={{
-              background: T.primary,
-              padding: '16px 0',
-              marginBottom: 0,
-            }}>
-              <div style={{
-                maxWidth: 1120,
-                margin: '0 auto',
-                padding: '0 16px',
-                display: 'flex',
-                justifyContent: 'center',
-                flexWrap: 'wrap',
-                gap: 32,
-              }}>
-                {[
-                  '⚡ Sürətli hazırlıq',
-                  '🎁 Premium paketləmə',
-                  '🚚 Bakı daxili çatdırılma',
-                  '✍️ Hər məhsula fərdi yazı',
-                ].map((t) => (
-                  <span key={t} style={{ color: '#fff', fontSize: 13, fontWeight: 600 }}>{t}</span>
-                ))}
-              </div>
-            </section>
-
-            {/* KATEQORİYA FİLTRİ */}
+            {/* ═══ CATEGORY FILTER ═════════════════════════ */}
             {categories.length > 1 && (
-              <section style={{ maxWidth: 1120, margin: '0 auto', padding: '24px 16px 12px' }}>
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  <button
-                    onClick={() => setActiveCategory(null)}
-                    style={{
-                      padding: '8px 18px',
-                      borderRadius: 999,
-                      border: '1.5px solid',
-                      borderColor: !activeCategory ? T.primary : T.border,
-                      background: !activeCategory ? T.primary : '#fff',
-                      color: !activeCategory ? '#fff' : T.muted,
-                      fontWeight: 600,
-                      fontSize: 13,
-                      cursor: 'pointer',
-                      fontFamily: 'Georgia, serif',
-                    }}
-                  >
-                    Hamısı
-                  </button>
-                  {categories.map((cat) => (
+              <section style={{ maxWidth: 1200, margin: '0 auto', padding: '8px 20px 0' }}>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: T.muted, letterSpacing: '1px', textTransform: 'uppercase', marginRight: 4 }}>Kateqoriya:</span>
+                  {[{ key: null, label: 'Hamısı' }, ...categories.map(c => ({ key: c, label: c }))].map(cat => (
                     <button
-                      key={cat}
-                      onClick={() => setActiveCategory(cat)}
+                      key={cat.label}
+                      onClick={() => setActiveCategory(cat.key)}
                       style={{
-                        padding: '8px 18px',
-                        borderRadius: 999,
+                        padding: '6px 16px', borderRadius: 999,
                         border: '1.5px solid',
-                        borderColor: activeCategory === cat ? T.primary : T.border,
-                        background: activeCategory === cat ? T.primary : '#fff',
-                        color: activeCategory === cat ? '#fff' : T.muted,
-                        fontWeight: 600,
-                        fontSize: 13,
-                        cursor: 'pointer',
-                        fontFamily: 'Georgia, serif',
+                        borderColor: activeCategory === cat.key ? '#BF912E' : T.border,
+                        background: activeCategory === cat.key ? '#1C1714' : 'transparent',
+                        color: activeCategory === cat.key ? '#BF912E' : T.muted,
+                        fontWeight: 700, fontSize: 12,
+                        cursor: 'pointer', transition: 'all 0.2s',
+                        fontFamily: "'Nunito Sans', sans-serif",
+                        letterSpacing: '0.2px',
                       }}
                     >
-                      {cat}
+                      {cat.label}
                     </button>
                   ))}
                 </div>
               </section>
             )}
 
-            {/* MƏHSULLAR */}
-            <section id="mehsullar" style={{ maxWidth: 1120, margin: '0 auto', padding: '16px 16px 56px' }}>
+            {/* ═══ PRODUCTS ════════════════════════════════ */}
+            <section id="mehsullar" style={{ maxWidth: 1200, margin: '0 auto', padding: '28px 20px 72px' }}>
               {loading ? (
-                <div style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  padding: '80px 0', flexDirection: 'column', gap: 12,
-                }}>
-                  <div style={{
-                    width: 40, height: 40, border: `3px solid ${T.border}`,
-                    borderTopColor: T.primary, borderRadius: '50%',
-                    animation: 'spin 0.8s linear infinite',
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 0', gap: 14 }}>
+                  <div className="spin" style={{
+                    width: 36, height: 36,
+                    border: `3px solid ${T.border}`,
+                    borderTopColor: '#BF912E',
+                    borderRadius: '50%',
                   }} />
-                  <p style={{ color: T.muted, fontSize: 14 }}>Məhsullar yüklənir...</p>
-                  <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+                  <p style={{ color: T.muted, fontSize: 13, fontWeight: 600 }}>Məhsullar yüklənir...</p>
                 </div>
               ) : filteredProducts.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '80px 0', color: T.muted }}>
-                  <p style={{ fontSize: 18 }}>Bu kateqoriyada məhsul yoxdur</p>
-                  <button
-                    onClick={() => setActiveCategory(null)}
-                    style={{
-                      marginTop: 16, padding: '10px 20px', borderRadius: 10,
-                      background: T.primary, color: '#fff', border: 'none',
-                      cursor: 'pointer', fontWeight: 700,
-                    }}
-                  >
+                  <p style={{ fontSize: 18, fontFamily: "'Cormorant Garamond', serif" }}>Bu kateqoriyada məhsul yoxdur</p>
+                  <button onClick={() => setActiveCategory(null)} style={{
+                    marginTop: 16, padding: '10px 24px', borderRadius: 10,
+                    background: '#1C1714', color: '#BF912E', border: 'none',
+                    cursor: 'pointer', fontWeight: 700, fontSize: 13,
+                    fontFamily: "'Nunito Sans', sans-serif",
+                  }}>
                     Bütün məhsullara bax
                   </button>
                 </div>
@@ -351,64 +356,46 @@ export default function App() {
               )}
             </section>
 
-            {/* MÜŞTƏRİ RƏYLƏRİ */}
-            <section style={{
-              background: '#F3F1ED',
-              borderTop: `1px solid ${T.border}`,
-              borderBottom: `1px solid ${T.border}`,
-            }}>
+            {/* ═══ REVIEWS ═════════════════════════════════ */}
+            <section style={{ background: T.dark, borderTop: `1px solid rgba(255,255,255,0.06)` }}>
               <CustomerReviews />
             </section>
           </>
         )}
 
-        {/* DİGƏR SƏHİFƏLƏR */}
-        {view === 'about'    && <AboutUs />}
-        {view === 'contact'  && <Contact />}
+        {view === 'about' && <AboutUs />}
+        {view === 'contact' && <Contact />}
         {view === 'delivery' && <DeliveryInfo />}
-        {view === 'reviews'  && (
-          <section style={{ maxWidth: 1120, margin: '0 auto' }}>
+        {view === 'reviews' && (
+          <section style={{ background: T.dark }}>
             <CustomerReviews />
           </section>
         )}
       </main>
 
-      {/* FOOTER */}
       <Footer onReviewsClick={() => setView('reviews')} />
-
-      {/* AI KÖMƏKÇİ */}
       <AIAssistant />
 
-      {/* MƏHSUL MODALI */}
       {selectedProduct && (
         <ProductModal
           product={selectedProduct}
           initialData={editingItem}
-          onClose={() => {
-            setSelectedProduct(null);
-            setEditingItem(undefined);
-          }}
+          onClose={() => { setSelectedProduct(null); setEditingItem(undefined); }}
           onAddToCart={handleAddToCart}
           onOpenCategory={(cat) => {
-            setSelectedProduct(null);
-            setEditingItem(undefined);
-            setActiveCategory(cat);
-            setView('home');
+            setSelectedProduct(null); setEditingItem(undefined);
+            setActiveCategory(cat); setView('home');
           }}
         />
       )}
 
-      {/* SƏBƏT */}
       <CartDrawer
         isOpen={cartOpen}
         onClose={() => setCartOpen(false)}
         items={cart}
         onRemove={handleRemove}
         onEdit={handleEdit}
-        onGoToProducts={() => {
-          setCartOpen(false);
-          setView('home');
-        }}
+        onGoToProducts={() => { setCartOpen(false); setView('home'); }}
       />
     </div>
   );

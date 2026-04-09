@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { ShoppingCart, Search, X, Home, Users, PackageCheck, Phone, Menu } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { ShoppingCart, Search, X, Menu } from 'lucide-react';
 import { Product } from '../types';
 import { client } from '../sanityclient';
 import { createImageUrlBuilder } from '@sanity/image-url';
@@ -28,6 +28,7 @@ const Navbar: React.FC<NavbarProps> = ({
   const [menuOpen, setMenuOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [scrolled, setScrolled] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     client.fetch(`*[_type == "siteSettings"][0]{ logo }`)
@@ -36,13 +37,24 @@ const Navbar: React.FC<NavbarProps> = ({
   }, []);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
+    const onScroll = () => setScrolled(window.scrollY > 30);
     window.addEventListener('scroll', onScroll);
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setSearchOpen(false);
+        setQuery('');
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
   const results = query.trim().length > 1
-    ? products.filter(p => p.name.toLowerCase().includes(query.toLowerCase())).slice(0, 6)
+    ? products.filter(p => p.name.toLowerCase().includes(query.toLowerCase())).slice(0, 5)
     : [];
 
   const handleSelect = (p: Product) => {
@@ -51,137 +63,277 @@ const Navbar: React.FC<NavbarProps> = ({
   };
 
   const navLinks = [
-    { label: 'Ana Səhifə', icon: <Home className="h-3.5 w-3.5" />, action: onLogoClick },
-    { label: 'Haqqımızda', icon: <Users className="h-3.5 w-3.5" />, action: onAboutClick },
-    { label: 'Çatdırılma', icon: <PackageCheck className="h-3.5 w-3.5" />, action: onDeliveryClick },
-    { label: 'Əlaqə', icon: <Phone className="h-3.5 w-3.5" />, action: onContactClick },
+    { label: 'Ana Səhifə', action: onLogoClick },
+    { label: 'Haqqımızda', action: onAboutClick },
+    { label: 'Çatdırılma', action: onDeliveryClick },
+    { label: 'Əlaqə', action: onContactClick },
   ];
+
+  const S = {
+    nav: {
+      position: 'fixed' as const,
+      top: 0, left: 0, right: 0,
+      zIndex: 100,
+      background: scrolled ? 'rgba(250,248,244,0.96)' : 'rgba(250,248,244,0.85)',
+      backdropFilter: scrolled ? 'blur(20px)' : 'blur(12px)',
+      WebkitBackdropFilter: scrolled ? 'blur(20px)' : 'blur(12px)',
+      borderBottom: scrolled ? '1px solid #E8E2D9' : '1px solid transparent',
+      transition: 'all 0.4s ease',
+      boxShadow: scrolled ? '0 2px 24px rgba(28,23,20,0.07)' : 'none',
+    },
+    topBar: {
+      background: '#1C1714',
+      padding: '7px 0',
+      textAlign: 'center' as const,
+      fontSize: 11,
+      letterSpacing: 2,
+      fontWeight: 700,
+      color: '#BF912E',
+      fontFamily: "'Nunito Sans', sans-serif",
+      textTransform: 'uppercase' as const,
+    },
+  };
 
   return (
     <>
-      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-        scrolled
-          ? 'bg-white/95 backdrop-blur-xl shadow-[0_2px_30px_rgba(0,0,0,0.08)]'
-          : 'bg-white/90 backdrop-blur-md'
-      }`}>
-        {/* Üst nazik zolaq */}
-        <div className="bg-gradient-to-r from-[#FF8C00] via-[#FF6B00] to-[#FF8C00] h-0.5" />
+      {/* Top announcement bar */}
+      <div style={S.topBar}>
+        ✦ Lazer yazı ilə fərdiləşdirilmiş hədiyyələr &nbsp;·&nbsp; Bakı daxili çatdırılma 4.99 AZN ✦
+      </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 sm:h-20">
+      <nav style={S.nav}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 64 }}>
 
-            {/* LOQO */}
-            <button onClick={onLogoClick} className="flex items-center gap-3 group outline-none">
-              {logoUrl ? (
-                <img src={logoUrl} alt="Ravio.az" className="h-9 sm:h-11 w-auto object-contain transition-transform duration-300 group-hover:scale-105" />
-              ) : (
-                <div className="flex items-center gap-1.5">
-                  <div className="w-8 h-8 bg-gradient-to-br from-[#FF8C00] to-[#FF6B00] rounded-xl flex items-center justify-center shadow-lg shadow-orange-200">
-                    <span className="text-white font-black text-sm">R</span>
-                  </div>
-                  <span className="text-xl font-black text-[#1A1A1A] tracking-tight">ravio<span className="text-[#FF8C00]">.az</span></span>
+          {/* LOGO */}
+          <button
+            onClick={onLogoClick}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: 10 }}
+          >
+            {logoUrl ? (
+              <img src={logoUrl} alt="Ravio.az" style={{ height: 38, width: 'auto', objectFit: 'contain' }} />
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{
+                  width: 34, height: 34, borderRadius: 10,
+                  background: '#1C1714',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <span style={{ color: '#BF912E', fontFamily: "'Cormorant Garamond', serif", fontWeight: 700, fontSize: 18, lineHeight: 1 }}>R</span>
                 </div>
-              )}
-            </button>
-
-            {/* NAV LİNKLƏR — desktop */}
-            <div className="hidden md:flex items-center gap-1">
-              {navLinks.map((link) => (
-                <button key={link.label} onClick={link.action}
-                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[13px] font-semibold text-gray-500 hover:text-[#FF8C00] hover:bg-orange-50 transition-all duration-200 outline-none">
-                  {link.icon}
-                  {link.label}
-                </button>
-              ))}
-            </div>
-
-            {/* SAĞ DÜYMƏLƏR */}
-            <div className="flex items-center gap-1">
-              {/* Axtarış */}
-              <div className="relative">
-                <button onClick={() => { setSearchOpen(v => !v); setMenuOpen(false); }}
-                  className="p-2.5 rounded-xl text-gray-500 hover:text-[#FF8C00] hover:bg-orange-50 transition-all outline-none">
-                  {searchOpen ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
-                </button>
-
-                {searchOpen && (
-                  <div className="absolute right-0 top-12 w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
-                    <div className="flex items-center gap-2.5 px-4 py-3.5 border-b border-gray-50">
-                      <Search className="h-4 w-4 text-[#FF8C00] flex-shrink-0" />
-                      <input autoFocus type="text" value={query}
-                        onChange={e => setQuery(e.target.value)}
-                        placeholder="Məhsul axtar..."
-                        className="flex-1 outline-none text-sm font-medium text-gray-700 placeholder:text-gray-300 bg-transparent" />
-                      {query && <button onClick={() => setQuery('')} className="text-gray-300 hover:text-gray-500"><X className="h-4 w-4" /></button>}
-                    </div>
-                    {results.length > 0 ? (
-                      <ul className="max-h-72 overflow-y-auto py-2">
-                        {results.map(p => (
-                          <li key={p.id}>
-                            <button onClick={() => handleSelect(p)}
-                              className="w-full flex items-center gap-3 px-4 py-3 hover:bg-orange-50 text-left transition-colors group">
-                              {p.variants?.[0]?.images?.[0] && (
-                                <div className="w-10 h-10 rounded-xl overflow-hidden flex-shrink-0 bg-gray-50">
-                                  <img src={p.variants[0].images[0]} className="w-full h-full object-cover" alt="" />
-                                </div>
-                              )}
-                              <div>
-                                <p className="text-sm font-semibold text-gray-800 group-hover:text-[#FF8C00] transition-colors">{p.name}</p>
-                                {p.variants?.[0] && (
-                                  <p className="text-xs text-gray-400 font-medium">
-                                    {(p.variants[0].discountPrice || p.variants[0].price).toFixed(2)} AZN
-                                  </p>
-                                )}
-                              </div>
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : query.trim().length > 1 ? (
-                      <div className="py-8 text-center">
-                        <p className="text-sm font-medium text-gray-400">Nəticə tapılmadı</p>
-                      </div>
-                    ) : null}
-                  </div>
-                )}
+                <span style={{
+                  fontFamily: "'Cormorant Garamond', serif",
+                  fontSize: 22, fontWeight: 700,
+                  color: '#1C1714', letterSpacing: '-0.3px',
+                }}>
+                  ravio<span style={{ color: '#BF912E' }}>.az</span>
+                </span>
               </div>
+            )}
+          </button>
 
-              {/* Səbət */}
-              <button onClick={onCartClick}
-                className="relative p-2.5 rounded-xl text-gray-500 hover:text-[#FF8C00] hover:bg-orange-50 transition-all outline-none">
-                <ShoppingCart className="h-5 w-5" />
-                {cartCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 bg-gradient-to-br from-[#FF8C00] to-[#FF6B00] text-white text-[9px] font-black h-4 w-4 flex items-center justify-center rounded-full shadow-md shadow-orange-200">
-                    {cartCount}
-                  </span>
-                )}
-              </button>
-
-              {/* Mobil menyu */}
-              <button onClick={() => { setMenuOpen(v => !v); setSearchOpen(false); }}
-                className="md:hidden p-2.5 rounded-xl text-gray-500 hover:text-[#FF8C00] hover:bg-orange-50 transition-all outline-none">
-                {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Mobil menyu açıldıqda */}
-        {menuOpen && (
-          <div className="md:hidden border-t border-gray-50 bg-white/95 backdrop-blur-xl px-4 py-3 space-y-1 animate-in slide-in-from-top-2 duration-200">
+          {/* NAV LINKS — desktop */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }} className="hidden md:flex">
             {navLinks.map((link) => (
-              <button key={link.label} onClick={() => { link.action(); setMenuOpen(false); }}
-                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-gray-600 hover:text-[#FF8C00] hover:bg-orange-50 transition-all outline-none text-left">
-                <span className="text-[#FF8C00]">{link.icon}</span>
+              <button key={link.label} onClick={link.action}
+                style={{
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  padding: '8px 14px', borderRadius: 8,
+                  fontSize: 13, fontWeight: 600,
+                  color: '#4A3F38',
+                  fontFamily: "'Nunito Sans', sans-serif",
+                  letterSpacing: '0.2px',
+                  transition: 'color 0.2s, background 0.2s',
+                }}
+                onMouseEnter={e => {
+                  (e.target as HTMLButtonElement).style.color = '#BF912E';
+                  (e.target as HTMLButtonElement).style.background = '#FBF4E4';
+                }}
+                onMouseLeave={e => {
+                  (e.target as HTMLButtonElement).style.color = '#4A3F38';
+                  (e.target as HTMLButtonElement).style.background = 'none';
+                }}
+              >
                 {link.label}
               </button>
             ))}
           </div>
+
+          {/* RIGHT: Search + Cart + Menu */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+
+            {/* Search */}
+            <div ref={searchRef} style={{ position: 'relative' }}>
+              <button
+                onClick={() => { setSearchOpen(v => !v); setMenuOpen(false); setQuery(''); }}
+                style={{
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  width: 38, height: 38, borderRadius: 10,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: '#4A3F38', transition: 'all 0.2s',
+                }}
+                onMouseEnter={e => { (e.currentTarget).style.background = '#F2EDE5'; (e.currentTarget).style.color = '#BF912E'; }}
+                onMouseLeave={e => { (e.currentTarget).style.background = 'none'; (e.currentTarget).style.color = '#4A3F38'; }}
+              >
+                {searchOpen ? <X size={18} /> : <Search size={18} />}
+              </button>
+
+              {searchOpen && (
+                <div style={{
+                  position: 'absolute', right: 0, top: 46,
+                  width: 320, background: '#fff',
+                  borderRadius: 16, boxShadow: '0 12px 40px rgba(28,23,20,0.14)',
+                  border: '1px solid #E8E2D9', overflow: 'hidden',
+                  zIndex: 200,
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', borderBottom: '1px solid #F2EDE5' }}>
+                    <Search size={15} color="#BF912E" />
+                    <input
+                      autoFocus
+                      type="text" value={query}
+                      onChange={e => setQuery(e.target.value)}
+                      placeholder="Məhsul axtar..."
+                      style={{
+                        flex: 1, outline: 'none', border: 'none', background: 'transparent',
+                        fontSize: 13, fontWeight: 600, color: '#1C1714',
+                        fontFamily: "'Nunito Sans', sans-serif",
+                      }}
+                    />
+                    {query && (
+                      <button onClick={() => setQuery('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#8C7F77', padding: 0 }}>
+                        <X size={14} />
+                      </button>
+                    )}
+                  </div>
+                  {results.length > 0 ? (
+                    <ul style={{ listStyle: 'none', margin: 0, padding: '8px 0', maxHeight: 280, overflowY: 'auto' }}>
+                      {results.map(p => (
+                        <li key={p.id}>
+                          <button onClick={() => handleSelect(p)}
+                            style={{
+                              width: '100%', display: 'flex', alignItems: 'center', gap: 12,
+                              padding: '10px 16px', background: 'none', border: 'none', cursor: 'pointer',
+                              textAlign: 'left', transition: 'background 0.15s',
+                            }}
+                            onMouseEnter={e => (e.currentTarget).style.background = '#FBF4E4'}
+                            onMouseLeave={e => (e.currentTarget).style.background = 'none'}
+                          >
+                            {p.variants?.[0]?.images?.[0] && (
+                              <div style={{ width: 40, height: 40, borderRadius: 10, overflow: 'hidden', flexShrink: 0, background: '#F2EDE5' }}>
+                                <img src={p.variants[0].images[0]} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
+                              </div>
+                            )}
+                            <div>
+                              <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: '#1C1714', fontFamily: "'Nunito Sans', sans-serif" }}>{p.name}</p>
+                              {p.variants?.[0] && (
+                                <p style={{ margin: 0, fontSize: 12, color: '#BF912E', fontWeight: 600 }}>
+                                  {(p.variants[0].discountPrice || p.variants[0].price).toFixed(2)} AZN
+                                </p>
+                              )}
+                            </div>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : query.trim().length > 1 ? (
+                    <div style={{ padding: '24px 16px', textAlign: 'center', color: '#8C7F77', fontSize: 13, fontWeight: 600 }}>
+                      Nəticə tapılmadı
+                    </div>
+                  ) : null}
+                </div>
+              )}
+            </div>
+
+            {/* Cart */}
+            <button
+              onClick={onCartClick}
+              style={{
+                position: 'relative', background: 'none', border: 'none', cursor: 'pointer',
+                width: 38, height: 38, borderRadius: 10,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: '#4A3F38', transition: 'all 0.2s',
+              }}
+              onMouseEnter={e => { (e.currentTarget).style.background = '#F2EDE5'; (e.currentTarget).style.color = '#BF912E'; }}
+              onMouseLeave={e => { (e.currentTarget).style.background = 'none'; (e.currentTarget).style.color = '#4A3F38'; }}
+            >
+              <ShoppingCart size={18} />
+              {cartCount > 0 && (
+                <span style={{
+                  position: 'absolute', top: 2, right: 2,
+                  background: '#BF912E', color: '#fff',
+                  fontSize: 9, fontWeight: 900,
+                  width: 16, height: 16, borderRadius: '50%',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontFamily: "'Nunito Sans', sans-serif",
+                }}>
+                  {cartCount}
+                </span>
+              )}
+            </button>
+
+            {/* Mobile menu toggle */}
+            <button
+              onClick={() => { setMenuOpen(v => !v); setSearchOpen(false); }}
+              className="md:hidden"
+              style={{
+                background: 'none', border: 'none', cursor: 'pointer',
+                width: 38, height: 38, borderRadius: 10,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: '#4A3F38', transition: 'all 0.2s',
+              }}
+              onMouseEnter={e => { (e.currentTarget).style.background = '#F2EDE5'; (e.currentTarget).style.color = '#BF912E'; }}
+              onMouseLeave={e => { (e.currentTarget).style.background = 'none'; (e.currentTarget).style.color = '#4A3F38'; }}
+            >
+              {menuOpen ? <X size={18} /> : <Menu size={18} />}
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile menu */}
+        {menuOpen && (
+          <div className="md:hidden" style={{
+            background: 'rgba(250,248,244,0.98)',
+            borderTop: '1px solid #E8E2D9',
+            padding: '12px 20px 20px',
+          }}>
+            {navLinks.map((link) => (
+              <button
+                key={link.label}
+                onClick={() => { link.action(); setMenuOpen(false); }}
+                style={{
+                  width: '100%', background: 'none', border: 'none', cursor: 'pointer',
+                  padding: '13px 16px', borderRadius: 10, textAlign: 'left',
+                  fontSize: 14, fontWeight: 700, color: '#4A3F38',
+                  fontFamily: "'Nunito Sans', sans-serif",
+                  display: 'block', marginBottom: 2,
+                  transition: 'all 0.2s',
+                }}
+                onMouseEnter={e => { (e.currentTarget).style.background = '#FBF4E4'; (e.currentTarget).style.color = '#BF912E'; }}
+                onMouseLeave={e => { (e.currentTarget).style.background = 'none'; (e.currentTarget).style.color = '#4A3F38'; }}
+              >
+                {link.label}
+              </button>
+            ))}
+            <a
+              href="https://wa.me/994519831483"
+              target="_blank"
+              rel="noreferrer"
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                marginTop: 8, padding: '13px 16px', borderRadius: 12,
+                background: '#1C1714', color: '#BF912E',
+                fontSize: 14, fontWeight: 800, textDecoration: 'none',
+                fontFamily: "'Nunito Sans', sans-serif",
+                letterSpacing: '0.3px',
+              }}
+            >
+              💬 WhatsApp
+            </a>
+          </div>
         )}
       </nav>
 
-      {/* Navbar hündürlüyü üçün boşluq */}
-      <div className="h-16 sm:h-20" />
+      {/* Spacer for announcement bar + navbar */}
+      <div style={{ height: 64 + 33 }} />
     </>
   );
 };

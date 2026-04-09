@@ -4,49 +4,91 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/jpeg" href="/ravio-logo.jpeg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-    <!-- Əsas SEO -->
     <title>Ravio.az — Özəl Hədiyyələr və Premium Məhsullar</title>
-    <meta name="description" content="Ravio.az-da özəl hazırlanmış hədiyyələr, qolbaqlar, təsbehler, foto çərçivələr və daha çox. Sürətli çatdırılma, keyfiyyət zəmanəti. Sifariş üçün WhatsApp ilə əlaqə saxlayın." />
-    <meta name="keywords" content="hədiyyə, özəl hədiyyə, qolbaq, təsbeh, foto çərçivə, ravio, ravio.az, bakı, azerbaycan" />
+    <meta name="description" content="Ravio.az-da özəl hazırlanmış hədiyyələr, qolbaqlar, təsbehler və daha çox. Sürətli çatdırılma, keyfiyyət zəmanəti." />
+    <meta name="keywords" content="hədiyyə, özəl hədiyyə, qolbaq, təsbeh, ravio, ravio.az, bakı, azerbaycan" />
     <meta name="author" content="Ravio.az" />
     <meta name="robots" content="index, follow" />
     <link rel="canonical" href="https://ravioaz.vercel.app" />
-
-    <!-- Open Graph (Facebook, WhatsApp paylaşımı) -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://ravioaz.vercel.app" />
     <meta property="og:title" content="Ravio.az — Özəl Hədiyyələr və Premium Məhsullar" />
-    <meta property="og:description" content="Özəl hazırlanmış hədiyyələr, qolbaqlar, təsbehler və daha çox. Sürətli çatdırılma, keyfiyyət zəmanəti." />
+    <meta property="og:description" content="Özəl hazırlanmış hədiyyələr, qolbaqlar, təsbehler və daha çox." />
     <meta property="og:image" content="https://ravioaz.vercel.app/ravio-logo.jpeg" />
     <meta property="og:locale" content="az_AZ" />
     <meta property="og:site_name" content="Ravio.az" />
-
-    <!-- Twitter/X paylaşımı -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Ravio.az — Özəl Hədiyyələr" />
-    <meta name="twitter:description" content="Özəl hazırlanmış hədiyyələr və premium məhsullar. Sürətli çatdırılma." />
+    <meta name="twitter:description" content="Özəl hazırlanmış hədiyyələr və premium məhsullar." />
     <meta name="twitter:image" content="https://ravioaz.vercel.app/ravio-logo.jpeg" />
 
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Nunito+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
     <style>
+      :root {
+        --bg:         #FAF8F4;
+        --bg-card:    #FFFFFF;
+        --bg-deep:    #F2EDE5;
+        --text:       #1C1714;
+        --text-mid:   #4A3F38;
+        --text-muted: #8C7F77;
+        --gold:       #BF912E;
+        --gold-light: #D4A84B;
+        --gold-bg:    #FBF4E4;
+        --border:     #E8E2D9;
+        --border-md:  #D5CBBF;
+        --dark:       #17120E;
+        --dark-2:     #231E1A;
+        --dark-3:     #2E2520;
+      }
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
       body {
-        font-family: 'Inter', sans-serif;
-        background-color: #FAFAFA;
+        font-family: 'Nunito Sans', sans-serif;
+        background-color: var(--bg);
+        color: var(--text);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
       }
-      .premium-shadow {
-        box-shadow: 0 20px 50px rgba(255, 140, 0, 0.1);
+      h1, h2, h3, .serif { font-family: 'Cormorant Garamond', serif; }
+
+      @keyframes fadeUp {
+        from { opacity: 0; transform: translateY(24px); }
+        to   { opacity: 1; transform: translateY(0); }
       }
+      .fade-up   { animation: fadeUp 0.7s cubic-bezier(0.22,1,0.36,1) forwards; }
+      .fade-up-2 { animation: fadeUp 0.7s 0.14s cubic-bezier(0.22,1,0.36,1) forwards; opacity:0; }
+      .fade-up-3 { animation: fadeUp 0.7s 0.28s cubic-bezier(0.22,1,0.36,1) forwards; opacity:0; }
+      .fade-up-4 { animation: fadeUp 0.7s 0.42s cubic-bezier(0.22,1,0.36,1) forwards; opacity:0; }
+
+      @keyframes shimmer {
+        0%   { background-position: -200% center; }
+        100% { background-position: 200% center; }
+      }
+      .gold-text {
+        background: linear-gradient(90deg, #A87926 0%, #E0C06A 45%, #BF912E 70%, #A87926 100%);
+        background-size: 200% auto;
+        animation: shimmer 4s linear infinite;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      @keyframes spin { to { transform: rotate(360deg); } }
+      .spin { animation: spin 0.9s linear infinite; }
+
+      ::-webkit-scrollbar { width: 5px; }
+      ::-webkit-scrollbar-track { background: var(--bg); }
+      ::-webkit-scrollbar-thumb { background: var(--border-md); border-radius: 3px; }
+      ::-webkit-scrollbar-thumb:hover { background: var(--gold); }
+
+      .product-card-img { transition: transform 0.55s cubic-bezier(0.25,0.46,0.45,0.94); }
+      .product-card:hover .product-card-img { transform: scale(1.06); }
     </style>
 
-    <!-- Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-4YEWCWGVTD"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -55,7 +97,6 @@
       gtag('config', 'G-4YEWCWGVTD');
     </script>
 
-    <!-- Strukturlu məlumat (JSON-LD) — sayt haqqında -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -74,11 +115,9 @@
         "@type": "PostalAddress",
         "addressCountry": "AZ",
         "addressLocality": "Bakı"
-      },
-      "sameAs": []
+      }
     }
     </script>
-
   </head>
   <body>
     <div id="root"></div>
