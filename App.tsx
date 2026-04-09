@@ -1,379 +1,415 @@
-import React from "react";
+import React, { useState, useEffect } from 'react';
+import { client } from './sanityclient';
+import { createImageUrlBuilder } from '@sanity/image-url';
+import { Product, CartItem, AppView } from './types';
 
-const whatsappNumber = "994501112233"; // <- BURANI öz nömrənlə dəyiş (məs: 99450XXXXXXX)
-const instagramUrl = "https://instagram.com/ravio.az"; // <- BURANI düzəlt
+import Navbar from './components/Navbar';
+import ProductGrid from './components/ProductGrid';
+import ProductModal from './components/ProductModal';
+import CartDrawer from './components/CartDrawer';
+import PromoBanners from './components/PromoBanners';
+import CustomerReviews from './components/CustomerReviews';
+import AboutUs from './components/AboutUs';
+import Contact from './components/Contact';
+import DeliveryInfo from './components/DeliveryInfo';
+import Footer from './components/Footer';
+import AIAssistant from './components/AIAssistant';
 
-const products = [
-  { name: "Lazer yazılı boyunbağı", price: "29 AZN", tag: "Ən çox satılan" },
-  { name: "Hədiyyə qutusu (premium)", price: "35 AZN", tag: "Yeni" },
-  { name: "Dəst hədiyyə", price: "49 AZN", tag: "Top seçim" },
-  { name: "Məzun lentləri", price: "12 AZN", tag: "Sifarişlə" },
-  { name: "Lipa nömrələr", price: "18 AZN", tag: "Populyar" },
-  { name: "Fərdi aksessuar paketi", price: "59 AZN", tag: "Hədiyyəlik" },
-];
+const builder = createImageUrlBuilder({ projectId: 'w7scii42', dataset: 'production' });
+const urlFor = (source: any) => builder.image(source).url();
 
-const steps = [
-  {
-    title: "1) Məhsulu seç",
-    text: "İstədiyin məhsulu və yazını seçirsən.",
-  },
-  {
-    title: "2) WhatsApp ilə təsdiq",
-    text: "Detalları dəqiqləşdiririk, qiymət və vaxtı təsdiqləyirik.",
-  },
-  {
-    title: "3) Hazırlıq və paketləmə",
-    text: "Məhsul hazırlanır və hədiyyə formasında paketlənir.",
-  },
-  {
-    title: "4) Çatdırılma",
-    text: "Kuryer və ya əlbəəl təhvil verilir.",
-  },
-];
+// Sanity-dən gələn xam məhsulu bizim Product tipinə çeviririk
+function mapSanityProduct(raw: any): Product {
+  const variants = (raw.variants || []).map((v: any) => ({
+    modelName: v.modelName || '',
+    colorName: v.colorName || '',
+    images: (v.images || []).map((img: any) =>
+      img?.asset?.url ? img.asset.url : typeof img === 'string' ? img : ''
+    ).filter(Boolean),
+    price: v.price ?? 0,
+    discountPrice: v.discountPrice ?? undefined,
+    stock: v.stock ?? 0,
+  }));
 
-const faq = [
-  {
-    q: "Sifariş neçə günə hazır olur?",
-    a: "Adətən 1–2 gün. Təcili sifarişlər üçün əvvəlcədən yazın.",
+  return {
+    id: raw._id,
+    name: raw.name,
+    category: raw.category?.name || '',
+    description: raw.description || '',
+    variants,
+    isPremium: raw.isPremium || false,
+    premiumOrder: raw.premiumOrder,
+    premiumSize: raw.premiumSize,
+    isBestSeller: raw.isBestSeller || false,
+    bestSellerOrder: raw.bestSellerOrder,
+    orderCount: raw.orderCount || 0,
+    hasBulkDiscount: raw.hasBulkDiscount || false,
+    bulkDiscountNote: raw.bulkDiscountNote || '',
+    bulkTiers: raw.bulkTiers || [],
+  };
+}
+
+// Sanity GROQ sorğusu
+const PRODUCTS_QUERY = `*[_type == "product"] | order(bestSellerOrder asc) {
+  _id, name, description,
+  category->{ name },
+  variants[] {
+    modelName, colorName, price, discountPrice, stock,
+    images[]{ asset->{ url } }
   },
-  {
-    q: "Çatdırılma mümkündür?",
-    a: "Bəli, şəhər daxili çatdırılma mövcuddur.",
-  },
-  {
-    q: "Fərdi yazı və dizayn olur?",
-    a: "Bəli, məhsullara şəxsi yazı və fərdi toxunuş əlavə olunur.",
-  },
-];
+  isPremium, premiumOrder, premiumSize,
+  isBestSeller, bestSellerOrder, orderCount,
+  hasBulkDiscount, bulkDiscountNote,
+  bulkTiers[]{ minQty, maxQty, discountAmount, label }
+}`;
 
 export default function App() {
-  const waMessage = encodeURIComponent(
-    "Salam, Ravio AZ. Saytdan sifariş vermək istəyirəm."
-  );
-  const waLink = `https://wa.me/${whatsappNumber}?text=${waMessage}`;
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [view, setView] = useState<AppView>('home');
+
+  // Modal
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [editingItem, setEditingItem] = useState<CartItem | undefined>(undefined);
+
+  // Səbət
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [cartOpen, setCartOpen] = useState(false);
+
+  // Kateqoriya filtri
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+
+  // Sanity-dən məhsulları yüklə
+  useEffect(() => {
+    client
+      .fetch(PRODUCTS_QUERY)
+      .then((raw: any[]) => {
+        setProducts(raw.map(mapSanityProduct));
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error('Sanity xətası:', err);
+        setLoading(false);
+      });
+  }, []);
+
+  // Filtrlənmiş məhsullar
+  const filteredProducts = activeCategory
+    ? products.filter((p) => p.category === activeCategory)
+    : products;
+
+  // Unikal kateqoriyalar
+  const categories = Array.from(
+    new Set(products.map((p) => p.category).filter(Boolean))
+  ) as string[];
+
+  const openProduct = (product: Product, item?: CartItem) => {
+    setSelectedProduct(product);
+    setEditingItem(item);
+  };
+
+  const handleAddToCart = (item: CartItem) => {
+    setCart((prev) => {
+      const idx = prev.findIndex((c) => c.cartId === item.cartId);
+      if (idx >= 0) {
+        const updated = [...prev];
+        updated[idx] = item;
+        return updated;
+      }
+      return [...prev, item];
+    });
+    setCartOpen(true);
+  };
+
+  const handleRemove = (cartId: string) => {
+    setCart((prev) => prev.filter((c) => c.cartId !== cartId));
+  };
+
+  const handleEdit = (item: CartItem) => {
+    const product = products.find((p) => p.id === item.productId);
+    if (product) {
+      setCartOpen(false);
+      openProduct(product, item);
+    }
+  };
+
+  const goHome = () => {
+    setView('home');
+    setActiveCategory(null);
+  };
+
+  const T = {
+    bg: '#FAF8F5',
+    primary: '#2F4F4F',
+    border: '#E9E5DF',
+    muted: '#6B7280',
+    accent: '#C9A227',
+  };
 
   return (
-    <div style={styles.page}>
-      {/* Header */}
-      <header style={styles.header}>
-        <div style={styles.container}>
-          <div style={styles.logo}>Ravio AZ</div>
-          <nav style={styles.nav}>
-            <a href="#mehsullar" style={styles.navLink}>Məhsullar</a>
-            <a href="#nece-isleyir" style={styles.navLink}>Necə işləyir?</a>
-            <a href="#faq" style={styles.navLink}>FAQ</a>
-            <a href={instagramUrl} target="_blank" rel="noreferrer" style={styles.navLink}>Instagram</a>
-          </nav>
-          <a href={waLink} target="_blank" rel="noreferrer" style={styles.ctaBtn}>
-            WhatsApp sifariş
-          </a>
-        </div>
-      </header>
+    <div style={{ minHeight: '100vh', background: T.bg, fontFamily: 'Georgia, serif' }}>
 
-      {/* Hero */}
-      <section style={styles.hero}>
-        <div style={styles.container}>
-          <p style={styles.badge}>Fərdiləşdirilmiş hədiyyələr • Lazer yazı</p>
-          <h1 style={styles.h1}>
-            Xüsusi insanlara, xüsusi hədiyyə.
-          </h1>
-          <p style={styles.subtitle}>
-            Bijuteriya, hədiyyə qutuları, dəstlər və məzun lentləri.
-            Sadə sifariş, sürətli hazırlıq, zövqlü təqdimat.
-          </p>
-          <div style={styles.heroActions}>
-            <a href="#mehsullar" style={styles.primaryBtn}>Məhsullara bax</a>
-            <a href={waLink} target="_blank" rel="noreferrer" style={styles.secondaryBtn}>
-              Dərhal yaz
-            </a>
-          </div>
-        </div>
-      </section>
+      {/* NAVİQASİYA */}
+      <Navbar
+        cartCount={cart.reduce((s, i) => s + i.quantity, 0)}
+        onLogoClick={goHome}
+        onCartClick={() => setCartOpen(true)}
+        onAboutClick={() => setView('about')}
+        onContactClick={() => setView('contact')}
+        onDeliveryClick={() => setView('delivery')}
+        products={products}
+        onViewProduct={openProduct}
+      />
 
-      {/* Products */}
-      <section id="mehsullar" style={styles.section}>
-        <div style={styles.container}>
-          <h2 style={styles.h2}>Populyar məhsullar</h2>
-          <p style={styles.sectionText}>
-            Həm xanımlar, həm bəylər üçün uyğun, hədiyyəlik seçimlər.
-          </p>
+      {/* ƏSAS KONTENİ */}
+      <main style={{ paddingTop: 80 }}>
 
-          <div style={styles.grid}>
-            {products.map((p) => (
-              <article key={p.name} style={styles.card}>
-                <span style={styles.tag}>{p.tag}</span>
-                <h3 style={styles.cardTitle}>{p.name}</h3>
-                <p style={styles.price}>{p.price}</p>
-                <a href={waLink} target="_blank" rel="noreferrer" style={styles.cardBtn}>
-                  Sifariş et
+        {/* ═══════════════ ANA SƏHİFƏ ═══════════════ */}
+        {view === 'home' && (
+          <>
+            {/* HERO */}
+            <section style={{ padding: '48px 16px 32px', maxWidth: 1120, margin: '0 auto' }}>
+              <p style={{
+                display: 'inline-block',
+                background: '#ECE6DA',
+                color: T.primary,
+                borderRadius: 999,
+                padding: '8px 16px',
+                fontSize: 13,
+                fontWeight: 700,
+                marginBottom: 18,
+                letterSpacing: 0.3,
+              }}>
+                ✨ Lazer yazı ilə fərdiləşdirilmiş hədiyyələr
+              </p>
+              <h1 style={{
+                fontSize: 'clamp(28px, 6vw, 52px)',
+                lineHeight: 1.08,
+                margin: '0 0 14px',
+                color: '#1F1F1F',
+                maxWidth: 720,
+                fontWeight: 800,
+              }}>
+                Xüsusi insanlara,<br />xüsusi hədiyyə.
+              </h1>
+              <p style={{
+                fontSize: 17,
+                lineHeight: 1.7,
+                color: T.muted,
+                maxWidth: 580,
+                marginBottom: 28,
+              }}>
+                Bijuteriya, hədiyyə qutuları, məzun lentləri — hamısı sizin adınıza hazırlanır.
+              </p>
+              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                <a
+                  href="#mehsullar"
+                  onClick={() => setView('home')}
+                  style={{
+                    textDecoration: 'none',
+                    background: T.primary,
+                    color: '#fff',
+                    padding: '13px 24px',
+                    borderRadius: 12,
+                    fontWeight: 700,
+                    fontSize: 15,
+                  }}
+                >
+                  Məhsullara bax
                 </a>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Steps */}
-      <section id="nece-isleyir" style={styles.sectionAlt}>
-        <div style={styles.container}>
-          <h2 style={styles.h2}>Necə işləyir?</h2>
-          <div style={styles.stepGrid}>
-            {steps.map((s) => (
-              <div key={s.title} style={styles.stepCard}>
-                <h3 style={styles.stepTitle}>{s.title}</h3>
-                <p style={styles.stepText}>{s.text}</p>
+                <a
+                  href="https://wa.me/994519831483?text=Salam%2C%20saytdan%20sifariş%20vermək%20istəyirəm"
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{
+                    textDecoration: 'none',
+                    border: `2px solid ${T.primary}`,
+                    color: T.primary,
+                    padding: '13px 24px',
+                    borderRadius: 12,
+                    fontWeight: 700,
+                    fontSize: 15,
+                  }}
+                >
+                  💬 WhatsApp ilə yaz
+                </a>
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
+            </section>
 
-      {/* Trust */}
-      <section style={styles.section}>
-        <div style={styles.container}>
-          <h2 style={styles.h2}>Niyə Ravio AZ?</h2>
-          <div style={styles.trustRow}>
-            <div style={styles.trustItem}>✅ Keyfiyyətli hazırlanma</div>
-            <div style={styles.trustItem}>🚚 Sürətli çatdırılma</div>
-            <div style={styles.trustItem}>🎁 Zövqlü paketləmə</div>
-            <div style={styles.trustItem}>💬 Sürətli cavab dəstəyi</div>
-          </div>
-        </div>
-      </section>
+            {/* PROMO BANERLƏR */}
+            <section style={{ maxWidth: 1120, margin: '0 auto', padding: '0 16px 40px' }}>
+              <PromoBanners />
+            </section>
 
-      {/* FAQ */}
-      <section id="faq" style={styles.sectionAlt}>
-        <div style={styles.container}>
-          <h2 style={styles.h2}>Tez-tez verilən suallar</h2>
-          <div style={styles.faqWrap}>
-            {faq.map((item) => (
-              <details key={item.q} style={styles.faqItem}>
-                <summary style={styles.faqQ}>{item.q}</summary>
-                <p style={styles.faqA}>{item.a}</p>
-              </details>
-            ))}
-          </div>
-        </div>
-      </section>
+            {/* ETIBAR ZOLAĞU */}
+            <section style={{
+              background: T.primary,
+              padding: '16px 0',
+              marginBottom: 0,
+            }}>
+              <div style={{
+                maxWidth: 1120,
+                margin: '0 auto',
+                padding: '0 16px',
+                display: 'flex',
+                justifyContent: 'center',
+                flexWrap: 'wrap',
+                gap: 32,
+              }}>
+                {[
+                  '⚡ Sürətli hazırlıq',
+                  '🎁 Premium paketləmə',
+                  '🚚 Bakı daxili çatdırılma',
+                  '✍️ Hər məhsula fərdi yazı',
+                ].map((t) => (
+                  <span key={t} style={{ color: '#fff', fontSize: 13, fontWeight: 600 }}>{t}</span>
+                ))}
+              </div>
+            </section>
 
-      {/* Footer */}
-      <footer style={styles.footer}>
-        <div style={styles.containerFooter}>
-          <div>
-            <strong>Ravio AZ</strong>
-            <p style={styles.footerText}>Fərdiləşdirilmiş hədiyyəlik aksessuarlar</p>
-          </div>
-          <div style={styles.footerLinks}>
-            <a href={instagramUrl} target="_blank" rel="noreferrer" style={styles.footerLink}>Instagram</a>
-            <a href={waLink} target="_blank" rel="noreferrer" style={styles.footerLink}>WhatsApp</a>
-          </div>
-        </div>
-      </footer>
+            {/* KATEQORİYA FİLTRİ */}
+            {categories.length > 1 && (
+              <section style={{ maxWidth: 1120, margin: '0 auto', padding: '24px 16px 12px' }}>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  <button
+                    onClick={() => setActiveCategory(null)}
+                    style={{
+                      padding: '8px 18px',
+                      borderRadius: 999,
+                      border: '1.5px solid',
+                      borderColor: !activeCategory ? T.primary : T.border,
+                      background: !activeCategory ? T.primary : '#fff',
+                      color: !activeCategory ? '#fff' : T.muted,
+                      fontWeight: 600,
+                      fontSize: 13,
+                      cursor: 'pointer',
+                      fontFamily: 'Georgia, serif',
+                    }}
+                  >
+                    Hamısı
+                  </button>
+                  {categories.map((cat) => (
+                    <button
+                      key={cat}
+                      onClick={() => setActiveCategory(cat)}
+                      style={{
+                        padding: '8px 18px',
+                        borderRadius: 999,
+                        border: '1.5px solid',
+                        borderColor: activeCategory === cat ? T.primary : T.border,
+                        background: activeCategory === cat ? T.primary : '#fff',
+                        color: activeCategory === cat ? '#fff' : T.muted,
+                        fontWeight: 600,
+                        fontSize: 13,
+                        cursor: 'pointer',
+                        fontFamily: 'Georgia, serif',
+                      }}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* MƏHSULLAR */}
+            <section id="mehsullar" style={{ maxWidth: 1120, margin: '0 auto', padding: '16px 16px 56px' }}>
+              {loading ? (
+                <div style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  padding: '80px 0', flexDirection: 'column', gap: 12,
+                }}>
+                  <div style={{
+                    width: 40, height: 40, border: `3px solid ${T.border}`,
+                    borderTopColor: T.primary, borderRadius: '50%',
+                    animation: 'spin 0.8s linear infinite',
+                  }} />
+                  <p style={{ color: T.muted, fontSize: 14 }}>Məhsullar yüklənir...</p>
+                  <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+                </div>
+              ) : filteredProducts.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '80px 0', color: T.muted }}>
+                  <p style={{ fontSize: 18 }}>Bu kateqoriyada məhsul yoxdur</p>
+                  <button
+                    onClick={() => setActiveCategory(null)}
+                    style={{
+                      marginTop: 16, padding: '10px 20px', borderRadius: 10,
+                      background: T.primary, color: '#fff', border: 'none',
+                      cursor: 'pointer', fontWeight: 700,
+                    }}
+                  >
+                    Bütün məhsullara bax
+                  </button>
+                </div>
+              ) : (
+                <ProductGrid
+                  products={filteredProducts}
+                  onAddToCart={openProduct}
+                  onViewProduct={openProduct}
+                  title={activeCategory || 'Bütün məhsullar'}
+                />
+              )}
+            </section>
+
+            {/* MÜŞTƏRİ RƏYLƏRİ */}
+            <section style={{
+              background: '#F3F1ED',
+              borderTop: `1px solid ${T.border}`,
+              borderBottom: `1px solid ${T.border}`,
+            }}>
+              <CustomerReviews />
+            </section>
+          </>
+        )}
+
+        {/* DİGƏR SƏHİFƏLƏR */}
+        {view === 'about'    && <AboutUs />}
+        {view === 'contact'  && <Contact />}
+        {view === 'delivery' && <DeliveryInfo />}
+        {view === 'reviews'  && (
+          <section style={{ maxWidth: 1120, margin: '0 auto' }}>
+            <CustomerReviews />
+          </section>
+        )}
+      </main>
+
+      {/* FOOTER */}
+      <Footer onReviewsClick={() => setView('reviews')} />
+
+      {/* AI KÖMƏKÇİ */}
+      <AIAssistant />
+
+      {/* MƏHSUL MODALI */}
+      {selectedProduct && (
+        <ProductModal
+          product={selectedProduct}
+          initialData={editingItem}
+          onClose={() => {
+            setSelectedProduct(null);
+            setEditingItem(undefined);
+          }}
+          onAddToCart={handleAddToCart}
+          onOpenCategory={(cat) => {
+            setSelectedProduct(null);
+            setEditingItem(undefined);
+            setActiveCategory(cat);
+            setView('home');
+          }}
+        />
+      )}
+
+      {/* SƏBƏT */}
+      <CartDrawer
+        isOpen={cartOpen}
+        onClose={() => setCartOpen(false)}
+        items={cart}
+        onRemove={handleRemove}
+        onEdit={handleEdit}
+        onGoToProducts={() => {
+          setCartOpen(false);
+          setView('home');
+        }}
+      />
     </div>
   );
 }
-
-const colors = {
-  bg: "#FAF8F5",
-  card: "#FFFFFF",
-  text: "#1F1F1F",
-  muted: "#6B7280",
-  primary: "#2F4F4F",
-  primarySoft: "#3F6A6A",
-  accent: "#C9A227",
-  border: "#E9E5DF",
-};
-
-const styles: Record<string, React.CSSProperties> = {
-  page: {
-    background: colors.bg,
-    color: colors.text,
-    minHeight: "100vh",
-    fontFamily:
-      "Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial",
-  },
-  container: {
-    width: "min(1120px, 92%)",
-    margin: "0 auto",
-  },
-  header: {
-    position: "sticky",
-    top: 0,
-    zIndex: 30,
-    background: "rgba(250,248,245,0.95)",
-    backdropFilter: "blur(8px)",
-    borderBottom: `1px solid ${colors.border}`,
-  },
-  logo: {
-    fontWeight: 800,
-    letterSpacing: 0.3,
-    fontSize: 22,
-    color: colors.primary,
-  },
-  nav: {
-    display: "flex",
-    gap: 18,
-    alignItems: "center",
-    flexWrap: "wrap",
-  },
-  navLink: {
-    textDecoration: "none",
-    color: colors.text,
-    fontSize: 14,
-    fontWeight: 600,
-  },
-  ctaBtn: {
-    textDecoration: "none",
-    background: colors.primary,
-    color: "#fff",
-    padding: "10px 16px",
-    borderRadius: 10,
-    fontWeight: 700,
-    fontSize: 14,
-  },
-  hero: {
-    padding: "72px 0 48px",
-  },
-  badge: {
-    display: "inline-block",
-    background: "#ECE6DA",
-    color: colors.primary,
-    borderRadius: 999,
-    padding: "8px 14px",
-    fontSize: 13,
-    fontWeight: 700,
-    marginBottom: 18,
-  },
-  h1: {
-    fontSize: "clamp(30px, 6vw, 52px)",
-    lineHeight: 1.08,
-    margin: "0 0 14px",
-    maxWidth: 760,
-  },
-  subtitle: {
-    fontSize: 18,
-    lineHeight: 1.6,
-    color: colors.muted,
-    maxWidth: 760,
-    marginBottom: 24,
-  },
-  heroActions: {
-    display: "flex",
-    gap: 12,
-    flexWrap: "wrap",
-  },
-  primaryBtn: {
-    textDecoration: "none",
-    background: colors.primary,
-    color: "#fff",
-    padding: "12px 18px",
-    borderRadius: 12,
-    fontWeight: 700,
-  },
-  secondaryBtn: {
-    textDecoration: "none",
-    border: `1px solid ${colors.primary}`,
-    color: colors.primary,
-    padding: "12px 18px",
-    borderRadius: 12,
-    fontWeight: 700,
-  },
-  section: { padding: "52px 0" },
-  sectionAlt: {
-    padding: "52px 0",
-    background: "#F3F1ED",
-    borderTop: `1px solid ${colors.border}`,
-    borderBottom: `1px solid ${colors.border}`,
-  },
-  h2: {
-    fontSize: "clamp(24px, 4vw, 34px)",
-    margin: "0 0 10px",
-    color: colors.primary,
-  },
-  sectionText: { color: colors.muted, marginBottom: 22 },
-  grid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))",
-    gap: 14,
-  },
-  card: {
-    background: colors.card,
-    border: `1px solid ${colors.border}`,
-    borderRadius: 14,
-    padding: 16,
-    boxShadow: "0 8px 24px rgba(0,0,0,0.04)",
-  },
-  tag: {
-    display: "inline-block",
-    background: "#EEE8DB",
-    color: "#6A5A2F",
-    borderRadius: 999,
-    padding: "5px 10px",
-    fontSize: 12,
-    fontWeight: 700,
-    marginBottom: 10,
-  },
-  cardTitle: { margin: "0 0 8px", fontSize: 18 },
-  price: { margin: "0 0 12px", fontWeight: 700, color: colors.primarySoft },
-  cardBtn: {
-    textDecoration: "none",
-    display: "inline-block",
-    background: colors.accent,
-    color: "#1F1F1F",
-    padding: "10px 14px",
-    borderRadius: 10,
-    fontWeight: 700,
-  },
-  stepGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-    gap: 12,
-  },
-  stepCard: {
-    background: "#fff",
-    border: `1px solid ${colors.border}`,
-    borderRadius: 14,
-    padding: 16,
-  },
-  stepTitle: { margin: "0 0 8px", color: colors.primary },
-  stepText: { margin: 0, color: colors.muted, lineHeight: 1.6 },
-  trustRow: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-    gap: 10,
-  },
-  trustItem: {
-    background: "#fff",
-    border: `1px solid ${colors.border}`,
-    borderRadius: 12,
-    padding: "12px 14px",
-    fontWeight: 600,
-  },
-  faqWrap: { display: "grid", gap: 10 },
-  faqItem: {
-    background: "#fff",
-    border: `1px solid ${colors.border}`,
-    borderRadius: 12,
-    padding: "10px 14px",
-  },
-  faqQ: { cursor: "pointer", fontWeight: 700 },
-  faqA: { color: colors.muted, marginTop: 8, lineHeight: 1.6 },
-  footer: {
-    marginTop: 24,
-    padding: "24px 0",
-    borderTop: `1px solid ${colors.border}`,
-    background: "#F6F3EE",
-  },
-  containerFooter: {
-    width: "min(1120px, 92%)",
-    margin: "0 auto",
-    display: "flex",
-    justifyContent: "space-between",
-    gap: 10,
-    flexWrap: "wrap",
-    alignItems: "center",
-  },
-  footerText: { margin: "4px 0 0", color: colors.muted, fontSize: 14 },
-  footerLinks: { display: "flex", gap: 14 },
-  footerLink: { textDecoration: "none", color: colors.primary, fontWeight: 700 },
-};

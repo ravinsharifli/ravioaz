@@ -24,8 +24,8 @@ function getItemFinalPrice(item: CartItem): number {
   const loyaltyDisc    = item.customerType === 'loyal'
     ? basePrice * 0.20
     : item.isFirstOrSecondOrder ? basePrice * 0.10 : 0;
-  const deliveryPrice  = item.deliveryType === 'urgent' ? 10
-    : item.deliveryType === 'express' ? 9.99 : 0;
+  const deliveryPrice  = item.deliveryType === 'urgent' ? 4.99
+    : item.deliveryType === 'express' ? 4.99 : 0;
   return (basePrice - loyaltyDisc + deliveryPrice) * item.quantity;
 }
 
@@ -76,7 +76,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
         priceLines += `  ↳ ${item.boxType === 'gift' ? 'Hədiyyə Qutu' : 'Premium Qutu'}: +${item.boxPrice!.toFixed(2)} ₼\n`;
       }
       if (item.deliveryMethod === 'kuryer') {
-        priceLines += `  ↳ Kuryer çatdırılması: +10 ₼\n`;
+        priceLines += `  ↳ Kuryer çatdırılması: +4.99 ₼\n`;
       }
       if ((item.couponDiscount ?? 0) > 0) {
         priceLines += `  ↳ Kupon (${item.couponCode}): -${item.couponDiscount!.toFixed(2)} ₼\n`;

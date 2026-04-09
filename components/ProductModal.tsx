@@ -35,9 +35,9 @@ const TIMES = [
 
 // 📦 Qutu növləri — adı və qiyməti özün dəyiş
 const BOXES = [
-  { id: 'simple',  name: 'Sadə Qutu',     price: 0,  desc: 'Standart qablaşdırma' },
-  { id: 'premium', name: 'Premium Qutu',  price: 8,  desc: 'Lent + köpük yastıq'  },
-  { id: 'gift',    name: 'Hədiyyə Qutu',  price: 15, desc: 'Tam hazır, bəzəkli'   },
+  { id: 'simple',  name: 'Sadə Qutu',     price: 0,  desc: 'Standart qablaşdırma'                          },
+  { id: 'premium', name: 'Orta Qutu',     price: 10, desc: 'Lent + köpük yastıq'                           },
+  { id: 'gift',    name: 'Premium Qutu',  price: 17, desc: 'Bağlama + qeyd kartı + qutu üzərində yazı'     },
 ];
 
 // 🏷 Endirim faizləri
@@ -45,7 +45,7 @@ const DISCOUNT_NEW   = 10; // Yeni müştəri (%)
 const DISCOUNT_LOYAL = 20; // Daimi müştəri (%)
 
 // 📸 Şəkil limiti (MB)
-const IMAGE_MAX_MB = 2.5;
+const IMAGE_MAX_MB = 5;
 
 // ╔══════════════════════════════════════════════════════════════════╗
 // ║  BURADAN AŞAĞI DƏYİŞMƏ                                         ║
@@ -170,7 +170,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
   const uploadFee   = uploadedImg ? 3 : 0;
   const box         = BOXES.find(b => b.id === boxId) ?? BOXES[0];
   const boxFee      = box.price;
-  const deliveryFee = delivery === 'kuryer' ? 10 : 0;
+  const deliveryFee = delivery === 'kuryer' ? 4.99 : 0;
 
   const subtotalBefore =
     effectiveUnit * qty + printFee + uploadFee + boxFee + deliveryFee;
