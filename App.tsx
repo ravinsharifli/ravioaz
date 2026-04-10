@@ -81,6 +81,7 @@ export default function App() {
   };
 
   const handleRemove = (cartId: string) => setCart(prev => prev.filter(c => c.cartId !== cartId));
+
   const handleEdit = (item: CartItem) => {
     const product = products.find(p => p.id === item.productId);
     if (product) { setSelectedProduct(product); setEditingItem(item); }
@@ -104,7 +105,7 @@ export default function App() {
       <main>
         {view === 'home' && (
           <>
-            {/* ── HERO ── */}
+            {/* HERO */}
             <section style={{
               background: '#1A1714',
               minHeight: '88vh',
@@ -113,28 +114,19 @@ export default function App() {
               position: 'relative',
               overflow: 'hidden',
             }}>
-              {/* Background pattern */}
               <div style={{
                 position: 'absolute', inset: 0,
                 backgroundImage: `radial-gradient(circle at 20% 50%, rgba(201,168,76,0.06) 0%, transparent 60%),
                                   radial-gradient(circle at 80% 20%, rgba(201,168,76,0.04) 0%, transparent 50%)`,
               }} />
-
               <div style={{ maxWidth: 1200, margin: '0 auto', padding: '80px 24px', width: '100%', position: 'relative' }}>
                 <div style={{ maxWidth: 620 }}>
-                  {/* Eyebrow */}
-                  <div style={{
-                    display: 'inline-flex', alignItems: 'center', gap: 10,
-                    marginBottom: 28,
-                  }}>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, marginBottom: 28 }}>
                     <span style={{ display: 'block', width: 32, height: 1, background: '#C9A84C' }} />
-                    <span style={{
-                      fontSize: 11, fontWeight: 500, color: '#C9A84C',
-                      letterSpacing: 3, textTransform: 'uppercase',
-                    }}>Özəl hədiyyələr</span>
+                    <span style={{ fontSize: 11, fontWeight: 500, color: '#C9A84C', letterSpacing: 3, textTransform: 'uppercase' as const }}>
+                      Özəl hədiyyələr
+                    </span>
                   </div>
-
-                  {/* Heading */}
                   <h1 style={{
                     fontFamily: "'Cormorant Garamond', serif",
                     fontSize: 'clamp(44px, 7vw, 82px)',
@@ -147,62 +139,51 @@ export default function App() {
                     Hər hədiyyənin<br />
                     <em style={{ color: '#C9A84C', fontStyle: 'italic' }}>hekayəsi</em> var
                   </h1>
-
-                  {/* Subtext */}
                   <p style={{
                     fontSize: 16, color: 'rgba(250,247,242,0.55)',
                     lineHeight: 1.7, margin: '0 0 40px',
                     fontWeight: 300, maxWidth: 460,
                   }}>
-                    Lazer yazı, fərdi təsbeh, polad qolbaq və domino.
-                    Yalnız sənin üçün, yalnız bir dəfə.
+                    Lazer yazı, fərdi təsbeh, polad qolbaq və domino. Yalnız sənin üçün, yalnız bir dəfə.
                   </p>
-
-                  {/* CTAs */}
-                  <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' as const }}>
                     <button
-                      onClick={() => { const el = document.getElementById('products'); el?.scrollIntoView({ behavior: 'smooth' }); }}
+                      onClick={() => {
+                        const el = document.getElementById('products');
+                        el?.scrollIntoView({ behavior: 'smooth' });
+                      }}
                       style={{
                         padding: '15px 32px', borderRadius: 12,
                         background: '#C9A84C', border: 'none',
-                        color: '#1A1714', fontSize: 14,
-                        fontWeight: 600, cursor: 'pointer',
-                        fontFamily: "'DM Sans', sans-serif",
+                        color: '#1A1714', fontSize: 14, fontWeight: 600,
+                        cursor: 'pointer', fontFamily: "'DM Sans', sans-serif",
                         letterSpacing: '0.3px',
-                        transition: 'opacity 0.2s',
                       }}
-                      onMouseEnter={e => e.currentTarget.style.opacity = '0.88'}
-                      onMouseLeave={e => e.currentTarget.style.opacity = '1'}
                     >
                       Məhsullara bax
                     </button>
-                    
+                    <a
                       href="https://wa.me/994519831483"
-                      target="_blank" rel="noreferrer"
+                      target="_blank"
+                      rel="noreferrer"
                       style={{
                         padding: '15px 32px', borderRadius: 12,
                         background: 'transparent',
                         border: '1px solid rgba(250,247,242,0.2)',
-                        color: '#FAF7F2', fontSize: 14,
-                        fontWeight: 500, cursor: 'pointer',
-                        fontFamily: "'DM Sans', sans-serif",
+                        color: '#FAF7F2', fontSize: 14, fontWeight: 500,
+                        cursor: 'pointer', fontFamily: "'DM Sans', sans-serif",
                         textDecoration: 'none', letterSpacing: '0.3px',
-                        transition: 'border-color 0.2s',
                         display: 'inline-block',
                       }}
-                      onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(201,168,76,0.5)'}
-                      onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(250,247,242,0.2)'}
                     >
                       WhatsApp ilə yaz
                     </a>
                   </div>
                 </div>
-
-                {/* Stats */}
                 <div style={{
                   display: 'flex', gap: 40, marginTop: 72,
                   borderTop: '1px solid rgba(250,247,242,0.08)',
-                  paddingTop: 32, flexWrap: 'wrap',
+                  paddingTop: 32, flexWrap: 'wrap' as const,
                 }}>
                   {[
                     { num: '500+', label: 'Məmnun müştəri' },
@@ -212,8 +193,7 @@ export default function App() {
                     <div key={s.label}>
                       <div style={{
                         fontFamily: "'Cormorant Garamond', serif",
-                        fontSize: 32, fontWeight: 600,
-                        color: '#C9A84C', lineHeight: 1,
+                        fontSize: 32, fontWeight: 600, color: '#C9A84C', lineHeight: 1,
                       }}>{s.num}</div>
                       <div style={{ fontSize: 12, color: 'rgba(250,247,242,0.4)', marginTop: 4, fontWeight: 300 }}>{s.label}</div>
                     </div>
@@ -222,17 +202,19 @@ export default function App() {
               </div>
             </section>
 
-            {/* ── PRODUCTS ── */}
+            {/* PRODUCTS */}
             <section id="products" style={{ padding: 'clamp(56px,7vw,96px) 24px' }}>
               <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-
-                {/* Section header */}
-                <div style={{ marginBottom: 48, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 16 }}>
+                <div style={{
+                  marginBottom: 48, display: 'flex',
+                  justifyContent: 'space-between', alignItems: 'flex-end',
+                  flexWrap: 'wrap' as const, gap: 16,
+                }}>
                   <div>
                     <div style={{
                       display: 'inline-flex', alignItems: 'center', gap: 8,
                       fontSize: 10, fontWeight: 500, color: '#C9A84C',
-                      letterSpacing: 3, textTransform: 'uppercase', marginBottom: 10,
+                      letterSpacing: 3, textTransform: 'uppercase' as const, marginBottom: 10,
                     }}>
                       <span style={{ width: 20, height: 1, background: '#C9A84C', display: 'block' }} />
                       Kataloq
@@ -240,16 +222,13 @@ export default function App() {
                     <h2 style={{
                       fontFamily: "'Cormorant Garamond', serif",
                       fontSize: 'clamp(28px,4vw,44px)',
-                      fontWeight: 400, color: '#1A1714', margin: 0,
-                      letterSpacing: '-0.5px',
+                      fontWeight: 400, color: '#1A1714', margin: 0, letterSpacing: '-0.5px',
                     }}>
                       {activeCategory || 'Bütün məhsullar'}
                     </h2>
                   </div>
-
-                  {/* Category pills */}
                   {categories.length > 0 && (
-                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' as const }}>
                       <button
                         onClick={() => setActiveCategory(null)}
                         style={{
@@ -258,8 +237,7 @@ export default function App() {
                           background: !activeCategory ? '#1A1714' : 'transparent',
                           color: !activeCategory ? '#FAF7F2' : '#8C7F77',
                           fontSize: 12, fontWeight: 500, cursor: 'pointer',
-                          fontFamily: "'DM Sans', sans-serif",
-                          transition: 'all 0.2s',
+                          fontFamily: "'DM Sans', sans-serif", transition: 'all 0.2s',
                         }}
                       >
                         Hamısı
@@ -274,8 +252,7 @@ export default function App() {
                             background: activeCategory === cat ? '#1A1714' : 'transparent',
                             color: activeCategory === cat ? '#FAF7F2' : '#8C7F77',
                             fontSize: 12, fontWeight: 500, cursor: 'pointer',
-                            fontFamily: "'DM Sans', sans-serif",
-                            transition: 'all 0.2s',
+                            fontFamily: "'DM Sans', sans-serif", transition: 'all 0.2s',
                           }}
                         >
                           {cat}
@@ -284,16 +261,14 @@ export default function App() {
                     </div>
                   )}
                 </div>
-
-                {/* Loading */}
                 {loading ? (
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 20 }}>
                     {[1,2,3,4,5,6].map(i => (
                       <div key={i} style={{ borderRadius: 16, overflow: 'hidden' }}>
                         <div style={{ aspectRatio: '1/1', background: '#F0EAE0', animation: 'pulse 1.5s ease-in-out infinite' }} />
-                        <div style={{ padding: '14px 0', display: 'flex', flexDirection: 'column', gap: 8 }}>
-                          <div style={{ height: 12, background: '#F0EAE0', borderRadius: 6, width: '60%', animation: 'pulse 1.5s ease-in-out infinite' }} />
-                          <div style={{ height: 16, background: '#F0EAE0', borderRadius: 6, animation: 'pulse 1.5s ease-in-out infinite' }} />
+                        <div style={{ padding: '14px 0', display: 'flex', flexDirection: 'column' as const, gap: 8 }}>
+                          <div style={{ height: 12, background: '#F0EAE0', borderRadius: 6, width: '60%' }} />
+                          <div style={{ height: 16, background: '#F0EAE0', borderRadius: 6 }} />
                         </div>
                       </div>
                     ))}
@@ -308,14 +283,14 @@ export default function App() {
               </div>
             </section>
 
-            {/* ── HOW IT WORKS ── */}
+            {/* HOW IT WORKS */}
             <section style={{ background: '#1A1714', padding: 'clamp(56px,7vw,96px) 24px' }}>
               <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-                <div style={{ textAlign: 'center', marginBottom: 56 }}>
+                <div style={{ textAlign: 'center' as const, marginBottom: 56 }}>
                   <div style={{
                     display: 'inline-flex', alignItems: 'center', gap: 10,
                     fontSize: 10, fontWeight: 500, color: '#C9A84C',
-                    letterSpacing: 3, textTransform: 'uppercase', marginBottom: 16,
+                    letterSpacing: 3, textTransform: 'uppercase' as const, marginBottom: 16,
                   }}>
                     <span style={{ width: 24, height: 1, background: '#C9A84C', display: 'block' }} />
                     Necə işləyir
@@ -329,7 +304,6 @@ export default function App() {
                     Sadə, sürətli, <em style={{ color: '#C9A84C', fontStyle: 'italic' }}>şəxsi</em>
                   </h2>
                 </div>
-
                 <div style={{
                   display: 'grid',
                   gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
@@ -348,13 +322,11 @@ export default function App() {
                       <div style={{
                         fontFamily: "'Cormorant Garamond', serif",
                         fontSize: 56, fontWeight: 400,
-                        color: 'rgba(201,168,76,0.15)', lineHeight: 1,
-                        marginBottom: 20,
+                        color: 'rgba(201,168,76,0.15)', lineHeight: 1, marginBottom: 20,
                       }}>{s.num}</div>
                       <h3 style={{
                         fontFamily: "'Cormorant Garamond', serif",
-                        fontSize: 22, fontWeight: 400,
-                        color: '#FAF7F2', margin: '0 0 10px',
+                        fontSize: 22, fontWeight: 400, color: '#FAF7F2', margin: '0 0 10px',
                       }}>{s.title}</h3>
                       <p style={{
                         fontSize: 13, color: 'rgba(250,247,242,0.4)',
@@ -366,7 +338,7 @@ export default function App() {
               </div>
             </section>
 
-            {/* ── REVIEWS ── */}
+            {/* REVIEWS */}
             <section style={{ background: '#FAF7F2' }}>
               <CustomerReviews />
             </section>
@@ -380,10 +352,11 @@ export default function App() {
 
       <Footer onReviewsClick={() => setView('reviews' as AppView)} />
 
-      {/* WhatsApp float */}
-      
-        href="https://wa.me/994519831483?text=Salam%2C%20sifariş%20vermək%20istəyirəm"
-        target="_blank" rel="noreferrer"
+      {/* WhatsApp */}
+      <a
+        href="https://wa.me/994519831483?text=Salam%2C%20sifaris%20vermek%20isteyirem"
+        target="_blank"
+        rel="noreferrer"
         style={{
           position: 'fixed', bottom: 24, right: 24,
           width: 52, height: 52,
@@ -391,11 +364,9 @@ export default function App() {
           borderRadius: '50%',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           textDecoration: 'none', fontSize: 24,
-          zIndex: 999, boxShadow: '0 4px 20px rgba(37,211,102,0.35)',
-          transition: 'transform 0.2s',
+          zIndex: 999,
+          boxShadow: '0 4px 20px rgba(37,211,102,0.35)',
         }}
-        onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.1)'}
-        onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
       >
         💬
       </a>
@@ -406,7 +377,12 @@ export default function App() {
           initialData={editingItem}
           onClose={() => { setSelectedProduct(null); setEditingItem(undefined); }}
           onAddToCart={handleAddToCart}
-          onOpenCategory={cat => { setSelectedProduct(null); setEditingItem(undefined); setActiveCategory(cat); setView('home'); }}
+          onOpenCategory={cat => {
+            setSelectedProduct(null);
+            setEditingItem(undefined);
+            setActiveCategory(cat);
+            setView('home');
+          }}
         />
       )}
 
