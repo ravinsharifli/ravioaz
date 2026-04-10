@@ -16,7 +16,6 @@ import Footer from './components/Footer';
 import AIAssistant from './components/AIAssistant';
 
 const builder = createImageUrlBuilder({ projectId: 'w7scii42', dataset: 'production' });
-const urlFor = (source: any) => builder.image(source).url();
 
 function mapSanityProduct(raw: any): Product {
   const variants = (raw.variants || []).map((v: any) => ({
@@ -105,7 +104,8 @@ export default function App() {
     setCartOpen(true);
   };
 
-  const handleRemove = (cartId: string) => setCart((prev) => prev.filter((c) => c.cartId !== cartId));
+  const handleRemove = (cartId: string) =>
+    setCart((prev) => prev.filter((c) => c.cartId !== cartId));
 
   const handleEdit = (item: CartItem) => {
     const product = products.find((p) => p.id === item.productId);
@@ -114,20 +114,19 @@ export default function App() {
 
   const goHome = () => { setView('home'); setActiveCategory(null); };
 
-  // ── DESIGN TOKENS ────────────────────────────────
-  const T = {
-    bg:       '#FAF8F4',
-    bgDeep:   '#F2EDE5',
-    text:     '#1C1714',
-    muted:    '#8C7F77',
-    gold:     '#BF912E',
-    border:   '#E8E2D9',
-    dark:     '#1C1714',
-  };
-  // ─────────────────────────────────────────────────
+  const trustItems = [
+    { icon: '⚡', text: 'Sürətli Hazırlıq' },
+    { icon: '✦', text: 'Lazer Dəqiqliyi' },
+    { icon: '🎁', text: 'Premium Paketləmə' },
+    { icon: '🚚', text: 'Bakı daxili Çatdırılma' },
+    { icon: '✍️', text: 'Fərdi Dizayn' },
+    { icon: '💎', text: 'Keyfiyyət Zəmanəti' },
+    { icon: '📦', text: '1–2 Gündə Hazır' },
+    { icon: '💬', text: 'WhatsApp Dəstək' },
+  ];
 
   return (
-    <div style={{ minHeight: '100vh', background: T.bg, fontFamily: "'Nunito Sans', sans-serif" }}>
+    <div style={{ minHeight: '100vh', background: '#FAF8F4', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
 
       <Navbar
         cartCount={cart.reduce((s, i) => s + i.quantity, 0)}
@@ -143,51 +142,63 @@ export default function App() {
       <main>
         {view === 'home' && (
           <>
-            {/* ═══ HERO ═══════════════════════════════════ */}
+            {/* ── HERO ─────────────────────────────────── */}
             <section style={{
-              background: T.dark,
-              padding: 'clamp(56px,8vw,96px) 20px clamp(48px,7vw,80px)',
+              background: 'linear-gradient(160deg, #0F0D0B 0%, #1C1612 55%, #0F0D0B 100%)',
+              padding: 'clamp(80px,10vw,120px) 24px clamp(72px,9vw,108px)',
               position: 'relative',
               overflow: 'hidden',
             }}>
-              {/* Decorative arc */}
+              <div className="hero-dots" style={{
+                position: 'absolute', inset: 0, opacity: 0.6, pointerEvents: 'none',
+              }} />
               <div style={{
-                position: 'absolute', bottom: -60, right: -60,
-                width: 360, height: 360,
+                position: 'absolute', bottom: -160, right: -80,
+                width: 520, height: 520,
                 borderRadius: '50%',
-                border: '1px solid rgba(191,145,46,0.18)',
+                background: 'radial-gradient(circle, rgba(201,168,76,0.15) 0%, transparent 70%)',
                 pointerEvents: 'none',
               }} />
               <div style={{
-                position: 'absolute', bottom: -100, right: -100,
-                width: 500, height: 500,
+                position: 'absolute', top: -100, left: -60,
+                width: 340, height: 340,
                 borderRadius: '50%',
-                border: '1px solid rgba(191,145,46,0.09)',
+                background: 'radial-gradient(circle, rgba(201,168,76,0.07) 0%, transparent 70%)',
                 pointerEvents: 'none',
               }} />
 
-              <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+              <div style={{ maxWidth: 1200, margin: '0 auto', position: 'relative', zIndex: 2 }}>
+
                 <div className="fade-up" style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 7,
-                  background: 'rgba(191,145,46,0.12)',
-                  border: '1px solid rgba(191,145,46,0.3)',
-                  borderRadius: 999, padding: '6px 14px',
-                  marginBottom: 24,
+                  display: 'inline-flex', alignItems: 'center', gap: 8,
+                  background: 'rgba(201,168,76,0.1)',
+                  border: '1px solid rgba(201,168,76,0.25)',
+                  borderRadius: 999,
+                  padding: '7px 16px',
+                  marginBottom: 28,
                 }}>
-                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#BF912E', display: 'inline-block' }} />
-                  <span style={{ color: '#BF912E', fontSize: 11, fontWeight: 800, letterSpacing: 2, textTransform: 'uppercase', fontFamily: "'Nunito Sans', sans-serif" }}>
-                    Lazer yazı · Fərdiləşdirilmiş hədiyyə
+                  <span style={{
+                    width: 6, height: 6, borderRadius: '50%',
+                    background: '#C9A84C', display: 'inline-block',
+                    boxShadow: '0 0 8px rgba(201,168,76,0.7)',
+                  }} />
+                  <span style={{
+                    color: '#C9A84C', fontSize: 11, fontWeight: 700,
+                    letterSpacing: '2px', textTransform: 'uppercase',
+                    fontFamily: "'Plus Jakarta Sans', sans-serif",
+                  }}>
+                    Lazer yazı · DTF basqı · Özəl hədiyyə
                   </span>
                 </div>
 
                 <h1 className="fade-up-2" style={{
                   fontFamily: "'Cormorant Garamond', serif",
-                  fontSize: 'clamp(38px,7vw,72px)',
+                  fontSize: 'clamp(46px, 7.5vw, 84px)',
                   fontWeight: 700,
-                  lineHeight: 1.06,
+                  lineHeight: 1.04,
                   color: '#FAF8F4',
-                  margin: '0 0 20px',
-                  maxWidth: 640,
+                  margin: '0 0 22px',
+                  maxWidth: 700,
                   letterSpacing: '-0.5px',
                 }}>
                   Xüsusi insanlara,<br />
@@ -195,124 +206,143 @@ export default function App() {
                 </h1>
 
                 <p className="fade-up-3" style={{
-                  fontSize: 16, lineHeight: 1.75, color: 'rgba(250,248,244,0.65)',
-                  maxWidth: 480, marginBottom: 36,
+                  fontSize: 'clamp(14px,1.8vw,17px)',
+                  lineHeight: 1.8,
+                  color: 'rgba(250,248,244,0.55)',
+                  maxWidth: 500,
+                  marginBottom: 40,
                   fontWeight: 400,
                 }}>
-                  Bijuteriya, hədiyyə qutuları, məzun lentləri —
+                  Bijuteriya, hədiyyə qutuları, məzun lentləri, köynəklər —
                   hamısı sizin adınıza, lazer dəqiqliyi ilə hazırlanır.
                 </p>
 
-                <div className="fade-up-4" style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                  <a href="#mehsullar" onClick={() => setView('home')} style={{
-                    textDecoration: 'none',
-                    background: '#BF912E', color: '#FAF8F4',
-                    padding: '13px 28px', borderRadius: 12,
-                    fontWeight: 800, fontSize: 14,
-                    letterSpacing: '0.3px', fontFamily: "'Nunito Sans', sans-serif",
-                    transition: 'all 0.2s',
-                    display: 'inline-block',
-                  }}>
-                    Məhsullara bax
+                <div className="fade-up-4" style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
+                  
+                    href="#mehsullar"
+                    className="btn-primary"
+                    style={{
+                      textDecoration: 'none',
+                      padding: '14px 32px',
+                      borderRadius: 14,
+                      fontSize: 14,
+                      letterSpacing: '0.3px',
+                      display: 'inline-flex', alignItems: 'center', gap: 8,
+                    }}
+                  >
+                    Məhsullara bax <span style={{ fontSize: 16 }}>→</span>
                   </a>
-                  <a
+                  
                     href="https://wa.me/994519831483?text=Salam%2C%20saytdan%20sifariş%20vermək%20istəyirəm"
                     target="_blank" rel="noreferrer"
                     style={{
                       textDecoration: 'none',
-                      border: '1.5px solid rgba(250,248,244,0.25)', color: '#FAF8F4',
-                      padding: '13px 28px', borderRadius: 12,
+                      border: '1.5px solid rgba(250,248,244,0.18)',
+                      color: '#FAF8F4',
+                      padding: '14px 28px',
+                      borderRadius: 14,
                       fontWeight: 700, fontSize: 14,
-                      letterSpacing: '0.3px', fontFamily: "'Nunito Sans', sans-serif",
-                      display: 'inline-block',
+                      display: 'inline-flex', alignItems: 'center', gap: 8,
+                      fontFamily: "'Plus Jakarta Sans', sans-serif",
+                      transition: 'border-color 0.2s, background 0.2s',
+                    }}
+                    onMouseEnter={e => {
+                      (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(201,168,76,0.4)';
+                      (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(201,168,76,0.06)';
+                    }}
+                    onMouseLeave={e => {
+                      (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(250,248,244,0.18)';
+                      (e.currentTarget as HTMLAnchorElement).style.background = 'transparent';
                     }}
                   >
-                    💬 WhatsApp
+                    <span style={{ fontSize: 18 }}>💬</span> WhatsApp
                   </a>
                 </div>
 
-                {/* Stats row */}
-                <div style={{
-                  display: 'flex', gap: 'clamp(20px,4vw,40px)',
-                  marginTop: 48, paddingTop: 36,
-                  borderTop: '1px solid rgba(250,248,244,0.1)',
+                <div className="fade-up-5" style={{
+                  display: 'flex',
+                  gap: 'clamp(24px, 5vw, 56px)',
+                  marginTop: 56,
+                  paddingTop: 40,
+                  borderTop: '1px solid rgba(201,168,76,0.12)',
                   flexWrap: 'wrap',
                 }}>
                   {[
                     { n: '500+', l: 'Uğurlu sifariş' },
-                    { n: '4.9', l: 'Ortalama reytinq' },
+                    { n: '4.9 ★', l: 'Müştəri reytinqi' },
                     { n: '1–2 gün', l: 'Hazırlıq müddəti' },
+                    { n: '17₼', l: 'Ən aşağı qiymət' },
                   ].map(s => (
                     <div key={s.n}>
                       <div style={{
                         fontFamily: "'Cormorant Garamond', serif",
-                        fontSize: 'clamp(24px,4vw,32px)', fontWeight: 700,
-                        color: '#BF912E', lineHeight: 1.1,
+                        fontSize: 'clamp(26px, 4vw, 34px)',
+                        fontWeight: 700, color: '#C9A84C', lineHeight: 1.1,
                       }}>{s.n}</div>
-                      <div style={{ fontSize: 11, color: 'rgba(250,248,244,0.5)', fontWeight: 600, letterSpacing: '0.5px', marginTop: 2 }}>{s.l}</div>
+                      <div style={{
+                        fontSize: 11, color: 'rgba(250,248,244,0.4)',
+                        fontWeight: 600, letterSpacing: '0.3px', marginTop: 4,
+                      }}>{s.l}</div>
                     </div>
                   ))}
                 </div>
               </div>
             </section>
 
-            {/* ═══ TRUST BAR ═══════════════════════════════ */}
+            {/* ── TRUST TICKER ─────────────────────────── */}
             <div style={{
-              background: T.bgDeep,
-              borderBottom: `1px solid ${T.border}`,
-              padding: '0',
-              overflowX: 'auto',
+              background: '#1C1714',
+              borderBottom: '1px solid rgba(201,168,76,0.12)',
+              padding: '13px 0',
+              overflow: 'hidden',
             }}>
-              <div style={{
-                maxWidth: 1200, margin: '0 auto',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                gap: 0, flexWrap: 'nowrap', whiteSpace: 'nowrap',
-              }}>
-                {[
-                  { icon: '⚡', text: 'Sürətli hazırlıq' },
-                  { icon: '🎁', text: 'Premium paketləmə' },
-                  { icon: '🚚', text: 'Bakı daxili çatdırılma' },
-                  { icon: '✍️', text: 'Fərdi lazer yazı' },
-                ].map((item, i) => (
-                  <React.Fragment key={item.text}>
-                    {i > 0 && <span style={{ color: T.border, padding: '0 4px', fontSize: 18 }}>·</span>}
-                    <div style={{
-                      display: 'flex', alignItems: 'center', gap: 7,
-                      padding: '14px 16px', fontSize: 12, fontWeight: 700,
-                      color: T.muted, letterSpacing: '0.3px',
-                    }}>
-                      <span>{item.icon}</span>
-                      <span>{item.text}</span>
-                    </div>
-                  </React.Fragment>
+              <div className="trust-ticker">
+                {[...trustItems, ...trustItems, ...trustItems].map((item, i) => (
+                  <div key={i} style={{
+                    display: 'flex', alignItems: 'center', gap: 8,
+                    padding: '0 28px',
+                    fontSize: 11, fontWeight: 700,
+                    color: 'rgba(201,168,76,0.75)',
+                    letterSpacing: '1.2px', textTransform: 'uppercase',
+                    whiteSpace: 'nowrap',
+                    borderRight: '1px solid rgba(201,168,76,0.1)',
+                  }}>
+                    <span style={{ fontSize: 14 }}>{item.icon}</span>
+                    {item.text}
+                  </div>
                 ))}
               </div>
             </div>
 
-            {/* ═══ PROMO BANNERS ═══════════════════════════ */}
-            <section style={{ maxWidth: 1200, margin: '0 auto', padding: '52px 20px 16px' }}>
+            {/* ── PROMO BANNERS ─────────────────────────── */}
+            <section style={{ maxWidth: 1200, margin: '0 auto', padding: '56px 24px 20px' }}>
               <PromoBanners />
             </section>
 
-            {/* ═══ CATEGORY FILTER ═════════════════════════ */}
+            {/* ── CATEGORY FILTER ───────────────────────── */}
             {categories.length > 1 && (
-              <section style={{ maxWidth: 1200, margin: '0 auto', padding: '8px 20px 0' }}>
+              <section style={{ maxWidth: 1200, margin: '0 auto', padding: '12px 24px 0' }}>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: T.muted, letterSpacing: '1px', textTransform: 'uppercase', marginRight: 4 }}>Kateqoriya:</span>
-                  {[{ key: null, label: 'Hamısı' }, ...categories.map(c => ({ key: c, label: c }))].map(cat => (
+                  <span style={{
+                    fontSize: 10, fontWeight: 800, color: '#9C9088',
+                    letterSpacing: '2px', textTransform: 'uppercase', marginRight: 4,
+                  }}>Kateqoriya:</span>
+                  {[{ key: null as string | null, label: 'Hamısı' }, ...categories.map(c => ({ key: c, label: c }))].map(cat => (
                     <button
                       key={cat.label}
                       onClick={() => setActiveCategory(cat.key)}
+                      className="cat-pill"
                       style={{
-                        padding: '6px 16px', borderRadius: 999,
+                        padding: '7px 18px', borderRadius: 999,
                         border: '1.5px solid',
-                        borderColor: activeCategory === cat.key ? '#BF912E' : T.border,
+                        borderColor: activeCategory === cat.key ? '#1C1714' : '#E5DDD3',
                         background: activeCategory === cat.key ? '#1C1714' : 'transparent',
-                        color: activeCategory === cat.key ? '#BF912E' : T.muted,
+                        color: activeCategory === cat.key ? '#C9A84C' : '#5C5048',
                         fontWeight: 700, fontSize: 12,
-                        cursor: 'pointer', transition: 'all 0.2s',
-                        fontFamily: "'Nunito Sans', sans-serif",
+                        cursor: 'pointer',
+                        fontFamily: "'Plus Jakarta Sans', sans-serif",
                         letterSpacing: '0.2px',
+                        transition: 'all 0.2s',
                       }}
                     >
                       {cat.label}
@@ -322,26 +352,30 @@ export default function App() {
               </section>
             )}
 
-            {/* ═══ PRODUCTS ════════════════════════════════ */}
-            <section id="mehsullar" style={{ maxWidth: 1200, margin: '0 auto', padding: '28px 20px 72px' }}>
+            {/* ── PRODUCTS ──────────────────────────────── */}
+            <section id="mehsullar" style={{ maxWidth: 1200, margin: '0 auto', padding: '28px 24px 80px' }}>
               {loading ? (
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 0', gap: 14 }}>
+                <div style={{
+                  display: 'flex', flexDirection: 'column',
+                  alignItems: 'center', justifyContent: 'center',
+                  padding: '100px 0', gap: 16,
+                }}>
                   <div className="spin" style={{
-                    width: 36, height: 36,
-                    border: `3px solid ${T.border}`,
-                    borderTopColor: '#BF912E',
+                    width: 38, height: 38,
+                    border: '3px solid #E5DDD3',
+                    borderTopColor: '#C9A84C',
                     borderRadius: '50%',
                   }} />
-                  <p style={{ color: T.muted, fontSize: 13, fontWeight: 600 }}>Məhsullar yüklənir...</p>
+                  <p style={{ color: '#9C9088', fontSize: 13, fontWeight: 600 }}>Məhsullar yüklənir...</p>
                 </div>
               ) : filteredProducts.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '80px 0', color: T.muted }}>
-                  <p style={{ fontSize: 18, fontFamily: "'Cormorant Garamond', serif" }}>Bu kateqoriyada məhsul yoxdur</p>
+                <div style={{ textAlign: 'center', padding: '80px 0', color: '#9C9088' }}>
+                  <p style={{ fontSize: 20, fontFamily: "'Cormorant Garamond', serif" }}>Bu kateqoriyada məhsul yoxdur</p>
                   <button onClick={() => setActiveCategory(null)} style={{
-                    marginTop: 16, padding: '10px 24px', borderRadius: 10,
-                    background: '#1C1714', color: '#BF912E', border: 'none',
+                    marginTop: 16, padding: '11px 28px', borderRadius: 12,
+                    background: '#1C1714', color: '#C9A84C', border: 'none',
                     cursor: 'pointer', fontWeight: 700, fontSize: 13,
-                    fontFamily: "'Nunito Sans', sans-serif",
+                    fontFamily: "'Plus Jakarta Sans', sans-serif",
                   }}>
                     Bütün məhsullara bax
                   </button>
@@ -356,8 +390,91 @@ export default function App() {
               )}
             </section>
 
-            {/* ═══ REVIEWS ═════════════════════════════════ */}
-            <section style={{ background: T.dark, borderTop: `1px solid rgba(255,255,255,0.06)` }}>
+            {/* ── HOW IT WORKS ──────────────────────────── */}
+            <section style={{
+              background: '#F3EDE4',
+              borderTop: '1px solid #E5DDD3',
+              padding: 'clamp(56px,7vw,88px) 24px',
+            }}>
+              <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+                <div style={{ textAlign: 'center', marginBottom: 48 }}>
+                  <div style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 10,
+                    fontSize: 10, fontWeight: 800, letterSpacing: '2.5px',
+                    textTransform: 'uppercase', color: '#C9A84C',
+                    marginBottom: 14,
+                  }}>
+                    <span style={{ display: 'block', width: 24, height: 1, background: '#C9A84C', opacity: 0.4 }} />
+                    Necə işləyir
+                    <span style={{ display: 'block', width: 24, height: 1, background: '#C9A84C', opacity: 0.4 }} />
+                  </div>
+                  <h2 style={{
+                    fontFamily: "'Cormorant Garamond', serif",
+                    fontSize: 'clamp(28px,4vw,42px)',
+                    fontWeight: 700, color: '#1C1714', margin: 0,
+                  }}>
+                    Sadə, sürətli, şəxsi
+                  </h2>
+                </div>
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                  gap: 'clamp(16px,3vw,24px)',
+                }}>
+                  {[
+                    { step: '01', icon: '🛍️', title: 'Məhsul seç', desc: 'Kataloqdan istədiyini seç, variant və miqdar təyin et' },
+                    { step: '02', icon: '✍️', title: 'Fərdiləşdir', desc: 'Ad, tarix, mesaj — nə istəyirsən əlavə et' },
+                    { step: '03', icon: '⚡', title: 'Biz hazırlayırıq', desc: 'Lazer yazı, DTF və ya sublim basqı ilə 1–2 gündə' },
+                    { step: '04', icon: '📦', title: 'Qapına gəlir', desc: 'Bakı daxili çatdırılma — 4.99 AZN-ə' },
+                  ].map(s => (
+                    <div
+                      key={s.step}
+                      style={{
+                        background: '#fff', borderRadius: 20,
+                        padding: '28px 24px',
+                        border: '1.5px solid #E5DDD3',
+                        position: 'relative',
+                        transition: 'box-shadow 0.3s, transform 0.3s',
+                      }}
+                      onMouseEnter={e => {
+                        (e.currentTarget as HTMLDivElement).style.boxShadow = '0 12px 40px rgba(28,23,20,0.1)';
+                        (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-4px)';
+                      }}
+                      onMouseLeave={e => {
+                        (e.currentTarget as HTMLDivElement).style.boxShadow = 'none';
+                        (e.currentTarget as HTMLDivElement).style.transform = 'translateY(0)';
+                      }}
+                    >
+                      <div style={{
+                        fontSize: 26, marginBottom: 16,
+                        background: 'rgba(201,168,76,0.08)',
+                        width: 52, height: 52, borderRadius: 14,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}>{s.icon}</div>
+                      <div style={{
+                        position: 'absolute', top: 18, right: 20,
+                        fontFamily: "'Cormorant Garamond', serif",
+                        fontSize: 52, fontWeight: 700,
+                        color: 'rgba(201,168,76,0.07)', lineHeight: 1,
+                        userSelect: 'none',
+                      }}>{s.step}</div>
+                      <h3 style={{
+                        fontFamily: "'Cormorant Garamond', serif",
+                        fontSize: 22, fontWeight: 700,
+                        color: '#1C1714', margin: '0 0 8px',
+                      }}>{s.title}</h3>
+                      <p style={{
+                        fontSize: 13, lineHeight: 1.7,
+                        color: '#5C5048', margin: 0, fontWeight: 400,
+                      }}>{s.desc}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
+
+            {/* ── REVIEWS ───────────────────────────────── */}
+            <section style={{ background: '#1C1714', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
               <CustomerReviews />
             </section>
           </>
@@ -367,7 +484,7 @@ export default function App() {
         {view === 'contact' && <Contact />}
         {view === 'delivery' && <DeliveryInfo />}
         {view === 'reviews' && (
-          <section style={{ background: T.dark }}>
+          <section style={{ background: '#1C1714' }}>
             <CustomerReviews />
           </section>
         )}
@@ -375,6 +492,29 @@ export default function App() {
 
       <Footer onReviewsClick={() => setView('reviews')} />
       <AIAssistant />
+
+      {/* Floating WhatsApp */}
+      
+        href="https://wa.me/994519831483?text=Salam%2C%20saytdan%20sifariş%20vermək%20istəyirəm"
+        target="_blank" rel="noreferrer"
+        className="wa-float"
+        style={{
+          position: 'fixed', bottom: 24, right: 24,
+          width: 56, height: 56,
+          background: '#25D366',
+          borderRadius: '50%',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          textDecoration: 'none',
+          fontSize: 26,
+          zIndex: 999,
+          transition: 'transform 0.2s',
+        }}
+        onMouseEnter={e => (e.currentTarget as HTMLAnchorElement).style.transform = 'scale(1.1)'}
+        onMouseLeave={e => (e.currentTarget as HTMLAnchorElement).style.transform = 'scale(1)'}
+        title="WhatsApp ilə əlaqə"
+      >
+        💬
+      </a>
 
       {selectedProduct && (
         <ProductModal
