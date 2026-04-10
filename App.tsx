@@ -1,21 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { client } from './sanityclient';
-import { createImageUrlBuilder } from '@sanity/image-url';
 import { Product, CartItem, AppView } from './types';
 
 import Navbar from './components/Navbar';
 import ProductGrid from './components/ProductGrid';
 import ProductModal from './components/ProductModal';
 import CartDrawer from './components/CartDrawer';
-import PromoBanners from './components/PromoBanners';
 import CustomerReviews from './components/CustomerReviews';
 import AboutUs from './components/AboutUs';
 import Contact from './components/Contact';
 import DeliveryInfo from './components/DeliveryInfo';
 import Footer from './components/Footer';
-import AIAssistant from './components/AIAssistant';
 
-const builder = createImageUrlBuilder({ projectId: 'w7scii42', dataset: 'production' });
+const PRODUCTS_QUERY = `*[_type == "product"] | order(bestSellerOrder asc) {
+  _id, name, description,
+  category->{ name },
+  variants[] {
+    modelName, colorName, price, discountPrice, stock,
+    images[]{ asset->{ url } }
+  },
+  isPremium, premiumOrder, premiumSize,
+  isBestSeller, bestSellerOrder, orderCount,
+  hasBulkDiscount, bulkDiscountNote,
+  bulkTiers[]{ minQty, maxQty, discountAmount, label }
+}`;
 
 function mapSanityProduct(raw: any): Product {
   const variants = (raw.variants || []).map((v: any) => ({
@@ -46,19 +54,6 @@ function mapSanityProduct(raw: any): Product {
   };
 }
 
-const PRODUCTS_QUERY = `*[_type == "product"] | order(bestSellerOrder asc) {
-  _id, name, description,
-  category->{ name },
-  variants[] {
-    modelName, colorName, price, discountPrice, stock,
-    images[]{ asset->{ url } }
-  },
-  isPremium, premiumOrder, premiumSize,
-  isBestSeller, bestSellerOrder, orderCount,
-  hasBulkDiscount, bulkDiscountNote,
-  bulkTiers[]{ minQty, maxQty, discountAmount, label }
-}`;
-
 export default function App() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -70,402 +65,300 @@ export default function App() {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
   useEffect(() => {
-    client
-      .fetch(PRODUCTS_QUERY)
-      .then((raw: any[]) => {
-        setProducts(raw.map(mapSanityProduct));
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error('Sanity xətası:', err);
-        setLoading(false);
-      });
+    client.fetch(PRODUCTS_QUERY)
+      .then((raw: any[]) => { setProducts(raw.map(mapSanityProduct)); setLoading(false); })
+      .catch(() => setLoading(false));
   }, []);
 
-  const filteredProducts = activeCategory
-    ? products.filter((p) => p.category === activeCategory)
-    : products;
-
-  const categories = Array.from(
-    new Set(products.map((p) => p.category).filter(Boolean))
-  ) as string[];
-
-  const openProduct = (product: Product, item?: CartItem) => {
-    setSelectedProduct(product);
-    setEditingItem(item);
-  };
+  const categories = Array.from(new Set(products.map(p => p.category).filter(Boolean))) as string[];
+  const filteredProducts = activeCategory ? products.filter(p => p.category === activeCategory) : products;
 
   const handleAddToCart = (item: CartItem) => {
-    setCart((prev) => {
-      const idx = prev.findIndex((c) => c.cartId === item.cartId);
-      if (idx >= 0) { const updated = [...prev]; updated[idx] = item; return updated; }
-      return [...prev, item];
+    setCart(prev => {
+      const idx = prev.findIndex(c => c.cartId === item.cartId);
+      return idx >= 0 ? prev.map((c, i) => i === idx ? item : c) : [...prev, item];
     });
-    setCartOpen(true);
   };
 
-  const handleRemove = (cartId: string) =>
-    setCart((prev) => prev.filter((c) => c.cartId !== cartId));
-
+  const handleRemove = (cartId: string) => setCart(prev => prev.filter(c => c.cartId !== cartId));
   const handleEdit = (item: CartItem) => {
-    const product = products.find((p) => p.id === item.productId);
-    if (product) { setCartOpen(false); openProduct(product, item); }
+    const product = products.find(p => p.id === item.productId);
+    if (product) { setSelectedProduct(product); setEditingItem(item); }
   };
 
-  const goHome = () => { setView('home'); setActiveCategory(null); };
-
-  const trustItems = [
-    { icon: '⚡', text: 'Sürətli Hazırlıq' },
-    { icon: '✦', text: 'Lazer Dəqiqliyi' },
-    { icon: '🎁', text: 'Premium Paketləmə' },
-    { icon: '🚚', text: 'Bakı daxili Çatdırılma' },
-    { icon: '✍️', text: 'Fərdi Dizayn' },
-    { icon: '💎', text: 'Keyfiyyət Zəmanəti' },
-    { icon: '📦', text: '1–2 Gündə Hazır' },
-    { icon: '💬', text: 'WhatsApp Dəstək' },
-  ];
+  const cartCount = cart.reduce((s, c) => s + c.quantity, 0);
 
   return (
-    <div style={{ minHeight: '100vh', background: '#FAF8F4', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-
+    <div style={{ minHeight: '100vh', background: '#FAF7F2', fontFamily: "'DM Sans', sans-serif" }}>
       <Navbar
-        cartCount={cart.reduce((s, i) => s + i.quantity, 0)}
-        onLogoClick={goHome}
+        cartCount={cartCount}
+        onLogoClick={() => { setView('home'); setActiveCategory(null); }}
         onCartClick={() => setCartOpen(true)}
         onAboutClick={() => setView('about')}
         onContactClick={() => setView('contact')}
         onDeliveryClick={() => setView('delivery')}
         products={products}
-        onViewProduct={openProduct}
+        onViewProduct={p => { setSelectedProduct(p); setEditingItem(undefined); }}
       />
 
       <main>
         {view === 'home' && (
           <>
-            {/* ── HERO ─────────────────────────────────── */}
+            {/* ── HERO ── */}
             <section style={{
-              background: 'linear-gradient(160deg, #0F0D0B 0%, #1C1612 55%, #0F0D0B 100%)',
-              padding: 'clamp(80px,10vw,120px) 24px clamp(72px,9vw,108px)',
+              background: '#1A1714',
+              minHeight: '88vh',
+              display: 'flex',
+              alignItems: 'center',
               position: 'relative',
               overflow: 'hidden',
             }}>
-              <div className="hero-dots" style={{
-                position: 'absolute', inset: 0, opacity: 0.6, pointerEvents: 'none',
-              }} />
+              {/* Background pattern */}
               <div style={{
-                position: 'absolute', bottom: -160, right: -80,
-                width: 520, height: 520,
-                borderRadius: '50%',
-                background: 'radial-gradient(circle, rgba(201,168,76,0.15) 0%, transparent 70%)',
-                pointerEvents: 'none',
-              }} />
-              <div style={{
-                position: 'absolute', top: -100, left: -60,
-                width: 340, height: 340,
-                borderRadius: '50%',
-                background: 'radial-gradient(circle, rgba(201,168,76,0.07) 0%, transparent 70%)',
-                pointerEvents: 'none',
+                position: 'absolute', inset: 0,
+                backgroundImage: `radial-gradient(circle at 20% 50%, rgba(201,168,76,0.06) 0%, transparent 60%),
+                                  radial-gradient(circle at 80% 20%, rgba(201,168,76,0.04) 0%, transparent 50%)`,
               }} />
 
-              <div style={{ maxWidth: 1200, margin: '0 auto', position: 'relative', zIndex: 2 }}>
-
-                <div className="fade-up" style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 8,
-                  background: 'rgba(201,168,76,0.1)',
-                  border: '1px solid rgba(201,168,76,0.25)',
-                  borderRadius: 999,
-                  padding: '7px 16px',
-                  marginBottom: 28,
-                }}>
-                  <span style={{
-                    width: 6, height: 6, borderRadius: '50%',
-                    background: '#C9A84C', display: 'inline-block',
-                    boxShadow: '0 0 8px rgba(201,168,76,0.7)',
-                  }} />
-                  <span style={{
-                    color: '#C9A84C', fontSize: 11, fontWeight: 700,
-                    letterSpacing: '2px', textTransform: 'uppercase',
-                    fontFamily: "'Plus Jakarta Sans', sans-serif",
+              <div style={{ maxWidth: 1200, margin: '0 auto', padding: '80px 24px', width: '100%', position: 'relative' }}>
+                <div style={{ maxWidth: 620 }}>
+                  {/* Eyebrow */}
+                  <div style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 10,
+                    marginBottom: 28,
                   }}>
-                    Lazer yazı · DTF basqı · Özəl hədiyyə
-                  </span>
+                    <span style={{ display: 'block', width: 32, height: 1, background: '#C9A84C' }} />
+                    <span style={{
+                      fontSize: 11, fontWeight: 500, color: '#C9A84C',
+                      letterSpacing: 3, textTransform: 'uppercase',
+                    }}>Özəl hədiyyələr</span>
+                  </div>
+
+                  {/* Heading */}
+                  <h1 style={{
+                    fontFamily: "'Cormorant Garamond', serif",
+                    fontSize: 'clamp(44px, 7vw, 82px)',
+                    fontWeight: 400,
+                    color: '#FAF7F2',
+                    lineHeight: 1.05,
+                    margin: '0 0 24px',
+                    letterSpacing: '-1px',
+                  }}>
+                    Hər hədiyyənin<br />
+                    <em style={{ color: '#C9A84C', fontStyle: 'italic' }}>hekayəsi</em> var
+                  </h1>
+
+                  {/* Subtext */}
+                  <p style={{
+                    fontSize: 16, color: 'rgba(250,247,242,0.55)',
+                    lineHeight: 1.7, margin: '0 0 40px',
+                    fontWeight: 300, maxWidth: 460,
+                  }}>
+                    Lazer yazı, fərdi təsbeh, polad qolbaq və domino.
+                    Yalnız sənin üçün, yalnız bir dəfə.
+                  </p>
+
+                  {/* CTAs */}
+                  <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                    <button
+                      onClick={() => { const el = document.getElementById('products'); el?.scrollIntoView({ behavior: 'smooth' }); }}
+                      style={{
+                        padding: '15px 32px', borderRadius: 12,
+                        background: '#C9A84C', border: 'none',
+                        color: '#1A1714', fontSize: 14,
+                        fontWeight: 600, cursor: 'pointer',
+                        fontFamily: "'DM Sans', sans-serif",
+                        letterSpacing: '0.3px',
+                        transition: 'opacity 0.2s',
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.opacity = '0.88'}
+                      onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+                    >
+                      Məhsullara bax
+                    </button>
+                    
+                      href="https://wa.me/994519831483"
+                      target="_blank" rel="noreferrer"
+                      style={{
+                        padding: '15px 32px', borderRadius: 12,
+                        background: 'transparent',
+                        border: '1px solid rgba(250,247,242,0.2)',
+                        color: '#FAF7F2', fontSize: 14,
+                        fontWeight: 500, cursor: 'pointer',
+                        fontFamily: "'DM Sans', sans-serif",
+                        textDecoration: 'none', letterSpacing: '0.3px',
+                        transition: 'border-color 0.2s',
+                        display: 'inline-block',
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(201,168,76,0.5)'}
+                      onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(250,247,242,0.2)'}
+                    >
+                      WhatsApp ilə yaz
+                    </a>
+                  </div>
                 </div>
 
-                <h1 className="fade-up-2" style={{
-                  fontFamily: "'Cormorant Garamond', serif",
-                  fontSize: 'clamp(46px, 7.5vw, 84px)',
-                  fontWeight: 700,
-                  lineHeight: 1.04,
-                  color: '#FAF8F4',
-                  margin: '0 0 22px',
-                  maxWidth: 700,
-                  letterSpacing: '-0.5px',
-                }}>
-                  Xüsusi insanlara,<br />
-                  <span className="gold-text">xüsusi hədiyyə.</span>
-                </h1>
-
-                <p className="fade-up-3" style={{
-                  fontSize: 'clamp(14px,1.8vw,17px)',
-                  lineHeight: 1.8,
-                  color: 'rgba(250,248,244,0.55)',
-                  maxWidth: 500,
-                  marginBottom: 40,
-                  fontWeight: 400,
-                }}>
-                  Bijuteriya, hədiyyə qutuları, məzun lentləri, köynəklər —
-                  hamısı sizin adınıza, lazer dəqiqliyi ilə hazırlanır.
-                </p>
-
-                <div className="fade-up-4" style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
-                  
-                    href="#mehsullar"
-                    className="btn-primary"
-                    style={{
-                      textDecoration: 'none',
-                      padding: '14px 32px',
-                      borderRadius: 14,
-                      fontSize: 14,
-                      letterSpacing: '0.3px',
-                      display: 'inline-flex', alignItems: 'center', gap: 8,
-                    }}
-                  >
-                    Məhsullara bax <span style={{ fontSize: 16 }}>→</span>
-                  </a>
-                  
-                    href="https://wa.me/994519831483?text=Salam%2C%20saytdan%20sifariş%20vermək%20istəyirəm"
-                    target="_blank" rel="noreferrer"
-                    style={{
-                      textDecoration: 'none',
-                      border: '1.5px solid rgba(250,248,244,0.18)',
-                      color: '#FAF8F4',
-                      padding: '14px 28px',
-                      borderRadius: 14,
-                      fontWeight: 700, fontSize: 14,
-                      display: 'inline-flex', alignItems: 'center', gap: 8,
-                      fontFamily: "'Plus Jakarta Sans', sans-serif",
-                      transition: 'border-color 0.2s, background 0.2s',
-                    }}
-                    onMouseEnter={e => {
-                      (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(201,168,76,0.4)';
-                      (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(201,168,76,0.06)';
-                    }}
-                    onMouseLeave={e => {
-                      (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(250,248,244,0.18)';
-                      (e.currentTarget as HTMLAnchorElement).style.background = 'transparent';
-                    }}
-                  >
-                    <span style={{ fontSize: 18 }}>💬</span> WhatsApp
-                  </a>
-                </div>
-
-                <div className="fade-up-5" style={{
-                  display: 'flex',
-                  gap: 'clamp(24px, 5vw, 56px)',
-                  marginTop: 56,
-                  paddingTop: 40,
-                  borderTop: '1px solid rgba(201,168,76,0.12)',
-                  flexWrap: 'wrap',
+                {/* Stats */}
+                <div style={{
+                  display: 'flex', gap: 40, marginTop: 72,
+                  borderTop: '1px solid rgba(250,247,242,0.08)',
+                  paddingTop: 32, flexWrap: 'wrap',
                 }}>
                   {[
-                    { n: '500+', l: 'Uğurlu sifariş' },
-                    { n: '4.9 ★', l: 'Müştəri reytinqi' },
-                    { n: '1–2 gün', l: 'Hazırlıq müddəti' },
-                    { n: '17₼', l: 'Ən aşağı qiymət' },
+                    { num: '500+', label: 'Məmnun müştəri' },
+                    { num: '3', label: 'İş günündə hazır' },
+                    { num: '17₼', label: 'dan başlayan qiymət' },
                   ].map(s => (
-                    <div key={s.n}>
+                    <div key={s.label}>
                       <div style={{
                         fontFamily: "'Cormorant Garamond', serif",
-                        fontSize: 'clamp(26px, 4vw, 34px)',
-                        fontWeight: 700, color: '#C9A84C', lineHeight: 1.1,
-                      }}>{s.n}</div>
-                      <div style={{
-                        fontSize: 11, color: 'rgba(250,248,244,0.4)',
-                        fontWeight: 600, letterSpacing: '0.3px', marginTop: 4,
-                      }}>{s.l}</div>
+                        fontSize: 32, fontWeight: 600,
+                        color: '#C9A84C', lineHeight: 1,
+                      }}>{s.num}</div>
+                      <div style={{ fontSize: 12, color: 'rgba(250,247,242,0.4)', marginTop: 4, fontWeight: 300 }}>{s.label}</div>
                     </div>
                   ))}
                 </div>
               </div>
             </section>
 
-            {/* ── TRUST TICKER ─────────────────────────── */}
-            <div style={{
-              background: '#1C1714',
-              borderBottom: '1px solid rgba(201,168,76,0.12)',
-              padding: '13px 0',
-              overflow: 'hidden',
-            }}>
-              <div className="trust-ticker">
-                {[...trustItems, ...trustItems, ...trustItems].map((item, i) => (
-                  <div key={i} style={{
-                    display: 'flex', alignItems: 'center', gap: 8,
-                    padding: '0 28px',
-                    fontSize: 11, fontWeight: 700,
-                    color: 'rgba(201,168,76,0.75)',
-                    letterSpacing: '1.2px', textTransform: 'uppercase',
-                    whiteSpace: 'nowrap',
-                    borderRight: '1px solid rgba(201,168,76,0.1)',
-                  }}>
-                    <span style={{ fontSize: 14 }}>{item.icon}</span>
-                    {item.text}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* ── PROMO BANNERS ─────────────────────────── */}
-            <section style={{ maxWidth: 1200, margin: '0 auto', padding: '56px 24px 20px' }}>
-              <PromoBanners />
-            </section>
-
-            {/* ── CATEGORY FILTER ───────────────────────── */}
-            {categories.length > 1 && (
-              <section style={{ maxWidth: 1200, margin: '0 auto', padding: '12px 24px 0' }}>
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-                  <span style={{
-                    fontSize: 10, fontWeight: 800, color: '#9C9088',
-                    letterSpacing: '2px', textTransform: 'uppercase', marginRight: 4,
-                  }}>Kateqoriya:</span>
-                  {[{ key: null as string | null, label: 'Hamısı' }, ...categories.map(c => ({ key: c, label: c }))].map(cat => (
-                    <button
-                      key={cat.label}
-                      onClick={() => setActiveCategory(cat.key)}
-                      className="cat-pill"
-                      style={{
-                        padding: '7px 18px', borderRadius: 999,
-                        border: '1.5px solid',
-                        borderColor: activeCategory === cat.key ? '#1C1714' : '#E5DDD3',
-                        background: activeCategory === cat.key ? '#1C1714' : 'transparent',
-                        color: activeCategory === cat.key ? '#C9A84C' : '#5C5048',
-                        fontWeight: 700, fontSize: 12,
-                        cursor: 'pointer',
-                        fontFamily: "'Plus Jakarta Sans', sans-serif",
-                        letterSpacing: '0.2px',
-                        transition: 'all 0.2s',
-                      }}
-                    >
-                      {cat.label}
-                    </button>
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {/* ── PRODUCTS ──────────────────────────────── */}
-            <section id="mehsullar" style={{ maxWidth: 1200, margin: '0 auto', padding: '28px 24px 80px' }}>
-              {loading ? (
-                <div style={{
-                  display: 'flex', flexDirection: 'column',
-                  alignItems: 'center', justifyContent: 'center',
-                  padding: '100px 0', gap: 16,
-                }}>
-                  <div className="spin" style={{
-                    width: 38, height: 38,
-                    border: '3px solid #E5DDD3',
-                    borderTopColor: '#C9A84C',
-                    borderRadius: '50%',
-                  }} />
-                  <p style={{ color: '#9C9088', fontSize: 13, fontWeight: 600 }}>Məhsullar yüklənir...</p>
-                </div>
-              ) : filteredProducts.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '80px 0', color: '#9C9088' }}>
-                  <p style={{ fontSize: 20, fontFamily: "'Cormorant Garamond', serif" }}>Bu kateqoriyada məhsul yoxdur</p>
-                  <button onClick={() => setActiveCategory(null)} style={{
-                    marginTop: 16, padding: '11px 28px', borderRadius: 12,
-                    background: '#1C1714', color: '#C9A84C', border: 'none',
-                    cursor: 'pointer', fontWeight: 700, fontSize: 13,
-                    fontFamily: "'Plus Jakarta Sans', sans-serif",
-                  }}>
-                    Bütün məhsullara bax
-                  </button>
-                </div>
-              ) : (
-                <ProductGrid
-                  products={filteredProducts}
-                  onAddToCart={openProduct}
-                  onViewProduct={openProduct}
-                  title={activeCategory || 'Bütün məhsullar'}
-                />
-              )}
-            </section>
-
-            {/* ── HOW IT WORKS ──────────────────────────── */}
-            <section style={{
-              background: '#F3EDE4',
-              borderTop: '1px solid #E5DDD3',
-              padding: 'clamp(56px,7vw,88px) 24px',
-            }}>
+            {/* ── PRODUCTS ── */}
+            <section id="products" style={{ padding: 'clamp(56px,7vw,96px) 24px' }}>
               <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-                <div style={{ textAlign: 'center', marginBottom: 48 }}>
+
+                {/* Section header */}
+                <div style={{ marginBottom: 48, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 16 }}>
+                  <div>
+                    <div style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 8,
+                      fontSize: 10, fontWeight: 500, color: '#C9A84C',
+                      letterSpacing: 3, textTransform: 'uppercase', marginBottom: 10,
+                    }}>
+                      <span style={{ width: 20, height: 1, background: '#C9A84C', display: 'block' }} />
+                      Kataloq
+                    </div>
+                    <h2 style={{
+                      fontFamily: "'Cormorant Garamond', serif",
+                      fontSize: 'clamp(28px,4vw,44px)',
+                      fontWeight: 400, color: '#1A1714', margin: 0,
+                      letterSpacing: '-0.5px',
+                    }}>
+                      {activeCategory || 'Bütün məhsullar'}
+                    </h2>
+                  </div>
+
+                  {/* Category pills */}
+                  {categories.length > 0 && (
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                      <button
+                        onClick={() => setActiveCategory(null)}
+                        style={{
+                          padding: '8px 18px', borderRadius: 100,
+                          border: `1px solid ${!activeCategory ? '#1A1714' : '#E8E2D9'}`,
+                          background: !activeCategory ? '#1A1714' : 'transparent',
+                          color: !activeCategory ? '#FAF7F2' : '#8C7F77',
+                          fontSize: 12, fontWeight: 500, cursor: 'pointer',
+                          fontFamily: "'DM Sans', sans-serif",
+                          transition: 'all 0.2s',
+                        }}
+                      >
+                        Hamısı
+                      </button>
+                      {categories.map(cat => (
+                        <button
+                          key={cat}
+                          onClick={() => setActiveCategory(cat)}
+                          style={{
+                            padding: '8px 18px', borderRadius: 100,
+                            border: `1px solid ${activeCategory === cat ? '#1A1714' : '#E8E2D9'}`,
+                            background: activeCategory === cat ? '#1A1714' : 'transparent',
+                            color: activeCategory === cat ? '#FAF7F2' : '#8C7F77',
+                            fontSize: 12, fontWeight: 500, cursor: 'pointer',
+                            fontFamily: "'DM Sans', sans-serif",
+                            transition: 'all 0.2s',
+                          }}
+                        >
+                          {cat}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Loading */}
+                {loading ? (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 20 }}>
+                    {[1,2,3,4,5,6].map(i => (
+                      <div key={i} style={{ borderRadius: 16, overflow: 'hidden' }}>
+                        <div style={{ aspectRatio: '1/1', background: '#F0EAE0', animation: 'pulse 1.5s ease-in-out infinite' }} />
+                        <div style={{ padding: '14px 0', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                          <div style={{ height: 12, background: '#F0EAE0', borderRadius: 6, width: '60%', animation: 'pulse 1.5s ease-in-out infinite' }} />
+                          <div style={{ height: 16, background: '#F0EAE0', borderRadius: 6, animation: 'pulse 1.5s ease-in-out infinite' }} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <ProductGrid
+                    products={filteredProducts}
+                    onAddToCart={p => { setSelectedProduct(p); setEditingItem(undefined); }}
+                    onViewProduct={p => { setSelectedProduct(p); setEditingItem(undefined); }}
+                  />
+                )}
+              </div>
+            </section>
+
+            {/* ── HOW IT WORKS ── */}
+            <section style={{ background: '#1A1714', padding: 'clamp(56px,7vw,96px) 24px' }}>
+              <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+                <div style={{ textAlign: 'center', marginBottom: 56 }}>
                   <div style={{
                     display: 'inline-flex', alignItems: 'center', gap: 10,
-                    fontSize: 10, fontWeight: 800, letterSpacing: '2.5px',
-                    textTransform: 'uppercase', color: '#C9A84C',
-                    marginBottom: 14,
+                    fontSize: 10, fontWeight: 500, color: '#C9A84C',
+                    letterSpacing: 3, textTransform: 'uppercase', marginBottom: 16,
                   }}>
-                    <span style={{ display: 'block', width: 24, height: 1, background: '#C9A84C', opacity: 0.4 }} />
+                    <span style={{ width: 24, height: 1, background: '#C9A84C', display: 'block' }} />
                     Necə işləyir
-                    <span style={{ display: 'block', width: 24, height: 1, background: '#C9A84C', opacity: 0.4 }} />
+                    <span style={{ width: 24, height: 1, background: '#C9A84C', display: 'block' }} />
                   </div>
                   <h2 style={{
                     fontFamily: "'Cormorant Garamond', serif",
-                    fontSize: 'clamp(28px,4vw,42px)',
-                    fontWeight: 700, color: '#1C1714', margin: 0,
+                    fontSize: 'clamp(28px,4vw,44px)',
+                    fontWeight: 400, color: '#FAF7F2', margin: 0,
                   }}>
-                    Sadə, sürətli, şəxsi
+                    Sadə, sürətli, <em style={{ color: '#C9A84C', fontStyle: 'italic' }}>şəxsi</em>
                   </h2>
                 </div>
+
                 <div style={{
                   display: 'grid',
                   gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-                  gap: 'clamp(16px,3vw,24px)',
+                  gap: 2,
                 }}>
                   {[
-                    { step: '01', icon: '🛍️', title: 'Məhsul seç', desc: 'Kataloqdan istədiyini seç, variant və miqdar təyin et' },
-                    { step: '02', icon: '✍️', title: 'Fərdiləşdir', desc: 'Ad, tarix, mesaj — nə istəyirsən əlavə et' },
-                    { step: '03', icon: '⚡', title: 'Biz hazırlayırıq', desc: 'Lazer yazı, DTF və ya sublim basqı ilə 1–2 gündə' },
-                    { step: '04', icon: '📦', title: 'Qapına gəlir', desc: 'Bakı daxili çatdırılma — 4.99 AZN-ə' },
-                  ].map(s => (
-                    <div
-                      key={s.step}
-                      style={{
-                        background: '#fff', borderRadius: 20,
-                        padding: '28px 24px',
-                        border: '1.5px solid #E5DDD3',
-                        position: 'relative',
-                        transition: 'box-shadow 0.3s, transform 0.3s',
-                      }}
-                      onMouseEnter={e => {
-                        (e.currentTarget as HTMLDivElement).style.boxShadow = '0 12px 40px rgba(28,23,20,0.1)';
-                        (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-4px)';
-                      }}
-                      onMouseLeave={e => {
-                        (e.currentTarget as HTMLDivElement).style.boxShadow = 'none';
-                        (e.currentTarget as HTMLDivElement).style.transform = 'translateY(0)';
-                      }}
-                    >
+                    { num: '01', title: 'Məhsul seç', desc: 'Kataloqdan istədiyini tap, variant seç' },
+                    { num: '02', title: 'Fərdiləşdir', desc: 'Ad, tarix, mesaj — nə istəyirsənsə' },
+                    { num: '03', title: 'Biz hazırlayırıq', desc: 'Lazer yazı ilə 1–3 iş günündə' },
+                    { num: '04', title: 'Qapına gəlir', desc: 'Bakı daxili çatdırılma 4.99₼' },
+                  ].map((s, i) => (
+                    <div key={s.num} style={{
+                      padding: '36px 28px',
+                      borderLeft: i > 0 ? '1px solid rgba(250,247,242,0.06)' : 'none',
+                    }}>
                       <div style={{
-                        fontSize: 26, marginBottom: 16,
-                        background: 'rgba(201,168,76,0.08)',
-                        width: 52, height: 52, borderRadius: 14,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      }}>{s.icon}</div>
-                      <div style={{
-                        position: 'absolute', top: 18, right: 20,
                         fontFamily: "'Cormorant Garamond', serif",
-                        fontSize: 52, fontWeight: 700,
-                        color: 'rgba(201,168,76,0.07)', lineHeight: 1,
-                        userSelect: 'none',
-                      }}>{s.step}</div>
+                        fontSize: 56, fontWeight: 400,
+                        color: 'rgba(201,168,76,0.15)', lineHeight: 1,
+                        marginBottom: 20,
+                      }}>{s.num}</div>
                       <h3 style={{
                         fontFamily: "'Cormorant Garamond', serif",
-                        fontSize: 22, fontWeight: 700,
-                        color: '#1C1714', margin: '0 0 8px',
+                        fontSize: 22, fontWeight: 400,
+                        color: '#FAF7F2', margin: '0 0 10px',
                       }}>{s.title}</h3>
                       <p style={{
-                        fontSize: 13, lineHeight: 1.7,
-                        color: '#5C5048', margin: 0, fontWeight: 400,
+                        fontSize: 13, color: 'rgba(250,247,242,0.4)',
+                        lineHeight: 1.7, margin: 0, fontWeight: 300,
                       }}>{s.desc}</p>
                     </div>
                   ))}
@@ -473,8 +366,8 @@ export default function App() {
               </div>
             </section>
 
-            {/* ── REVIEWS ───────────────────────────────── */}
-            <section style={{ background: '#1C1714', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+            {/* ── REVIEWS ── */}
+            <section style={{ background: '#FAF7F2' }}>
               <CustomerReviews />
             </section>
           </>
@@ -483,35 +376,26 @@ export default function App() {
         {view === 'about' && <AboutUs />}
         {view === 'contact' && <Contact />}
         {view === 'delivery' && <DeliveryInfo />}
-        {view === 'reviews' && (
-          <section style={{ background: '#1C1714' }}>
-            <CustomerReviews />
-          </section>
-        )}
       </main>
 
-      <Footer onReviewsClick={() => setView('reviews')} />
-      <AIAssistant />
+      <Footer onReviewsClick={() => setView('reviews' as AppView)} />
 
-      {/* Floating WhatsApp */}
+      {/* WhatsApp float */}
       
-        href="https://wa.me/994519831483?text=Salam%2C%20saytdan%20sifariş%20vermək%20istəyirəm"
+        href="https://wa.me/994519831483?text=Salam%2C%20sifariş%20vermək%20istəyirəm"
         target="_blank" rel="noreferrer"
-        className="wa-float"
         style={{
           position: 'fixed', bottom: 24, right: 24,
-          width: 56, height: 56,
+          width: 52, height: 52,
           background: '#25D366',
           borderRadius: '50%',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          textDecoration: 'none',
-          fontSize: 26,
-          zIndex: 999,
+          textDecoration: 'none', fontSize: 24,
+          zIndex: 999, boxShadow: '0 4px 20px rgba(37,211,102,0.35)',
           transition: 'transform 0.2s',
         }}
-        onMouseEnter={e => (e.currentTarget as HTMLAnchorElement).style.transform = 'scale(1.1)'}
-        onMouseLeave={e => (e.currentTarget as HTMLAnchorElement).style.transform = 'scale(1)'}
-        title="WhatsApp ilə əlaqə"
+        onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.1)'}
+        onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
       >
         💬
       </a>
@@ -522,10 +406,7 @@ export default function App() {
           initialData={editingItem}
           onClose={() => { setSelectedProduct(null); setEditingItem(undefined); }}
           onAddToCart={handleAddToCart}
-          onOpenCategory={(cat) => {
-            setSelectedProduct(null); setEditingItem(undefined);
-            setActiveCategory(cat); setView('home');
-          }}
+          onOpenCategory={cat => { setSelectedProduct(null); setEditingItem(undefined); setActiveCategory(cat); setView('home'); }}
         />
       )}
 
@@ -537,6 +418,13 @@ export default function App() {
         onEdit={handleEdit}
         onGoToProducts={() => { setCartOpen(false); setView('home'); }}
       />
+
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
+      `}</style>
     </div>
   );
 }
