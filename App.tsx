@@ -55,25 +55,26 @@ function mapSanityProduct(raw: any): Product {
 }
 
 export default function App() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [view, setView] = useState<AppView>('home');
+  const [products, setProducts]           = useState<Product[]>([]);
+  const [loading, setLoading]             = useState(true);
+  const [view, setView]                   = useState<AppView>('home');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [editingItem, setEditingItem] = useState<CartItem | undefined>(undefined);
-  const [cart, setCart] = useState<CartItem[]>([]);
-  const [cartOpen, setCartOpen] = useState(false);
+  const [editingItem, setEditingItem]     = useState<CartItem | undefined>(undefined);
+  const [cart, setCart]                   = useState<CartItem[]>([]);
+  const [cartOpen, setCartOpen]           = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
-  const [visible, setVisible] = useState(false);
+  const [visible, setVisible]             = useState(false);
 
   useEffect(() => {
     client.fetch(PRODUCTS_QUERY)
       .then((raw: any[]) => { setProducts(raw.map(mapSanityProduct)); setLoading(false); })
       .catch(() => setLoading(false));
-    setTimeout(() => setVisible(true), 80);
+    setTimeout(() => setVisible(true), 60);
   }, []);
 
-  const categories = Array.from(new Set(products.map(p => p.category).filter(Boolean))) as string[];
+  const categories      = Array.from(new Set(products.map(p => p.category).filter(Boolean))) as string[];
   const filteredProducts = activeCategory ? products.filter(p => p.category === activeCategory) : products;
+  const bestSellers     = products.filter(p => p.isBestSeller).slice(0, 4);
 
   const handleAddToCart = (item: CartItem) => {
     setCart(prev => {
@@ -82,15 +83,20 @@ export default function App() {
     });
   };
   const handleRemove = (cartId: string) => setCart(prev => prev.filter(c => c.cartId !== cartId));
-  const handleEdit = (item: CartItem) => {
-    const product = products.find(p => p.id === item.productId);
-    if (product) { setSelectedProduct(product); setEditingItem(item); }
+  const handleEdit   = (item: CartItem) => {
+    const p = products.find(p => p.id === item.productId);
+    if (p) { setSelectedProduct(p); setEditingItem(item); }
   };
   const cartCount = cart.reduce((s, c) => s + c.quantity, 0);
+  const openProduct = (p: Product) => { setSelectedProduct(p); setEditingItem(undefined); };
 
   return (
-    <div style={{ minHeight: '100vh', background: '#F5F0E8', fontFamily: "'Jost', sans-serif", color: '#1B2A4A' }}>
-
+    <div style={{
+      minHeight: '100vh',
+      background: '#F5F2EC',
+      fontFamily: "'Inter', sans-serif",
+      color: '#111111',
+    }}>
       <Navbar
         cartCount={cartCount}
         onLogoClick={() => { setView('home'); setActiveCategory(null); }}
@@ -99,218 +105,235 @@ export default function App() {
         onContactClick={() => setView('contact')}
         onDeliveryClick={() => setView('delivery')}
         products={products}
-        onViewProduct={p => { setSelectedProduct(p); setEditingItem(undefined); }}
+        onViewProduct={openProduct}
       />
 
       <main>
         {view === 'home' && (
           <>
-            {/* HERO */}
+            {/* ═══════════════════════════════════════
+                HERO  — F-pattern: top horizontal scan
+                Left: headline + sub  |  Right: CTA
+            ═══════════════════════════════════════ */}
             <section style={{
-              background: '#1B2A4A',
-              minHeight: '92vh',
-              display: 'flex',
-              alignItems: 'center',
-              position: 'relative',
-              overflow: 'hidden',
+              background: '#FFFFFF',
+              borderBottom: '1px solid #EDEBE7',
+              padding: 'clamp(48px,7vw,80px) 32px',
+              opacity: visible ? 1 : 0,
+              transform: visible ? 'translateY(0)' : 'translateY(16px)',
+              transition: 'opacity 0.7s ease, transform 0.7s ease',
             }}>
-              <div style={{
-                position: 'absolute', inset: 0,
-                backgroundImage: `
-                  radial-gradient(ellipse 80% 60% at 70% 50%, rgba(184,149,42,0.07) 0%, transparent 70%),
-                  radial-gradient(ellipse 40% 40% at 5% 85%, rgba(184,149,42,0.04) 0%, transparent 60%)
-                `,
-              }} />
-              <div style={{
-                position: 'absolute', left: 0, top: 0, bottom: 0,
-                width: 2,
-                background: 'linear-gradient(to bottom, transparent 0%, #B8952A 25%, #B8952A 75%, transparent 100%)',
-              }} />
+              <div style={{ maxWidth: 1280, margin: '0 auto' }}>
 
-              <div style={{
-                maxWidth: 1200, margin: '0 auto',
-                padding: '80px 48px', width: '100%',
-                position: 'relative',
-                opacity: visible ? 1 : 0,
-                transform: visible ? 'translateY(0)' : 'translateY(20px)',
-                transition: 'opacity 0.9s ease, transform 0.9s ease',
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 36 }}>
-                  <div style={{ width: 36, height: 1, background: '#B8952A' }} />
-                  <span style={{
-                    fontSize: 10, letterSpacing: 4,
-                    textTransform: 'uppercase' as const,
-                    color: '#B8952A', fontWeight: 600,
-                  }}>Fərdi hədiyyələr · Bakı</span>
-                </div>
-
-                <h1 style={{
-                  fontFamily: "'Playfair Display', serif",
-                  fontSize: 'clamp(52px, 9vw, 104px)',
-                  fontWeight: 700,
-                  color: '#F5F0E8',
-                  lineHeight: 0.95,
-                  margin: '0 0 8px',
-                  letterSpacing: '-2px',
-                }}>Hər hədiyyə</h1>
-
-                <h1 style={{
-                  fontFamily: "'Playfair Display', serif",
-                  fontSize: 'clamp(52px, 9vw, 104px)',
-                  fontWeight: 400,
-                  fontStyle: 'italic',
-                  color: '#B8952A',
-                  lineHeight: 1.05,
-                  margin: '0 0 44px',
-                  letterSpacing: '-1px',
-                }}>danışır.</h1>
-
-                <p style={{
-                  fontSize: 16, fontWeight: 300,
-                  color: 'rgba(245,240,232,0.55)',
-                  lineHeight: 1.8,
-                  margin: '0 0 52px',
-                  maxWidth: 460,
-                }}>
-                  Lazer yazı, fərdi təsbeh, polad qolbaq, domino —
-                  hər biri yalnız sənin üçün hazırlanır.
-                </p>
-
-                <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' as const, alignItems: 'center' }}>
-                  <button
-                    onClick={() => document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' })}
-                    style={{
-                      padding: '15px 42px',
-                      background: '#B8952A', color: '#F5F0E8',
-                      border: 'none', borderRadius: 3,
-                      fontSize: 11, fontWeight: 600,
-                      letterSpacing: 2.5, textTransform: 'uppercase' as const,
-                      cursor: 'pointer', fontFamily: "'Jost', sans-serif",
-                      transition: 'background 0.2s, transform 0.15s',
-                    }}
-                    onMouseEnter={e => { e.currentTarget.style.background = '#9E7E23'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-                    onMouseLeave={e => { e.currentTarget.style.background = '#B8952A'; e.currentTarget.style.transform = 'translateY(0)'; }}
-                  >Kataloqa bax</button>
-
-                  <a
-                    href="https://wa.me/994519831483"
-                    target="_blank" rel="noreferrer"
-                    style={{
-                      padding: '15px 42px',
-                      background: 'transparent',
-                      color: 'rgba(245,240,232,0.75)',
-                      border: '1px solid rgba(245,240,232,0.2)',
-                      borderRadius: 3,
-                      fontSize: 11, fontWeight: 500,
-                      letterSpacing: 2.5, textTransform: 'uppercase' as const,
-                      cursor: 'pointer', fontFamily: "'Jost', sans-serif",
-                      textDecoration: 'none', display: 'inline-block',
-                      transition: 'border-color 0.2s, color 0.2s',
-                    }}
-                    onMouseEnter={e => { e.currentTarget.style.borderColor = '#B8952A'; e.currentTarget.style.color = '#F5F0E8'; }}
-                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(245,240,232,0.2)'; e.currentTarget.style.color = 'rgba(245,240,232,0.75)'; }}
-                  >WhatsApp</a>
-                </div>
-
+                {/* F-pattern top row */}
                 <div style={{
-                  display: 'flex', gap: 0, marginTop: 80,
-                  borderTop: '1px solid rgba(245,240,232,0.07)',
-                  paddingTop: 40, flexWrap: 'wrap' as const,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 40,
+                  flexWrap: 'wrap' as const,
                 }}>
-                  {[
-                    { num: '500+', label: 'Məmnun müştəri' },
-                    { num: '1–3', label: 'İş günündə hazır' },
-                    { num: '17₼', label: 'dan başlayan' },
-                    { num: '4.99₼', label: 'Bakı çatdırılma' },
-                  ].map((s, i) => (
-                    <div key={s.label} style={{
-                      paddingRight: 44, marginRight: 44,
-                      borderRight: i < 3 ? '1px solid rgba(245,240,232,0.07)' : 'none',
-                      marginBottom: 16,
+                  {/* LEFT — primary scan zone */}
+                  <div style={{ flex: '1 1 420px', maxWidth: 600 }}>
+                    {/* Campaign pill */}
+                    <div style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 8,
+                      background: '#FFF3EC',
+                      border: '1px solid #FFD4B8',
+                      borderRadius: 100, padding: '6px 14px',
+                      marginBottom: 24,
                     }}>
-                      <div style={{
-                        fontFamily: "'Playfair Display', serif",
-                        fontSize: 26, fontWeight: 700,
-                        color: '#B8952A', lineHeight: 1,
-                      }}>{s.num}</div>
-                      <div style={{
-                        fontSize: 10, letterSpacing: 1.5,
-                        textTransform: 'uppercase' as const,
-                        color: 'rgba(245,240,232,0.3)',
-                        marginTop: 6, fontWeight: 400,
-                      }}>{s.label}</div>
+                      <span style={{ fontSize: 14 }}>🎁</span>
+                      <span style={{ fontSize: 12, fontWeight: 600, color: '#FF6A00' }}>
+                        Lazer yazı ilə fərdi hədiyyə
+                      </span>
                     </div>
-                  ))}
+
+                    {/* H1 — bold, clear, left */}
+                    <h1 style={{
+                      fontSize: 'clamp(36px, 5.5vw, 64px)',
+                      fontWeight: 800,
+                      color: '#111111',
+                      lineHeight: 1.1,
+                      letterSpacing: '-1.5px',
+                      margin: '0 0 20px',
+                    }}>
+                      Özəl hədiyyə,<br />
+                      <span style={{ color: '#FF6A00' }}>yalnız sənin üçün.</span>
+                    </h1>
+
+                    {/* Subtext */}
+                    <p style={{
+                      fontSize: 16, fontWeight: 400,
+                      color: '#555555', lineHeight: 1.7,
+                      margin: '0 0 36px', maxWidth: 440,
+                    }}>
+                      Lazer yazılı qolbaq, fərdi təsbeh, domino və daha çoxu.
+                      17 ₼-dən başlayan qiymətlə, 1–3 iş günündə hazır.
+                    </p>
+
+                    {/* Trust signals — left scan */}
+                    <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' as const, marginBottom: 36 }}>
+                      {[
+                        { icon: '✓', text: '500+ məmnun müştəri' },
+                        { icon: '✓', text: 'Bakı çatdırılma 4.99 ₼' },
+                        { icon: '✓', text: '1–3 iş günü' },
+                      ].map(t => (
+                        <div key={t.text} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span style={{ color: '#22C55E', fontWeight: 700, fontSize: 14 }}>{t.icon}</span>
+                          <span style={{ fontSize: 13, color: '#555', fontWeight: 500 }}>{t.text}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* CTA — orange, clear */}
+                    <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' as const }}>
+                      <button
+                        onClick={() => document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' })}
+                        style={{
+                          padding: '15px 36px',
+                          background: '#FF6A00', color: '#FFFFFF',
+                          border: 'none', borderRadius: 10,
+                          fontSize: 15, fontWeight: 700,
+                          cursor: 'pointer', fontFamily: "'Inter', sans-serif",
+                          transition: 'background 0.15s, transform 0.15s',
+                          boxShadow: '0 4px 16px rgba(255,106,0,0.3)',
+                        }}
+                        onMouseEnter={e => { e.currentTarget.style.background = '#E55E00'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = '#FF6A00'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                      >
+                        Kataloqa bax →
+                      </button>
+                      <a href="https://wa.me/994519831483" target="_blank" rel="noreferrer"
+                        style={{
+                          padding: '15px 28px',
+                          background: 'transparent', color: '#111111',
+                          border: '1.5px solid #D5D0C8',
+                          borderRadius: 10, fontSize: 15, fontWeight: 600,
+                          cursor: 'pointer', textDecoration: 'none',
+                          fontFamily: "'Inter', sans-serif",
+                          transition: 'border-color 0.15s',
+                          display: 'inline-flex', alignItems: 'center', gap: 8,
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.borderColor = '#FF6A00'}
+                        onMouseLeave={e => e.currentTarget.style.borderColor = '#D5D0C8'}
+                      >
+                        💬 WhatsApp
+                      </a>
+                    </div>
+                  </div>
+
+                  {/* RIGHT — stats / social proof */}
+                  <div style={{
+                    flex: '0 0 auto',
+                    display: 'grid',
+                    gridTemplateColumns: '1fr 1fr',
+                    gap: 12, maxWidth: 340,
+                  }} className="r-desktop-nav">
+                    {[
+                      { num: '500+', label: 'Müştəri', icon: '😊' },
+                      { num: '17 ₼', label: 'dan başlayır', icon: '💰' },
+                      { num: '1–3', label: 'gün çatdırılma', icon: '⚡' },
+                      { num: '100%', label: 'Özəl dizayn', icon: '✨' },
+                    ].map(s => (
+                      <div key={s.label} style={{
+                        background: '#F5F2EC',
+                        borderRadius: 12, padding: '20px 16px',
+                        textAlign: 'center' as const,
+                        border: '1px solid #EDEBE7',
+                      }}>
+                        <div style={{ fontSize: 24, marginBottom: 6 }}>{s.icon}</div>
+                        <div style={{ fontSize: 22, fontWeight: 800, color: '#111111', lineHeight: 1 }}>{s.num}</div>
+                        <div style={{ fontSize: 11, color: '#888', marginTop: 4, fontWeight: 500 }}>{s.label}</div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </section>
 
-            {/* MARQUEE */}
-            <div style={{
-              background: '#B8952A', padding: '13px 0',
-              overflow: 'hidden', whiteSpace: 'nowrap' as const,
-            }}>
-              <span style={{
-                display: 'inline-block',
-                animation: 'marquee 20s linear infinite',
-                fontSize: 10, fontWeight: 600,
-                letterSpacing: 3, textTransform: 'uppercase' as const,
-                color: '#1B2A4A',
-              }}>
-                {Array(8).fill('Lazer Yazı  ·  Fərdi Təsbeh  ·  Polad Qolbaq  ·  Domino  ·  Özəl Hədiyyə  ·  Bakı Çatdırılma  ·  ').join('')}
-              </span>
-            </div>
+            {/* ═══════════════════════════════════════
+                BEST SELLERS strip
+            ═══════════════════════════════════════ */}
+            {bestSellers.length > 0 && (
+              <section style={{ padding: 'clamp(48px,6vw,72px) 32px', background: '#F5F2EC' }}>
+                <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 28, flexWrap: 'wrap' as const, gap: 12 }}>
+                    <div>
+                      <p style={{ fontSize: 11, fontWeight: 700, color: '#FF6A00', letterSpacing: 1.5, textTransform: 'uppercase' as const, margin: '0 0 6px' }}>
+                        ✦ Ən çox satılanlar
+                      </p>
+                      <h2 style={{ fontSize: 'clamp(22px,3vw,30px)', fontWeight: 800, color: '#111111', margin: 0, letterSpacing: '-0.5px' }}>
+                        Populyar məhsullar
+                      </h2>
+                    </div>
+                    <button onClick={() => document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' })}
+                      style={{
+                        background: 'none', border: '1.5px solid #D5D0C8',
+                        borderRadius: 8, padding: '9px 20px',
+                        fontSize: 13, fontWeight: 600, color: '#111111',
+                        cursor: 'pointer', fontFamily: "'Inter', sans-serif",
+                        transition: 'border-color 0.15s',
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.borderColor = '#FF6A00'}
+                      onMouseLeave={e => e.currentTarget.style.borderColor = '#D5D0C8'}
+                    >Hamısına bax →</button>
+                  </div>
+                  <ProductGrid
+                    products={bestSellers}
+                    onAddToCart={openProduct}
+                    onViewProduct={openProduct}
+                  />
+                </div>
+              </section>
+            )}
 
-            {/* PRODUCTS */}
-            <section id="products" style={{ padding: 'clamp(64px,8vw,112px) 48px' }}>
-              <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+            {/* ═══════════════════════════════════════
+                ALL PRODUCTS — full catalog
+            ═══════════════════════════════════════ */}
+            <section id="products" style={{ padding: 'clamp(48px,6vw,80px) 32px', background: '#FFFFFF' }}>
+              <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+                {/* Header + filters */}
                 <div style={{
                   display: 'flex', justifyContent: 'space-between',
-                  alignItems: 'flex-end', marginBottom: 52,
-                  flexWrap: 'wrap' as const, gap: 20,
+                  alignItems: 'flex-end', marginBottom: 32,
+                  flexWrap: 'wrap' as const, gap: 16,
                 }}>
                   <div>
-                    <p style={{
-                      fontSize: 10, letterSpacing: 4,
-                      textTransform: 'uppercase' as const,
-                      color: '#B8952A', fontWeight: 600, margin: '0 0 10px',
-                    }}>Kataloq</p>
-                    <h2 style={{
-                      fontFamily: "'Playfair Display', serif",
-                      fontSize: 'clamp(30px,4vw,48px)',
-                      fontWeight: 700, color: '#1B2A4A',
-                      margin: 0, letterSpacing: '-0.5px',
-                    }}>
+                    <p style={{ fontSize: 11, fontWeight: 700, color: '#FF6A00', letterSpacing: 1.5, textTransform: 'uppercase' as const, margin: '0 0 6px' }}>Kataloq</p>
+                    <h2 style={{ fontSize: 'clamp(22px,3vw,30px)', fontWeight: 800, color: '#111111', margin: 0, letterSpacing: '-0.3px' }}>
                       {activeCategory || 'Bütün məhsullar'}
+                      <span style={{ fontWeight: 400, fontSize: 16, color: '#999', marginLeft: 10 }}>
+                        ({filteredProducts.length})
+                      </span>
                     </h2>
                   </div>
 
+                  {/* Category filters */}
                   {categories.length > 0 && (
                     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' as const }}>
                       <button
                         onClick={() => setActiveCategory(null)}
                         style={{
-                          padding: '9px 24px', borderRadius: 2,
-                          border: `1px solid ${!activeCategory ? '#1B2A4A' : '#C8BFB2'}`,
-                          background: !activeCategory ? '#1B2A4A' : 'transparent',
-                          color: !activeCategory ? '#F5F0E8' : '#8A7F72',
-                          fontSize: 10, fontWeight: 600, letterSpacing: 1.5,
-                          textTransform: 'uppercase' as const,
-                          cursor: 'pointer', fontFamily: "'Jost', sans-serif",
-                          transition: 'all 0.2s',
+                          padding: '8px 18px', borderRadius: 100,
+                          border: `1.5px solid ${!activeCategory ? '#111111' : '#D5D0C8'}`,
+                          background: !activeCategory ? '#111111' : 'transparent',
+                          color: !activeCategory ? '#FFFFFF' : '#666666',
+                          fontSize: 12, fontWeight: 600,
+                          cursor: 'pointer', fontFamily: "'Inter', sans-serif",
+                          transition: 'all 0.15s',
                         }}
                       >Hamısı</button>
                       {categories.map(cat => (
                         <button key={cat} onClick={() => setActiveCategory(cat)}
                           style={{
-                            padding: '9px 24px', borderRadius: 2,
-                            border: `1px solid ${activeCategory === cat ? '#1B2A4A' : '#C8BFB2'}`,
-                            background: activeCategory === cat ? '#1B2A4A' : 'transparent',
-                            color: activeCategory === cat ? '#F5F0E8' : '#8A7F72',
-                            fontSize: 10, fontWeight: 600, letterSpacing: 1.5,
-                            textTransform: 'uppercase' as const,
-                            cursor: 'pointer', fontFamily: "'Jost', sans-serif",
-                            transition: 'all 0.2s',
+                            padding: '8px 18px', borderRadius: 100,
+                            border: `1.5px solid ${activeCategory === cat ? '#111111' : '#D5D0C8'}`,
+                            background: activeCategory === cat ? '#111111' : 'transparent',
+                            color: activeCategory === cat ? '#FFFFFF' : '#666666',
+                            fontSize: 12, fontWeight: 600,
+                            cursor: 'pointer', fontFamily: "'Inter', sans-serif",
+                            transition: 'all 0.15s',
                           }}
                         >{cat}</button>
                       ))}
@@ -318,14 +341,16 @@ export default function App() {
                   )}
                 </div>
 
+                {/* Products grid or skeleton */}
                 {loading ? (
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 24 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px,1fr))', gap: 20 }}>
                     {[1,2,3,4,5,6].map(i => (
-                      <div key={i}>
-                        <div style={{ aspectRatio: '3/4', background: '#E8E1D6', borderRadius: 2, animation: 'pulse 1.6s ease-in-out infinite' }} />
-                        <div style={{ padding: '16px 0', display: 'flex', flexDirection: 'column' as const, gap: 10 }}>
-                          <div style={{ height: 10, background: '#E8E1D6', borderRadius: 2, width: '45%', animation: 'pulse 1.6s ease-in-out infinite' }} />
-                          <div style={{ height: 15, background: '#E8E1D6', borderRadius: 2, width: '70%', animation: 'pulse 1.6s ease-in-out infinite' }} />
+                      <div key={i} style={{ background: '#FFFFFF', borderRadius: 12, overflow: 'hidden', border: '1px solid #EDEBE7' }}>
+                        <div style={{ aspectRatio: '1/1', background: '#F5F2EC', animation: 'pulse 1.5s ease-in-out infinite' }} />
+                        <div style={{ padding: '14px', display: 'flex', flexDirection: 'column' as const, gap: 10 }}>
+                          <div style={{ height: 10, background: '#F5F2EC', borderRadius: 4, width: '45%', animation: 'pulse 1.5s ease-in-out infinite' }} />
+                          <div style={{ height: 15, background: '#F5F2EC', borderRadius: 4, width: '75%', animation: 'pulse 1.5s ease-in-out infinite' }} />
+                          <div style={{ height: 20, background: '#F5F2EC', borderRadius: 4, width: '40%', animation: 'pulse 1.5s ease-in-out infinite' }} />
                         </div>
                       </div>
                     ))}
@@ -333,89 +358,87 @@ export default function App() {
                 ) : (
                   <ProductGrid
                     products={filteredProducts}
-                    onAddToCart={p => { setSelectedProduct(p); setEditingItem(undefined); }}
-                    onViewProduct={p => { setSelectedProduct(p); setEditingItem(undefined); }}
+                    onAddToCart={openProduct}
+                    onViewProduct={openProduct}
                   />
                 )}
               </div>
             </section>
 
-            {/* HOW IT WORKS */}
-            <section style={{ background: '#1B2A4A', padding: 'clamp(64px,8vw,112px) 48px' }}>
-              <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-                <div style={{ marginBottom: 60 }}>
-                  <p style={{ fontSize: 10, letterSpacing: 4, textTransform: 'uppercase' as const, color: '#B8952A', fontWeight: 600, margin: '0 0 12px' }}>Proses</p>
-                  <h2 style={{
-                    fontFamily: "'Playfair Display', serif",
-                    fontSize: 'clamp(30px,4vw,48px)',
-                    fontWeight: 700, color: '#F5F0E8', margin: 0,
-                  }}>
-                    Sadə. Sürətli.{' '}
-                    <span style={{ color: '#B8952A', fontStyle: 'italic', fontWeight: 400 }}>Fərdi.</span>
+            {/* ═══════════════════════════════════════
+                HOW IT WORKS — 4 steps, clean icons
+            ═══════════════════════════════════════ */}
+            <section style={{ background: '#111111', padding: 'clamp(56px,7vw,96px) 32px' }}>
+              <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+                <div style={{ textAlign: 'center' as const, marginBottom: 56 }}>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: '#FF6A00', letterSpacing: 1.5, textTransform: 'uppercase' as const, margin: '0 0 12px' }}>Necə işləyir</p>
+                  <h2 style={{ fontSize: 'clamp(26px,4vw,40px)', fontWeight: 800, color: '#FFFFFF', margin: 0, letterSpacing: '-0.5px' }}>
+                    3 addımda sifariş
                   </h2>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 0 }}>
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                  gap: 2,
+                }}>
                   {[
-                    { n: '01', title: 'Seç', desc: 'Kataloqdan məhsul seç, variant müəyyən et' },
-                    { n: '02', title: 'Fərdiləşdir', desc: 'Ad, tarix, xüsusi mesaj əlavə et' },
-                    { n: '03', title: 'Hazırlayırıq', desc: '1–3 iş günündə lazer ilə hazırlanır' },
-                    { n: '04', title: 'Qapında', desc: 'Bakı daxili çatdırılma 4.99₼' },
+                    { n: '01', icon: '🛍️', title: 'Məhsul seç', desc: 'Kataloqdan bəyəndiyini seç, variantı müəyyən et' },
+                    { n: '02', icon: '✍️', title: 'Ad / mesaj yaz', desc: 'Lazer yazısı üçün mətni WhatsApp-da göndər' },
+                    { n: '03', icon: '⚡', title: '1–3 gündə hazır', desc: 'Çatdırılma 4.99 ₼ — qapına gəlir' },
                   ].map((s, i) => (
                     <div key={s.n} style={{
-                      padding: '40px 36px',
-                      borderLeft: i > 0 ? '1px solid rgba(245,240,232,0.06)' : 'none',
-                      borderTop: '1px solid rgba(245,240,232,0.06)',
+                      background: '#1A1A1A',
+                      padding: '40px 32px',
+                      borderLeft: i > 0 ? '1px solid rgba(255,255,255,0.05)' : 'none',
                     }}>
                       <div style={{
-                        fontFamily: "'Playfair Display', serif",
-                        fontSize: 60, fontWeight: 700,
-                        color: 'rgba(184,149,42,0.10)',
-                        lineHeight: 1, marginBottom: 24,
-                        letterSpacing: '-2px',
-                      }}>{s.n}</div>
-                      <h3 style={{
-                        fontFamily: "'Playfair Display', serif",
-                        fontSize: 21, fontWeight: 600,
-                        color: '#F5F0E8', margin: '0 0 12px',
-                      }}>{s.title}</h3>
-                      <p style={{
-                        fontSize: 13, color: 'rgba(245,240,232,0.38)',
-                        lineHeight: 1.75, margin: 0, fontWeight: 300,
-                      }}>{s.desc}</p>
+                        width: 52, height: 52, borderRadius: 12,
+                        background: 'rgba(255,106,0,0.1)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: 24, marginBottom: 20,
+                      }}>{s.icon}</div>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: '#FF6A00', letterSpacing: 2, marginBottom: 10 }}>{s.n}</div>
+                      <h3 style={{ fontSize: 18, fontWeight: 700, color: '#FFFFFF', margin: '0 0 10px' }}>{s.title}</h3>
+                      <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', lineHeight: 1.7, margin: 0, fontWeight: 400 }}>{s.desc}</p>
                     </div>
                   ))}
                 </div>
               </div>
             </section>
 
-            {/* REVIEWS */}
-            <section style={{ background: '#F5F0E8' }}>
+            {/* ═══════════════════════════════════════
+                REVIEWS
+            ═══════════════════════════════════════ */}
+            <section style={{ background: '#F5F2EC' }}>
               <CustomerReviews />
             </section>
           </>
         )}
 
-        {view === 'about' && <AboutUs />}
-        {view === 'contact' && <Contact />}
+        {view === 'about'    && <AboutUs />}
+        {view === 'contact'  && <Contact />}
         {view === 'delivery' && <DeliveryInfo />}
       </main>
 
       <Footer onReviewsClick={() => setView('reviews' as AppView)} />
 
+      {/* WhatsApp floating CTA */}
       <a
-        href="https://wa.me/994519831483?text=Salam%2C%20sifaris%20vermek%20isteyirem"
+        href="https://wa.me/994519831483?text=Salam%2C%20sifaris%20etmek%20isteyirem"
         target="_blank" rel="noreferrer"
         style={{
-          position: 'fixed', bottom: 28, right: 28,
-          width: 52, height: 52, background: '#25D366',
+          position: 'fixed', bottom: 24, right: 24,
+          background: '#25D366', color: '#FFFFFF',
+          width: 56, height: 56,
           borderRadius: '50%',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          textDecoration: 'none', fontSize: 22,
-          zIndex: 999, boxShadow: '0 6px 20px rgba(37,211,102,0.3)',
-          transition: 'transform 0.2s',
+          textDecoration: 'none', fontSize: 24,
+          zIndex: 999,
+          boxShadow: '0 8px 24px rgba(37,211,102,0.4)',
+          transition: 'transform 0.2s, box-shadow 0.2s',
         }}
-        onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.1)'}
-        onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+        onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.1)'; e.currentTarget.style.boxShadow = '0 12px 32px rgba(37,211,102,0.5)'; }}
+        onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(37,211,102,0.4)'; }}
       >💬</a>
 
       {selectedProduct && (
@@ -424,10 +447,7 @@ export default function App() {
           initialData={editingItem}
           onClose={() => { setSelectedProduct(null); setEditingItem(undefined); }}
           onAddToCart={handleAddToCart}
-          onOpenCategory={cat => {
-            setSelectedProduct(null); setEditingItem(undefined);
-            setActiveCategory(cat); setView('home');
-          }}
+          onOpenCategory={cat => { setSelectedProduct(null); setEditingItem(undefined); setActiveCategory(cat); setView('home'); }}
         />
       )}
 
@@ -441,15 +461,14 @@ export default function App() {
       />
 
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Jost:wght@300;400;500;600&display=swap');
-        * { box-sizing: border-box; }
-        body { -webkit-font-smoothing: antialiased; }
-        ::selection { background: #B8952A; color: #F5F0E8; }
-        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
-        @keyframes marquee { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        *, *::before, *::after { box-sizing: border-box; }
+        body { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+        ::selection { background: #FF6A00; color: #FFFFFF; }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.45} }
         @media (max-width: 768px) {
-          .desktop-nav { display: none !important; }
-          .mobile-btn { display: flex !important; }
+          .r-desktop-nav { display: none !important; }
+          .r-mobile-nav  { display: flex !important; }
         }
       `}</style>
     </div>

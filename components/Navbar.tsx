@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ShoppingBag, Search, X, Menu } from 'lucide-react';
 import { Product } from '../types';
 
@@ -13,186 +13,200 @@ interface NavbarProps {
   onViewProduct?: (product: Product) => void;
 }
 
+const NAV_LINKS = [
+  { label: 'Məhsullar' },
+  { label: 'Çatdırılma' },
+  { label: 'Haqqımızda' },
+  { label: 'Əlaqə' },
+];
+
 const Navbar: React.FC<NavbarProps> = ({
   cartCount, onLogoClick, onCartClick,
   onAboutClick, onContactClick, onDeliveryClick,
   products = [], onViewProduct,
 }) => {
-  const [scrolled, setScrolled] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled]   = useState(false);
+  const [menuOpen, setMenuOpen]   = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [query, setQuery] = useState('');
+  const [query, setQuery]         = useState('');
+  const searchRef = useRef<HTMLDivElement>(null);
+
+  const actions = [onLogoClick, onDeliveryClick, onAboutClick, onContactClick];
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 40);
-    window.addEventListener('scroll', onScroll);
-    return () => window.removeEventListener('scroll', onScroll);
+    const fn = () => setScrolled(window.scrollY > 10);
+    window.addEventListener('scroll', fn);
+    return () => window.removeEventListener('scroll', fn);
+  }, []);
+
+  useEffect(() => {
+    const fn = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setSearchOpen(false); setQuery('');
+      }
+    };
+    document.addEventListener('mousedown', fn);
+    return () => document.removeEventListener('mousedown', fn);
   }, []);
 
   const results = query.trim().length > 1
     ? products.filter(p => p.name.toLowerCase().includes(query.toLowerCase())).slice(0, 6)
     : [];
 
-  const navLinks = [
-    { label: 'Məhsullar', action: onLogoClick },
-    { label: 'Çatdırılma', action: onDeliveryClick },
-    { label: 'Haqqımızda', action: onAboutClick },
-    { label: 'Əlaqə', action: onContactClick },
-  ];
-
-  const iconBtn = (onClick: () => void, children: React.ReactNode) => (
-    <button onClick={onClick} style={{
-      background: 'none', border: 'none', cursor: 'pointer',
-      width: 40, height: 40, borderRadius: 2,
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      color: scrolled ? '#1B2A4A' : '#F5F0E8',
-      transition: 'color 0.2s, background 0.2s',
-    }}
-      onMouseEnter={e => e.currentTarget.style.color = '#B8952A'}
-      onMouseLeave={e => e.currentTarget.style.color = scrolled ? '#1B2A4A' : '#F5F0E8'}
-    >{children}</button>
-  );
-
   return (
     <>
-      {/* Top announcement bar */}
+      {/* Announcement bar */}
       <div style={{
-        background: '#1B2A4A',
-        padding: '9px 0',
+        background: '#111111',
+        color: '#FFFFFF',
         textAlign: 'center' as const,
-        fontSize: 10,
-        letterSpacing: 3,
-        fontWeight: 600,
-        color: '#B8952A',
-        fontFamily: "'Jost', sans-serif",
-        textTransform: 'uppercase' as const,
+        fontSize: 12,
+        fontWeight: 500,
+        padding: '9px 16px',
+        letterSpacing: 0.3,
+        fontFamily: "'Inter', sans-serif",
       }}>
-        Bakı daxili çatdırılma 4.99₼ · Lazer yazı · Özəl hədiyyələr
+        🚚 Bakı daxili çatdırılma — <strong style={{ color: '#FF6A00' }}>4.99 ₼</strong>
+        &nbsp;&nbsp;|&nbsp;&nbsp;
+        ✦ Lazer yazı ilə fərdi hədiyyə
       </div>
 
-      {/* Main navbar */}
+      {/* Main nav */}
       <nav style={{
         position: 'fixed',
-        top: 36,
+        top: 38,
         left: 0, right: 0,
-        zIndex: 100,
-        background: scrolled ? 'rgba(245,240,232,0.97)' : 'rgba(27,42,74,0.15)',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
-        borderBottom: scrolled ? '1px solid rgba(27,42,74,0.1)' : '1px solid rgba(245,240,232,0.08)',
-        transition: 'all 0.4s ease',
+        zIndex: 1000,
+        background: '#FFFFFF',
+        borderBottom: scrolled ? '1px solid #E8E3DA' : '1px solid #F0EBE3',
+        boxShadow: scrolled ? '0 2px 16px rgba(0,0,0,0.07)' : 'none',
+        transition: 'box-shadow 0.3s, border-color 0.3s',
       }}>
         <div style={{
-          maxWidth: 1200, margin: '0 auto',
-          padding: '0 48px',
-          display: 'flex', alignItems: 'center',
+          maxWidth: 1280,
+          margin: '0 auto',
+          padding: '0 32px',
+          height: 60,
+          display: 'flex',
+          alignItems: 'center',
           justifyContent: 'space-between',
-          height: 64,
+          gap: 24,
         }}>
           {/* Logo */}
           <button onClick={onLogoClick} style={{
-            background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+            background: 'none', border: 'none', cursor: 'pointer',
+            padding: 0, flexShrink: 0,
             display: 'flex', alignItems: 'center', gap: 8,
           }}>
             <div style={{
-              width: 28, height: 28, borderRadius: 2,
-              background: '#B8952A',
+              width: 30, height: 30,
+              background: '#111111',
+              borderRadius: 6,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
               <span style={{
-                fontFamily: "'Playfair Display', serif",
-                fontSize: 15, fontWeight: 700,
-                color: '#F5F0E8', lineHeight: 1,
+                color: '#FF6A00',
+                fontSize: 16, fontWeight: 800,
+                fontFamily: "'Inter', sans-serif",
+                lineHeight: 1,
               }}>R</span>
             </div>
             <span style={{
-              fontFamily: "'Playfair Display', serif",
-              fontSize: 20, fontWeight: 700,
-              color: scrolled ? '#1B2A4A' : '#F5F0E8',
-              letterSpacing: '-0.3px',
-              transition: 'color 0.4s',
-            }}>
-              ravio
-            </span>
+              fontFamily: "'Inter', sans-serif",
+              fontSize: 18, fontWeight: 800,
+              color: '#111111',
+              letterSpacing: '-0.5px',
+            }}>ravio</span>
           </button>
 
-          {/* Desktop nav */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 2 }} className="desktop-nav">
-            {navLinks.map(link => (
-              <button key={link.label} onClick={link.action} style={{
+          {/* Desktop nav links */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }} className="r-desktop-nav">
+            {NAV_LINKS.map((link, i) => (
+              <button key={link.label} onClick={actions[i]} style={{
                 background: 'none', border: 'none', cursor: 'pointer',
-                padding: '8px 18px', borderRadius: 2,
-                fontSize: 11, fontWeight: 500,
-                letterSpacing: 1.5,
-                textTransform: 'uppercase' as const,
-                color: scrolled ? '#4A5568' : 'rgba(245,240,232,0.75)',
-                fontFamily: "'Jost', sans-serif",
-                transition: 'color 0.2s',
+                padding: '8px 14px',
+                fontSize: 13, fontWeight: 500,
+                color: '#444444',
+                fontFamily: "'Inter', sans-serif",
+                borderRadius: 6,
+                transition: 'color 0.15s, background 0.15s',
               }}
-                onMouseEnter={e => e.currentTarget.style.color = '#B8952A'}
-                onMouseLeave={e => e.currentTarget.style.color = scrolled ? '#4A5568' : 'rgba(245,240,232,0.75)'}
+                onMouseEnter={e => { e.currentTarget.style.color = '#111111'; e.currentTarget.style.background = '#F5F2EC'; }}
+                onMouseLeave={e => { e.currentTarget.style.color = '#444444'; e.currentTarget.style.background = 'transparent'; }}
               >{link.label}</button>
             ))}
           </div>
 
-          {/* Right icons */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          {/* Right side */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
             {/* Search */}
-            <div style={{ position: 'relative' }}>
-              {iconBtn(() => { setSearchOpen(v => !v); setQuery(''); }, searchOpen ? <X size={17} /> : <Search size={17} />)}
+            <div ref={searchRef} style={{ position: 'relative' }}>
+              <button onClick={() => { setSearchOpen(v => !v); setQuery(''); }} style={{
+                background: 'none', border: 'none', cursor: 'pointer',
+                width: 38, height: 38, borderRadius: 8,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: '#444444', transition: 'background 0.15s, color 0.15s',
+              }}
+                onMouseEnter={e => { e.currentTarget.style.background = '#F5F2EC'; e.currentTarget.style.color = '#111111'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = '#444444'; }}
+              >
+                {searchOpen ? <X size={17} /> : <Search size={17} />}
+              </button>
 
               {searchOpen && (
                 <div style={{
-                  position: 'absolute', right: 0, top: 52,
-                  width: 320, background: '#FFFFFF',
-                  borderRadius: 2,
-                  boxShadow: '0 20px 60px rgba(27,42,74,0.15)',
-                  border: '1px solid rgba(27,42,74,0.08)',
-                  overflow: 'hidden', zIndex: 200,
+                  position: 'absolute', right: 0, top: 46,
+                  width: 340, background: '#FFFFFF',
+                  border: '1px solid #E8E3DA',
+                  borderRadius: 12,
+                  boxShadow: '0 16px 48px rgba(0,0,0,0.12)',
+                  overflow: 'hidden', zIndex: 500,
                 }}>
                   <div style={{
                     display: 'flex', alignItems: 'center', gap: 10,
-                    padding: '14px 18px',
-                    borderBottom: '1px solid #F0EBE2',
+                    padding: '12px 16px',
+                    borderBottom: '1px solid #F0EBE3',
                   }}>
-                    <Search size={14} color="#B8952A" />
+                    <Search size={14} color="#FF6A00" />
                     <input
                       autoFocus
                       value={query}
                       onChange={e => setQuery(e.target.value)}
                       placeholder="Məhsul axtar..."
                       style={{
-                        flex: 1, outline: 'none', border: 'none',
-                        background: 'transparent', fontSize: 13,
-                        color: '#1B2A4A', fontFamily: "'Jost', sans-serif",
-                        fontWeight: 400,
+                        flex: 1, border: 'none', outline: 'none',
+                        fontSize: 14, color: '#111111',
+                        fontFamily: "'Inter', sans-serif",
+                        background: 'transparent',
                       }}
                     />
-                    {query && <button onClick={() => setQuery('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#8A7F72', padding: 0 }}><X size={13} /></button>}
+                    {query && (
+                      <button onClick={() => setQuery('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#999', padding: 0 }}>
+                        <X size={13} />
+                      </button>
+                    )}
                   </div>
                   {results.length > 0 ? (
-                    <ul style={{ listStyle: 'none', margin: 0, padding: '6px 0', maxHeight: 300, overflowY: 'auto' as const }}>
+                    <ul style={{ listStyle: 'none', margin: 0, padding: '6px 0', maxHeight: 320, overflowY: 'auto' as const }}>
                       {results.map(p => (
                         <li key={p.id}>
-                          <button
-                            onClick={() => { onViewProduct?.(p); setSearchOpen(false); setQuery(''); }}
+                          <button onClick={() => { onViewProduct?.(p); setSearchOpen(false); setQuery(''); }}
                             style={{
                               width: '100%', display: 'flex', alignItems: 'center', gap: 12,
-                              padding: '10px 18px', background: 'none', border: 'none',
-                              cursor: 'pointer', textAlign: 'left' as const,
-                              transition: 'background 0.15s',
+                              padding: '10px 16px', background: 'none', border: 'none',
+                              cursor: 'pointer', textAlign: 'left' as const, transition: 'background 0.1s',
                             }}
-                            onMouseEnter={e => e.currentTarget.style.background = '#F8F4EE'}
+                            onMouseEnter={e => e.currentTarget.style.background = '#F5F2EC'}
                             onMouseLeave={e => e.currentTarget.style.background = 'none'}
                           >
                             {p.variants?.[0]?.images?.[0] && (
-                              <div style={{ width: 40, height: 40, borderRadius: 2, overflow: 'hidden', flexShrink: 0, background: '#F0EBE2' }}>
+                              <div style={{ width: 44, height: 44, borderRadius: 8, overflow: 'hidden', background: '#F5F2EC', flexShrink: 0 }}>
                                 <img src={p.variants[0].images[0]} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
                               </div>
                             )}
-                            <div>
-                              <p style={{ margin: 0, fontSize: 13, fontWeight: 500, color: '#1B2A4A', fontFamily: "'Jost', sans-serif" }}>{p.name}</p>
-                              <p style={{ margin: 0, fontSize: 12, color: '#B8952A', fontWeight: 400 }}>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: '#111111', fontFamily: "'Inter', sans-serif", whiteSpace: 'nowrap' as const, overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</p>
+                              <p style={{ margin: '2px 0 0', fontSize: 13, color: '#FF6A00', fontWeight: 700 }}>
                                 {(p.variants[0]?.discountPrice || p.variants[0]?.price || 0).toFixed(0)} ₼
                               </p>
                             </div>
@@ -201,7 +215,7 @@ const Navbar: React.FC<NavbarProps> = ({
                       ))}
                     </ul>
                   ) : query.trim().length > 1 ? (
-                    <div style={{ padding: '24px', textAlign: 'center' as const, color: '#8A7F72', fontSize: 13 }}>Nəticə tapılmadı</div>
+                    <div style={{ padding: '24px', textAlign: 'center' as const, color: '#999', fontSize: 13 }}>Nəticə tapılmadı</div>
                   ) : null}
                 </div>
               )}
@@ -210,38 +224,60 @@ const Navbar: React.FC<NavbarProps> = ({
             {/* Cart */}
             <button onClick={onCartClick} style={{
               position: 'relative', background: 'none', border: 'none', cursor: 'pointer',
-              width: 40, height: 40, borderRadius: 2,
+              width: 38, height: 38, borderRadius: 8,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: scrolled ? '#1B2A4A' : '#F5F0E8',
-              transition: 'color 0.2s',
+              color: '#444444', transition: 'background 0.15s, color 0.15s',
             }}
-              onMouseEnter={e => e.currentTarget.style.color = '#B8952A'}
-              onMouseLeave={e => e.currentTarget.style.color = scrolled ? '#1B2A4A' : '#F5F0E8'}
+              onMouseEnter={e => { e.currentTarget.style.background = '#F5F2EC'; e.currentTarget.style.color = '#111111'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = '#444444'; }}
             >
               <ShoppingBag size={18} />
               {cartCount > 0 && (
                 <span style={{
-                  position: 'absolute', top: 7, right: 7,
-                  background: '#B8952A', color: '#F5F0E8',
-                  fontSize: 8, fontWeight: 700,
-                  width: 14, height: 14, borderRadius: '50%',
+                  position: 'absolute', top: 5, right: 5,
+                  background: '#FF6A00', color: '#FFFFFF',
+                  fontSize: 9, fontWeight: 800,
+                  width: 16, height: 16, borderRadius: '50%',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontFamily: "'Inter', sans-serif",
                 }}>{cartCount}</span>
               )}
             </button>
 
+            {/* WhatsApp CTA - desktop */}
+            <a href="https://wa.me/994519831483" target="_blank" rel="noreferrer"
+              className="r-desktop-nav"
+              style={{
+                marginLeft: 8,
+                padding: '8px 20px',
+                background: '#FF6A00',
+                color: '#FFFFFF',
+                borderRadius: 8,
+                fontSize: 13, fontWeight: 700,
+                textDecoration: 'none',
+                fontFamily: "'Inter', sans-serif",
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                transition: 'background 0.15s, transform 0.15s',
+                whiteSpace: 'nowrap' as const,
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#E55E00'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = '#FF6A00'; e.currentTarget.style.transform = 'translateY(0)'; }}
+            >
+              💬 Sifariş et
+            </a>
+
             {/* Mobile menu btn */}
             <button
-              className="mobile-btn"
+              className="r-mobile-nav"
               onClick={() => setMenuOpen(v => !v)}
               style={{
                 background: 'none', border: 'none', cursor: 'pointer',
-                width: 40, height: 40, borderRadius: 2,
+                width: 38, height: 38, borderRadius: 8,
                 display: 'none', alignItems: 'center', justifyContent: 'center',
-                color: scrolled ? '#1B2A4A' : '#F5F0E8',
+                color: '#111111',
               }}
             >
-              {menuOpen ? <X size={18} /> : <Menu size={18} />}
+              {menuOpen ? <X size={19} /> : <Menu size={19} />}
             </button>
           </div>
         </div>
@@ -249,45 +285,43 @@ const Navbar: React.FC<NavbarProps> = ({
         {/* Mobile dropdown */}
         {menuOpen && (
           <div style={{
-            background: '#F5F0E8',
-            borderTop: '1px solid rgba(27,42,74,0.08)',
-            padding: '16px 24px 24px',
+            background: '#FFFFFF',
+            borderTop: '1px solid #F0EBE3',
+            padding: '8px 16px 20px',
           }}>
-            {navLinks.map(link => (
-              <button key={link.label} onClick={() => { link.action(); setMenuOpen(false); }}
+            {NAV_LINKS.map((link, i) => (
+              <button key={link.label} onClick={() => { actions[i](); setMenuOpen(false); }}
                 style={{
                   width: '100%', background: 'none', border: 'none', cursor: 'pointer',
-                  padding: '14px 0', textAlign: 'left' as const,
-                  fontSize: 12, fontWeight: 600, letterSpacing: 2,
-                  textTransform: 'uppercase' as const,
-                  color: '#1B2A4A', fontFamily: "'Jost', sans-serif",
-                  borderBottom: '1px solid rgba(27,42,74,0.06)',
-                  display: 'block',
-                  transition: 'color 0.2s',
+                  padding: '13px 8px', textAlign: 'left' as const, display: 'block',
+                  fontSize: 15, fontWeight: 500, color: '#111111',
+                  fontFamily: "'Inter', sans-serif",
+                  borderBottom: '1px solid #F5F2EC',
                 }}
-                onMouseEnter={e => e.currentTarget.style.color = '#B8952A'}
-                onMouseLeave={e => e.currentTarget.style.color = '#1B2A4A'}
               >{link.label}</button>
             ))}
-            <a
-              href="https://wa.me/994519831483"
-              target="_blank" rel="noreferrer"
+            <a href="https://wa.me/994519831483" target="_blank" rel="noreferrer"
               style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                marginTop: 20, padding: '14px',
-                background: '#1B2A4A', color: '#B8952A',
-                borderRadius: 3, textDecoration: 'none',
-                fontSize: 11, fontWeight: 600, letterSpacing: 2,
-                textTransform: 'uppercase' as const,
-                fontFamily: "'Jost', sans-serif",
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                marginTop: 16, padding: '14px',
+                background: '#FF6A00', color: '#FFFFFF',
+                borderRadius: 10, textDecoration: 'none',
+                fontSize: 15, fontWeight: 700,
+                fontFamily: "'Inter', sans-serif",
               }}
-            >WhatsApp ilə sifariş</a>
+            >💬 WhatsApp ilə sifariş et</a>
           </div>
         )}
       </nav>
 
-      {/* Spacer */}
-      <div style={{ height: 36 + 64 }} />
+      <div style={{ height: 38 + 60 }} />
+
+      <style>{`
+        @media (max-width: 768px) {
+          .r-desktop-nav { display: none !important; }
+          .r-mobile-nav { display: flex !important; }
+        }
+      `}</style>
     </>
   );
 };
