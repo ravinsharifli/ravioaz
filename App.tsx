@@ -448,6 +448,7 @@ export default function App() {
         onRemove={handleRemove}
         onEdit={handleEdit}
         onGoToProducts={() => { setCartOpen(false); setView('products' as AppView); }}
+        metroSchedule={metroSchedule}
       />
 
       <style>{`

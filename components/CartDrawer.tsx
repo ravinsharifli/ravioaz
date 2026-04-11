@@ -1,9 +1,81 @@
-import React from 'react';
-import {
-  X, Trash2, ShoppingBag, MessageCircle,
-  ArrowRight, MapPin, Edit3, Gift,
-} from 'lucide-react';
+import React, { useState } from 'react';
+import { X, Trash2, ShoppingBag, ArrowRight, Edit3, ChevronLeft } from 'lucide-react';
 import { CartItem } from '../types';
+
+const FONT = "'Inter', -apple-system, sans-serif";
+
+const C = {
+  bg:       '#F5F2EC',
+  white:    '#FFFFFF',
+  black:    '#111111',
+  gray:     '#666666',
+  grayLt:   '#AAAAAA',
+  border:   '#E5E1DB',
+  orange:   '#FF6A00',
+  orangeBg: '#FFF3EC',
+  orangeBd: '#FFD4B8',
+  green:    '#16A34A',
+  greenBg:  '#F0FDF4',
+  blue:     '#2563EB',
+  blueBg:   '#EFF6FF',
+  blueBd:   '#BFDBFE',
+  red:      '#DC2626',
+};
+
+const MONTHS_AZ = ['Yanvar','Fevral','Mart','Aprel','May','İyun','İyul','Avqust','Sentyabr','Oktyabr','Noyabr','Dekabr'];
+const DAYS = Array.from({ length: 31 }, (_, i) => String(i + 1).padStart(2, '0'));
+const YEARS = ['2026', '2027'];
+
+const Label: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.8, textTransform: 'uppercase' as const, color: C.gray, margin: '0 0 10px', fontFamily: FONT }}>
+    {children}
+  </p>
+);
+
+const Sec: React.FC<{ children: React.ReactNode; highlight?: boolean }> = ({ children, highlight }) => (
+  <div style={{
+    background: C.white, border: `1.5px solid ${highlight ? C.blue : C.border}`,
+    borderRadius: 12, padding: '14px 16px', marginBottom: 12,
+  }}>{children}</div>
+);
+
+const Inp: React.FC<React.InputHTMLAttributes<HTMLInputElement>> = ({ onFocus, onBlur, ...props }) => (
+  <input
+    {...props}
+    style={{
+      width: '100%', background: C.white, border: `1px solid ${C.border}`,
+      borderRadius: 8, padding: '11px 14px',
+      color: C.black, fontSize: 14, fontFamily: FONT,
+      outline: 'none', boxSizing: 'border-box' as const,
+      transition: 'border-color 0.15s', ...props.style,
+    }}
+    onFocus={e => { e.currentTarget.style.borderColor = C.blue; onFocus?.(e); }}
+    onBlur={e => { e.currentTarget.style.borderColor = C.border; onBlur?.(e); }}
+  />
+);
+
+const Sel: React.FC<{ value: string; onChange: (v: string) => void; opts: string[]; placeholder?: string }> = ({ value, onChange, opts, placeholder }) => (
+  <select
+    value={value}
+    onChange={e => onChange(e.target.value)}
+    style={{
+      width: '100%', background: C.bg, border: `1px solid ${C.border}`,
+      borderRadius: 8, padding: '11px 10px',
+      color: value ? C.black : C.grayLt, fontSize: 13,
+      outline: 'none', fontFamily: FONT, cursor: 'pointer',
+    }}
+  >
+    {placeholder && <option value="" disabled>{placeholder}</option>}
+    {opts.map(o => <option key={o} value={o}>{o}</option>)}
+  </select>
+);
+
+const SRow: React.FC<{ l: string; r: string; accent?: boolean; bold?: boolean }> = ({ l, r, accent, bold }) => (
+  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+    <span style={{ fontSize: 13, color: C.gray, fontFamily: FONT }}>{l}</span>
+    <span style={{ fontSize: 13, fontWeight: bold ? 700 : 500, color: accent ? C.green : C.black, fontFamily: FONT }}>{r}</span>
+  </div>
+);
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -12,346 +84,392 @@ interface CartDrawerProps {
   onRemove: (cartId: string) => void;
   onEdit: (item: CartItem) => void;
   onGoToProducts?: () => void;
+  metroSchedule?: { stations: string[]; days: string[]; times: string[] };
 }
 
-// ── Hər sifarişin yekun qiymətini hesabla ────────────────────────
-// Yeni forma ilə gələn sifarişlərdə finalTotal artıq hazırdır.
-// Köhnə sifarişlər üçün ehtiyat hesablama işləyir.
-function getItemFinalPrice(item: CartItem): number {
+function getItemSubtotal(item: CartItem): number {
   if (item.finalTotal !== undefined) return item.finalTotal;
-  // Ehtiyat: köhnə hesablama üsulu
-  const basePrice      = item.discountPrice ?? item.price;
-  const loyaltyDisc    = item.customerType === 'loyal'
-    ? basePrice * 0.20
-    : item.isFirstOrSecondOrder ? basePrice * 0.10 : 0;
-  const deliveryPrice  = item.deliveryType === 'urgent' ? 4.99
-    : item.deliveryType === 'express' ? 4.99 : 0;
-  return (basePrice - loyaltyDisc + deliveryPrice) * item.quantity;
-}
-
-function getItemBeh(item: CartItem): number {
-  if (item.behAmount !== undefined) return item.behAmount;
-  return Math.ceil(getItemFinalPrice(item) * 0.5);
+  const base = item.discountPrice ?? item.price;
+  return base * item.quantity + (item.boxPrice ?? 0);
 }
 
 const CartDrawer: React.FC<CartDrawerProps> = ({
-  isOpen, onClose, items, onRemove, onEdit, onGoToProducts,
+  isOpen, onClose, items, onRemove, onEdit, onGoToProducts, metroSchedule,
 }) => {
-  // Yekun cəm
-  const grandTotal = items.reduce(
-    (sum, item) => sum + getItemFinalPrice(item), 0
-  );
-  const grandBeh = items.reduce(
-    (sum, item) => sum + getItemBeh(item), 0
-  );
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [custName,     setCustName]     = useState('');
+  const [phone,        setPhone]        = useState('');
+  const [bdDay,        setBdDay]        = useState('');
+  const [bdMonth,      setBdMonth]      = useState('');
+  const [bdYear,       setBdYear]       = useState('');
+  const [customerType, setCustomerType] = useState<'new' | 'loyal' | null>(null);
+  const [delivery,     setDelivery]     = useState<'metro' | 'kuryer' | 'post'>('metro');
+  const [metro,        setMetro]        = useState('28 May');
+  const [delDay,       setDelDay]       = useState('');
+  const [delMonth,     setDelMonth]     = useState('');
+  const [delYear,      setDelYear]      = useState('2026');
+  const [delTime,      setDelTime]      = useState('14:00');
+  const [address,      setAddress]      = useState('');
 
-  // ── WhatsApp mesajı ────────────────────────────────────────────
-  const handleWhatsAppCheckout = () => {
-    const phoneNumber = '994519831483';
+  const stations = metroSchedule?.stations?.length ? metroSchedule.stations : ['28 May','Həzi Aslanov','Nərimanov','İçərişəhər','Memar Əcəmi'];
+  const times    = metroSchedule?.times?.length    ? metroSchedule.times    : ['14:00','15:00','16:00','17:00','18:00','19:00'];
+
+  const baseTotal   = items.reduce((s, item) => s + getItemSubtotal(item), 0);
+  const deliveryFee = delivery === 'metro' ? 0 : 4.99;
+  const subtotal    = baseTotal + deliveryFee;
+  const discRate    = customerType === 'loyal' ? 20 : customerType === 'new' ? 10 : 0;
+  const custDisc    = customerType ? Math.round(subtotal * discRate / 100 * 100) / 100 : 0;
+  const grandTotal  = subtotal - custDisc;
+  const grandBeh    = Math.ceil(grandTotal * 0.5);
+
+  const checkoutValid =
+    custName.trim().length > 0 &&
+    phone.trim().length > 0 &&
+    customerType !== null &&
+    delDay !== '' && delMonth !== '' &&
+    (delivery === 'metro' || address.trim().length > 0);
+
+  const handleWhatsApp = () => {
+    if (!checkoutValid) return;
+    const birthStr = bdDay && bdMonth && bdYear ? `${bdDay} ${bdMonth} ${bdYear}` : 'Bildirilməyib';
+    const delStr   = delivery === 'metro'
+      ? `${delDay} ${delMonth} ${delYear} · Saat: ${delTime} · Metro: ${metro}`
+      : `${delDay} ${delMonth} ${delYear} · ${delivery === 'kuryer' ? 'Kuryer' : 'Poçt'} · Ünvan: ${address}`;
 
     const itemsText = items.map((item, idx) => {
-      const finalPrice = getItemFinalPrice(item);
-      const beh        = getItemBeh(item);
-      const baseUnit   = item.discountPrice ?? item.price;
-      const imgUrl     = item.images?.[0] ?? '';
-
-      // Qiymət sətirləri
-      let priceLines = `- Vahid qiymət: ${baseUnit.toFixed(2)} ₼\n`;
-      priceLines += `- Say: ${item.quantity} ədəd\n`;
-
-      if (item.discountPrice && item.discountPrice < item.price) {
-        const pct = Math.round(((item.price - item.discountPrice) / item.price) * 100);
-        priceLines += `  ↳ Kampaniya endirimi: -%${pct}\n`;
-      }
-      if ((item.bulkDiscountAmount ?? 0) > 0) {
-        priceLines += `  ↳ Say endirimi: -${item.bulkDiscountAmount!.toFixed(2)} ₼\n`;
-      }
-      if ((item.lazerPrice ?? 0) > 0) {
-        priceLines += `  ↳ Lazer yazı: +${item.lazerPrice!.toFixed(2)} ₼\n`;
-      }
-      if (item.hasQrCode) {
-        priceLines += `  ↳ QR Kod: +3 ₼\n`;
-      }
-      if ((item.boxPrice ?? 0) > 0) {
-        priceLines += `  ↳ ${item.boxType === 'gift' ? 'Hədiyyə Qutu' : 'Premium Qutu'}: +${item.boxPrice!.toFixed(2)} ₼\n`;
-      }
-      if (item.deliveryMethod === 'kuryer') {
-        priceLines += `  ↳ Kuryer çatdırılması: +4.99 ₼\n`;
-      }
-      if ((item.couponDiscount ?? 0) > 0) {
-        priceLines += `  ↳ Kupon (${item.couponCode}): -${item.couponDiscount!.toFixed(2)} ₼\n`;
-      }
-      priceLines += `  *Son qiymət: ${finalPrice.toFixed(2)} ₼*\n`;
-      priceLines += `  💳 *Ön ödəniş (50%): ${beh.toFixed(2)} ₼* (kart-karta)\n`;
-
-      // Çatdırılma mətni
-      const deliveryText = item.deliveryMethod === 'metro'
-        ? `🚇 Metro: ${item.metroStation} · ${item.metroDay} · ${item.metroTime}`
-        : item.deliveryMethod === 'kuryer'
-        ? `🛵 Kuryer: ${item.deliveryDetails}`
-        : item.deliveryDetails || 'Qeyd edilməyib';
-
+      const imgUrl = item.images?.[0] ?? '';
+      let lines = `- Vahid qiyməti: ${(item.discountPrice ?? item.price).toFixed(2)} ₼\n`;
+      lines += `- Say: ${item.quantity} ədəd\n`;
+      if ((item.boxPrice ?? 0) > 0) lines += `  Qablaşdırma: +${item.boxPrice!.toFixed(2)} ₼\n`;
+      lines += `  Məhsul cəmi: ${getItemSubtotal(item).toFixed(2)} ₼\n`;
       return (
-        `━━━━━━━━━━━━━━━━\n` +
-        `*📦 MƏHSUL ${idx + 1}:*\n` +
-        `- Ad: ${item.productName}\n` +
-        `- Model: ${item.modelName}\n` +
-        `- Rəng: ${item.colorName}\n` +
+        `━━━━━━━━━━━━━━━\n*MƏHSUL ${idx + 1}:*\n` +
+        `- Ad: ${item.productName}\n- Model: ${item.modelName}\n- Rəng: ${item.colorName}\n` +
         (imgUrl ? `🖼 Şəkil: ${imgUrl}\n` : '') +
-        `\n👤 *MÜŞTƏRİ:*\n` +
-        `- Ad: ${item.customerName}\n` +
-        `- Telefon: ${item.phone}\n` +
-        `\n✏️ *SİFARİŞ DETALLARI:*\n` +
-        `- Lazer yazı: ${item.customText || 'Yoxdur'}\n` +
-        `- QR Kod: ${item.hasQrCode ? 'Bəli ✓' : 'Xeyr'}\n` +
-        `- Qablaşdırma: ${
-          item.boxType === 'gift'    ? 'Hədiyyə Qutu 🎁' :
-          item.boxType === 'premium' ? 'Premium Qutu ◈'  :
-          item.boxType === 'simple'  ? 'Sadə Qutu'        :
-          'Qutu yoxdur'
-        }\n` +
-        `\n🚚 *ÇATDIRILMA:*\n` +
-        `- ${deliveryText}\n` +
-        `\n💰 *QİYMƏT:*\n` +
-        priceLines +
-        `\n⚠️ *QEYD:* Bu məhsul özəl hazırlanır və geri qaytarılmır!`
+        lines +
+        (item.customText ? `- Yazı/Qeyd: ${item.customText}\n` : '') +
+        (item.specialRequest ? `- Xüsusi: ${item.specialRequest}\n` : '')
       );
-    }).join('\n\n');
+    }).join('\n');
 
-    const message = encodeURIComponent(
-      `*🎁 YENİ SİFARİŞ — RAVIO.AZ*\n\n` +
-      `${itemsText}\n\n` +
-      `━━━━━━━━━━━━━━━━\n` +
-      `*💵 YEKUN CƏM:* ${grandTotal.toFixed(2)} ₼\n` +
-      `*💳 YEKUN BEH (50%):* ${grandBeh.toFixed(2)} ₼ (kart-karta)\n\n` +
-      `✅ Sifarişi təsdiqləmək üçün geri dönüş gözləyirəm! 🙏`
-    );
+    const msg =
+      `*🛍 YENİ SİFARİŞ — RAVIO.AZ*\n\n` +
+      itemsText +
+      `\n━━━━━━━━━━━━━━━\n*ÇATDIRILMA:* ${delStr}\n\n` +
+      `*ƏLAQƏ:*\n- Ad: ${custName}\n- Telefon: ${phone}\n- Doğum tarixi: ${birthStr}\n` +
+      `- Müştəri növü: ${customerType === 'loyal' ? 'Daimi müştəri' : 'Yeni müştəri'}\n\n` +
+      `━━━━━━━━━━━━━━━\n` +
+      `Məhsullar cəmi: ${baseTotal.toFixed(2)} ₼\n` +
+      (deliveryFee > 0 ? `Çatdırılma: +${deliveryFee.toFixed(2)} ₼\n` : `Çatdırılma: Pulsuz\n`) +
+      (custDisc > 0 ? `Endirim (${discRate}%): -${custDisc.toFixed(2)} ₼\n` : '') +
+      `*ÜMUMİ: ${grandTotal.toFixed(2)} ₼*\n` +
+      `*💳 ÖN ÖDƏNİŞ (50% beh): ${grandBeh.toFixed(2)} ₼*\n` +
+      `Qalan ${(grandTotal - grandBeh).toFixed(2)} ₼ məhsul alınarkən`;
 
-    window.open(`https://wa.me/${phoneNumber}?text=${message}`, '_blank');
+    window.open(`https://wa.me/994519831483?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
-  const handleGoToProducts = () => {
-    onClose();
-    if (onGoToProducts) onGoToProducts();
-  };
+  if (!isOpen) return null;
 
-  // ── Render ──────────────────────────────────────────────────────
   return (
-    <>
-      {/* Qaranlıq fon */}
-      <div
-        className={`fixed inset-0 z-[150] bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${
-          isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-        }`}
-        onClick={onClose}
-      />
+    <div
+      style={{ position: 'fixed', inset: 0, zIndex: 1500, background: 'rgba(0,0,0,0.5)', fontFamily: FONT }}
+      onClick={e => { if (e.target === e.currentTarget) { onClose(); setIsCheckingOut(false); } }}
+    >
+      <div style={{
+        position: 'absolute', right: 0, top: 0, bottom: 0,
+        width: '100%', maxWidth: 480,
+        background: C.bg, display: 'flex', flexDirection: 'column' as const,
+        boxShadow: '-8px 0 32px rgba(0,0,0,0.12)',
+      }}>
 
-      {/* Sürüşən panel */}
-      <div
-        className={`fixed top-0 right-0 h-full w-full max-w-md bg-white z-[200] shadow-2xl transition-transform duration-500 ease-out transform ${
-          isOpen ? 'translate-x-0' : 'translate-x-full'
-        }`}
-      >
-        <div className="flex flex-col h-full">
-
-          {/* Başlıq */}
-          <div className="p-6 border-b border-gray-100 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <ShoppingBag className="h-6 w-6 text-[#b8965a]" />
-              <h2 className="text-xl font-bold tracking-tight" style={{ fontFamily: 'Georgia, serif' }}>
-                Səbətim
+        {/* Header */}
+        <div style={{ background: C.white, borderBottom: `1px solid ${C.border}`, padding: '18px 20px', flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              {isCheckingOut && (
+                <button onClick={() => setIsCheckingOut(false)} style={{
+                  background: 'none', border: 'none', cursor: 'pointer', padding: 4,
+                  display: 'flex', alignItems: 'center', color: C.gray,
+                }}><ChevronLeft size={20} /></button>
+              )}
+              <h2 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: C.black }}>
+                {isCheckingOut ? 'Sifarişi Tamamla' : `Səbətim (${items.length})`}
               </h2>
             </div>
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors outline-none"
-            >
-              <X className="h-5 w-5" />
-            </button>
+            <button onClick={() => { onClose(); setIsCheckingOut(false); }} style={{
+              width: 32, height: 32, borderRadius: '50%', background: C.bg, border: 'none',
+              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.gray,
+            }}><X size={16} /></button>
           </div>
+        </div>
 
-          {/* Məhsul siyahısı */}
-          <div className="flex-grow overflow-y-auto p-5 space-y-5">
-            {items.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full text-center space-y-4">
-                <div className="bg-amber-50 p-6 rounded-full">
-                  <ShoppingBag className="h-12 w-12 text-[#b8965a] opacity-25" />
-                </div>
-                <p className="text-gray-400 font-semibold italic text-lg"
-                   style={{ fontFamily: 'Georgia, serif' }}>
-                  Səbətiniz boşdur.
-                </p>
-                <button
-                  onClick={handleGoToProducts}
-                  className="px-6 py-3 rounded-2xl font-bold text-sm transition-all shadow"
-                  style={{
-                    background: '#2d2926', color: '#fff',
-                    fontFamily: 'Georgia, serif',
-                  }}
-                >
-                  Məhsullara bax →
-                </button>
-              </div>
-            ) : (
-              items.map((item) => {
-                const finalPrice  = getItemFinalPrice(item);
-                const beh         = getItemBeh(item);
-                const baseUnit    = item.discountPrice ?? item.price;
-                const hasDiscount = item.discountPrice && item.discountPrice < item.price;
-                const discPct     = hasDiscount
-                  ? Math.round(((item.price - item.discountPrice!) / item.price) * 100) : 0;
+        {/* Boş səbət */}
+        {items.length === 0 && (
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', gap: 16, padding: 32 }}>
+            <ShoppingBag size={48} color={C.grayLt} />
+            <p style={{ fontSize: 15, color: C.gray, margin: 0, textAlign: 'center' as const }}>Səbətiniz boşdur</p>
+            <button onClick={onGoToProducts} style={{
+              padding: '12px 28px', background: C.orange, color: C.white,
+              border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 600,
+              cursor: 'pointer', fontFamily: FONT,
+            }}>Məhsullara bax</button>
+          </div>
+        )}
 
-                const deliveryLine = item.deliveryMethod === 'metro'
-                  ? `🚇 ${item.metroStation} · ${item.metroDay} · ${item.metroTime}`
-                  : item.deliveryDetails || 'Ünvan qeyd edilməyib';
-
-                return (
-                  <div
-                    key={item.cartId}
-                    className="bg-gray-50 rounded-2xl p-4 border border-gray-100 space-y-3"
-                  >
-                    {/* Üst hissə: şəkil + məlumat + sil/düzəlt */}
-                    <div className="flex gap-4">
-                      <div className="w-16 h-20 bg-white rounded-xl overflow-hidden shrink-0 shadow-sm">
-                        {item.images?.[0] ? (
-                          <img
-                            src={item.images[0]}
-                            className="w-full h-full object-cover"
-                            alt={item.productName}
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-300 text-xs">
-                            ?
-                          </div>
-                        )}
+        {/* ═══ SƏBƏT LİSTİ ═══ */}
+        {items.length > 0 && !isCheckingOut && (
+          <>
+            <div style={{ flex: 1, overflowY: 'auto' as const, padding: '16px 20px' }}>
+              {items.map(item => (
+                <div key={item.cartId} style={{
+                  background: C.white, border: `1px solid ${C.border}`,
+                  borderRadius: 12, padding: '14px', marginBottom: 10,
+                }}>
+                  <div style={{ display: 'flex', gap: 12 }}>
+                    {item.images?.[0] && (
+                      <img src={item.images[0]} alt={item.productName}
+                        style={{ width: 64, height: 64, objectFit: 'cover', borderRadius: 8, border: `1px solid ${C.border}`, flexShrink: 0 }}
+                        onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                      />
+                    )}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: C.black, marginBottom: 2 }}>{item.productName}</div>
+                      <div style={{ fontSize: 12, color: C.gray, marginBottom: 4 }}>
+                        {[item.modelName !== '—' && item.modelName, item.colorName !== '—' && item.colorName].filter(Boolean).join(' · ')}
                       </div>
-
-                      <div className="flex-grow flex flex-col justify-center">
-                        <h3 className="font-bold text-sm text-gray-800 line-clamp-1">
-                          {item.productName}
-                        </h3>
-                        <p className="text-[10px] text-gray-400 mt-0.5">
-                          {[item.modelName, item.colorName].filter(s => s && s !== '—').join(' · ')}
-                        </p>
-                        <div className="flex items-baseline gap-2 mt-1 flex-wrap">
-                          <span className="font-bold text-base" style={{ color: '#b8965a' }}>
-                            {baseUnit.toFixed(2)} ₼
-                          </span>
-                          {hasDiscount && (
-                            <>
-                              <span className="text-xs text-gray-400 line-through">
-                                {item.price.toFixed(2)} ₼
-                              </span>
-                              <span className="text-[9px] font-bold text-green-600 bg-green-50 px-1.5 py-0.5 rounded">
-                                -{discPct}%
-                              </span>
-                            </>
-                          )}
-                          {item.isGift && <Gift className="h-3 w-3 text-amber-500" />}
-                        </div>
-                        <p className="text-[10px] text-gray-400 mt-0.5">
-                          Say: {item.quantity} ədəd
-                        </p>
-                      </div>
-
-                      {/* Sil / Düzəlt düymələri */}
-                      <div className="flex flex-col gap-1">
-                        <button
-                          onClick={() => onRemove(item.cartId)}
-                          className="p-2 text-gray-300 hover:text-red-400 hover:bg-red-50 rounded-xl transition-all"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={() => onEdit(item)}
-                          className="p-2 text-gray-300 hover:text-amber-500 hover:bg-amber-50 rounded-xl transition-all"
-                        >
-                          <Edit3 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Alt detallar */}
-                    <div className="pt-2 border-t border-gray-100 space-y-1.5">
-                      {/* Lazer yazı */}
                       {item.customText && (
-                        <div className="flex items-center gap-2 text-[10px] text-amber-700 bg-amber-50 rounded-lg px-2 py-1.5">
-                          <span>✍️</span>
-                          <span className="italic">{item.customText}</span>
+                        <div style={{ fontSize: 11, color: C.blue, background: C.blueBg, borderRadius: 6, padding: '3px 8px', display: 'inline-block', marginBottom: 4 }}>
+                          "{item.customText.length > 30 ? item.customText.slice(0, 30) + '...' : item.customText}"
                         </div>
                       )}
-                      {/* QR Kod */}
-                      {item.hasQrCode && (
-                        <div className="text-[10px] text-gray-500">
-                          QR Kod: <span className="text-green-600 font-bold">Bəli ✓</span>
-                        </div>
-                      )}
-                      {/* Çatdırılma */}
-                      <div className="flex items-start gap-2 text-[10px] text-gray-500">
-                        <MapPin className="h-3 w-3 text-amber-500 shrink-0 mt-0.5" />
-                        <p className="line-clamp-1 italic">{deliveryLine}</p>
-                      </div>
-                      {/* Beh */}
-                      <div className="flex items-center justify-between bg-amber-50 rounded-lg px-2 py-1.5">
-                        <span className="text-[10px] font-bold text-amber-700">
-                          💳 Ön ödəniş (50%):
-                        </span>
-                        <span className="text-[11px] font-black text-amber-700">
-                          {beh.toFixed(2)} ₼
-                        </span>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: 13, color: C.grayLt }}>{item.quantity} ədəd</span>
+                        <span style={{ fontSize: 15, fontWeight: 700, color: C.black }}>{getItemSubtotal(item).toFixed(2)} ₼</span>
                       </div>
                     </div>
                   </div>
-                );
-              })
-            )}
-          </div>
+                  <div style={{ display: 'flex', gap: 8, marginTop: 10, borderTop: `1px solid ${C.border}`, paddingTop: 10 }}>
+                    <button onClick={() => onEdit(item)} style={{
+                      flex: 1, padding: '8px', borderRadius: 8,
+                      background: C.bg, border: `1px solid ${C.border}`,
+                      color: C.gray, fontSize: 12, cursor: 'pointer', fontFamily: FONT,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+                    }}><Edit3 size={13} /> Düzəlt</button>
+                    <button onClick={() => onRemove(item.cartId)} style={{
+                      flex: 1, padding: '8px', borderRadius: 8,
+                      background: '#FFF5F5', border: `1px solid #FFC9C9`,
+                      color: C.red, fontSize: 12, cursor: 'pointer', fontFamily: FONT,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+                    }}><Trash2 size={13} /> Sil</button>
+                  </div>
+                </div>
+              ))}
+            </div>
 
-          {/* Yekun + WhatsApp düyməsi */}
-          {items.length > 0 && (
-            <div className="p-5 bg-gray-50 border-t border-gray-100 space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-gray-400 font-bold uppercase text-xs tracking-widest">
-                  Yekun Cəm
-                </span>
-                <span
-                  className="text-2xl font-black"
-                  style={{ color: '#1e1a16', fontFamily: 'Georgia, serif' }}
-                >
-                  {grandTotal.toFixed(2)} ₼
-                </span>
+            <div style={{ padding: '14px 20px 28px', background: C.white, borderTop: `1px solid ${C.border}`, flexShrink: 0 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
+                <span style={{ fontSize: 14, color: C.gray }}>{items.length} məhsul</span>
+                <span style={{ fontSize: 16, fontWeight: 800, color: C.black }}>{baseTotal.toFixed(2)} ₼</span>
               </div>
-              <div className="flex items-center justify-between bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3">
-                <span className="text-xs font-bold text-amber-800">
-                  💳 Ön ödəniş (50%) — kart-karta
-                </span>
-                <span className="text-base font-black text-amber-700">
-                  {grandBeh.toFixed(2)} ₼
-                </span>
-              </div>
-              <button
-                onClick={handleWhatsAppCheckout}
-                className="w-full py-4 rounded-2xl font-bold flex items-center justify-center gap-3 transition-all shadow-lg group"
-                style={{
-                  background: '#2d2926', color: '#ffffff',
-                  fontFamily: 'Georgia, serif', fontSize: 15,
-                }}
-                onMouseEnter={e => {
-                  (e.currentTarget as HTMLButtonElement).style.background = '#b8965a';
-                }}
-                onMouseLeave={e => {
-                  (e.currentTarget as HTMLButtonElement).style.background = '#2d2926';
-                }}
-              >
-                <span>WhatsApp ilə Tamamla</span>
-                <MessageCircle className="h-5 w-5" />
-                <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
+              <button onClick={() => setIsCheckingOut(true)} style={{
+                width: '100%', padding: '15px', borderRadius: 10, border: 'none',
+                background: C.orange, color: C.white,
+                fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: FONT,
+                boxShadow: '0 4px 16px rgba(255,106,0,0.25)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              }}>
+                Sifarişi Tamamla <ArrowRight size={18} />
               </button>
             </div>
-          )}
-        </div>
+          </>
+        )}
+
+        {/* ═══ CHECKOUT ═══ */}
+        {items.length > 0 && isCheckingOut && (
+          <>
+            <div style={{ flex: 1, overflowY: 'auto' as const, padding: '16px 20px 20px' }}>
+
+              {/* Çatdırılma üsulu */}
+              <div style={{ marginBottom: 12 }}>
+                <Label>Çatdırılma üsulu</Label>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  {[
+                    { id: 'metro'  as const, icon: '🚇', label: 'Metro',  sub: 'Ödənişsiz' },
+                    { id: 'kuryer' as const, icon: '🛵', label: 'Kuryer', sub: '+4.99 ₼' },
+                    { id: 'post'   as const, icon: '📮', label: 'Poçt',   sub: '+4.99 ₼' },
+                  ].map(d => (
+                    <div key={d.id} onClick={() => setDelivery(d.id)} style={{
+                      flex: 1, background: delivery === d.id ? C.black : C.white,
+                      border: `1.5px solid ${delivery === d.id ? C.black : C.border}`,
+                      borderRadius: 10, padding: '12px 8px',
+                      textAlign: 'center' as const, cursor: 'pointer', transition: 'all 0.2s',
+                    }}>
+                      <div style={{ fontSize: 20, marginBottom: 4 }}>{d.icon}</div>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: delivery === d.id ? C.white : C.black }}>{d.label}</div>
+                      <div style={{ fontSize: 10, marginTop: 2, color: delivery === d.id ? 'rgba(255,255,255,0.55)' : C.grayLt }}>{d.sub}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Metro */}
+              {delivery === 'metro' && (
+                <Sec>
+                  <Label>Metro stansiyası</Label>
+                  <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 7, marginBottom: 14 }}>
+                    {stations.map(m => (
+                      <div key={m} onClick={() => setMetro(m)} style={{
+                        padding: '7px 13px', borderRadius: 100, fontSize: 12, cursor: 'pointer',
+                        fontWeight: metro === m ? 600 : 400,
+                        background: metro === m ? C.black : C.bg,
+                        color: metro === m ? C.white : C.gray,
+                        border: `1px solid ${metro === m ? C.black : C.border}`,
+                        transition: 'all 0.15s',
+                      }}>{m}</div>
+                    ))}
+                  </div>
+
+                  <Label>Tarix</Label>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1fr', gap: 8, marginBottom: 12 }}>
+                    <Sel value={delDay}   onChange={setDelDay}   opts={DAYS}      placeholder="Gün" />
+                    <Sel value={delMonth} onChange={setDelMonth} opts={MONTHS_AZ} placeholder="Ay" />
+                    <Sel value={delYear}  onChange={setDelYear}  opts={YEARS}     placeholder="İl" />
+                  </div>
+
+                  <Label>Saat</Label>
+                  <Sel value={delTime} onChange={setDelTime} opts={times} placeholder="Saat seçin" />
+                </Sec>
+              )}
+
+              {/* Kuryer / Poçt */}
+              {(delivery === 'kuryer' || delivery === 'post') && (
+                <Sec>
+                  <Label>Çatdırılma ünvanı</Label>
+                  <Inp
+                    value={address}
+                    onChange={e => setAddress(e.target.value)}
+                    placeholder={delivery === 'post' ? 'Şəhər, poçt indeksi, ünvan' : 'Məhəllə, küçə, bina nömrəsi'}
+                    style={{ marginBottom: 12 }}
+                  />
+                  <p style={{ margin: '0 0 14px', fontSize: 11, color: C.grayLt }}>
+                    {delivery === 'post' ? 'Nümunə: Bakı, AZ1000, Əliağa Vahid küç. 12' : 'Nümunə: Qaraçuxur, Maşallah market yanı'}
+                  </p>
+
+                  <Label>Tarix</Label>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1fr', gap: 8 }}>
+                    <Sel value={delDay}   onChange={setDelDay}   opts={DAYS}      placeholder="Gün" />
+                    <Sel value={delMonth} onChange={setDelMonth} opts={MONTHS_AZ} placeholder="Ay" />
+                    <Sel value={delYear}  onChange={setDelYear}  opts={YEARS}     placeholder="İl" />
+                  </div>
+                  <p style={{ margin: '8px 0 0', fontSize: 11, color: C.grayLt }}>Saat sifarişdən sonra razılaşdırılacaq</p>
+                </Sec>
+              )}
+
+              {/* Əlaqə */}
+              <Sec highlight>
+                <Label>Əlaqə məlumatları</Label>
+                <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 10 }}>
+                  <Inp value={custName} onChange={e => setCustName(e.target.value)} placeholder="Adınız" />
+                  <Inp value={phone} onChange={e => setPhone(e.target.value)} placeholder="Telefon (+994 50 xxx xx xx)" type="tel" />
+                  <div>
+                    <p style={{ fontSize: 12, color: C.gray, margin: '0 0 6px', fontFamily: FONT }}>Doğum tarixi (ixtiyari)</p>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1fr', gap: 8 }}>
+                      <Sel value={bdDay}   onChange={setBdDay}   opts={DAYS}      placeholder="Gün" />
+                      <Sel value={bdMonth} onChange={setBdMonth} opts={MONTHS_AZ} placeholder="Ay" />
+                      <Sel value={bdYear}  onChange={setBdYear}  opts={['1970','1975','1980','1985','1990','1991','1992','1993','1994','1995','1996','1997','1998','1999','2000','2001','2002','2003','2004','2005','2006']} placeholder="İl" />
+                    </div>
+                  </div>
+                </div>
+              </Sec>
+
+              {/* Müştəri növü — kiçik, yan-yana */}
+              <Sec>
+                <Label>Müştəri növü</Label>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  {[
+                    { id: 'new'   as const, label: 'Yeni müştəri',  sub: 'İlk sifarişim' },
+                    { id: 'loyal' as const, label: 'Daimi müştəri', sub: 'Əvvəl vermişəm' },
+                  ].map(opt => {
+                    const sel = customerType === opt.id;
+                    return (
+                      <div key={opt.id} onClick={() => setCustomerType(opt.id)} style={{
+                        flex: 1, display: 'flex', alignItems: 'center', gap: 8,
+                        padding: '10px 12px', borderRadius: 10, cursor: 'pointer',
+                        background: sel ? C.bg : C.white,
+                        border: `1.5px solid ${sel ? C.blue : C.border}`,
+                        transition: 'all 0.15s',
+                      }}>
+                        <div style={{
+                          width: 14, height: 14, borderRadius: '50%', flexShrink: 0,
+                          border: `2px solid ${sel ? C.blue : C.border}`,
+                          background: sel ? C.blue : 'transparent',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        }}>
+                          {sel && <div style={{ width: 5, height: 5, borderRadius: '50%', background: C.white }} />}
+                        </div>
+                        <div>
+                          <div style={{ fontSize: 12, fontWeight: sel ? 600 : 400, color: C.black, lineHeight: 1.2 }}>{opt.label}</div>
+                          <div style={{ fontSize: 10, color: C.grayLt, marginTop: 1 }}>{opt.sub}</div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </Sec>
+
+              {/* Xülasə */}
+              <Sec>
+                <Label>Sifariş xülasəsi</Label>
+                {items.map(item => (
+                  <SRow key={item.cartId} l={`${item.productName} ×${item.quantity}`} r={`${getItemSubtotal(item).toFixed(2)} ₼`} />
+                ))}
+                {deliveryFee > 0 && <SRow l={delivery === 'kuryer' ? 'Kuryer' : 'Poçt'} r={`+${deliveryFee.toFixed(2)} ₼`} />}
+                {custDisc > 0 && (
+                  <SRow l={customerType === 'loyal' ? 'Daimi müştəri endirimi' : 'Yeni müştəri endirimi'} r={`−${custDisc.toFixed(2)} ₼`} accent />
+                )}
+                <div style={{ borderTop: `1px solid ${C.border}`, margin: '10px 0 12px' }} />
+                <SRow l="Ümumi məbləğ" r={`${grandTotal.toFixed(2)} ₼`} bold />
+                <div style={{
+                  background: C.orangeBg, border: `1px solid ${C.orangeBd}`,
+                  borderRadius: 10, padding: '12px',
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4,
+                }}>
+                  <div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: C.orange }}>İndi ödəniləcək (50% beh)</div>
+                    <div style={{ fontSize: 11, color: C.gray, marginTop: 2 }}>Qalan {(grandTotal - grandBeh).toFixed(2)} ₼ məhsul alınarkən</div>
+                  </div>
+                  <div style={{ fontSize: 24, fontWeight: 800, color: C.orange }}>{grandBeh.toFixed(2)} ₼</div>
+                </div>
+              </Sec>
+            </div>
+
+            <div style={{ padding: '14px 20px 28px', background: C.white, borderTop: `1px solid ${C.border}`, flexShrink: 0 }}>
+              {!checkoutValid && (
+                <p style={{ fontSize: 12, color: C.grayLt, textAlign: 'center' as const, margin: '0 0 10px', fontFamily: FONT }}>
+                  Bütün xanaları doldurun
+                </p>
+              )}
+              <button
+                disabled={!checkoutValid}
+                onClick={handleWhatsApp}
+                style={{
+                  width: '100%', padding: '15px', borderRadius: 10, border: 'none',
+                  background: checkoutValid ? '#25D366' : C.bg,
+                  color: checkoutValid ? C.white : C.grayLt,
+                  fontSize: 15, fontWeight: 700,
+                  cursor: checkoutValid ? 'pointer' : 'not-allowed',
+                  fontFamily: FONT,
+                  boxShadow: checkoutValid ? '0 4px 16px rgba(37,211,102,0.3)' : 'none',
+                }}
+              >
+                💬 WhatsApp ilə Göndər
+              </button>
+            </div>
+          </>
+        )}
       </div>
-    </>
+    </div>
   );
 };
 
