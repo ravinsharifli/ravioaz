@@ -1,5 +1,5 @@
 ﻿import React, { useState } from 'react';
-import { ShoppingBag, Zap } from 'lucide-react';
+import { ShoppingBag, Zap, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Product } from '../types';
 
 interface ProductGridProps {
@@ -12,10 +12,10 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart, onView
   const getPriceInfo = (product: Product) => {
     const variants = product.variants || [];
     if (!variants.length) return { min: 0, max: 0, minOld: null, hasDiscount: false, pct: 0 };
-    const eff = variants.map(v => v.discountPrice ?? v.price);
+    const eff  = variants.map(v => v.discountPrice ?? v.price);
     const orig = variants.map(v => v.price);
-    const min = Math.min(...eff);
-    const max = Math.max(...eff);
+    const min  = Math.min(...eff);
+    const max  = Math.max(...eff);
     const minOld = Math.min(...orig);
     const hasDiscount = variants.some(v => v.discountPrice && v.discountPrice < v.price);
     const pct = hasDiscount ? Math.round(((minOld - min) / minOld) * 100) : 0;
@@ -34,27 +34,23 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart, onView
   return (
     <div style={{
       display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 220px), 1fr))',
+      gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 210px), 1fr))',
       gap: 20,
     }}>
       {products.map(product => {
         const fv = product.variants?.[0];
         if (!fv) return null;
-        const img = fv.images?.[0];
         const { min, max, minOld, hasDiscount, pct } = getPriceInfo(product);
-        const samePrice = min === max;
-        const stock = (product.variants || []).reduce((s, v) => s + (v.stock || 0), 0);
+        const stock    = (product.variants || []).reduce((s, v) => s + (v.stock || 0), 0);
         const lowStock = stock > 0 && stock <= 5;
         const outOfStock = stock === 0;
-
         return (
           <Card
             key={product.id}
             product={product}
-            img={img}
             min={min} max={max} minOld={minOld}
             hasDiscount={hasDiscount} pct={pct}
-            samePrice={samePrice}
+            samePrice={min === max}
             lowStock={lowStock} outOfStock={outOfStock} stock={stock}
             onView={() => onViewProduct(product)}
             onAdd={() => onAddToCart(product)}
@@ -67,7 +63,6 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart, onView
 
 interface CardProps {
   product: Product;
-  img?: string;
   min: number; max: number; minOld: number | null;
   hasDiscount: boolean; pct: number; samePrice: boolean;
   lowStock: boolean; outOfStock: boolean; stock: number;
@@ -75,34 +70,53 @@ interface CardProps {
 }
 
 const Card: React.FC<CardProps> = ({
-  product, img, min, max, minOld,
+  product, min, max, minOld,
   hasDiscount, pct, samePrice,
   lowStock, outOfStock, stock,
   onView, onAdd,
 }) => {
   const [hovered, setHovered] = useState(false);
+  const [imgIdx, setImgIdx]   = useState(0);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+
+  const allImages = (product.variants || []).flatMap(v => v.images || []).filter(Boolean);
+  const images    = allImages.length > 0 ? allImages : [];
+  const totalImgs = images.length;
+
+  const nextImg = (e: React.MouseEvent) => { e.stopPropagation(); setImgIdx(i => (i + 1) % totalImgs); };
+  const prevImg = (e: React.MouseEvent) => { e.stopPropagation(); setImgIdx(i => (i - 1 + totalImgs) % totalImgs); };
+
+  const handleTouchStart = (e: React.TouchEvent) => setTouchStart(e.touches[0].clientX);
+  const handleTouchEnd   = (e: React.TouchEvent) => {
+    if (touchStart === null) return;
+    const diff = touchStart - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 40) setImgIdx(i => diff > 0 ? (i + 1) % totalImgs : (i - 1 + totalImgs) % totalImgs);
+    setTouchStart(null);
+  };
 
   return (
     <div
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        background: '#FFFFFF',
-        borderRadius: 12,
-        overflow: 'hidden',
+        background: '#FFFFFF', borderRadius: 12,
+        overflow: 'hidden', cursor: 'pointer',
         border: hovered ? '1px solid #E0DDD8' : '1px solid #EDEBE7',
         boxShadow: hovered ? '0 8px 32px rgba(0,0,0,0.08)' : '0 1px 4px rgba(0,0,0,0.04)',
         transition: 'box-shadow 0.25s, border-color 0.25s, transform 0.25s',
         transform: hovered ? 'translateY(-3px)' : 'translateY(0)',
-        cursor: 'pointer',
       }}
       onClick={onView}
     >
-      {/* Image area */}
-      <div style={{ position: 'relative', aspectRatio: '1 / 1', overflow: 'hidden', background: '#F5F2EC' }}>
-        {img ? (
+      {/* Image */}
+      <div
+        style={{ position: 'relative', aspectRatio: '1/1', overflow: 'hidden', background: '#F5F2EC' }}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
+        {images.length > 0 ? (
           <img
-            src={img} alt={product.name}
+            src={images[imgIdx]} alt={product.name}
             style={{
               width: '100%', height: '100%', objectFit: 'cover', display: 'block',
               transition: 'transform 0.5s ease',
@@ -115,42 +129,36 @@ const Card: React.FC<CardProps> = ({
           </div>
         )}
 
-        {/* Discount badge — orange */}
+        {/* Discount badge — image corner only */}
         {hasDiscount && (
           <div style={{
             position: 'absolute', top: 10, left: 10,
             background: '#FF6A00', color: '#FFFFFF',
             fontSize: 11, fontWeight: 800,
             padding: '4px 10px', borderRadius: 6,
-            fontFamily: "'Inter', sans-serif",
-            letterSpacing: 0.3,
           }}>−{pct}%</div>
         )}
 
-        {/* Popular badge — dark */}
+        {/* Popular badge */}
         {product.isBestSeller && !hasDiscount && (
           <div style={{
             position: 'absolute', top: 10, left: 10,
             background: '#111111', color: '#FFFFFF',
             fontSize: 10, fontWeight: 700,
             padding: '4px 10px', borderRadius: 6,
-            fontFamily: "'Inter', sans-serif",
-            letterSpacing: 0.5,
           }}>✦ Populyar</div>
         )}
 
-        {/* Low stock — urgency orange */}
+        {/* Low stock */}
         {lowStock && (
           <div style={{
             position: 'absolute', top: 10, right: 10,
             background: '#FF6A00', color: '#FFFFFF',
             fontSize: 10, fontWeight: 700,
             padding: '4px 8px', borderRadius: 6,
-            fontFamily: "'Inter', sans-serif",
             display: 'flex', alignItems: 'center', gap: 4,
           }}>
-            <Zap size={10} fill="#FFFFFF" />
-            Son {stock}
+            <Zap size={10} fill="#FFFFFF" />Son {stock}
           </div>
         )}
 
@@ -158,16 +166,60 @@ const Card: React.FC<CardProps> = ({
         {outOfStock && (
           <div style={{
             position: 'absolute', inset: 0,
-            background: 'rgba(255,255,255,0.7)',
+            background: 'rgba(255,255,255,0.75)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
-            <span style={{ fontSize: 12, fontWeight: 700, color: '#999', letterSpacing: 1, fontFamily: "'Inter', sans-serif" }}>
-              STOKDA YOX
-            </span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: '#999', letterSpacing: 1 }}>STOKDA YOX</span>
           </div>
         )}
 
-        {/* Quick add button on hover */}
+        {/* Image navigation — show on hover if multiple images */}
+        {totalImgs > 1 && hovered && (
+          <>
+            <button onClick={prevImg} style={{
+              position: 'absolute', left: 6, top: '50%', transform: 'translateY(-50%)',
+              background: 'rgba(255,255,255,0.92)', border: '1px solid #EDEBE7',
+              borderRadius: '50%', width: 28, height: 28,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+            }}><ChevronLeft size={14} /></button>
+            <button onClick={nextImg} style={{
+              position: 'absolute', right: 6, top: '50%', transform: 'translateY(-50%)',
+              background: 'rgba(255,255,255,0.92)', border: '1px solid #EDEBE7',
+              borderRadius: '50%', width: 28, height: 28,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+            }}><ChevronRight size={14} /></button>
+            {/* Dots */}
+            <div style={{
+              position: 'absolute', bottom: 8, left: '50%', transform: 'translateX(-50%)',
+              display: 'flex', gap: 4,
+            }}>
+              {images.map((_, i) => (
+                <div key={i} style={{
+                  width: i === imgIdx ? 16 : 5, height: 5,
+                  borderRadius: 3, background: i === imgIdx ? '#FF6A00' : 'rgba(0,0,0,0.25)',
+                  transition: 'all 0.2s',
+                }} />
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* Swipe hint on mobile — show if multiple images */}
+        {totalImgs > 1 && !hovered && (
+          <div style={{
+            position: 'absolute', bottom: 8, right: 8,
+            background: 'rgba(0,0,0,0.45)', color: '#FFFFFF',
+            fontSize: 9, fontWeight: 600, padding: '3px 8px',
+            borderRadius: 100, letterSpacing: 0.5,
+            display: 'flex', alignItems: 'center', gap: 4,
+          }}>
+            <span>⟵⟶</span> {totalImgs}
+          </div>
+        )}
+
+        {/* Quick add — hover */}
         {!outOfStock && (
           <div style={{
             position: 'absolute', bottom: 0, left: 0, right: 0,
@@ -179,98 +231,81 @@ const Card: React.FC<CardProps> = ({
             <button
               onClick={e => { e.stopPropagation(); onAdd(); }}
               style={{
-                width: '100%',
-                padding: '11px 0',
-                background: '#FF6A00',
-                color: '#FFFFFF',
+                width: '100%', padding: '11px 0',
+                background: '#FF6A00', color: '#FFFFFF',
                 border: 'none', borderRadius: 8,
                 fontSize: 12, fontWeight: 700,
-                cursor: 'pointer',
-                fontFamily: "'Inter', sans-serif",
+                cursor: 'pointer', fontFamily: "'Inter', sans-serif",
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                letterSpacing: 0.3,
               }}
               onMouseEnter={e => e.currentTarget.style.background = '#E55E00'}
               onMouseLeave={e => e.currentTarget.style.background = '#FF6A00'}
             >
-              <ShoppingBag size={13} />
-              Sifariş et
+              <ShoppingBag size={13} /> Sifariş et
             </button>
           </div>
         )}
       </div>
 
-      {/* Card body — F-pattern: left aligned */}
+      {/* Card body */}
       <div style={{ padding: '14px 14px 16px' }}>
-        {/* Category */}
         {product.category && (
           <span style={{
-            fontSize: 10, fontWeight: 600,
-            color: '#999999',
-            letterSpacing: 0.8,
-            textTransform: 'uppercase' as const,
+            fontSize: 10, fontWeight: 600, color: '#999999',
+            letterSpacing: 0.8, textTransform: 'uppercase' as const,
             display: 'block', marginBottom: 5,
             fontFamily: "'Inter', sans-serif",
           }}>{product.category}</span>
         )}
 
-        {/* Product name — left, clear */}
         <h3 style={{
-          margin: '0 0 10px',
-          fontSize: 14, fontWeight: 600,
-          color: '#111111',
-          lineHeight: 1.4,
+          margin: '0 0 10px', fontSize: 14, fontWeight: 600,
+          color: '#111111', lineHeight: 1.4,
           fontFamily: "'Inter', sans-serif",
           display: '-webkit-box' as any,
-          WebkitLineClamp: 2,
-          WebkitBoxOrient: 'vertical' as any,
+          WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as any,
           overflow: 'hidden',
         }}>{product.name}</h3>
 
-        {/* Price row */}
+        {/* Price row — NO duplicate discount badge here */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
           <div>
-            {hasDiscount && minOld && (
+            {hasDiscount && minOld !== null && (
               <span style={{
                 fontSize: 11, color: '#BBBBBB',
                 textDecoration: 'line-through',
                 display: 'block', lineHeight: 1, marginBottom: 2,
                 fontFamily: "'Inter', sans-serif",
-              }}>{minOld.toFixed(0)} ₼</span>
+              }}>{minOld.toFixed(2)} ₼</span>
             )}
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
-              <span style={{
-                fontSize: 18, fontWeight: 800,
-                color: hasDiscount ? '#FF6A00' : '#111111',
-                fontFamily: "'Inter', sans-serif",
-                letterSpacing: '-0.5px',
-              }}>
-                {min.toFixed(0)}{!samePrice ? `–${max.toFixed(0)}` : ''} ₼
-              </span>
-            </div>
+            <span style={{
+              fontSize: 18, fontWeight: 800,
+              color: hasDiscount ? '#FF6A00' : '#111111',
+              fontFamily: "'Inter', sans-serif",
+              letterSpacing: '-0.5px',
+            }}>
+              {min.toFixed(2)}{!samePrice ? `–${max.toFixed(2)}` : ''} ₼
+            </span>
           </div>
 
-          {/* Variant count */}
           {product.variants && product.variants.length > 1 && (
             <span style={{
               fontSize: 10, color: '#999',
-              background: '#F5F2EC',
-              borderRadius: 6, padding: '3px 8px',
-              fontFamily: "'Inter', sans-serif",
-              fontWeight: 500, flexShrink: 0,
+              background: '#F5F2EC', borderRadius: 6,
+              padding: '3px 8px', fontWeight: 500,
+              fontFamily: "'Inter', sans-serif", flexShrink: 0,
             }}>{product.variants.length} variant</span>
           )}
         </div>
 
-        {/* Fast delivery tag */}
+        {/* Free delivery tag */}
         <div style={{
-          marginTop: 10,
-          fontSize: 11, color: '#555',
+          marginTop: 10, fontSize: 11, color: '#555',
           display: 'flex', alignItems: 'center', gap: 4,
           fontFamily: "'Inter', sans-serif",
         }}>
-          <span style={{ color: '#22C55E', fontWeight: 700 }}>✓</span>
-          1–3 iş günü · Bakı çatdırılma
+          <span style={{ color: '#16A34A', fontWeight: 700 }}>✓</span>
+          Ödənişsiz çatdırılma
         </div>
       </div>
     </div>

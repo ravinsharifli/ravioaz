@@ -9,29 +9,21 @@ interface NavbarProps {
   onAboutClick: () => void;
   onContactClick: () => void;
   onDeliveryClick: () => void;
+  onProductsClick: () => void;
   products?: Product[];
   onViewProduct?: (product: Product) => void;
 }
 
-const NAV_LINKS = [
-  { label: 'Məhsullar' },
-  { label: 'Çatdırılma' },
-  { label: 'Haqqımızda' },
-  { label: 'Əlaqə' },
-];
-
 const Navbar: React.FC<NavbarProps> = ({
   cartCount, onLogoClick, onCartClick,
-  onAboutClick, onContactClick, onDeliveryClick,
+  onAboutClick, onContactClick, onDeliveryClick, onProductsClick,
   products = [], onViewProduct,
 }) => {
-  const [scrolled, setScrolled]   = useState(false);
-  const [menuOpen, setMenuOpen]   = useState(false);
+  const [scrolled, setScrolled]     = useState(false);
+  const [menuOpen, setMenuOpen]     = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [query, setQuery]         = useState('');
+  const [query, setQuery]           = useState('');
   const searchRef = useRef<HTMLDivElement>(null);
-
-  const actions = [onLogoClick, onDeliveryClick, onAboutClick, onContactClick];
 
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 10);
@@ -53,44 +45,39 @@ const Navbar: React.FC<NavbarProps> = ({
     ? products.filter(p => p.name.toLowerCase().includes(query.toLowerCase())).slice(0, 6)
     : [];
 
+  const navLinks = [
+    { label: 'Məhsullar',   action: onProductsClick },
+    { label: 'Çatdırılma',  action: onDeliveryClick },
+    { label: 'Haqqımızda',  action: onAboutClick },
+    { label: 'Əlaqə',       action: onContactClick },
+  ];
+
   return (
     <>
       {/* Announcement bar */}
       <div style={{
-        background: '#111111',
-        color: '#FFFFFF',
+        background: '#111111', color: '#FFFFFF',
         textAlign: 'center' as const,
-        fontSize: 12,
-        fontWeight: 500,
+        fontSize: 12, fontWeight: 500,
         padding: '9px 16px',
-        letterSpacing: 0.3,
         fontFamily: "'Inter', sans-serif",
       }}>
-        🚚 Bakı daxili çatdırılma — <strong style={{ color: '#FF6A00' }}>4.99 ₼</strong>
-        &nbsp;&nbsp;|&nbsp;&nbsp;
-        ✦ Lazer yazı ilə fərdi hədiyyə
+        🎁 Ödənişsiz çatdırılma &nbsp;·&nbsp; Lazer yazı ilə fərdi hədiyyə &nbsp;·&nbsp;
+        <strong style={{ color: '#FF6A00' }}>17 ₼-dən başlayır</strong>
       </div>
 
       {/* Main nav */}
       <nav style={{
-        position: 'fixed',
-        top: 38,
-        left: 0, right: 0,
-        zIndex: 1000,
+        position: 'fixed', top: 38, left: 0, right: 0, zIndex: 1000,
         background: '#FFFFFF',
-        borderBottom: scrolled ? '1px solid #E8E3DA' : '1px solid #F0EBE3',
+        borderBottom: scrolled ? '1px solid #E5E1DB' : '1px solid #EDEBE7',
         boxShadow: scrolled ? '0 2px 16px rgba(0,0,0,0.07)' : 'none',
-        transition: 'box-shadow 0.3s, border-color 0.3s',
+        transition: 'box-shadow 0.3s',
       }}>
         <div style={{
-          maxWidth: 1280,
-          margin: '0 auto',
-          padding: '0 32px',
-          height: 60,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 24,
+          maxWidth: 1280, margin: '0 auto', padding: '0 32px',
+          height: 60, display: 'flex', alignItems: 'center',
+          justifyContent: 'space-between', gap: 24,
         }}>
           {/* Logo */}
           <button onClick={onLogoClick} style={{
@@ -99,37 +86,22 @@ const Navbar: React.FC<NavbarProps> = ({
             display: 'flex', alignItems: 'center', gap: 8,
           }}>
             <div style={{
-              width: 30, height: 30,
-              background: '#111111',
-              borderRadius: 6,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              width: 30, height: 30, background: '#111111',
+              borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
-              <span style={{
-                color: '#FF6A00',
-                fontSize: 16, fontWeight: 800,
-                fontFamily: "'Inter', sans-serif",
-                lineHeight: 1,
-              }}>R</span>
+              <span style={{ color: '#FF6A00', fontSize: 16, fontWeight: 800, fontFamily: "'Inter', sans-serif", lineHeight: 1 }}>R</span>
             </div>
-            <span style={{
-              fontFamily: "'Inter', sans-serif",
-              fontSize: 18, fontWeight: 800,
-              color: '#111111',
-              letterSpacing: '-0.5px',
-            }}>ravio</span>
+            <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 18, fontWeight: 800, color: '#111111', letterSpacing: '-0.5px' }}>ravio</span>
           </button>
 
-          {/* Desktop nav links */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }} className="r-desktop-nav">
-            {NAV_LINKS.map((link, i) => (
-              <button key={link.label} onClick={actions[i]} style={{
+          {/* Desktop nav */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 2 }} className="r-desktop-nav">
+            {navLinks.map(link => (
+              <button key={link.label} onClick={link.action} style={{
                 background: 'none', border: 'none', cursor: 'pointer',
-                padding: '8px 14px',
-                fontSize: 13, fontWeight: 500,
-                color: '#444444',
-                fontFamily: "'Inter', sans-serif",
-                borderRadius: 6,
-                transition: 'color 0.15s, background 0.15s',
+                padding: '8px 14px', fontSize: 13, fontWeight: 500,
+                color: '#444444', fontFamily: "'Inter', sans-serif",
+                borderRadius: 6, transition: 'color 0.15s, background 0.15s',
               }}
                 onMouseEnter={e => { e.currentTarget.style.color = '#111111'; e.currentTarget.style.background = '#F5F2EC'; }}
                 onMouseLeave={e => { e.currentTarget.style.color = '#444444'; e.currentTarget.style.background = 'transparent'; }}
@@ -157,28 +129,17 @@ const Navbar: React.FC<NavbarProps> = ({
                 <div style={{
                   position: 'absolute', right: 0, top: 46,
                   width: 340, background: '#FFFFFF',
-                  border: '1px solid #E8E3DA',
-                  borderRadius: 12,
+                  border: '1px solid #E5E1DB', borderRadius: 12,
                   boxShadow: '0 16px 48px rgba(0,0,0,0.12)',
                   overflow: 'hidden', zIndex: 500,
                 }}>
-                  <div style={{
-                    display: 'flex', alignItems: 'center', gap: 10,
-                    padding: '12px 16px',
-                    borderBottom: '1px solid #F0EBE3',
-                  }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', borderBottom: '1px solid #F0EBE2' }}>
                     <Search size={14} color="#FF6A00" />
                     <input
-                      autoFocus
-                      value={query}
+                      autoFocus value={query}
                       onChange={e => setQuery(e.target.value)}
                       placeholder="Məhsul axtar..."
-                      style={{
-                        flex: 1, border: 'none', outline: 'none',
-                        fontSize: 14, color: '#111111',
-                        fontFamily: "'Inter', sans-serif",
-                        background: 'transparent',
-                      }}
+                      style={{ flex: 1, border: 'none', outline: 'none', fontSize: 14, color: '#111111', fontFamily: "'Inter', sans-serif", background: 'transparent' }}
                     />
                     {query && (
                       <button onClick={() => setQuery('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#999', padding: 0 }}>
@@ -205,9 +166,9 @@ const Navbar: React.FC<NavbarProps> = ({
                               </div>
                             )}
                             <div style={{ flex: 1, minWidth: 0 }}>
-                              <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: '#111111', fontFamily: "'Inter', sans-serif", whiteSpace: 'nowrap' as const, overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</p>
+                              <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: '#111111', fontFamily: "'Inter', sans-serif", overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{p.name}</p>
                               <p style={{ margin: '2px 0 0', fontSize: 13, color: '#FF6A00', fontWeight: 700 }}>
-                                {(p.variants[0]?.discountPrice || p.variants[0]?.price || 0).toFixed(0)} ₼
+                                {(p.variants[0]?.discountPrice ?? p.variants[0]?.price ?? 0).toFixed(2)} ₼
                               </p>
                             </div>
                           </button>
@@ -239,44 +200,33 @@ const Navbar: React.FC<NavbarProps> = ({
                   fontSize: 9, fontWeight: 800,
                   width: 16, height: 16, borderRadius: '50%',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontFamily: "'Inter', sans-serif",
                 }}>{cartCount}</span>
               )}
             </button>
 
-            {/* WhatsApp CTA - desktop */}
+            {/* Desktop CTA */}
             <a href="https://wa.me/994519831483" target="_blank" rel="noreferrer"
               className="r-desktop-nav"
               style={{
-                marginLeft: 8,
-                padding: '8px 20px',
-                background: '#FF6A00',
-                color: '#FFFFFF',
-                borderRadius: 8,
-                fontSize: 13, fontWeight: 700,
+                marginLeft: 8, padding: '8px 20px',
+                background: '#FF6A00', color: '#FFFFFF',
+                borderRadius: 8, fontSize: 13, fontWeight: 700,
                 textDecoration: 'none',
                 fontFamily: "'Inter', sans-serif",
                 display: 'inline-flex', alignItems: 'center', gap: 6,
-                transition: 'background 0.15s, transform 0.15s',
-                whiteSpace: 'nowrap' as const,
+                transition: 'background 0.15s', whiteSpace: 'nowrap' as const,
               }}
-              onMouseEnter={e => { e.currentTarget.style.background = '#E55E00'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = '#FF6A00'; e.currentTarget.style.transform = 'translateY(0)'; }}
-            >
-              💬 Sifariş et
-            </a>
+              onMouseEnter={e => e.currentTarget.style.background = '#E55E00'}
+              onMouseLeave={e => e.currentTarget.style.background = '#FF6A00'}
+            >💬 Sifariş et</a>
 
-            {/* Mobile menu btn */}
-            <button
-              className="r-mobile-nav"
-              onClick={() => setMenuOpen(v => !v)}
-              style={{
-                background: 'none', border: 'none', cursor: 'pointer',
-                width: 38, height: 38, borderRadius: 8,
-                display: 'none', alignItems: 'center', justifyContent: 'center',
-                color: '#111111',
-              }}
-            >
+            {/* Mobile menu */}
+            <button className="r-mobile-nav" onClick={() => setMenuOpen(v => !v)} style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              width: 38, height: 38, borderRadius: 8,
+              display: 'none', alignItems: 'center', justifyContent: 'center',
+              color: '#111111',
+            }}>
               {menuOpen ? <X size={19} /> : <Menu size={19} />}
             </button>
           </div>
@@ -284,13 +234,9 @@ const Navbar: React.FC<NavbarProps> = ({
 
         {/* Mobile dropdown */}
         {menuOpen && (
-          <div style={{
-            background: '#FFFFFF',
-            borderTop: '1px solid #F0EBE3',
-            padding: '8px 16px 20px',
-          }}>
-            {NAV_LINKS.map((link, i) => (
-              <button key={link.label} onClick={() => { actions[i](); setMenuOpen(false); }}
+          <div style={{ background: '#FFFFFF', borderTop: '1px solid #F0EBE2', padding: '8px 16px 20px' }}>
+            {navLinks.map(link => (
+              <button key={link.label} onClick={() => { link.action(); setMenuOpen(false); }}
                 style={{
                   width: '100%', background: 'none', border: 'none', cursor: 'pointer',
                   padding: '13px 8px', textAlign: 'left' as const, display: 'block',
@@ -315,13 +261,6 @@ const Navbar: React.FC<NavbarProps> = ({
       </nav>
 
       <div style={{ height: 38 + 60 }} />
-
-      <style>{`
-        @media (max-width: 768px) {
-          .r-desktop-nav { display: none !important; }
-          .r-mobile-nav { display: flex !important; }
-        }
-      `}</style>
     </>
   );
 };

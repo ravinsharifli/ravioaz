@@ -2,39 +2,27 @@ import React, { useState } from 'react';
 import { X, ChevronLeft, ChevronRight, Upload, Minus, Plus } from 'lucide-react';
 import { Product, CartItem, BulkTier } from '../types';
 
-// ─── Konfiqurasiya ───────────────────────────────────────────────────
-const METROS = ['28 May','Həzi Aslanov','Nərimanov','İçərişəhər','Memar Əcəmi','Elmlər Akademiyası','Xalqlar Dostluğu'];
-const DAYS   = ['Çərşənbə axşamı','Cümə axşamı'];
-const TIMES  = ['14:00','15:00','16:00','17:00','18:00','19:00'];
-const BOXES  = [
-  { id: 'simple',  name: 'Sadə qutu',    price: 0,  desc: 'Standart qablaşdırma' },
-  { id: 'premium', name: 'Orta qutu',    price: 10, desc: 'Lent + köpük yastıq' },
-  { id: 'gift',    name: 'Premium qutu', price: 17, desc: 'Bağlama + qeyd kartı + yazı' },
-];
-const DISCOUNT_NEW   = 10;
-const DISCOUNT_LOYAL = 20;
-const IMAGE_MAX_MB   = 5;
+const FONT = "'Inter', -apple-system, sans-serif";
 
-// ─── Design tokens ────────────────────────────────────────────────────
 const C = {
-  bg:       '#F5F2EC',   // krem fon
+  bg:       '#F5F2EC',
   white:    '#FFFFFF',
   black:    '#111111',
   gray:     '#666666',
   grayLt:   '#AAAAAA',
   border:   '#E5E1DB',
-  borderDk: '#CCCCCC',
   orange:   '#FF6A00',
   orangeBg: '#FFF3EC',
   orangeBd: '#FFD4B8',
   green:    '#16A34A',
   greenBg:  '#F0FDF4',
+  blue:     '#2563EB',
+  blueBg:   '#EFF6FF',
+  blueBd:   '#BFDBFE',
   red:      '#DC2626',
 };
 
-const FONT = "'Inter', -apple-system, sans-serif";
-
-// ─── Helpers ─────────────────────────────────────────────────────────
+// ─── helpers ───────────────────────────────────────────────────────
 function getActiveTier(tiers: BulkTier[], qty: number): BulkTier | null {
   if (!tiers?.length) return null;
   return [...tiers]
@@ -42,56 +30,57 @@ function getActiveTier(tiers: BulkTier[], qty: number): BulkTier | null {
     .find(t => qty >= t.minQty && (!t.maxQty || qty <= t.maxQty)) || null;
 }
 
-// ─── Mini components ─────────────────────────────────────────────────
-const Label: React.FC<{ children: React.ReactNode; required?: boolean }> = ({ children, required }) => (
+// ─── mini components ───────────────────────────────────────────────
+const Label: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <p style={{
     fontSize: 11, fontWeight: 700, letterSpacing: 0.8,
     textTransform: 'uppercase' as const,
-    color: C.gray, margin: '0 0 10px',
-    fontFamily: FONT, display: 'flex', alignItems: 'center', gap: 4,
-  }}>
-    {children}
-    {required && <span style={{ color: C.orange }}>*</span>}
-  </p>
+    color: C.gray, margin: '0 0 10px', fontFamily: FONT,
+  }}>{children}</p>
 );
 
-const Input: React.FC<React.InputHTMLAttributes<HTMLInputElement>> = (props) => (
+const Inp: React.FC<React.InputHTMLAttributes<HTMLInputElement>> = (props) => (
   <input {...props} style={{
-    width: '100%', background: C.white,
-    border: `1px solid ${C.border}`,
+    width: '100%', background: C.white, border: `1px solid ${C.border}`,
     borderRadius: 8, padding: '11px 14px',
-    color: C.black, fontSize: 14,
-    fontFamily: FONT, outline: 'none',
-    boxSizing: 'border-box' as const,
-    transition: 'border-color 0.15s',
-    ...props.style,
+    color: C.black, fontSize: 14, fontFamily: FONT,
+    outline: 'none', boxSizing: 'border-box' as const,
+    transition: 'border-color 0.15s', ...props.style,
   }}
-    onFocus={e => { e.currentTarget.style.borderColor = C.orange; }}
-    onBlur={e => { e.currentTarget.style.borderColor = C.border; }}
+    onFocus={e => e.currentTarget.style.borderColor = C.blue}
+    onBlur={e => e.currentTarget.style.borderColor = C.border}
   />
 );
 
-const SummaryRow: React.FC<{ l: string; r: string; accent?: boolean; bold?: boolean }> = ({ l, r, accent, bold }) => (
+const SRow: React.FC<{ l: string; r: string; accent?: boolean; bold?: boolean }> = ({ l, r, accent, bold }) => (
   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
     <span style={{ fontSize: 13, color: C.gray, fontFamily: FONT }}>{l}</span>
-    <span style={{
-      fontSize: 13, fontWeight: bold ? 700 : 500,
-      color: accent ? C.orange : C.black,
-      fontFamily: FONT,
-    }}>{r}</span>
+    <span style={{ fontSize: 13, fontWeight: bold ? 700 : 500, color: accent ? C.green : C.black, fontFamily: FONT }}>{r}</span>
   </div>
 );
 
-// ─── Ana komponent ────────────────────────────────────────────────────
+// ─── types ────────────────────────────────────────────────────────
+interface BoxOption { id: string; name: string; desc: string; price: number; }
+interface MetroSchedule { stations: string[]; days: string[]; times: string[]; }
+
 interface ProductModalProps {
   product: Product;
   initialData?: CartItem;
+  metroSchedule: MetroSchedule;
+  boxes: BoxOption[];
   onClose: () => void;
   onAddToCart: (item: CartItem) => void;
   onOpenCategory: (category: string) => void;
 }
 
-const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClose, onAddToCart }) => {
+const DISCOUNT_NEW   = 10;
+const DISCOUNT_LOYAL = 20;
+const IMAGE_MAX_MB   = 5;
+
+// ─── main component ────────────────────────────────────────────────
+const ProductModal: React.FC<ProductModalProps> = ({
+  product, initialData, metroSchedule, boxes, onClose, onAddToCart,
+}) => {
   const variants = product.variants || [];
 
   const [step,         setStep]         = useState(1);
@@ -101,11 +90,11 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
   const [printText,    setPrintText]    = useState(initialData?.customText ?? '');
   const [uploadedImg,  setUploadedImg]  = useState<string | null>(null);
   const [uploadError,  setUploadError]  = useState('');
-  const [boxId,        setBoxId]        = useState(initialData?.boxType ?? 'simple');
-  const [delivery,     setDelivery]     = useState<'metro' | 'kuryer'>(initialData?.deliveryMethod ?? 'metro');
-  const [metro,        setMetro]        = useState(initialData?.metroStation ?? METROS[0]);
-  const [day,          setDay]          = useState(initialData?.metroDay ?? DAYS[0]);
-  const [time,         setTime]         = useState(initialData?.metroTime ?? TIMES[0]);
+  const [boxId,        setBoxId]        = useState(initialData?.boxType ?? boxes[0]?.id ?? 'simple');
+  const [delivery,     setDelivery]     = useState<'metro' | 'kuryer' | 'post'>(initialData?.deliveryMethod as any ?? 'metro');
+  const [metro,        setMetro]        = useState(metroSchedule.stations[0] ?? '');
+  const [day,          setDay]          = useState(metroSchedule.days[0] ?? '');
+  const [time,         setTime]         = useState(metroSchedule.times[0] ?? '');
   const [address,      setAddress]      = useState('');
   const [custName,     setCustName]     = useState(initialData?.customerName ?? '');
   const [birthDate,    setBirthDate]    = useState(initialData?.birthDate ?? '');
@@ -127,19 +116,21 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
   const bulkOff       = activeTier?.discountAmount ?? 0;
   const effectiveUnit = Math.max(0, baseUnit - bulkOff);
   const bulkDiscTotal = bulkOff * qty;
-  const printFee      = printText.trim() ? 5 * qty : 0;
-  const uploadFee     = uploadedImg ? 3 : 0;
-  const box           = BOXES.find(b => b.id === boxId) ?? BOXES[0];
-  const boxFee        = box.price;
-  const deliveryFee   = delivery === 'kuryer' ? 4.99 : 0;
-  const subtotal      = effectiveUnit * qty + printFee + uploadFee + boxFee + deliveryFee;
-  const discountRate  = customerType === 'loyal' ? DISCOUNT_LOYAL : customerType === 'new' ? DISCOUNT_NEW : 0;
-  const customerDisc  = customerType ? Math.round(subtotal * discountRate / 100 * 100) / 100 : 0;
-  const finalTotal    = subtotal - customerDisc;
-  const beh           = Math.ceil(finalTotal * 0.5);
+  const printFee      = 0; // free
+  const uploadFee     = 0; // free
+  const box           = boxes.find(b => b.id === boxId) ?? boxes[0];
+  const boxFee        = box?.price ?? 0;
+  const deliveryFee   = delivery === 'kuryer' ? 4.99 : delivery === 'post' ? 4.99 : 0;
+
+  const subtotal     = effectiveUnit * qty + printFee + uploadFee + boxFee + deliveryFee;
+  const discountRate = customerType === 'loyal' ? DISCOUNT_LOYAL : customerType === 'new' ? DISCOUNT_NEW : 0;
+  const customerDisc = customerType ? Math.round(subtotal * discountRate / 100 * 100) / 100 : 0;
+  const finalTotal   = subtotal - customerDisc;
+  const beh          = Math.ceil(finalTotal * 0.5);
 
   const step2Valid = custName.trim().length > 0 && phone.trim().length > 0 &&
-    customerType !== null && (delivery === 'metro' || address.trim().length > 0);
+    customerType !== null &&
+    (delivery === 'metro' || address.trim().length > 0);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -153,7 +144,10 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
 
   const handleSubmit = () => {
     if (!step2Valid) return;
-    const deliveryDetails = delivery === 'metro' ? `🚇 ${metro} · ${day} · ${time}` : address;
+    const deliveryDetails = delivery === 'metro'
+      ? `🚇 ${metro} · ${day} · ${time}`
+      : delivery === 'post' ? `📮 Poçt · ${address}` : address;
+
     const item: CartItem = {
       cartId:               initialData?.cartId || Math.random().toString(36).substr(2, 9),
       productId:            product.id,
@@ -169,7 +163,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
       specialRequest:       uploadedImg ? 'Şəkil əlavə edilib' : '',
       customerName:         custName,
       phone, birthDate,
-      isGift:               boxId === 'gift',
+      isGift:               boxId !== 'simple',
       isFirstOrSecondOrder: customerType === 'new',
       customerType:         customerType ?? 'new',
       deliveryType:         delivery === 'metro' ? 'standard' : 'urgent',
@@ -178,8 +172,8 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
       boxType:              boxId,
       boxPrice:             boxFee,
       hasQrCode:            !!uploadedImg,
-      lazerPrice:           printFee,
-      deliveryMethod:       delivery,
+      lazerPrice:           0,
+      deliveryMethod:       delivery as any,
       metroStation:         delivery === 'metro' ? metro : undefined,
       metroDay:             delivery === 'metro' ? day : undefined,
       metroTime:            delivery === 'metro' ? time : undefined,
@@ -189,60 +183,41 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
     onClose();
   };
 
+  const Section: React.FC<{ children: React.ReactNode; style?: React.CSSProperties }> = ({ children, style }) => (
+    <div style={{
+      background: C.white, border: `1px solid ${C.border}`,
+      borderRadius: 12, padding: '14px 16px', marginBottom: 12,
+      ...style,
+    }}>{children}</div>
+  );
+
   return (
     <div
-      style={{
-        position: 'fixed', inset: 0, zIndex: 2000,
-        background: 'rgba(0,0,0,0.5)',
-        display: 'flex', alignItems: 'flex-end',
-        fontFamily: FONT,
-      }}
+      style={{ position: 'fixed', inset: 0, zIndex: 2000, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'flex-end', fontFamily: FONT }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div style={{
-        background: C.bg,
-        width: '100%', maxWidth: 560,
-        margin: '0 auto',
-        maxHeight: '94vh',
-        borderRadius: '16px 16px 0 0',
-        display: 'flex', flexDirection: 'column' as const,
-        overflow: 'hidden',
+        background: C.bg, width: '100%', maxWidth: 560, margin: '0 auto',
+        maxHeight: '94vh', borderRadius: '16px 16px 0 0',
+        display: 'flex', flexDirection: 'column' as const, overflow: 'hidden',
         boxShadow: '0 -16px 48px rgba(0,0,0,0.12)',
       }}>
 
-        {/* ── Header ── */}
-        <div style={{
-          background: C.white,
-          borderBottom: `1px solid ${C.border}`,
-          padding: '16px 20px',
-          flexShrink: 0,
-        }}>
+        {/* Header */}
+        <div style={{ background: C.white, borderBottom: `1px solid ${C.border}`, padding: '16px 20px', flexShrink: 0 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
             <div>
-              <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: C.black, lineHeight: 1.3 }}>
-                {product.name}
-              </h2>
-              {product.category && (
-                <span style={{ fontSize: 11, color: C.grayLt, fontWeight: 500, marginTop: 3, display: 'block' }}>
-                  {product.category}
-                </span>
-              )}
+              <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: C.black, lineHeight: 1.3 }}>{product.name}</h2>
+              {product.category && <span style={{ fontSize: 11, color: C.grayLt, fontWeight: 500, marginTop: 3, display: 'block' }}>{product.category}</span>}
             </div>
             <button onClick={onClose} style={{
-              width: 32, height: 32, borderRadius: '50%',
-              background: C.bg, border: 'none', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              width: 32, height: 32, borderRadius: '50%', background: C.bg, border: 'none',
+              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
               color: C.gray, flexShrink: 0, marginLeft: 12,
-              transition: 'background 0.15s',
-            }}
-              onMouseEnter={e => e.currentTarget.style.background = C.border}
-              onMouseLeave={e => e.currentTarget.style.background = C.bg}
-            >
-              <X size={16} />
-            </button>
+            }}><X size={16} /></button>
           </div>
 
-          {/* Step indicator */}
+          {/* Steps */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             {[{ n: 1, label: 'Məhsul' }, { n: 2, label: 'Çatdırılma' }].map(({ n, label }, i) => (
               <React.Fragment key={n}>
@@ -254,83 +229,56 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
                     color: n <= step ? C.white : C.gray,
                     fontSize: 11, fontWeight: 700,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    transition: 'all 0.2s',
-                  }}>
-                    {n < step ? '✓' : n}
-                  </div>
-                  <span style={{
-                    fontSize: 12, fontWeight: n === step ? 600 : 400,
-                    color: n === step ? C.black : C.grayLt,
-                  }}>{label}</span>
+                  }}>{n < step ? '✓' : n}</div>
+                  <span style={{ fontSize: 12, fontWeight: n === step ? 600 : 400, color: n === step ? C.black : C.grayLt }}>{label}</span>
                 </div>
-                {i === 0 && (
-                  <div style={{ flex: 1, height: 1, background: step > 1 ? C.black : C.border, maxWidth: 40 }} />
-                )}
+                {i === 0 && <div style={{ flex: 1, height: 1, background: step > 1 ? C.black : C.border, maxWidth: 40 }} />}
               </React.Fragment>
             ))}
           </div>
         </div>
 
-        {/* ── Scroll content ── */}
+        {/* Scroll area */}
         <div style={{ flex: 1, overflowY: 'auto' as const, padding: '16px 20px 120px' }}>
 
           {/* ═══ STEP 1 ═══ */}
           {step === 1 && (
             <>
-              {/* Product image */}
+              {/* Image */}
               {totalImgs > 0 && (
                 <div style={{
-                  position: 'relative',
-                  background: C.white,
-                  borderRadius: 12,
-                  overflow: 'hidden',
-                  marginBottom: 16,
-                  height: 260,
+                  position: 'relative', background: C.white,
+                  borderRadius: 12, overflow: 'hidden',
+                  marginBottom: 16, height: 260,
                   border: `1px solid ${C.border}`,
                 }}>
-                  <img
-                    src={images[imgIdx]}
-                    alt={product.name}
+                  <img src={images[imgIdx]} alt={product.name}
                     style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
                     onError={e => { (e.target as HTMLImageElement).src = 'https://placehold.co/400x260/F5F2EC/AAAAAA?text=Şəkil+yoxdur'; }}
                   />
-
-                  {/* Discount badge */}
+                  {/* Discount badge — image only, not repeated below */}
                   {isOnSale && (
                     <div style={{
                       position: 'absolute', top: 12, left: 12,
                       background: C.orange, color: C.white,
-                      fontSize: 11, fontWeight: 800,
-                      padding: '4px 10px', borderRadius: 6,
+                      fontSize: 11, fontWeight: 800, padding: '4px 10px', borderRadius: 6,
                     }}>−{discountPct}%</div>
                   )}
-
-                  {/* Image nav */}
                   {totalImgs > 1 && (
                     <>
-                      {[
-                        { dir: 'prev', icon: <ChevronLeft size={16} />, side: 'left' as const },
-                        { dir: 'next', icon: <ChevronRight size={16} />, side: 'right' as const },
-                      ].map(btn => (
-                        <button key={btn.dir}
-                          onClick={() => setImgIdx(i => btn.dir === 'prev' ? (i - 1 + totalImgs) % totalImgs : (i + 1) % totalImgs)}
-                          style={{
-                            position: 'absolute', [btn.side]: 10, top: '50%',
-                            transform: 'translateY(-50%)',
-                            background: 'rgba(255,255,255,0.92)',
-                            border: `1px solid ${C.border}`,
-                            borderRadius: '50%', width: 32, height: 32,
-                            cursor: 'pointer', display: 'flex',
-                            alignItems: 'center', justifyContent: 'center',
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-                          }}
-                        >{btn.icon}</button>
-                      ))}
-                      <div style={{
-                        position: 'absolute', bottom: 10, left: '50%',
-                        transform: 'translateX(-50%)',
-                        display: 'flex', gap: 5,
-                      }}>
+                      <button onClick={() => setImgIdx(i => (i - 1 + totalImgs) % totalImgs)} style={{
+                        position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)',
+                        background: 'rgba(255,255,255,0.92)', border: `1px solid ${C.border}`,
+                        borderRadius: '50%', width: 32, height: 32, cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}><ChevronLeft size={16} /></button>
+                      <button onClick={() => setImgIdx(i => (i + 1) % totalImgs)} style={{
+                        position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
+                        background: 'rgba(255,255,255,0.92)', border: `1px solid ${C.border}`,
+                        borderRadius: '50%', width: 32, height: 32, cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}><ChevronRight size={16} /></button>
+                      <div style={{ position: 'absolute', bottom: 10, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 5 }}>
                         {images.map((_, i) => (
                           <div key={i} onClick={() => setImgIdx(i)} style={{
                             width: i === imgIdx ? 20 : 6, height: 6,
@@ -345,85 +293,55 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
                 </div>
               )}
 
-              {/* Price block */}
-              <div style={{
-                background: C.white,
-                border: `1px solid ${C.border}`,
-                borderRadius: 12,
-                padding: '14px 16px',
-                marginBottom: 12,
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-              }}>
-                <div>
-                  {isOnSale && (
-                    <span style={{ fontSize: 12, color: C.grayLt, textDecoration: 'line-through', display: 'block', marginBottom: 2 }}>
-                      {origPrice} ₼
+              {/* Price — no duplicate discount badge */}
+              <Section>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    {isOnSale && (
+                      <span style={{ fontSize: 12, color: C.grayLt, textDecoration: 'line-through', display: 'block', marginBottom: 2 }}>
+                        {origPrice.toFixed(2)} ₼
+                      </span>
+                    )}
+                    <span style={{ fontSize: 26, fontWeight: 800, color: isOnSale ? C.orange : C.black, letterSpacing: '-0.5px' }}>
+                      {baseUnit.toFixed(2)} ₼
                     </span>
-                  )}
-                  <span style={{ fontSize: 26, fontWeight: 800, color: isOnSale ? C.orange : C.black, letterSpacing: '-0.5px' }}>
-                    {baseUnit} ₼
-                  </span>
-                  {product.description && (
-                    <p style={{ margin: '6px 0 0', fontSize: 13, color: C.gray, lineHeight: 1.6 }}>
-                      {product.description}
-                    </p>
-                  )}
-                </div>
-                {isOnSale && (
-                  <div style={{
-                    background: C.orange, color: C.white,
-                    borderRadius: 8, padding: '6px 12px',
-                    fontSize: 13, fontWeight: 800, flexShrink: 0,
-                  }}>
-                    −{discountPct}%
+                    {product.description && (
+                      <p style={{ margin: '6px 0 0', fontSize: 13, color: C.gray, lineHeight: 1.6 }}>{product.description}</p>
+                    )}
                   </div>
-                )}
-              </div>
+                </div>
+              </Section>
 
-              {/* Variant selector */}
+              {/* Variants */}
               {variants.length > 1 && (
-                <div style={{
-                  background: C.white, border: `1px solid ${C.border}`,
-                  borderRadius: 12, padding: '14px 16px', marginBottom: 12,
-                }}>
-                  <Label>Model / Rəng seçin</Label>
+                <Section>
+                  <Label>Model / Rəng</Label>
                   <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 8 }}>
                     {variants.map((v, i) => {
-                      const oos  = v.stock === 0;
-                      const sel  = variantIdx === i;
-                      const lbl  = [v.modelName, v.colorName].filter(Boolean).join(' · ') || `Variant ${i + 1}`;
-                      const vPrc = v.discountPrice ?? v.price;
+                      const oos = v.stock === 0;
+                      const sel = variantIdx === i;
+                      const lbl = [v.modelName, v.colorName].filter(Boolean).join(' · ') || `Variant ${i + 1}`;
                       return (
-                        <div key={i}
-                          onClick={() => { if (!oos) { setVariantIdx(i); setImgIdx(0); } }}
-                          style={{
-                            padding: '9px 14px', borderRadius: 8,
-                            cursor: oos ? 'not-allowed' : 'pointer',
-                            background: sel ? C.black : C.bg,
-                            color: sel ? C.white : oos ? C.grayLt : C.black,
-                            border: `1.5px solid ${sel ? C.black : C.border}`,
-                            opacity: oos ? 0.5 : 1,
-                            transition: 'all 0.15s',
-                          }}
-                        >
+                        <div key={i} onClick={() => { if (!oos) { setVariantIdx(i); setImgIdx(0); } }} style={{
+                          padding: '9px 14px', borderRadius: 8, cursor: oos ? 'not-allowed' : 'pointer',
+                          background: sel ? C.black : C.bg,
+                          color: sel ? C.white : oos ? C.grayLt : C.black,
+                          border: `1.5px solid ${sel ? C.black : C.border}`,
+                          opacity: oos ? 0.5 : 1, transition: 'all 0.15s',
+                        }}>
                           <div style={{ fontSize: 13, fontWeight: sel ? 600 : 400 }}>{lbl}</div>
                           <div style={{ fontSize: 11, fontWeight: 700, marginTop: 2, color: sel ? 'rgba(255,255,255,0.7)' : C.orange }}>
-                            {vPrc} ₼{oos ? ' · Bitib' : ''}
+                            {(v.discountPrice ?? v.price).toFixed(2)} ₼{oos ? ' · Bitib' : ''}
                           </div>
                         </div>
                       );
                     })}
                   </div>
-                </div>
+                </Section>
               )}
 
               {/* Quantity */}
-              <div style={{
-                background: C.white, border: `1px solid ${C.border}`,
-                borderRadius: 12, padding: '14px 16px', marginBottom: 12,
-              }}>
+              <Section>
                 <Label>Say</Label>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 0 }}>
@@ -431,28 +349,21 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
                       width: 36, height: 36, borderRadius: '8px 0 0 8px',
                       border: `1px solid ${C.border}`, background: C.bg,
                       cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      color: C.black,
                     }}><Minus size={14} /></button>
                     <div style={{
-                      width: 52, height: 36,
-                      border: `1px solid ${C.border}`, borderLeft: 'none', borderRight: 'none',
+                      width: 52, height: 36, border: `1px solid ${C.border}`,
+                      borderLeft: 'none', borderRight: 'none',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: 15, fontWeight: 700, color: C.black, background: C.white,
+                      fontSize: 15, fontWeight: 700, background: C.white,
                     }}>{qty}</div>
                     <button onClick={() => setQty(q => q + 1)} style={{
                       width: 36, height: 36, borderRadius: '0 8px 8px 0',
                       border: `1px solid ${C.border}`, background: C.bg,
                       cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      color: C.black,
                     }}><Plus size={14} /></button>
                   </div>
-
                   <div style={{ textAlign: 'right' as const }}>
-                    {qty > 1 && (
-                      <div style={{ fontSize: 12, color: C.grayLt, marginBottom: 2 }}>
-                        {effectiveUnit.toFixed(2)} ₼ / ədəd
-                      </div>
-                    )}
+                    {qty > 1 && <div style={{ fontSize: 12, color: C.grayLt, marginBottom: 2 }}>{effectiveUnit.toFixed(2)} ₼ / ədəd</div>}
                     <div style={{ fontSize: 22, fontWeight: 800, color: C.black, letterSpacing: '-0.5px' }}>
                       {(effectiveUnit * qty).toFixed(2)} ₼
                     </div>
@@ -466,71 +377,63 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
                       {product.bulkTiers.map((tier, i) => {
                         const isActive = qty >= tier.minQty && (!tier.maxQty || qty <= tier.maxQty);
                         const lbl = tier.label || (tier.maxQty ? `${tier.minQty}–${tier.maxQty}` : `${tier.minQty}+`);
-                        const discPrc = Math.max(0, baseUnit - tier.discountAmount);
                         return (
                           <div key={i} onClick={() => setQty(tier.minQty)} style={{
-                            padding: '5px 12px', borderRadius: 100,
-                            fontSize: 11, cursor: 'pointer', fontWeight: 600,
+                            padding: '5px 12px', borderRadius: 100, fontSize: 11, cursor: 'pointer', fontWeight: 600,
                             background: isActive ? C.orange : C.bg,
                             color: isActive ? C.white : C.gray,
                             border: `1px solid ${isActive ? C.orange : C.border}`,
                             transition: 'all 0.15s',
                           }}>
-                            {lbl} → {discPrc.toFixed(0)} ₼/ədəd
+                            {lbl} → {Math.max(0, baseUnit - tier.discountAmount).toFixed(2)} ₼/ədəd
                           </div>
                         );
                       })}
                     </div>
                     {bulkDiscTotal > 0 && (
-                      <div style={{
-                        background: C.greenBg, border: `1px solid #BBF7D0`,
-                        borderRadius: 8, padding: '8px 12px',
-                        fontSize: 12, color: C.green, fontWeight: 500,
-                      }}>
+                      <div style={{ background: C.greenBg, border: '1px solid #BBF7D0', borderRadius: 8, padding: '8px 12px', fontSize: 12, color: C.green, fontWeight: 500 }}>
                         ✓ {qty} ədədə görə <strong>{bulkDiscTotal.toFixed(2)} ₼</strong> qənaət etdiniz
                       </div>
                     )}
                   </div>
                 )}
-              </div>
+              </Section>
 
-              {/* Custom text */}
-              <div style={{
-                background: C.white, border: `1px solid ${C.border}`,
-                borderRadius: 12, padding: '14px 16px', marginBottom: 12,
-              }}>
-                <Label>Üzərinə yazı <span style={{ fontWeight: 400, textTransform: 'none' as const, letterSpacing: 0, color: C.grayLt, fontSize: 10 }}>— isteğe görə</span></Label>
-                <Input
+              {/* Custom text — 300 chars, blue accent (not orange) */}
+              <Section>
+                <Label>Məhsul üzərinə yazı / Əlavə qeyd</Label>
+                <textarea
                   value={printText}
                   onChange={e => setPrintText(e.target.value)}
-                  placeholder="Məs: Sevirəm ❤  ·  20.05.2025  ·  Adın"
-                  maxLength={40}
+                  maxLength={300}
+                  rows={3}
+                  placeholder="Məhsul üzərinə yazı və ya sifarişlə əlaqəli qeydinizi yazın..."
+                  style={{
+                    width: '100%', background: C.white, border: `1px solid ${C.border}`,
+                    borderRadius: 8, padding: '11px 14px',
+                    color: C.black, fontSize: 14, fontFamily: FONT,
+                    outline: 'none', boxSizing: 'border-box' as const,
+                    resize: 'vertical' as const, minHeight: 80,
+                    transition: 'border-color 0.15s',
+                  }}
+                  onFocus={e => e.currentTarget.style.borderColor = C.blue}
+                  onBlur={e => e.currentTarget.style.borderColor = C.border}
                 />
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6 }}>
-                  <span style={{ fontSize: 11, color: printText.trim() ? C.orange : C.grayLt, fontWeight: printText.trim() ? 600 : 400 }}>
-                    {printText.trim() ? `+${printFee} ₼ (5 ₼/ədəd)` : 'Boş qoysanız yazı olmayacaq'}
-                  </span>
-                  <span style={{ fontSize: 11, color: C.grayLt }}>{printText.length}/40</span>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 5 }}>
+                  <span style={{ fontSize: 11, color: C.grayLt }}>{printText.length}/300</span>
                 </div>
-              </div>
+              </Section>
 
-              {/* Image upload */}
-              <div style={{
-                background: C.white, border: `1px solid ${C.border}`,
-                borderRadius: 12, padding: '14px 16px', marginBottom: 12,
-              }}>
-                <Label>Şəkil əlavə et <span style={{ fontWeight: 400, textTransform: 'none' as const, letterSpacing: 0, color: C.grayLt, fontSize: 10 }}>— isteğe görə</span></Label>
+              {/* Image upload — free, blue accent */}
+              <Section>
+                <Label>Şəkil əlavə et <span style={{ fontWeight: 400, textTransform: 'none' as const, letterSpacing: 0, color: C.grayLt, fontSize: 10 }}>— isteğe görə · Ödənişsiz</span></Label>
 
                 <div style={{
-                  background: C.orangeBg, border: `1px solid ${C.orangeBd}`,
+                  background: C.blueBg, border: `1px solid ${C.blueBd}`,
                   borderRadius: 8, padding: '10px 13px', marginBottom: 12,
-                  fontSize: 12, color: '#7A3A00', lineHeight: 1.65,
+                  fontSize: 12, color: '#1E40AF', lineHeight: 1.65,
                 }}>
-                  <strong style={{ display: 'block', marginBottom: 4, color: C.black }}>Bu şəkil nə üçündür?</strong>
                   Portret, eskiz, logo və ya QR kod üçün şəkil göndərin — məhsula çap ediləcək.
-                  <span style={{ display: 'block', marginTop: 4, fontWeight: 700, color: C.orange }}>
-                    +3 ₼ · Maks. {IMAGE_MAX_MB} MB
-                  </span>
                 </div>
 
                 {uploadedImg ? (
@@ -542,10 +445,10 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
                       position: 'absolute', top: 8, right: 8,
                       background: 'rgba(0,0,0,0.55)', border: 'none',
                       borderRadius: '50%', width: 28, height: 28,
-                      color: C.white, cursor: 'pointer', fontSize: 13,
+                      color: C.white, cursor: 'pointer',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                     }}><X size={14} /></button>
-                    <p style={{ margin: '6px 0 0', fontSize: 12, color: C.green, fontWeight: 600 }}>✓ Şəkil əlavə edildi · +3 ₼</p>
+                    <p style={{ margin: '6px 0 0', fontSize: 12, color: C.green, fontWeight: 600 }}>✓ Şəkil əlavə edildi</p>
                   </div>
                 ) : (
                   <label style={{
@@ -555,7 +458,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
                     borderRadius: 10, cursor: 'pointer', background: C.bg,
                     transition: 'border-color 0.15s',
                   }}
-                    onMouseEnter={e => (e.currentTarget as HTMLLabelElement).style.borderColor = C.orange}
+                    onMouseEnter={e => (e.currentTarget as HTMLLabelElement).style.borderColor = C.blue}
                     onMouseLeave={e => (e.currentTarget as HTMLLabelElement).style.borderColor = C.border}
                   >
                     <Upload size={20} color={C.grayLt} />
@@ -565,53 +468,52 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
                   </label>
                 )}
                 {uploadError && <p style={{ fontSize: 12, color: C.red, marginTop: 6 }}>{uploadError}</p>}
-              </div>
+              </Section>
 
-              {/* Box selection */}
-              <div style={{
-                background: C.white, border: `1px solid ${C.border}`,
-                borderRadius: 12, padding: '14px 16px',
-              }}>
-                <Label>Qablaşdırma</Label>
-                <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 8 }}>
-                  {BOXES.map(b => (
-                    <div key={b.id} onClick={() => setBoxId(b.id)} style={{
-                      display: 'flex', justifyContent: 'space-between',
-                      alignItems: 'center', padding: '12px 14px',
-                      borderRadius: 8, cursor: 'pointer',
-                      background: boxId === b.id ? C.black : C.bg,
-                      border: `1.5px solid ${boxId === b.id ? C.black : C.border}`,
-                      transition: 'all 0.15s',
-                    }}>
-                      <div>
-                        <div style={{ fontSize: 13, fontWeight: 600, color: boxId === b.id ? C.white : C.black }}>{b.name}</div>
-                        <div style={{ fontSize: 11, marginTop: 2, color: boxId === b.id ? 'rgba(255,255,255,0.55)' : C.grayLt }}>{b.desc}</div>
+              {/* Box — from Sanity */}
+              {boxes.length > 0 && (
+                <Section>
+                  <Label>Qablaşdırma</Label>
+                  <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 8 }}>
+                    {boxes.map(b => (
+                      <div key={b.id} onClick={() => setBoxId(b.id)} style={{
+                        display: 'flex', justifyContent: 'space-between',
+                        alignItems: 'center', padding: '12px 14px', borderRadius: 8, cursor: 'pointer',
+                        background: boxId === b.id ? C.black : C.bg,
+                        border: `1.5px solid ${boxId === b.id ? C.black : C.border}`,
+                        transition: 'all 0.15s',
+                      }}>
+                        <div>
+                          <div style={{ fontSize: 13, fontWeight: 600, color: boxId === b.id ? C.white : C.black }}>{b.name}</div>
+                          <div style={{ fontSize: 11, marginTop: 2, color: boxId === b.id ? 'rgba(255,255,255,0.55)' : C.grayLt }}>{b.desc}</div>
+                        </div>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: boxId === b.id ? C.orange : b.price > 0 ? C.orange : C.green, flexShrink: 0 }}>
+                          {b.price === 0 ? 'Pulsuz' : `+${b.price.toFixed(2)} ₼`}
+                        </span>
                       </div>
-                      <span style={{ fontSize: 13, fontWeight: 700, color: boxId === b.id ? C.orange : b.price > 0 ? C.orange : C.grayLt, flexShrink: 0 }}>
-                        {b.price === 0 ? 'Pulsuz' : `+${b.price} ₼`}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+                    ))}
+                  </div>
+                </Section>
+              )}
             </>
           )}
 
           {/* ═══ STEP 2 ═══ */}
           {step === 2 && (
             <>
-              {/* Delivery method */}
+              {/* Delivery — 3 options */}
               <div style={{ marginBottom: 16 }}>
                 <Label>Çatdırılma üsulu</Label>
-                <div style={{ display: 'flex', gap: 10 }}>
+                <div style={{ display: 'flex', gap: 8 }}>
                   {[
-                    { id: 'metro' as const, icon: '🚇', label: 'Metro görüşü', sub: 'Pulsuz' },
+                    { id: 'metro' as const,  icon: '🚇', label: 'Metro',  sub: 'Ödənişsiz' },
                     { id: 'kuryer' as const, icon: '🛵', label: 'Kuryer', sub: '+4.99 ₼' },
+                    { id: 'post' as const,   icon: '📮', label: 'Poçt',   sub: '+4.99 ₼' },
                   ].map(d => (
                     <div key={d.id} onClick={() => setDelivery(d.id)} style={{
                       flex: 1, background: delivery === d.id ? C.black : C.white,
                       border: `1.5px solid ${delivery === d.id ? C.black : C.border}`,
-                      borderRadius: 10, padding: '14px 12px',
+                      borderRadius: 10, padding: '14px 10px',
                       textAlign: 'center' as const, cursor: 'pointer', transition: 'all 0.2s',
                     }}>
                       <div style={{ fontSize: 22, marginBottom: 6 }}>{d.icon}</div>
@@ -622,46 +524,41 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
                 </div>
               </div>
 
-              {/* Metro details */}
+              {/* Metro schedule — from Sanity */}
               {delivery === 'metro' && (
                 <>
-                  <div style={{
-                    background: C.white, border: `1px solid ${C.border}`,
-                    borderRadius: 12, padding: '14px 16px', marginBottom: 12,
-                  }}>
+                  <Section>
                     <Label>Metro stansiyası</Label>
-                    <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 7 }}>
-                      {METROS.map(m => (
-                        <div key={m} onClick={() => setMetro(m)} style={{
-                          padding: '7px 13px', borderRadius: 100, fontSize: 12,
-                          cursor: 'pointer', fontWeight: metro === m ? 600 : 400,
-                          background: metro === m ? C.black : C.bg,
-                          color: metro === m ? C.white : C.gray,
-                          border: `1px solid ${metro === m ? C.black : C.border}`,
-                          transition: 'all 0.15s',
-                        }}>{m}</div>
-                      ))}
-                    </div>
-                  </div>
+                    {metroSchedule.stations.length > 0 ? (
+                      <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 7 }}>
+                        {metroSchedule.stations.map(m => (
+                          <div key={m} onClick={() => setMetro(m)} style={{
+                            padding: '7px 13px', borderRadius: 100, fontSize: 12, cursor: 'pointer',
+                            fontWeight: metro === m ? 600 : 400,
+                            background: metro === m ? C.black : C.bg,
+                            color: metro === m ? C.white : C.gray,
+                            border: `1px solid ${metro === m ? C.black : C.border}`,
+                            transition: 'all 0.15s',
+                          }}>{m}</div>
+                        ))}
+                      </div>
+                    ) : <p style={{ fontSize: 13, color: C.grayLt, margin: 0 }}>Sanity-dən metro stansiyaları əlavə edin</p>}
+                  </Section>
 
                   <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
                     {[
-                      { lbl: 'Gün', val: day, set: setDay, opts: DAYS },
-                      { lbl: 'Saat', val: time, set: setTime, opts: TIMES },
+                      { lbl: 'Gün', val: day, set: setDay, opts: metroSchedule.days },
+                      { lbl: 'Saat', val: time, set: setTime, opts: metroSchedule.times },
                     ].map(f => (
                       <div key={f.lbl} style={{
-                        flex: 1, background: C.white,
-                        border: `1px solid ${C.border}`,
+                        flex: 1, background: C.white, border: `1px solid ${C.border}`,
                         borderRadius: 12, padding: '12px 14px',
                       }}>
                         <Label>{f.lbl}</Label>
                         <select value={f.val} onChange={e => f.set(e.target.value)} style={{
-                          width: '100%', background: C.bg,
-                          border: `1px solid ${C.border}`,
-                          borderRadius: 8, padding: '10px 10px',
-                          color: C.black, fontSize: 13,
-                          outline: 'none', fontFamily: FONT,
-                          cursor: 'pointer',
+                          width: '100%', background: C.bg, border: `1px solid ${C.border}`,
+                          borderRadius: 8, padding: '10px', color: C.black,
+                          fontSize: 13, outline: 'none', fontFamily: FONT, cursor: 'pointer',
                         }}>
                           {f.opts.map(o => <option key={o}>{o}</option>)}
                         </select>
@@ -671,129 +568,97 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
                 </>
               )}
 
-              {/* Kuryer address */}
-              {delivery === 'kuryer' && (
-                <div style={{
-                  background: C.white, border: `1px solid ${C.border}`,
-                  borderRadius: 12, padding: '14px 16px', marginBottom: 12,
-                }}>
-                  <Label required>Çatdırılma ünvanı</Label>
-                  <Input value={address} onChange={e => setAddress(e.target.value)} placeholder="Məhəllə, küçə, bina nömrəsi" />
-                  <p style={{ margin: '6px 0 0', fontSize: 11, color: C.grayLt }}>Nümunə: Masazır, Qurtuluş küç. 93, 4-cü mərtəbə</p>
-                </div>
+              {/* Kuryer / Post address */}
+              {(delivery === 'kuryer' || delivery === 'post') && (
+                <Section>
+                  <Label>Çatdırılma ünvanı</Label>
+                  <Inp value={address} onChange={e => setAddress(e.target.value)}
+                    placeholder={delivery === 'post' ? 'Şəhər, poçt indeksi, ünvan' : 'Məhəllə, küçə, bina nömrəsi'}
+                  />
+                  <p style={{ margin: '6px 0 0', fontSize: 11, color: C.grayLt }}>
+                    {delivery === 'post' ? 'Nümunə: Bakı, AZ1000, Əliağa Vahid küç. 12' : 'Nümunə: Masazır, Qurtuluş küç. 93, 4-cü mərtəbə'}
+                  </p>
+                </Section>
               )}
 
-              {/* Contact info */}
-              <div style={{
-                background: C.white,
-                border: `1.5px solid ${C.orange}`,
-                borderRadius: 12, padding: '14px 16px', marginBottom: 12,
-              }}>
-                <Label required>Əlaqə məlumatları</Label>
-                <div style={{
-                  background: C.orangeBg, border: `1px solid ${C.orangeBd}`,
-                  borderRadius: 8, padding: '9px 12px', marginBottom: 12,
-                  fontSize: 12, color: '#7A3A00',
-                }}>
-                  ⚠️ Aşağıdakı məlumatlar <strong>mütləq</strong> doldurulmalıdır.
-                </div>
+              {/* Contact — no warning text, no asterisks */}
+              <Section style={{ border: `1.5px solid ${C.blue}` }}>
+                <Label>Əlaqə məlumatları</Label>
                 <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 10 }}>
-                  <Input value={custName} onChange={e => setCustName(e.target.value)} placeholder="Ad Soyad *" />
-                  <Input value={birthDate} onChange={e => setBirthDate(e.target.value)} placeholder="Doğum tarixi * (məs: 15.03.2000)" />
-                  <Input value={phone} onChange={e => setPhone(e.target.value)} placeholder="Telefon * (+994 50 xxx xx xx)" type="tel" />
+                  <Inp value={custName} onChange={e => setCustName(e.target.value)} placeholder="Ad Soyad" />
+                  <Inp value={birthDate} onChange={e => setBirthDate(e.target.value)} placeholder="Doğum tarixi (məs: 15.03.2000)" />
+                  <Inp value={phone} onChange={e => setPhone(e.target.value)} placeholder="Telefon (+994 50 xxx xx xx)" type="tel" />
                 </div>
-              </div>
+              </Section>
 
-              {/* Customer type */}
-              <div style={{
-                background: C.white, border: `1px solid ${C.border}`,
-                borderRadius: 12, padding: '14px 16px', marginBottom: 14,
-              }}>
-                <Label required>Müştəri növü</Label>
+              {/* Customer type — no % shown, just label. Amount shown in summary */}
+              <Section>
+                <Label>Müştəri növü</Label>
                 <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 8 }}>
                   {[
-                    { id: 'new' as const, label: 'Yeni müştəriyəm', sub: 'İlk sifarişim', pct: DISCOUNT_NEW },
-                    { id: 'loyal' as const, label: 'Daimi müştəriyəm', sub: 'Əvvəl sifariş vermişəm', pct: DISCOUNT_LOYAL },
+                    { id: 'new' as const,   label: 'Yeni müştəriyəm',   sub: 'İlk sifarişim' },
+                    { id: 'loyal' as const, label: 'Daimi müştəriyəm',  sub: 'Əvvəl sifariş vermişəm' },
                   ].map(opt => {
                     const sel = customerType === opt.id;
-                    const discAmt = Math.round(subtotal * opt.pct / 100 * 100) / 100;
                     return (
                       <div key={opt.id} onClick={() => setCustomerType(opt.id)} style={{
-                        display: 'flex', justifyContent: 'space-between',
-                        alignItems: 'center', padding: '12px 14px',
-                        borderRadius: 10, cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', gap: 12,
+                        padding: '12px 14px', borderRadius: 10, cursor: 'pointer',
                         background: sel ? C.bg : C.white,
-                        border: `1.5px solid ${sel ? C.orange : C.border}`,
+                        border: `1.5px solid ${sel ? C.blue : C.border}`,
                         transition: 'all 0.15s',
                       }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                          <div style={{
-                            width: 18, height: 18, borderRadius: '50%',
-                            border: `2px solid ${sel ? C.orange : C.border}`,
-                            background: sel ? C.orange : 'transparent',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                          }}>
-                            {sel && <div style={{ width: 7, height: 7, borderRadius: '50%', background: C.white }} />}
-                          </div>
-                          <div>
-                            <div style={{ fontSize: 13, fontWeight: sel ? 600 : 400, color: C.black }}>{opt.label}</div>
-                            <div style={{ fontSize: 11, color: C.grayLt, marginTop: 1 }}>{opt.sub}</div>
-                          </div>
+                        <div style={{
+                          width: 18, height: 18, borderRadius: '50%',
+                          border: `2px solid ${sel ? C.blue : C.border}`,
+                          background: sel ? C.blue : 'transparent',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                        }}>
+                          {sel && <div style={{ width: 7, height: 7, borderRadius: '50%', background: C.white }} />}
                         </div>
-                        <div style={{ textAlign: 'right' as const, flexShrink: 0 }}>
-                          <div style={{ fontSize: 14, fontWeight: 800, color: C.orange }}>−{discAmt.toFixed(2)} ₼</div>
-                          <div style={{ fontSize: 10, color: C.grayLt }}>{opt.pct}% endirim</div>
+                        <div>
+                          <div style={{ fontSize: 13, fontWeight: sel ? 600 : 400, color: C.black }}>{opt.label}</div>
+                          <div style={{ fontSize: 11, color: C.grayLt, marginTop: 1 }}>{opt.sub}</div>
                         </div>
                       </div>
                     );
                   })}
                 </div>
-              </div>
+              </Section>
 
-              {/* Order summary */}
-              <div style={{
-                background: C.white, border: `1px solid ${C.border}`,
-                borderRadius: 12, padding: '16px',
-              }}>
+              {/* Summary */}
+              <Section>
                 <Label>Sifariş xülasəsi</Label>
-                <SummaryRow l={`${product.name} × ${qty}`} r={`${(effectiveUnit * qty).toFixed(2)} ₼`} />
-                {isOnSale && <SummaryRow l="Kampaniya endirimi" r={`−${((origPrice - baseUnit) * qty).toFixed(2)} ₼`} accent />}
-                {bulkDiscTotal > 0 && <SummaryRow l="Say endirimi" r={`−${bulkDiscTotal.toFixed(2)} ₼`} accent />}
-                {printFee > 0 && <SummaryRow l="Lazer yazı" r={`+${printFee} ₼`} />}
-                {uploadFee > 0 && <SummaryRow l="Şəkil əlavəsi" r={`+${uploadFee} ₼`} />}
-                {boxFee > 0 && <SummaryRow l={box.name} r={`+${boxFee} ₼`} />}
-                {deliveryFee > 0 && <SummaryRow l="Kuryer çatdırılma" r={`+${deliveryFee} ₼`} />}
-                {customerDisc > 0 && <SummaryRow l={`Müştəri endirimi (${discountRate}%)`} r={`−${customerDisc.toFixed(2)} ₼`} accent />}
+                <SRow l={`${product.name} × ${qty}`} r={`${(effectiveUnit * qty).toFixed(2)} ₼`} />
+                {isOnSale && <SRow l="Kampaniya endirimi" r={`−${((origPrice - baseUnit) * qty).toFixed(2)} ₼`} accent />}
+                {bulkDiscTotal > 0 && <SRow l="Say endirimi" r={`−${bulkDiscTotal.toFixed(2)} ₼`} accent />}
+                {boxFee > 0 && <SRow l={box?.name ?? ''} r={`+${boxFee.toFixed(2)} ₼`} />}
+                {deliveryFee > 0 && <SRow l={delivery === 'kuryer' ? 'Kuryer' : 'Poçt'} r={`+${deliveryFee.toFixed(2)} ₼`} />}
+                {customerDisc > 0 && <SRow l="Endirim" r={`−${customerDisc.toFixed(2)} ₼`} accent />}
 
                 <div style={{ borderTop: `1px solid ${C.border}`, margin: '10px 0 12px' }} />
-                <SummaryRow l="Ümumi məbləğ" r={`${finalTotal.toFixed(2)} ₼`} bold />
+                <SRow l="Ümumi məbləğ" r={`${finalTotal.toFixed(2)} ₼`} bold />
 
-                {/* Deposit card */}
+                {/* Beh */}
                 <div style={{
-                  background: C.orangeBg,
-                  border: `1px solid ${C.orangeBd}`,
+                  background: C.orangeBg, border: `1px solid ${C.orangeBd}`,
                   borderRadius: 10, padding: '14px',
                   display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                 }}>
                   <div>
                     <div style={{ fontSize: 13, fontWeight: 700, color: C.orange }}>İndi ödəniləcək (50% beh)</div>
-                    <div style={{ fontSize: 11, color: C.gray, marginTop: 4 }}>
-                      Qalan {(finalTotal - beh).toFixed(2)} ₼ məhsul alınarkən
-                    </div>
+                    <div style={{ fontSize: 11, color: C.gray, marginTop: 4 }}>Qalan {(finalTotal - beh).toFixed(2)} ₼ məhsul alınarkən</div>
                   </div>
-                  <div style={{ fontSize: 28, fontWeight: 800, color: C.orange, letterSpacing: '-1px' }}>
-                    {beh} ₼
-                  </div>
+                  <div style={{ fontSize: 28, fontWeight: 800, color: C.orange, letterSpacing: '-1px' }}>{beh.toFixed(2)} ₼</div>
                 </div>
-              </div>
+              </Section>
             </>
           )}
         </div>
 
-        {/* ── Footer buttons ── */}
+        {/* Footer buttons */}
         <div style={{
-          padding: '14px 20px 28px',
-          background: C.white,
+          padding: '14px 20px 28px', background: C.white,
           borderTop: `1px solid ${C.border}`,
           display: 'flex', gap: 10, flexShrink: 0,
         }}>
@@ -802,8 +667,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
               flex: 1, padding: '14px', borderRadius: 10,
               background: C.bg, border: `1px solid ${C.border}`,
               color: C.gray, fontSize: 14, fontWeight: 500,
-              cursor: 'pointer', fontFamily: FONT,
-              transition: 'border-color 0.15s',
+              cursor: 'pointer', fontFamily: FONT, transition: 'border-color 0.15s',
             }}
               onMouseEnter={e => e.currentTarget.style.borderColor = C.black}
               onMouseLeave={e => e.currentTarget.style.borderColor = C.border}
@@ -813,13 +677,12 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, initialData, onClo
             disabled={step === 2 && !step2Valid}
             onClick={() => { if (step === 1) setStep(2); else handleSubmit(); }}
             style={{
-              flex: step === 2 ? 3 : 1,
-              padding: '14px', borderRadius: 10, border: 'none',
+              flex: step === 2 ? 3 : 1, padding: '14px', borderRadius: 10, border: 'none',
               background: step === 2 && !step2Valid ? C.bg : C.orange,
               color: step === 2 && !step2Valid ? C.grayLt : C.white,
-              fontSize: 15, fontWeight: 700, cursor: step === 2 && !step2Valid ? 'not-allowed' : 'pointer',
-              fontFamily: FONT, letterSpacing: 0.3,
-              transition: 'background 0.15s, transform 0.1s',
+              fontSize: 15, fontWeight: 700,
+              cursor: step === 2 && !step2Valid ? 'not-allowed' : 'pointer',
+              fontFamily: FONT, transition: 'background 0.15s',
               boxShadow: step === 2 && !step2Valid ? 'none' : '0 4px 16px rgba(255,106,0,0.25)',
             }}
             onMouseEnter={e => { if (!(step === 2 && !step2Valid)) e.currentTarget.style.background = '#E55E00'; }}
