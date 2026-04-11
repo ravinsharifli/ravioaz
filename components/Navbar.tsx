@@ -65,7 +65,7 @@ const Navbar: React.FC<NavbarProps> = ({
       }}>
         ✨ Keyfiyyətli hədiyyə, rahat sifariş &nbsp;·&nbsp;
         <strong style={{ color: '#FF6A00' }}>Ödənişsiz çatdırılma</strong>
-        &nbsp;·&nbsp; 17 ₼-dən başlayır
+        &nbsp;·&nbsp; Sizə özəl hazırlanır ! 
       </div>
 
       {/* Main nav */}
