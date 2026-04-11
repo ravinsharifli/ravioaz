@@ -11,19 +11,19 @@ export default {
       options: { hotspot: true },
     },
 
-    // ── METRO QRAFIKI ──────────────────────────────────────────────
+    // ── METRO QRAFİKİ ──────────────────────────────────────────────
     {
       name: 'metroSchedule',
-      title: '🚇 Metro Qrafiki (müştəri buradan seçəcək)',
+      title: '🚇 Metro Qrafiki',
       type: 'object',
       description: 'Müştəri yalnız siz aktiv etdiyiniz stansiya, gün və saatlardan seçə bilər.',
       fields: [
         {
           name: 'stations',
-          title: 'Metro Stansiyaları',
+          title: 'Metro Stansiyaları (aktiv olanlar)',
           type: 'array',
           of: [{ type: 'string' }],
-          description: 'Məs: 28 May, Nərimanov, Həzi Aslanov',
+          description: 'Yalnız bu stansiyalar müştəriyə görünəcək. Məs: 28 May, Nərimanov',
         },
         {
           name: 'days',
@@ -37,7 +37,7 @@ export default {
           title: 'Mövcud saatlar',
           type: 'array',
           of: [{ type: 'string' }],
-          description: 'Məs: 14:00, 15:00, 16:00, 17:00, 18:00',
+          description: 'Məs: 14:00, 15:00, 16:00',
         },
       ],
     },
@@ -45,9 +45,9 @@ export default {
     // ── QUTU NÖVLƏRİ ──────────────────────────────────────────────
     {
       name: 'boxes',
-      title: '📦 Qutu Növləri (müştəri seçəcək)',
+      title: '📦 Qutu Növləri',
       type: 'array',
-      description: 'İstədiyiniz qədər qutu əlavə edə bilərsiniz.',
+      description: 'Müştərinin seçə biləcəyi qutu növlərini buradan idarə edin. Şəkil əlavə edin ki müştəri görüb seçsin.',
       of: [
         {
           type: 'object',
@@ -56,17 +56,19 @@ export default {
               name: 'id',
               title: 'ID (unikal, dəyişdirməyin)',
               type: 'string',
-              description: 'Məs: simple, premium, gift — sistem üçün unikal olmalıdır',
+              description: 'Məs: simple, premium, gift',
+              validation: Rule => Rule.required(),
             },
             {
               name: 'name',
               title: 'Ad (müştəriyə görünür)',
               type: 'string',
               description: 'Məs: Sadə qutu, Premium qutu',
+              validation: Rule => Rule.required(),
             },
             {
               name: 'desc',
-              title: 'Açıqlama',
+              title: 'Qısa açıqlama',
               type: 'string',
               description: 'Məs: Standart qablaşdırma',
             },
@@ -75,20 +77,35 @@ export default {
               title: 'Qiymət (₼) — 0 = pulsuz',
               type: 'number',
               initialValue: 0,
+              validation: Rule => Rule.required().min(0),
+            },
+            {
+              name: 'image',
+              title: '📸 Qutu şəkli',
+              type: 'image',
+              options: { hotspot: true },
+              description: 'Müştəri bu şəkli görüb seçim edəcək',
             },
             {
               name: 'isActive',
               title: 'Aktiv?',
               type: 'boolean',
               initialValue: true,
+              description: 'Deaktiv etsəniz müştəriyə görünməz',
             },
           ],
           preview: {
-            select: { title: 'name', subtitle: 'price', isActive: 'isActive' },
-            prepare({ title, subtitle, isActive }) {
+            select: {
+              title: 'name',
+              subtitle: 'price',
+              isActive: 'isActive',
+              media: 'image',
+            },
+            prepare({ title, subtitle, isActive, media }) {
               return {
                 title: `${isActive ? '✅' : '❌'} ${title || 'Qutu'}`,
                 subtitle: subtitle === 0 ? 'Pulsuz' : `+${subtitle} ₼`,
+                media,
               };
             },
           },

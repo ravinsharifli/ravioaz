@@ -46,24 +46,26 @@ const Navbar: React.FC<NavbarProps> = ({
     : [];
 
   const navLinks = [
-    { label: 'Məhsullar',   action: onProductsClick },
-    { label: 'Çatdırılma',  action: onDeliveryClick },
-    { label: 'Haqqımızda',  action: onAboutClick },
-    { label: 'Əlaqə',       action: onContactClick },
+    { label: 'Məhsullar',  action: onProductsClick },
+    { label: 'Çatdırılma', action: onDeliveryClick },
+    { label: 'Haqqımızda', action: onAboutClick },
+    { label: 'Əlaqə',      action: onContactClick },
   ];
 
   return (
     <>
-      {/* Announcement bar */}
+      {/* Announcement bar — slogan */}
       <div style={{
         background: '#111111', color: '#FFFFFF',
         textAlign: 'center' as const,
         fontSize: 12, fontWeight: 500,
         padding: '9px 16px',
         fontFamily: "'Inter', sans-serif",
+        letterSpacing: 0.2,
       }}>
-        🎁 Ödənişsiz çatdırılma &nbsp;·&nbsp; Lazer yazı ilə fərdi hədiyyə &nbsp;·&nbsp;
-        <strong style={{ color: '#FF6A00' }}>17 ₼-dən başlayır</strong>
+        ✨ Keyfiyyətli hədiyyə, rahat sifariş &nbsp;·&nbsp;
+        <strong style={{ color: '#FF6A00' }}>Ödənişsiz çatdırılma</strong>
+        &nbsp;·&nbsp; 17 ₼-dən başlayır
       </div>
 
       {/* Main nav */}
@@ -91,10 +93,12 @@ const Navbar: React.FC<NavbarProps> = ({
             }}>
               <span style={{ color: '#FF6A00', fontSize: 16, fontWeight: 800, fontFamily: "'Inter', sans-serif", lineHeight: 1 }}>R</span>
             </div>
-            <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 18, fontWeight: 800, color: '#111111', letterSpacing: '-0.5px' }}>ravio</span>
+            <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 18, fontWeight: 800, color: '#111111', letterSpacing: '-0.5px' }}>
+              ravio
+            </span>
           </button>
 
-          {/* Desktop nav */}
+          {/* Desktop nav links */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 2 }} className="r-desktop-nav">
             {navLinks.map(link => (
               <button key={link.label} onClick={link.action} style={{
@@ -109,7 +113,7 @@ const Navbar: React.FC<NavbarProps> = ({
             ))}
           </div>
 
-          {/* Right side */}
+          {/* Right — Search + Cart only (no order button) */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
             {/* Search */}
             <div ref={searchRef} style={{ position: 'relative' }}>
@@ -136,10 +140,16 @@ const Navbar: React.FC<NavbarProps> = ({
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', borderBottom: '1px solid #F0EBE2' }}>
                     <Search size={14} color="#FF6A00" />
                     <input
-                      autoFocus value={query}
+                      autoFocus
+                      value={query}
                       onChange={e => setQuery(e.target.value)}
                       placeholder="Məhsul axtar..."
-                      style={{ flex: 1, border: 'none', outline: 'none', fontSize: 14, color: '#111111', fontFamily: "'Inter', sans-serif", background: 'transparent' }}
+                      style={{
+                        flex: 1, border: 'none', outline: 'none',
+                        fontSize: 14, color: '#111111',
+                        fontFamily: "'Inter', sans-serif",
+                        background: 'transparent',
+                      }}
                     />
                     {query && (
                       <button onClick={() => setQuery('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#999', padding: 0 }}>
@@ -147,11 +157,13 @@ const Navbar: React.FC<NavbarProps> = ({
                       </button>
                     )}
                   </div>
+
                   {results.length > 0 ? (
                     <ul style={{ listStyle: 'none', margin: 0, padding: '6px 0', maxHeight: 320, overflowY: 'auto' as const }}>
                       {results.map(p => (
                         <li key={p.id}>
-                          <button onClick={() => { onViewProduct?.(p); setSearchOpen(false); setQuery(''); }}
+                          <button
+                            onClick={() => { onViewProduct?.(p); setSearchOpen(false); setQuery(''); }}
                             style={{
                               width: '100%', display: 'flex', alignItems: 'center', gap: 12,
                               padding: '10px 16px', background: 'none', border: 'none',
@@ -166,7 +178,9 @@ const Navbar: React.FC<NavbarProps> = ({
                               </div>
                             )}
                             <div style={{ flex: 1, minWidth: 0 }}>
-                              <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: '#111111', fontFamily: "'Inter', sans-serif", overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{p.name}</p>
+                              <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: '#111111', fontFamily: "'Inter', sans-serif", overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>
+                                {p.name}
+                              </p>
                               <p style={{ margin: '2px 0 0', fontSize: 13, color: '#FF6A00', fontWeight: 700 }}>
                                 {(p.variants[0]?.discountPrice ?? p.variants[0]?.price ?? 0).toFixed(2)} ₼
                               </p>
@@ -176,7 +190,9 @@ const Navbar: React.FC<NavbarProps> = ({
                       ))}
                     </ul>
                   ) : query.trim().length > 1 ? (
-                    <div style={{ padding: '24px', textAlign: 'center' as const, color: '#999', fontSize: 13 }}>Nəticə tapılmadı</div>
+                    <div style={{ padding: '24px', textAlign: 'center' as const, color: '#999', fontSize: 13 }}>
+                      Nəticə tapılmadı
+                    </div>
                   ) : null}
                 </div>
               )}
@@ -203,22 +219,6 @@ const Navbar: React.FC<NavbarProps> = ({
                 }}>{cartCount}</span>
               )}
             </button>
-
-            {/* Desktop CTA */}
-            <a href="https://wa.me/994519831483" target="_blank" rel="noreferrer"
-              className="r-desktop-nav"
-              style={{
-                marginLeft: 8, padding: '8px 20px',
-                background: '#FF6A00', color: '#FFFFFF',
-                borderRadius: 8, fontSize: 13, fontWeight: 700,
-                textDecoration: 'none',
-                fontFamily: "'Inter', sans-serif",
-                display: 'inline-flex', alignItems: 'center', gap: 6,
-                transition: 'background 0.15s', whiteSpace: 'nowrap' as const,
-              }}
-              onMouseEnter={e => e.currentTarget.style.background = '#E55E00'}
-              onMouseLeave={e => e.currentTarget.style.background = '#FF6A00'}
-            >💬 Sifariş et</a>
 
             {/* Mobile menu */}
             <button className="r-mobile-nav" onClick={() => setMenuOpen(v => !v)} style={{

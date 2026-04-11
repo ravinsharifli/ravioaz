@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, ChevronLeft, ChevronRight, Upload, Minus, Plus } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Upload, Minus, Plus, Check } from 'lucide-react';
 import { Product, CartItem, BulkTier } from '../types';
 
 const FONT = "'Inter', -apple-system, sans-serif";
@@ -22,7 +22,6 @@ const C = {
   red:      '#DC2626',
 };
 
-// ─── helpers ───────────────────────────────────────────────────────
 function getActiveTier(tiers: BulkTier[], qty: number): BulkTier | null {
   if (!tiers?.length) return null;
   return [...tiers]
@@ -30,25 +29,24 @@ function getActiveTier(tiers: BulkTier[], qty: number): BulkTier | null {
     .find(t => qty >= t.minQty && (!t.maxQty || qty <= t.maxQty)) || null;
 }
 
-// ─── mini components ───────────────────────────────────────────────
 const Label: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <p style={{
-    fontSize: 11, fontWeight: 700, letterSpacing: 0.8,
-    textTransform: 'uppercase' as const,
-    color: C.gray, margin: '0 0 10px', fontFamily: FONT,
-  }}>{children}</p>
+  <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.8, textTransform: 'uppercase' as const, color: C.gray, margin: '0 0 10px', fontFamily: FONT }}>
+    {children}
+  </p>
 );
 
-const Inp: React.FC<React.InputHTMLAttributes<HTMLInputElement>> = (props) => (
-  <input {...props} style={{
-    width: '100%', background: C.white, border: `1px solid ${C.border}`,
-    borderRadius: 8, padding: '11px 14px',
-    color: C.black, fontSize: 14, fontFamily: FONT,
-    outline: 'none', boxSizing: 'border-box' as const,
-    transition: 'border-color 0.15s', ...props.style,
-  }}
-    onFocus={e => e.currentTarget.style.borderColor = C.blue}
-    onBlur={e => e.currentTarget.style.borderColor = C.border}
+const Inp: React.FC<React.InputHTMLAttributes<HTMLInputElement>> = ({ onFocus, onBlur, ...props }) => (
+  <input
+    {...props}
+    style={{
+      width: '100%', background: C.white, border: `1px solid ${C.border}`,
+      borderRadius: 8, padding: '11px 14px',
+      color: C.black, fontSize: 14, fontFamily: FONT,
+      outline: 'none', boxSizing: 'border-box' as const,
+      transition: 'border-color 0.15s', ...props.style,
+    }}
+    onFocus={e => { e.currentTarget.style.borderColor = C.blue; onFocus?.(e); }}
+    onBlur={e => { e.currentTarget.style.borderColor = C.border; onBlur?.(e); }}
   />
 );
 
@@ -59,8 +57,15 @@ const SRow: React.FC<{ l: string; r: string; accent?: boolean; bold?: boolean }>
   </div>
 );
 
-// ─── types ────────────────────────────────────────────────────────
-interface BoxOption { id: string; name: string; desc: string; price: number; }
+const Sec: React.FC<{ children: React.ReactNode; highlight?: boolean }> = ({ children, highlight }) => (
+  <div style={{
+    background: C.white,
+    border: `1.5px solid ${highlight ? C.blue : C.border}`,
+    borderRadius: 12, padding: '14px 16px', marginBottom: 12,
+  }}>{children}</div>
+);
+
+interface BoxOption { id: string; name: string; desc: string; price: number; imageUrl?: string | null; }
 interface MetroSchedule { stations: string[]; days: string[]; times: string[]; }
 
 interface ProductModalProps {
@@ -77,7 +82,6 @@ const DISCOUNT_NEW   = 10;
 const DISCOUNT_LOYAL = 20;
 const IMAGE_MAX_MB   = 5;
 
-// ─── main component ────────────────────────────────────────────────
 const ProductModal: React.FC<ProductModalProps> = ({
   product, initialData, metroSchedule, boxes, onClose, onAddToCart,
 }) => {
@@ -91,7 +95,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
   const [uploadedImg,  setUploadedImg]  = useState<string | null>(null);
   const [uploadError,  setUploadError]  = useState('');
   const [boxId,        setBoxId]        = useState(initialData?.boxType ?? boxes[0]?.id ?? 'simple');
-  const [delivery,     setDelivery]     = useState<'metro' | 'kuryer' | 'post'>(initialData?.deliveryMethod as any ?? 'metro');
+  const [delivery,     setDelivery]     = useState<'metro' | 'kuryer' | 'post'>('metro');
   const [metro,        setMetro]        = useState(metroSchedule.stations[0] ?? '');
   const [day,          setDay]          = useState(metroSchedule.days[0] ?? '');
   const [time,         setTime]         = useState(metroSchedule.times[0] ?? '');
@@ -110,19 +114,18 @@ const ProductModal: React.FC<ProductModalProps> = ({
   const salePrice  = variant.discountPrice;
   const baseUnit   = salePrice ?? origPrice;
   const isOnSale   = !!(salePrice && salePrice < origPrice);
-  const discountPct = isOnSale ? Math.round(((origPrice - baseUnit) / origPrice) * 100) : 0;
+  const salePct    = isOnSale ? Math.round(((origPrice - baseUnit) / origPrice) * 100) : 0;
 
   const activeTier    = product.hasBulkDiscount && product.bulkTiers ? getActiveTier(product.bulkTiers, qty) : null;
   const bulkOff       = activeTier?.discountAmount ?? 0;
   const effectiveUnit = Math.max(0, baseUnit - bulkOff);
   const bulkDiscTotal = bulkOff * qty;
-  const printFee      = 0; // free
-  const uploadFee     = 0; // free
-  const box           = boxes.find(b => b.id === boxId) ?? boxes[0];
-  const boxFee        = box?.price ?? 0;
-  const deliveryFee   = delivery === 'kuryer' ? 4.99 : delivery === 'post' ? 4.99 : 0;
 
-  const subtotal     = effectiveUnit * qty + printFee + uploadFee + boxFee + deliveryFee;
+  const box         = boxes.find(b => b.id === boxId) ?? boxes[0];
+  const boxFee      = box?.price ?? 0;
+  const deliveryFee = delivery === 'kuryer' ? 4.99 : delivery === 'post' ? 4.99 : 0;
+
+  const subtotal     = effectiveUnit * qty + boxFee + deliveryFee;
   const discountRate = customerType === 'loyal' ? DISCOUNT_LOYAL : customerType === 'new' ? DISCOUNT_NEW : 0;
   const customerDisc = customerType ? Math.round(subtotal * discountRate / 100 * 100) / 100 : 0;
   const finalTotal   = subtotal - customerDisc;
@@ -146,7 +149,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
     if (!step2Valid) return;
     const deliveryDetails = delivery === 'metro'
       ? `🚇 ${metro} · ${day} · ${time}`
-      : delivery === 'post' ? `📮 Poçt · ${address}` : address;
+      : delivery === 'post' ? `📮 Poçt · ${address}` : `🛵 Kuryer · ${address}`;
 
     const item: CartItem = {
       cartId:               initialData?.cartId || Math.random().toString(36).substr(2, 9),
@@ -183,13 +186,8 @@ const ProductModal: React.FC<ProductModalProps> = ({
     onClose();
   };
 
-  const Section: React.FC<{ children: React.ReactNode; style?: React.CSSProperties }> = ({ children, style }) => (
-    <div style={{
-      background: C.white, border: `1px solid ${C.border}`,
-      borderRadius: 12, padding: '14px 16px', marginBottom: 12,
-      ...style,
-    }}>{children}</div>
-  );
+  const prevImg = () => setImgIdx(i => (i - 1 + totalImgs) % totalImgs);
+  const nextImg = () => setImgIdx(i => (i + 1) % totalImgs);
 
   return (
     <div
@@ -244,57 +242,86 @@ const ProductModal: React.FC<ProductModalProps> = ({
           {/* ═══ STEP 1 ═══ */}
           {step === 1 && (
             <>
-              {/* Image */}
+              {/* Image with nav buttons */}
               {totalImgs > 0 && (
                 <div style={{
                   position: 'relative', background: C.white,
                   borderRadius: 12, overflow: 'hidden',
-                  marginBottom: 16, height: 260,
+                  marginBottom: 16, height: 280,
                   border: `1px solid ${C.border}`,
                 }}>
-                  <img src={images[imgIdx]} alt={product.name}
+                  <img
+                    src={images[imgIdx]}
+                    alt={product.name}
                     style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
-                    onError={e => { (e.target as HTMLImageElement).src = 'https://placehold.co/400x260/F5F2EC/AAAAAA?text=Şəkil+yoxdur'; }}
+                    onError={e => { (e.target as HTMLImageElement).src = 'https://placehold.co/400x280/F5F2EC/AAAAAA?text=Şəkil+yoxdur'; }}
                   />
-                  {/* Discount badge — image only, not repeated below */}
+
                   {isOnSale && (
                     <div style={{
                       position: 'absolute', top: 12, left: 12,
                       background: C.orange, color: C.white,
                       fontSize: 11, fontWeight: 800, padding: '4px 10px', borderRadius: 6,
-                    }}>−{discountPct}%</div>
+                    }}>−{salePct}%</div>
                   )}
+
+                  {/* Nav arrows — always visible if multiple */}
                   {totalImgs > 1 && (
                     <>
-                      <button onClick={() => setImgIdx(i => (i - 1 + totalImgs) % totalImgs)} style={{
-                        position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)',
-                        background: 'rgba(255,255,255,0.92)', border: `1px solid ${C.border}`,
-                        borderRadius: '50%', width: 32, height: 32, cursor: 'pointer',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      }}><ChevronLeft size={16} /></button>
-                      <button onClick={() => setImgIdx(i => (i + 1) % totalImgs)} style={{
-                        position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
-                        background: 'rgba(255,255,255,0.92)', border: `1px solid ${C.border}`,
-                        borderRadius: '50%', width: 32, height: 32, cursor: 'pointer',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      }}><ChevronRight size={16} /></button>
-                      <div style={{ position: 'absolute', bottom: 10, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 5 }}>
+                      <button
+                        onClick={prevImg}
+                        style={{
+                          position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)',
+                          background: 'rgba(255,255,255,0.95)', border: `1px solid ${C.border}`,
+                          borderRadius: '50%', width: 36, height: 36, cursor: 'pointer',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                          zIndex: 2,
+                        }}
+                      ><ChevronLeft size={18} color={C.black} /></button>
+
+                      <button
+                        onClick={nextImg}
+                        style={{
+                          position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
+                          background: 'rgba(255,255,255,0.95)', border: `1px solid ${C.border}`,
+                          borderRadius: '50%', width: 36, height: 36, cursor: 'pointer',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                          zIndex: 2,
+                        }}
+                      ><ChevronRight size={18} color={C.black} /></button>
+
+                      {/* Dots */}
+                      <div style={{
+                        position: 'absolute', bottom: 10, left: '50%',
+                        transform: 'translateX(-50%)',
+                        display: 'flex', gap: 5,
+                      }}>
                         {images.map((_, i) => (
-                          <div key={i} onClick={() => setImgIdx(i)} style={{
+                          <button key={i} onClick={() => setImgIdx(i)} style={{
                             width: i === imgIdx ? 20 : 6, height: 6,
-                            borderRadius: 3, cursor: 'pointer',
+                            borderRadius: 3, border: 'none', padding: 0, cursor: 'pointer',
                             background: i === imgIdx ? C.orange : 'rgba(0,0,0,0.2)',
                             transition: 'all 0.2s',
                           }} />
                         ))}
                       </div>
+
+                      {/* Counter */}
+                      <div style={{
+                        position: 'absolute', top: 10, right: 10,
+                        background: 'rgba(0,0,0,0.45)', color: C.white,
+                        fontSize: 11, fontWeight: 600,
+                        padding: '3px 10px', borderRadius: 100,
+                      }}>{imgIdx + 1} / {totalImgs}</div>
                     </>
                   )}
                 </div>
               )}
 
-              {/* Price — no duplicate discount badge */}
-              <Section>
+              {/* Price */}
+              <Sec>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
                     {isOnSale && (
@@ -310,11 +337,11 @@ const ProductModal: React.FC<ProductModalProps> = ({
                     )}
                   </div>
                 </div>
-              </Section>
+              </Sec>
 
               {/* Variants */}
               {variants.length > 1 && (
-                <Section>
+                <Sec>
                   <Label>Model / Rəng</Label>
                   <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 8 }}>
                     {variants.map((v, i) => {
@@ -322,13 +349,15 @@ const ProductModal: React.FC<ProductModalProps> = ({
                       const sel = variantIdx === i;
                       const lbl = [v.modelName, v.colorName].filter(Boolean).join(' · ') || `Variant ${i + 1}`;
                       return (
-                        <div key={i} onClick={() => { if (!oos) { setVariantIdx(i); setImgIdx(0); } }} style={{
-                          padding: '9px 14px', borderRadius: 8, cursor: oos ? 'not-allowed' : 'pointer',
-                          background: sel ? C.black : C.bg,
-                          color: sel ? C.white : oos ? C.grayLt : C.black,
-                          border: `1.5px solid ${sel ? C.black : C.border}`,
-                          opacity: oos ? 0.5 : 1, transition: 'all 0.15s',
-                        }}>
+                        <div key={i} onClick={() => { if (!oos) { setVariantIdx(i); setImgIdx(0); } }}
+                          style={{
+                            padding: '9px 14px', borderRadius: 8, cursor: oos ? 'not-allowed' : 'pointer',
+                            background: sel ? C.black : C.bg,
+                            color: sel ? C.white : oos ? C.grayLt : C.black,
+                            border: `1.5px solid ${sel ? C.black : C.border}`,
+                            opacity: oos ? 0.5 : 1, transition: 'all 0.15s',
+                          }}
+                        >
                           <div style={{ fontSize: 13, fontWeight: sel ? 600 : 400 }}>{lbl}</div>
                           <div style={{ fontSize: 11, fontWeight: 700, marginTop: 2, color: sel ? 'rgba(255,255,255,0.7)' : C.orange }}>
                             {(v.discountPrice ?? v.price).toFixed(2)} ₼{oos ? ' · Bitib' : ''}
@@ -337,14 +366,14 @@ const ProductModal: React.FC<ProductModalProps> = ({
                       );
                     })}
                   </div>
-                </Section>
+                </Sec>
               )}
 
               {/* Quantity */}
-              <Section>
+              <Sec>
                 <Label>Say</Label>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
                     <button onClick={() => setQty(q => Math.max(1, q - 1))} style={{
                       width: 36, height: 36, borderRadius: '8px 0 0 8px',
                       border: `1px solid ${C.border}`, background: C.bg,
@@ -354,7 +383,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
                       width: 52, height: 36, border: `1px solid ${C.border}`,
                       borderLeft: 'none', borderRight: 'none',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: 15, fontWeight: 700, background: C.white,
+                      fontSize: 15, fontWeight: 700, background: C.white, color: C.black,
                     }}>{qty}</div>
                     <button onClick={() => setQty(q => q + 1)} style={{
                       width: 36, height: 36, borderRadius: '0 8px 8px 0',
@@ -376,7 +405,8 @@ const ProductModal: React.FC<ProductModalProps> = ({
                     <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 6, marginBottom: 8 }}>
                       {product.bulkTiers.map((tier, i) => {
                         const isActive = qty >= tier.minQty && (!tier.maxQty || qty <= tier.maxQty);
-                        const lbl = tier.label || (tier.maxQty ? `${tier.minQty}–${tier.maxQty}` : `${tier.minQty}+`);
+                        const lbl      = tier.label || (tier.maxQty ? `${tier.minQty}–${tier.maxQty} ədəd` : `${tier.minQty}+ ədəd`);
+                        const disc     = Math.max(0, baseUnit - tier.discountAmount);
                         return (
                           <div key={i} onClick={() => setQty(tier.minQty)} style={{
                             padding: '5px 12px', borderRadius: 100, fontSize: 11, cursor: 'pointer', fontWeight: 600,
@@ -385,22 +415,22 @@ const ProductModal: React.FC<ProductModalProps> = ({
                             border: `1px solid ${isActive ? C.orange : C.border}`,
                             transition: 'all 0.15s',
                           }}>
-                            {lbl} → {Math.max(0, baseUnit - tier.discountAmount).toFixed(2)} ₼/ədəd
+                            {lbl} → {disc.toFixed(2)} ₼/ədəd
                           </div>
                         );
                       })}
                     </div>
                     {bulkDiscTotal > 0 && (
                       <div style={{ background: C.greenBg, border: '1px solid #BBF7D0', borderRadius: 8, padding: '8px 12px', fontSize: 12, color: C.green, fontWeight: 500 }}>
-                        ✓ {qty} ədədə görə <strong>{bulkDiscTotal.toFixed(2)} ₼</strong> qənaət etdiniz
+                        ✓ Say endirimi: <strong>{bulkDiscTotal.toFixed(2)} ₼</strong> qənaət
                       </div>
                     )}
                   </div>
                 )}
-              </Section>
+              </Sec>
 
-              {/* Custom text — 300 chars, blue accent (not orange) */}
-              <Section>
+              {/* Custom text */}
+              <Sec>
                 <Label>Məhsul üzərinə yazı / Əlavə qeyd</Label>
                 <textarea
                   value={printText}
@@ -422,31 +452,21 @@ const ProductModal: React.FC<ProductModalProps> = ({
                 <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 5 }}>
                   <span style={{ fontSize: 11, color: C.grayLt }}>{printText.length}/300</span>
                 </div>
-              </Section>
+              </Sec>
 
-              {/* Image upload — free, blue accent */}
-              <Section>
-                <Label>Şəkil əlavə et <span style={{ fontWeight: 400, textTransform: 'none' as const, letterSpacing: 0, color: C.grayLt, fontSize: 10 }}>— isteğe görə · Ödənişsiz</span></Label>
-
-                <div style={{
-                  background: C.blueBg, border: `1px solid ${C.blueBd}`,
-                  borderRadius: 8, padding: '10px 13px', marginBottom: 12,
-                  fontSize: 12, color: '#1E40AF', lineHeight: 1.65,
-                }}>
+              {/* Image upload */}
+              <Sec>
+                <Label>Şəkil əlavə et <span style={{ fontWeight: 400, textTransform: 'none' as const, letterSpacing: 0, color: C.grayLt, fontSize: 10 }}>— ödənişsiz</span></Label>
+                <div style={{ background: C.blueBg, border: `1px solid ${C.blueBd}`, borderRadius: 8, padding: '10px 13px', marginBottom: 12, fontSize: 12, color: '#1E40AF', lineHeight: 1.65 }}>
                   Portret, eskiz, logo və ya QR kod üçün şəkil göndərin — məhsula çap ediləcək.
                 </div>
-
                 {uploadedImg ? (
                   <div style={{ position: 'relative' }}>
-                    <img src={uploadedImg} alt="Yüklənmiş"
-                      style={{ width: '100%', height: 160, objectFit: 'contain', borderRadius: 8, background: C.bg, border: `1px solid ${C.border}` }}
-                    />
+                    <img src={uploadedImg} alt="Yüklənmiş" style={{ width: '100%', height: 160, objectFit: 'contain', borderRadius: 8, background: C.bg, border: `1px solid ${C.border}` }} />
                     <button onClick={() => setUploadedImg(null)} style={{
-                      position: 'absolute', top: 8, right: 8,
-                      background: 'rgba(0,0,0,0.55)', border: 'none',
-                      borderRadius: '50%', width: 28, height: 28,
-                      color: C.white, cursor: 'pointer',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      position: 'absolute', top: 8, right: 8, background: 'rgba(0,0,0,0.55)',
+                      border: 'none', borderRadius: '50%', width: 28, height: 28,
+                      color: C.white, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
                     }}><X size={14} /></button>
                     <p style={{ margin: '6px 0 0', fontSize: 12, color: C.green, fontWeight: 600 }}>✓ Şəkil əlavə edildi</p>
                   </div>
@@ -468,32 +488,62 @@ const ProductModal: React.FC<ProductModalProps> = ({
                   </label>
                 )}
                 {uploadError && <p style={{ fontSize: 12, color: C.red, marginTop: 6 }}>{uploadError}</p>}
-              </Section>
+              </Sec>
 
-              {/* Box — from Sanity */}
+              {/* Box selection with images */}
               {boxes.length > 0 && (
-                <Section>
+                <Sec>
                   <Label>Qablaşdırma</Label>
-                  <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 8 }}>
-                    {boxes.map(b => (
-                      <div key={b.id} onClick={() => setBoxId(b.id)} style={{
-                        display: 'flex', justifyContent: 'space-between',
-                        alignItems: 'center', padding: '12px 14px', borderRadius: 8, cursor: 'pointer',
-                        background: boxId === b.id ? C.black : C.bg,
-                        border: `1.5px solid ${boxId === b.id ? C.black : C.border}`,
-                        transition: 'all 0.15s',
-                      }}>
-                        <div>
-                          <div style={{ fontSize: 13, fontWeight: 600, color: boxId === b.id ? C.white : C.black }}>{b.name}</div>
-                          <div style={{ fontSize: 11, marginTop: 2, color: boxId === b.id ? 'rgba(255,255,255,0.55)' : C.grayLt }}>{b.desc}</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 10 }}>
+                    {boxes.map(b => {
+                      const sel = boxId === b.id;
+                      return (
+                        <div key={b.id} onClick={() => setBoxId(b.id)} style={{
+                          position: 'relative', cursor: 'pointer',
+                          border: `2px solid ${sel ? C.black : C.border}`,
+                          borderRadius: 10, overflow: 'hidden',
+                          transition: 'all 0.15s',
+                          background: sel ? '#F8F8F8' : C.white,
+                        }}>
+                          {/* Box image or placeholder */}
+                          <div style={{ aspectRatio: '1/1', background: '#F5F2EC', overflow: 'hidden' }}>
+                            {b.imageUrl ? (
+                              <img src={b.imageUrl} alt={b.name}
+                                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                            ) : (
+                              <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32 }}>
+                                📦
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Info */}
+                          <div style={{ padding: '8px 10px' }}>
+                            <div style={{ fontSize: 12, fontWeight: 600, color: sel ? C.black : C.gray, marginBottom: 2 }}>{b.name}</div>
+                            <div style={{ fontSize: 12, fontWeight: 700, color: sel ? C.orange : b.price > 0 ? C.orange : C.green }}>
+                              {b.price === 0 ? 'Pulsuz' : `+${b.price.toFixed(2)} ₼`}
+                            </div>
+                          </div>
+
+                          {/* Selected check */}
+                          {sel && (
+                            <div style={{
+                              position: 'absolute', top: 6, right: 6,
+                              background: C.black, borderRadius: '50%',
+                              width: 20, height: 20,
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            }}>
+                              <Check size={12} color={C.white} strokeWidth={3} />
+                            </div>
+                          )}
                         </div>
-                        <span style={{ fontSize: 13, fontWeight: 700, color: boxId === b.id ? C.orange : b.price > 0 ? C.orange : C.green, flexShrink: 0 }}>
-                          {b.price === 0 ? 'Pulsuz' : `+${b.price.toFixed(2)} ₼`}
-                        </span>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
-                </Section>
+                  {box?.desc && (
+                    <p style={{ margin: '10px 0 0', fontSize: 12, color: C.grayLt }}>{box.desc}</p>
+                  )}
+                </Sec>
               )}
             </>
           )}
@@ -501,14 +551,14 @@ const ProductModal: React.FC<ProductModalProps> = ({
           {/* ═══ STEP 2 ═══ */}
           {step === 2 && (
             <>
-              {/* Delivery — 3 options */}
+              {/* Delivery */}
               <div style={{ marginBottom: 16 }}>
                 <Label>Çatdırılma üsulu</Label>
                 <div style={{ display: 'flex', gap: 8 }}>
                   {[
-                    { id: 'metro' as const,  icon: '🚇', label: 'Metro',  sub: 'Ödənişsiz' },
+                    { id: 'metro'  as const, icon: '🚇', label: 'Metro',  sub: 'Ödənişsiz' },
                     { id: 'kuryer' as const, icon: '🛵', label: 'Kuryer', sub: '+4.99 ₼' },
-                    { id: 'post' as const,   icon: '📮', label: 'Poçt',   sub: '+4.99 ₼' },
+                    { id: 'post'   as const, icon: '📮', label: 'Poçt',   sub: '+4.99 ₼' },
                   ].map(d => (
                     <div key={d.id} onClick={() => setDelivery(d.id)} style={{
                       flex: 1, background: delivery === d.id ? C.black : C.white,
@@ -524,12 +574,12 @@ const ProductModal: React.FC<ProductModalProps> = ({
                 </div>
               </div>
 
-              {/* Metro schedule — from Sanity */}
+              {/* Metro schedule from Sanity */}
               {delivery === 'metro' && (
                 <>
-                  <Section>
-                    <Label>Metro stansiyası</Label>
-                    {metroSchedule.stations.length > 0 ? (
+                  {metroSchedule.stations.length > 0 ? (
+                    <Sec>
+                      <Label>Metro stansiyası</Label>
                       <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 7 }}>
                         {metroSchedule.stations.map(m => (
                           <div key={m} onClick={() => setMetro(m)} style={{
@@ -542,12 +592,18 @@ const ProductModal: React.FC<ProductModalProps> = ({
                           }}>{m}</div>
                         ))}
                       </div>
-                    ) : <p style={{ fontSize: 13, color: C.grayLt, margin: 0 }}>Sanity-dən metro stansiyaları əlavə edin</p>}
-                  </Section>
+                    </Sec>
+                  ) : (
+                    <Sec>
+                      <p style={{ margin: 0, fontSize: 13, color: C.grayLt }}>
+                        Metro stansiyaları Sanity-dən əlavə ediləcək
+                      </p>
+                    </Sec>
+                  )}
 
                   <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
                     {[
-                      { lbl: 'Gün', val: day, set: setDay, opts: metroSchedule.days },
+                      { lbl: 'Gün',  val: day,  set: setDay,  opts: metroSchedule.days },
                       { lbl: 'Saat', val: time, set: setTime, opts: metroSchedule.times },
                     ].map(f => (
                       <div key={f.lbl} style={{
@@ -555,49 +611,75 @@ const ProductModal: React.FC<ProductModalProps> = ({
                         borderRadius: 12, padding: '12px 14px',
                       }}>
                         <Label>{f.lbl}</Label>
-                        <select value={f.val} onChange={e => f.set(e.target.value)} style={{
-                          width: '100%', background: C.bg, border: `1px solid ${C.border}`,
-                          borderRadius: 8, padding: '10px', color: C.black,
-                          fontSize: 13, outline: 'none', fontFamily: FONT, cursor: 'pointer',
-                        }}>
-                          {f.opts.map(o => <option key={o}>{o}</option>)}
-                        </select>
+                        {f.opts.length > 0 ? (
+                          <select
+                            value={f.val}
+                            onChange={e => f.set(e.target.value)}
+                            style={{
+                              width: '100%', background: C.bg, border: `1px solid ${C.border}`,
+                              borderRadius: 8, padding: '10px',
+                              color: C.black, fontSize: 13,
+                              outline: 'none', fontFamily: FONT, cursor: 'pointer',
+                            }}
+                          >
+                            {f.opts.map(o => <option key={o} value={o}>{o}</option>)}
+                          </select>
+                        ) : (
+                          <p style={{ margin: 0, fontSize: 12, color: C.grayLt }}>Sanity-dən əlavə edin</p>
+                        )}
                       </div>
                     ))}
                   </div>
                 </>
               )}
 
-              {/* Kuryer / Post address */}
+              {/* Address for kuryer/post */}
               {(delivery === 'kuryer' || delivery === 'post') && (
-                <Section>
+                <Sec>
                   <Label>Çatdırılma ünvanı</Label>
-                  <Inp value={address} onChange={e => setAddress(e.target.value)}
+                  <Inp
+                    value={address}
+                    onChange={e => setAddress(e.target.value)}
                     placeholder={delivery === 'post' ? 'Şəhər, poçt indeksi, ünvan' : 'Məhəllə, küçə, bina nömrəsi'}
                   />
                   <p style={{ margin: '6px 0 0', fontSize: 11, color: C.grayLt }}>
-                    {delivery === 'post' ? 'Nümunə: Bakı, AZ1000, Əliağa Vahid küç. 12' : 'Nümunə: Masazır, Qurtuluş küç. 93, 4-cü mərtəbə'}
+                    {delivery === 'post'
+                      ? 'Nümunə: Bakı, AZ1000, Əliağa Vahid küç. 12'
+                      : 'Nümunə: Masazır, Qurtuluş küç. 93, 4-cü mərtəbə'}
                   </p>
-                </Section>
+                </Sec>
               )}
 
-              {/* Contact — no warning text, no asterisks */}
-              <Section style={{ border: `1.5px solid ${C.blue}` }}>
+              {/* Contact — "Ad" only (no Soyad) */}
+              <Sec highlight>
                 <Label>Əlaqə məlumatları</Label>
                 <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 10 }}>
-                  <Inp value={custName} onChange={e => setCustName(e.target.value)} placeholder="Ad Soyad" />
-                  <Inp value={birthDate} onChange={e => setBirthDate(e.target.value)} placeholder="Doğum tarixi (məs: 15.03.2000)" />
-                  <Inp value={phone} onChange={e => setPhone(e.target.value)} placeholder="Telefon (+994 50 xxx xx xx)" type="tel" />
+                  <Inp
+                    value={custName}
+                    onChange={e => setCustName(e.target.value)}
+                    placeholder="Ad"
+                  />
+                  <Inp
+                    value={birthDate}
+                    onChange={e => setBirthDate(e.target.value)}
+                    placeholder="Doğum tarixi (məs: 15.03.2000)"
+                  />
+                  <Inp
+                    value={phone}
+                    onChange={e => setPhone(e.target.value)}
+                    placeholder="Telefon (+994 50 xxx xx xx)"
+                    type="tel"
+                  />
                 </div>
-              </Section>
+              </Sec>
 
-              {/* Customer type — no % shown, just label. Amount shown in summary */}
-              <Section>
+              {/* Customer type — no % shown */}
+              <Sec>
                 <Label>Müştəri növü</Label>
                 <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 8 }}>
                   {[
-                    { id: 'new' as const,   label: 'Yeni müştəriyəm',   sub: 'İlk sifarişim' },
-                    { id: 'loyal' as const, label: 'Daimi müştəriyəm',  sub: 'Əvvəl sifariş vermişəm' },
+                    { id: 'new'   as const, label: 'Yeni müştəriyəm',  sub: 'İlk sifarişim' },
+                    { id: 'loyal' as const, label: 'Daimi müştəriyəm', sub: 'Əvvəl sifariş vermişəm' },
                   ].map(opt => {
                     const sel = customerType === opt.id;
                     return (
@@ -624,22 +706,34 @@ const ProductModal: React.FC<ProductModalProps> = ({
                     );
                   })}
                 </div>
-              </Section>
+              </Sec>
 
-              {/* Summary */}
-              <Section>
+              {/* Summary — labelled discounts */}
+              <Sec>
                 <Label>Sifariş xülasəsi</Label>
                 <SRow l={`${product.name} × ${qty}`} r={`${(effectiveUnit * qty).toFixed(2)} ₼`} />
-                {isOnSale && <SRow l="Kampaniya endirimi" r={`−${((origPrice - baseUnit) * qty).toFixed(2)} ₼`} accent />}
-                {bulkDiscTotal > 0 && <SRow l="Say endirimi" r={`−${bulkDiscTotal.toFixed(2)} ₼`} accent />}
+                {isOnSale && (
+                  <SRow l="Kampaniya endirimi" r={`−${((origPrice - baseUnit) * qty).toFixed(2)} ₼`} accent />
+                )}
+                {bulkDiscTotal > 0 && (
+                  <SRow l={`Say endirimi (${qty} ədəd)`} r={`−${bulkDiscTotal.toFixed(2)} ₼`} accent />
+                )}
                 {boxFee > 0 && <SRow l={box?.name ?? ''} r={`+${boxFee.toFixed(2)} ₼`} />}
-                {deliveryFee > 0 && <SRow l={delivery === 'kuryer' ? 'Kuryer' : 'Poçt'} r={`+${deliveryFee.toFixed(2)} ₼`} />}
-                {customerDisc > 0 && <SRow l="Endirim" r={`−${customerDisc.toFixed(2)} ₼`} accent />}
+                {deliveryFee > 0 && (
+                  <SRow l={delivery === 'kuryer' ? 'Kuryer' : 'Poçt'} r={`+${deliveryFee.toFixed(2)} ₼`} />
+                )}
+                {customerDisc > 0 && (
+                  <SRow
+                    l={customerType === 'loyal' ? 'Daimi müştəri endirimi' : 'Yeni müştəri endirimi'}
+                    r={`−${customerDisc.toFixed(2)} ₼`}
+                    accent
+                  />
+                )}
 
                 <div style={{ borderTop: `1px solid ${C.border}`, margin: '10px 0 12px' }} />
                 <SRow l="Ümumi məbləğ" r={`${finalTotal.toFixed(2)} ₼`} bold />
 
-                {/* Beh */}
+                {/* Deposit */}
                 <div style={{
                   background: C.orangeBg, border: `1px solid ${C.orangeBd}`,
                   borderRadius: 10, padding: '14px',
@@ -647,11 +741,15 @@ const ProductModal: React.FC<ProductModalProps> = ({
                 }}>
                   <div>
                     <div style={{ fontSize: 13, fontWeight: 700, color: C.orange }}>İndi ödəniləcək (50% beh)</div>
-                    <div style={{ fontSize: 11, color: C.gray, marginTop: 4 }}>Qalan {(finalTotal - beh).toFixed(2)} ₼ məhsul alınarkən</div>
+                    <div style={{ fontSize: 11, color: C.gray, marginTop: 4 }}>
+                      Qalan {(finalTotal - beh).toFixed(2)} ₼ məhsul alınarkən
+                    </div>
                   </div>
-                  <div style={{ fontSize: 28, fontWeight: 800, color: C.orange, letterSpacing: '-1px' }}>{beh.toFixed(2)} ₼</div>
+                  <div style={{ fontSize: 28, fontWeight: 800, color: C.orange, letterSpacing: '-1px' }}>
+                    {beh.toFixed(2)} ₼
+                  </div>
                 </div>
-              </Section>
+              </Sec>
             </>
           )}
         </div>
@@ -682,8 +780,9 @@ const ProductModal: React.FC<ProductModalProps> = ({
               color: step === 2 && !step2Valid ? C.grayLt : C.white,
               fontSize: 15, fontWeight: 700,
               cursor: step === 2 && !step2Valid ? 'not-allowed' : 'pointer',
-              fontFamily: FONT, transition: 'background 0.15s',
+              fontFamily: FONT,
               boxShadow: step === 2 && !step2Valid ? 'none' : '0 4px 16px rgba(255,106,0,0.25)',
+              transition: 'background 0.15s',
             }}
             onMouseEnter={e => { if (!(step === 2 && !step2Valid)) e.currentTarget.style.background = '#E55E00'; }}
             onMouseLeave={e => { if (!(step === 2 && !step2Valid)) e.currentTarget.style.background = C.orange; }}

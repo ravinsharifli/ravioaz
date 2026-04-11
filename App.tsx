@@ -26,7 +26,8 @@ const PRODUCTS_QUERY = `*[_type == "product"] | order(bestSellerOrder asc) {
 }`;
 
 const SETTINGS_QUERY = `*[_type == "siteSettings"][0]{
-  metroSchedule, boxes
+  metroSchedule,
+  boxes[]{ id, name, desc, price, isActive, "imageUrl": image.asset->url }
 }`;
 
 function mapSanityProduct(raw: any): Product {
@@ -58,31 +59,31 @@ function mapSanityProduct(raw: any): Product {
   };
 }
 
-// Fallback defaults if Sanity settings not configured yet
 const DEFAULT_METRO = {
-  stations: ['28 May','Həzi Aslanov','Nərimanov','İçərişəhər','Memar Əcəmi'],
-  days: ['Çərşənbə axşamı','Cümə axşamı'],
-  times: ['14:00','15:00','16:00','17:00','18:00','19:00'],
+  stations: ['28 May', 'Həzi Aslanov', 'Nərimanov', 'İçərişəhər', 'Memar Əcəmi'],
+  days: ['Çərşənbə axşamı', 'Cümə axşamı'],
+  times: ['14:00', '15:00', '16:00', '17:00', '18:00', '19:00'],
 };
+
 const DEFAULT_BOXES = [
-  { id: 'simple',  name: 'Sadə qutu',    price: 0,  desc: 'Standart qablaşdırma', isActive: true },
-  { id: 'premium', name: 'Orta qutu',    price: 10, desc: 'Lent + köpük yastıq',  isActive: true },
-  { id: 'gift',    name: 'Premium qutu', price: 17, desc: 'Bağlama + qeyd kartı', isActive: true },
+  { id: 'simple',  name: 'Sadə qutu',    price: 0,  desc: 'Standart qablaşdırma', isActive: true, imageUrl: null },
+  { id: 'premium', name: 'Orta qutu',    price: 10, desc: 'Lent + köpük yastıq',  isActive: true, imageUrl: null },
+  { id: 'gift',    name: 'Premium qutu', price: 17, desc: 'Bağlama + qeyd kartı', isActive: true, imageUrl: null },
 ];
 
 export { DEFAULT_METRO, DEFAULT_BOXES };
 
 export default function App() {
-  const [products, setProducts]           = useState<Product[]>([]);
-  const [loading, setLoading]             = useState(true);
-  const [view, setView]                   = useState<AppView>('home');
+  const [products, setProducts]               = useState<Product[]>([]);
+  const [loading, setLoading]                 = useState(true);
+  const [view, setView]                       = useState<AppView>('home');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [editingItem, setEditingItem]     = useState<CartItem | undefined>(undefined);
-  const [cart, setCart]                   = useState<CartItem[]>([]);
-  const [cartOpen, setCartOpen]           = useState(false);
-  const [activeCategory, setActiveCategory] = useState<string | null>(null);
-  const [visible, setVisible]             = useState(false);
-  const [settings, setSettings]           = useState<any>(null);
+  const [editingItem, setEditingItem]         = useState<CartItem | undefined>(undefined);
+  const [cart, setCart]                       = useState<CartItem[]>([]);
+  const [cartOpen, setCartOpen]               = useState(false);
+  const [activeCategory, setActiveCategory]   = useState<string | null>(null);
+  const [visible, setVisible]                 = useState(false);
+  const [settings, setSettings]               = useState<any>(null);
 
   useEffect(() => {
     client.fetch(PRODUCTS_QUERY)
@@ -95,9 +96,9 @@ export default function App() {
   }, []);
 
   const metroSchedule = settings?.metroSchedule || DEFAULT_METRO;
-  const boxes = (settings?.boxes || DEFAULT_BOXES).filter((b: any) => b.isActive !== false);
+  const boxes = ((settings?.boxes || DEFAULT_BOXES) as any[]).filter(b => b.isActive !== false);
 
-  const categories      = Array.from(new Set(products.map(p => p.category).filter(Boolean))) as string[];
+  const categories       = Array.from(new Set(products.map(p => p.category).filter(Boolean))) as string[];
   const filteredProducts = activeCategory ? products.filter(p => p.category === activeCategory) : products;
 
   const handleAddToCart = (item: CartItem) => {
@@ -111,10 +112,8 @@ export default function App() {
     const p = products.find(p => p.id === item.productId);
     if (p) { setSelectedProduct(p); setEditingItem(item); }
   };
-  const cartCount = cart.reduce((s, c) => s + c.quantity, 0);
+  const cartCount  = cart.reduce((s, c) => s + c.quantity, 0);
   const openProduct = (p: Product) => { setSelectedProduct(p); setEditingItem(undefined); };
-
-  // Go to products view directly (no hero)
   const goToProducts = (cat?: string | null) => {
     setView('products' as AppView);
     if (cat !== undefined) setActiveCategory(cat);
@@ -138,7 +137,6 @@ export default function App() {
         {/* ── HOME ── */}
         {view === 'home' && (
           <>
-            {/* HERO */}
             <section style={{
               background: '#FFFFFF',
               borderBottom: '1px solid #EDEBE7',
@@ -156,8 +154,10 @@ export default function App() {
                       background: '#FFF3EC', border: '1px solid #FFD4B8',
                       borderRadius: 100, padding: '6px 14px', marginBottom: 24,
                     }}>
-                      <span style={{ fontSize: 14 }}>🎁</span>
-                      <span style={{ fontSize: 12, fontWeight: 600, color: '#FF6A00' }}>Lazer yazı ilə fərdi hədiyyə</span>
+                      <span style={{ fontSize: 14 }}>✨</span>
+                      <span style={{ fontSize: 12, fontWeight: 600, color: '#FF6A00' }}>
+                        Hər hədiyyə, hər duyğu — yalnız sənin üçün
+                      </span>
                     </div>
 
                     <h1 style={{
@@ -166,20 +166,18 @@ export default function App() {
                       lineHeight: 1.1, letterSpacing: '-1.5px',
                       margin: '0 0 20px',
                     }}>
-                      Özəl hədiyyə,<br />
-                      <span style={{ color: '#FF6A00' }}>yalnız sənin üçün.</span>
+                      Keyfiyyətli hədiyyə,<br />
+                      <span style={{ color: '#FF6A00' }}>rahat sifariş.</span>
                     </h1>
 
-                    <p style={{ fontSize: 16, fontWeight: 400, color: '#555', lineHeight: 1.7, margin: '0 0 32px', maxWidth: 440 }}>
+                    <p style={{ fontSize: 16, fontWeight: 400, color: '#555555', lineHeight: 1.7, margin: '0 0 32px', maxWidth: 440 }}>
                       Lazer yazılı qolbaq, fərdi təsbeh, domino və daha çoxu.
                       17 ₼-dən başlayan qiymətlə, 1–3 iş günündə hazır.
                     </p>
 
                     <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' as const, marginBottom: 32 }}>
                       {['✓ Ödənişsiz çatdırılma', '✓ 500+ müştəri', '✓ 1–3 iş günü'].map(t => (
-                        <div key={t} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                          <span style={{ fontSize: 13, color: '#555', fontWeight: 500 }}>{t}</span>
-                        </div>
+                        <span key={t} style={{ fontSize: 13, color: '#555555', fontWeight: 500 }}>{t}</span>
                       ))}
                     </div>
 
@@ -210,24 +208,22 @@ export default function App() {
                     </div>
                   </div>
 
-                  {/* RIGHT — stats */}
-                  <div style={{
-                    display: 'grid', gridTemplateColumns: '1fr 1fr',
-                    gap: 12, maxWidth: 320, flex: '0 0 auto',
-                  }} className="r-desktop-nav">
+                  {/* RIGHT stats */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, maxWidth: 300, flex: '0 0 auto' }} className="r-desktop-nav">
                     {[
-                      { num: '500+', label: 'Müştəri', icon: '😊' },
+                      { num: '500+', label: 'Müştəri',     icon: '😊' },
                       { num: '17 ₼', label: 'dan başlayır', icon: '💰' },
-                      { num: '1–3', label: 'gün', icon: '⚡' },
-                      { num: '100%', label: 'Özəl dizayn', icon: '✨' },
+                      { num: '1–3',  label: 'gün',          icon: '⚡' },
+                      { num: '100%', label: 'Özəl dizayn',  icon: '✨' },
                     ].map(s => (
                       <div key={s.label} style={{
-                        background: '#F5F2EC', borderRadius: 12, padding: '20px 16px',
-                        textAlign: 'center' as const, border: '1px solid #EDEBE7',
+                        background: '#F5F2EC', borderRadius: 12,
+                        padding: '20px 16px', textAlign: 'center' as const,
+                        border: '1px solid #EDEBE7',
                       }}>
                         <div style={{ fontSize: 24, marginBottom: 6 }}>{s.icon}</div>
                         <div style={{ fontSize: 22, fontWeight: 800, color: '#111111', lineHeight: 1 }}>{s.num}</div>
-                        <div style={{ fontSize: 11, color: '#888', marginTop: 4, fontWeight: 500 }}>{s.label}</div>
+                        <div style={{ fontSize: 11, color: '#888888', marginTop: 4, fontWeight: 500 }}>{s.label}</div>
                       </div>
                     ))}
                   </div>
@@ -239,25 +235,24 @@ export default function App() {
             <section style={{ background: '#111111', padding: 'clamp(56px,7vw,96px) 32px' }}>
               <div style={{ maxWidth: 1280, margin: '0 auto' }}>
                 <div style={{ textAlign: 'center' as const, marginBottom: 48 }}>
-                  <p style={{ fontSize: 11, fontWeight: 700, color: '#FF6A00', letterSpacing: 1.5, textTransform: 'uppercase' as const, margin: '0 0 12px' }}>Necə işləyir</p>
-                  <h2 style={{ fontSize: 'clamp(26px,4vw,40px)', fontWeight: 800, color: '#FFFFFF', margin: 0, letterSpacing: '-0.5px' }}>3 addımda sifariş</h2>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: '#FF6A00', letterSpacing: 1.5, textTransform: 'uppercase' as const, margin: '0 0 12px' }}>
+                    Necə işləyir
+                  </p>
+                  <h2 style={{ fontSize: 'clamp(26px,4vw,40px)', fontWeight: 800, color: '#FFFFFF', margin: 0, letterSpacing: '-0.5px' }}>
+                    3 addımda sifariş
+                  </h2>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 2 }}>
                   {[
-                    { n: '01', icon: '🛍️', title: 'Məhsul seç', desc: 'Kataloqdan bəyəndiyini seç, variantı müəyyən et' },
-                    { n: '02', icon: '✍️', title: 'Ad / mesaj yaz', desc: 'Lazer yazısı üçün mətni əlavə et' },
-                    { n: '03', icon: '⚡', title: 'Ödənişsiz çatdırılma', desc: '1–3 iş günündə hazır, ödənişsiz çatdırılır' },
+                    { n: '01', icon: '🛍️', title: 'Məhsul seç',     desc: 'Kataloqdan bəyəndiyini seç, variantı müəyyən et' },
+                    { n: '02', icon: '✍️', title: 'Ad / mesaj yaz',  desc: 'Lazer yazısı üçün istədiyini əlavə et' },
+                    { n: '03', icon: '⚡', title: 'Ödənişsiz çatır', desc: '1–3 iş günündə hazır, ödənişsiz çatdırılır' },
                   ].map((s, i) => (
                     <div key={s.n} style={{
                       background: '#1A1A1A', padding: '40px 32px',
                       borderLeft: i > 0 ? '1px solid rgba(255,255,255,0.05)' : 'none',
                     }}>
-                      <div style={{
-                        width: 52, height: 52, borderRadius: 12,
-                        background: 'rgba(255,106,0,0.1)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: 24, marginBottom: 20,
-                      }}>{s.icon}</div>
+                      <div style={{ width: 52, height: 52, borderRadius: 12, background: 'rgba(255,106,0,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, marginBottom: 20 }}>{s.icon}</div>
                       <div style={{ fontSize: 11, fontWeight: 700, color: '#FF6A00', letterSpacing: 2, marginBottom: 10 }}>{s.n}</div>
                       <h3 style={{ fontSize: 18, fontWeight: 700, color: '#FFFFFF', margin: '0 0 10px' }}>{s.title}</h3>
                       <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', lineHeight: 1.7, margin: 0 }}>{s.desc}</p>
@@ -267,79 +262,92 @@ export default function App() {
               </div>
             </section>
 
-            {/* REVIEWS */}
             <section style={{ background: '#F5F2EC' }}>
               <CustomerReviews />
             </section>
           </>
         )}
 
-        {/* ── PRODUCTS VIEW (direct, no hero) ── */}
+        {/* ── PRODUCTS VIEW ── */}
         {(view as string) === 'products' && (
-          <div style={{ maxWidth: 1280, margin: '0 auto', padding: '40px 32px' }}>
+          <div style={{ maxWidth: 1280, margin: '0 auto', padding: '32px 32px 64px' }}>
             <div style={{ display: 'flex', gap: 32, alignItems: 'flex-start' }}>
 
-              {/* LEFT SIDEBAR — categories */}
-              <aside style={{
-                flexShrink: 0, width: 220,
-                position: 'sticky', top: 120,
-              }} className="r-desktop-nav">
-                <p style={{ fontSize: 10, fontWeight: 700, color: '#FF6A00', letterSpacing: 1.5, textTransform: 'uppercase' as const, margin: '0 0 16px' }}>
-                  Kateqoriyalar
-                </p>
-                <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 4 }}>
+              {/* SIDEBAR — sticky, scrollable inside */}
+              <aside
+                className="r-desktop-nav"
+                style={{
+                  flexShrink: 0,
+                  width: 200,
+                  position: 'sticky',
+                  top: 110,
+                  maxHeight: 'calc(100vh - 130px)',
+                  overflowY: 'auto' as const,
+                  paddingRight: 8,
+                  /* Hide scrollbar visually but keep functionality */
+                  scrollbarWidth: 'none' as const,
+                }}
+              >
+                <p style={{
+                  fontSize: 10, fontWeight: 700, color: '#FF6A00',
+                  letterSpacing: 1.5, textTransform: 'uppercase' as const,
+                  margin: '0 0 12px',
+                }}>Kateqoriyalar</p>
+
+                <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 2 }}>
+                  {/* All */}
                   <button
                     onClick={() => setActiveCategory(null)}
                     style={{
-                      padding: '10px 14px', borderRadius: 8, border: 'none',
+                      padding: '10px 12px', borderRadius: 8, border: 'none',
                       background: !activeCategory ? '#111111' : 'transparent',
                       color: !activeCategory ? '#FFFFFF' : '#555555',
                       fontSize: 13, fontWeight: !activeCategory ? 600 : 400,
                       cursor: 'pointer', textAlign: 'left' as const,
                       fontFamily: "'Inter', sans-serif",
                       transition: 'all 0.15s',
+                      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                     }}
-                    onMouseEnter={e => { if (activeCategory) e.currentTarget.style.background = '#F5F2EC'; }}
-                    onMouseLeave={e => { if (activeCategory) e.currentTarget.style.background = 'transparent'; }}
+                    onMouseEnter={e => { if (activeCategory) { e.currentTarget.style.background = '#F5F2EC'; e.currentTarget.style.color = '#111111'; } }}
+                    onMouseLeave={e => { if (activeCategory) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#555555'; } }}
                   >
-                    Hamısı
-                    <span style={{ marginLeft: 6, fontSize: 11, color: !activeCategory ? 'rgba(255,255,255,0.55)' : '#AAAAAA' }}>
-                      ({products.length})
-                    </span>
+                    <span>Hamısı</span>
+                    <span style={{ fontSize: 11, opacity: 0.55 }}>{products.length}</span>
                   </button>
+
                   {categories.map(cat => {
                     const count = products.filter(p => p.category === cat).length;
                     const sel   = activeCategory === cat;
                     return (
-                      <button key={cat} onClick={() => setActiveCategory(cat)} style={{
-                        padding: '10px 14px', borderRadius: 8, border: 'none',
-                        background: sel ? '#111111' : 'transparent',
-                        color: sel ? '#FFFFFF' : '#555555',
-                        fontSize: 13, fontWeight: sel ? 600 : 400,
-                        cursor: 'pointer', textAlign: 'left' as const,
-                        fontFamily: "'Inter', sans-serif",
-                        transition: 'all 0.15s',
-                      }}
-                        onMouseEnter={e => { if (!sel) e.currentTarget.style.background = '#F5F2EC'; }}
-                        onMouseLeave={e => { if (!sel) e.currentTarget.style.background = 'transparent'; }}
+                      <button key={cat} onClick={() => setActiveCategory(cat)}
+                        style={{
+                          padding: '10px 12px', borderRadius: 8, border: 'none',
+                          background: sel ? '#111111' : 'transparent',
+                          color: sel ? '#FFFFFF' : '#555555',
+                          fontSize: 13, fontWeight: sel ? 600 : 400,
+                          cursor: 'pointer', textAlign: 'left' as const,
+                          fontFamily: "'Inter', sans-serif",
+                          transition: 'all 0.15s',
+                          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                        }}
+                        onMouseEnter={e => { if (!sel) { e.currentTarget.style.background = '#F5F2EC'; e.currentTarget.style.color = '#111111'; } }}
+                        onMouseLeave={e => { if (!sel) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#555555'; } }}
                       >
-                        {cat}
-                        <span style={{ marginLeft: 6, fontSize: 11, color: sel ? 'rgba(255,255,255,0.55)' : '#AAAAAA' }}>({count})</span>
+                        <span>{cat}</span>
+                        <span style={{ fontSize: 11, opacity: 0.55 }}>{count}</span>
                       </button>
                     );
                   })}
                 </div>
               </aside>
 
-              {/* MAIN — products */}
+              {/* MAIN content */}
               <div style={{ flex: 1, minWidth: 0 }}>
                 {/* Header */}
-                <div style={{ marginBottom: 28 }}>
+                <div style={{ marginBottom: 24 }}>
                   <h2 style={{
-                    fontFamily: "'Inter', sans-serif",
-                    fontSize: 'clamp(22px,3vw,30px)',
-                    fontWeight: 800, color: '#111111',
-                    margin: '0 0 4px', letterSpacing: '-0.3px',
+                    fontSize: 'clamp(22px,3vw,30px)', fontWeight: 800,
+                    color: '#111111', margin: '0 0 4px', letterSpacing: '-0.3px',
                   }}>
                     {activeCategory || 'Bütün məhsullar'}
                   </h2>
@@ -348,9 +356,9 @@ export default function App() {
                   </p>
                 </div>
 
-                {/* Mobile category pills */}
+                {/* Mobile pills */}
                 {categories.length > 0 && (
-                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' as const, marginBottom: 24 }} className="r-mobile-nav">
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' as const, marginBottom: 20 }} className="r-mobile-nav">
                     <button onClick={() => setActiveCategory(null)} style={{
                       padding: '7px 16px', borderRadius: 100,
                       border: `1.5px solid ${!activeCategory ? '#111111' : '#D5D0C8'}`,
@@ -403,7 +411,6 @@ export default function App() {
 
       <Footer onReviewsClick={() => setView('home')} />
 
-      {/* WhatsApp float */}
       <a href="https://wa.me/994519831483?text=Salam%2C%20sifaris%20etmek%20isteyirem"
         target="_blank" rel="noreferrer"
         style={{
@@ -427,7 +434,10 @@ export default function App() {
           boxes={boxes}
           onClose={() => { setSelectedProduct(null); setEditingItem(undefined); }}
           onAddToCart={handleAddToCart}
-          onOpenCategory={cat => { setSelectedProduct(null); setEditingItem(undefined); setActiveCategory(cat); setView('products' as AppView); }}
+          onOpenCategory={cat => {
+            setSelectedProduct(null); setEditingItem(undefined);
+            setActiveCategory(cat); setView('products' as AppView);
+          }}
         />
       )}
 
@@ -446,6 +456,7 @@ export default function App() {
         body { -webkit-font-smoothing: antialiased; }
         ::selection { background: #FF6A00; color: #FFFFFF; }
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.45} }
+        aside::-webkit-scrollbar { display: none; }
         @media (max-width: 768px) {
           .r-desktop-nav { display: none !important; }
           .r-mobile-nav  { display: flex !important; }
