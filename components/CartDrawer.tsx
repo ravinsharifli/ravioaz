@@ -362,7 +362,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                     <Sel value={delMonth} onChange={setDelMonth} opts={MONTHS_AZ} placeholder="Ay" />
                     <Sel value={delYear}  onChange={setDelYear}  opts={YEARS}     placeholder="İl" />
                   </div>
-                  <p style={{ margin: '8px 0 0', fontSize: 11, color: C.grayLt }}>Saat sifarişdən sonra razılaşdırılacaq</p>
+                  <p style={{ margin: '8px 0 0', fontSize: 11, color: C.grayLt }}>Çatdırılma üçün kuryer əlaqə saxlayacaq</p>
                 </Sec>
               )}
 
