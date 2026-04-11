@@ -373,7 +373,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                   <Inp value={custName} onChange={e => setCustName(e.target.value)} placeholder="Adınız" />
                   <Inp value={phone} onChange={e => setPhone(e.target.value)} placeholder="Telefon (+994 50 xxx xx xx)" type="tel" />
                   <div>
-                    <p style={{ fontSize: 12, color: C.gray, margin: '0 0 6px', fontFamily: FONT }}>Doğum tarixi (ixtiyari)</p>
+                    <p style={{ fontSize: 12, color: C.gray, margin: '0 0 6px', fontFamily: FONT }}>Doğum tarixi </p>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1fr', gap: 8 }}>
                       <Sel value={bdDay}   onChange={setBdDay}   opts={DAYS}      placeholder="Gün" />
                       <Sel value={bdMonth} onChange={setBdMonth} opts={MONTHS_AZ} placeholder="Ay" />
