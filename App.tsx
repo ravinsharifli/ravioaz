@@ -79,18 +79,18 @@ function HeroBanner({ onShopClick }: { onShopClick: () => void }) {
 
   const slides = [
     {
-      badge: '🎁 Yeni kolleksiya — 2025',
+      badge: '🎁 Sizə özəl hazırlanır',
       title: 'Hər hədiyyə,\nsənin adınla.',
       titleAccent: 'sənin adınla.',
-      desc: 'Lazer yazılı qolbaq, fərdi təsbeh, domino və daha çoxu. 17 ₼-dən başlayır.',
+      desc: 'Lazer yazılı qolbaq, fərdi təsbeh, domino və daha çoxu. Məhsullara baxmadan seçim etmə!',
       bg: 'linear-gradient(135deg, #FF6A00 0%, #FF8C42 100%)',
       cta: 'Kataloqa bax →',
     },
     {
-      badge: '🚀 Ödənişsiz çatdırılma',
+      badge: '🚀 Metrodaxili Ödənişsiz çatdırılma',
       title: '1–3 iş günündə\nkapınıza gəlir.',
       titleAccent: 'kapınıza gəlir.',
-      desc: 'Bakı daxilindəki bütün sifarişlər üçün ödənişsiz kurye xidməti.',
+      desc: 'Bakı və Abşeron ərazisində bütün sifarişlər üçün  kurye xidməti.',
       bg: 'linear-gradient(135deg, #111111 0%, #2a2a2a 100%)',
       cta: 'Sifarişə başla →',
     },
@@ -98,7 +98,7 @@ function HeroBanner({ onShopClick }: { onShopClick: () => void }) {
       badge: '✨ Toplu endirim',
       title: '10+ ədəddə\nxüsusi qiymət.',
       titleAccent: 'xüsusi qiymət.',
-      desc: 'Məzun lentləri, korporativ hədiyyə, sinif sifarişi — 3 AZN/ədəddən.',
+      desc: 'Məzun lentləri, korporativ hədiyyə, sinif sifarişi — endirimli qiymətlə.',
       bg: 'linear-gradient(135deg, #1a3a2a 0%, #2d6a4f 100%)',
       cta: 'Toplu sifariş →',
     },
