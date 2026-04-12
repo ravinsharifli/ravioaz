@@ -81,10 +81,10 @@ function HeroBanner({ onShopClick }: { onShopClick: () => void }) {
 
   const slides = [
     {
-      badge: '🎁 Yeni kolleksiya — 2025',
+      badge: '✨ Sizə özəl hazırlanır',
       title: 'Hər hədiyyə,\nsənin adınla.',
       titleAccent: 'sənin adınla.',
-      desc: 'Lazer yazılı qolbaq, fərdi təsbeh, domino və daha çoxu. Məhsullara bax və seçim et !',
+      desc: 'Lazer yazılı qolbaq, fərdi təsbeh, domino və daha çoxu. 17 ₼-dən başlayır.',
       bg: 'linear-gradient(135deg, #FF6A00 0%, #FF8C42 100%)',
       cta: 'Kataloqa bax →',
     },
@@ -92,7 +92,7 @@ function HeroBanner({ onShopClick }: { onShopClick: () => void }) {
       badge: '🚀 Ödənişsiz çatdırılma',
       title: '1–3 iş günündə\nkapınıza gəlir.',
       titleAccent: 'kapınıza gəlir.',
-      desc: 'Bakı daxilindəki bütün sifarişlər üçün ödənişsiz kurye xidməti.',
+      desc: 'Metro görüşü ödənişsizdir. Kuryer xidməti Bakı + Abşeron ərazisi üçün 4.99 ₼.',
       bg: 'linear-gradient(135deg, #111111 0%, #2a2a2a 100%)',
       cta: 'Sifarişə başla →',
     },
@@ -100,7 +100,7 @@ function HeroBanner({ onShopClick }: { onShopClick: () => void }) {
       badge: '✨ Toplu endirim',
       title: '10+ ədəddə\nxüsusi qiymət.',
       titleAccent: 'xüsusi qiymət.',
-      desc: 'Məzun lentləri, korporativ hədiyyə, sinif sifarişi — endirimli qiymətlə.',
+      desc: 'Məzun lentləri, korporativ hədiyyə, sinif sifarişi — 3 AZN/ədəddən.',
       bg: 'linear-gradient(135deg, #1a3a2a 0%, #2d6a4f 100%)',
       cta: 'Toplu sifariş →',
     },
@@ -221,7 +221,7 @@ function HeroBanner({ onShopClick }: { onShopClick: () => void }) {
 // ── Info Strips (mini banners below hero) ──────────────────────────────────────
 function InfoStrips() {
   const strips = [
-    { icon: '🚚', title: 'Ödənişsiz çatdırılma', desc: 'Metro daxili bütün çatdırılmalar' },
+    { icon: '🚚', title: 'Ödənişsiz çatdırılma', desc: 'Bakı daxilindəki bütün sifarişlər' },
     { icon: '⚡', title: '1–3 iş günü', desc: 'Sürətli hazırlıq və çatdırılma' },
     { icon: '✍️', title: 'Lazer yazısı', desc: 'İstədiyin ad, tarix, mesaj' },
     { icon: '💬', title: 'WhatsApp dəstək', desc: 'Hər sualın üçün hazırıq' },
@@ -436,7 +436,7 @@ export default function App() {
                   {[
                     { n: '01', icon: '🛍️', title: 'Məhsul seç',     desc: 'Kataloqdan bəyəndiyini seç, variantı müəyyən et' },
                     { n: '02', icon: '✍️', title: 'Ad / mesaj yaz',  desc: 'Lazer yazısı üçün istədiyini əlavə et' },
-                    { n: '03', icon: '⚡', title: 'Ödənişsiz çatır', desc: '1–3 iş günündə hazır, ödənişsiz çatdırılır' },
+                    { n: '03', icon: '⚡', title: 'Ödənişsiz çatır', desc: '1–3 iş günündə hazır. Metro görüşü ödənişsizdir.' },
                   ].map((s, i) => (
                     <div key={s.n} style={{
                       background: '#1A1A1A', padding: 'clamp(24px,4vw,40px) clamp(20px,3vw,32px)',
@@ -596,7 +596,13 @@ export default function App() {
         {view === 'delivery' && <DeliveryInfo />}
       </main>
 
-      <Footer onReviewsClick={() => setView('home')} />
+      <Footer
+        onReviewsClick={() => setView('home')}
+        onProductsClick={() => goToProducts(null)}
+        onDeliveryClick={() => setView('delivery')}
+        onAboutClick={() => setView('about')}
+        onContactClick={() => setView('contact')}
+      />
 
       <a href="https://wa.me/994519831483?text=Salam%2C%20sifaris%20etmek%20isteyirem"
         target="_blank" rel="noreferrer"

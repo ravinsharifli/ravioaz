@@ -2,11 +2,11 @@ import React from 'react';
 import { Star } from 'lucide-react';
 
 const reviews = [
-  { name: 'Aytən M.', initials: 'AM', rating: 5, text: 'Sevgilimin adını qolbağa yazdırdım. Lazer yazısı çox dəqiq çıxdı, sanki fabrikdən çıxmış kimi. Paketləmə də çox gözəl idi.', product: 'Polad qolbaq', date: 'Mart 2025' },
-  { name: 'Rauf H.',  initials: 'RH', rating: 5, text: 'Məzun lentlərini sinif üçün aldım, 35 ədəd. Qiymət çox əlverişli idi, hamısı eyni keyfiyyətdə gəldi. WhatsAppdan sürətli cavab verdilər.', product: 'Məzun lenti', date: 'İyun 2025' },
-  { name: 'Günel Ə.', initials: 'GƏ', rating: 5, text: 'Anama ad günü üçün giftbox aldım. Üzərinə "Ən sevimli anam" yazdırdım. Anama çox xoş gəldi, ağladı belə.', product: 'Premium giftbox', date: 'Fevral 2025' },
-  { name: 'Tural B.', initials: 'TB', rating: 5, text: 'Gümüş təsbeh aldım, üzərinə ayə yazdırdım. İşçilik çox yaxşı, gümüş əsl, daşlar real. Dostlara tövsiyə etdim.', product: 'Gümüş təsbeh', date: 'Yanvar 2025' },
-  { name: 'Lalə K.',  initials: 'LK', rating: 5, text: 'Cüt qolbaq sifarişi verdim, öz adımla sevgilimin adını yazdırdım. 1 gündə hazır oldu. Möhtəşəm çıxdı.', product: 'Cüt qolbaq dəsti', date: 'Aprel 2025' },
+  { name: 'Aytən M.', initials: 'AM', rating: 5, text: 'Sevgilimin adını qolbağa yazdırdım. Lazer yazısı çox dəqiq çıxdı, sanki fabrikdən çıxmış kimi. Paketləmə də çox gözəl idi.', product: 'Polad qolbaq', date: 'Mart 2026' },
+  { name: 'Rauf H.',  initials: 'RH', rating: 5, text: 'Məzun lentlərini sinif üçün aldım, 35 ədəd. Qiymət çox əlverişli idi, hamısı eyni keyfiyyətdə gəldi. Çatdırılma da vaxtında oldu.', product: 'Məzun lenti', date: 'İyun 2026' },
+  { name: 'Günel Ə.', initials: 'GƏ', rating: 5, text: 'Anama ad günü üçün giftbox aldım. Üzərinə "Ən sevimli anam" yazdırdım. Anama çox xoş gəldi, ağladı belə.', product: 'Premium giftbox', date: 'Fevral 2026' },
+  { name: 'Tural B.', initials: 'TB', rating: 5, text: 'Gümüş təsbeh aldım, üzərinə ayə yazdırdım. İşçilik çox yaxşı, gümüş əsl, daşlar real. Dostlara tövsiyə etdim.', product: 'Gümüş təsbeh', date: 'Yanvar 2026' },
+  { name: 'Lalə K.',  initials: 'LK', rating: 5, text: 'Cüt qolbaq sifarişi verdim, öz adımla sevgilimin adını yazdırdım. 1 gündə hazır oldu. Möhtəşəm çıxdı.', product: 'Cüt qolbaq dəsti', date: 'Aprel 2026' },
 ];
 
 const TikTokIcon = () => (

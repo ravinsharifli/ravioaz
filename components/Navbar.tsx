@@ -63,9 +63,9 @@ const Navbar: React.FC<NavbarProps> = ({
         fontFamily: "'Inter', sans-serif",
         letterSpacing: 0.2,
       }}>
-        ✨ Keyfiyyətli hədiyyə, rahat sifariş &nbsp;·&nbsp;
-        <strong style={{ color: '#FF6A00' }}>Ödənişsiz çatdırılma</strong>
-        &nbsp;·&nbsp; Sizə özəl hazırlanır ! 
+        ✨ Sizə özəl hazırlanır &nbsp;·&nbsp;
+        <strong style={{ color: '#FF6A00' }}>Metro görüşü ödənişsizdir</strong>
+        &nbsp;·&nbsp; Kuryer 4.99 ₼ · Hər məhsul fərdidir 
       </div>
 
       {/* Main nav */}
@@ -246,16 +246,18 @@ const Navbar: React.FC<NavbarProps> = ({
                 }}
               >{link.label}</button>
             ))}
-            <a href="https://wa.me/994519831483" target="_blank" rel="noreferrer"
+            <button
+              onClick={() => { setMenuOpen(false); onProductsClick(); }}
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                marginTop: 16, padding: '14px',
+                marginTop: 16, padding: '14px', width: '100%',
                 background: '#FF6A00', color: '#FFFFFF',
-                borderRadius: 10, textDecoration: 'none',
+                border: 'none', borderRadius: 10,
                 fontSize: 15, fontWeight: 700,
                 fontFamily: "'Inter', sans-serif",
+                cursor: 'pointer',
               }}
-            >💬 WhatsApp ilə sifariş et</a>
+            >🛍️ Sifarişə başla</button>
           </div>
         )}
       </nav>
