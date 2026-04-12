@@ -145,7 +145,7 @@ const PromoBanners: React.FC = () => {
           </h3>
           <p style={{ fontSize: 12, color: 'rgba(250,248,244,0.55)', margin: '0 0 14px', lineHeight: 1.5, fontWeight: 400 }}>
             10+ ədəddə endirim tətbiq olunur. Sinif üçün toplu sifariş —{' '}
-            <span style={{ color: '#BF912E', fontWeight: 700 }}>3 AZN/ədəddən</span>.
+            <span style={{ color: '#BF912E', fontWeight: 700 }}>Xüsusi endirimlə</span>.
           </p>
           <a href="#mehsullar" style={{
             display: 'inline-flex', alignItems: 'center', gap: 5,

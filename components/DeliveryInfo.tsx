@@ -45,8 +45,8 @@ const DeliveryInfo: React.FC<DeliveryInfoProps> = () => {
 
   const faqs = [
     {
-      q: 'Metro görüşü ödənişlidirmi?',
-      a: 'Xeyr, metro görüşü tamamilə ödənişsizdir. Bakı metrosunun istənilən stansiyasını seçə bilərsiniz.',
+      q: 'Metrodaxili ödənişlidirmi?',
+      a: 'Xeyr, metrodaxili tamamilə ödənişsizdir. Bakı metrosunun seçilmiş stansiyalarını seçə bilərsiniz.',
     },
     {
       q: 'Kuryer xidməti hara çatdırır?',
@@ -54,15 +54,15 @@ const DeliveryInfo: React.FC<DeliveryInfoProps> = () => {
     },
     {
       q: 'Sifariş nə qədər müddətdə hazır olur?',
-      a: '1–3 iş günü ərzində hazırlanır. Hazır olduqda sizinlə əlaqə saxlanılır.',
+      a: '1 iş günü ərzində hazırlanır. 2 ci gün paketlənir və kuryerə təhvil verilir. 3 cü gün və ya sizin təyin etdiyiniz gün çatdırılma edilir. Sifariş hazır olduqdan sonra sizə məlumat verilir.',
     },
     {
       q: 'Çatdırılma vaxtını özüm seçə bilərəmmi?',
-      a: 'Bəli. Metro görüşü üçün stansiya, gün və saatı sifariş zamanı özünüz seçirsiniz.',
+      a: 'Bəli. Metrodaxili üçün stansiya, gün və saatı sifariş zamanı özünüz seçirsiniz.',
     },
     {
       q: 'Sifarişi ləğv etmək olurmu?',
-      a: 'Lazer yazısı başlamazdan əvvəl ləğv mümkündür. Başlandıqdan sonra ləğv qəbul edilmir.',
+      a: 'Lazer yazısı başlamazdan əvvəl ləğv mümkündür. Başlandıqdan sonra ləğv qəbul edilmir.Çünki özəl hazırlanan məhsul başqa müştərilərə satıla bilməz',
     },
   ];
 
@@ -76,7 +76,7 @@ const DeliveryInfo: React.FC<DeliveryInfoProps> = () => {
         Çatdırılma məlumatları
       </h1>
       <p style={{ fontSize: 16, color: C.gray, lineHeight: 1.75, margin: '0 0 48px', maxWidth: 580 }}>
-        Metro görüşü ödənişsizdir. Kuryer xidməti Bakı, Masazır, Xırdalan, Sumqayıt və Abşeron ərazisi üçün 4.99 ₼ təşkil edir.
+        Metrodaxili ödənişsizdir. Kuryer xidməti Bakı, Masazır, Xırdalan, Sumqayıt və Abşeron ərazisi üçün 4.99 ₼ təşkil edir.
       </p>
 
       <div style={{

@@ -64,8 +64,8 @@ const Navbar: React.FC<NavbarProps> = ({
         letterSpacing: 0.2,
       }}>
         ✨ Sizə özəl hazırlanır &nbsp;·&nbsp;
-        <strong style={{ color: '#FF6A00' }}>Metro görüşü ödənişsizdir</strong>
-        &nbsp;·&nbsp; Kuryer 4.99 ₼ · Hər məhsul fərdidir 
+        <strong style={{ color: '#FF6A00' }}>Sizə özəl çatdırılma</strong>
+        &nbsp;·&nbsp; · Hər məhsul fərdidir 
       </div>
 
       {/* Main nav */}

@@ -82,9 +82,9 @@ const Footer: React.FC<FooterProps> = ({ onReviewsClick, onProductsClick, onDeli
               Çatdırılma
             </h4>
             {[
-              { icon: '🚇', text: 'Metro görüşü — ödənişsiz' },
-              { icon: '🛵', text: 'Kuryer (Bakı + Abşeron) — 4.99 ₼' },
-              { icon: '📮', text: 'Azərpoçt — 4.99 ₼' },
+              { icon: '🚇', text: 'Metrodaxili — ödənişsiz' },
+              { icon: '🛵', text: 'Kuryer (Bakı,Sumqayıt,Abşeron) — 4.99 ₼' },
+              { icon: '📮', text: 'Bölgələrə çatdırılma poçt vasitəsilə — 4.99 ₼' },
               { icon: '⚡', text: '1–3 iş günündə hazır' },
             ].map((item, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
