@@ -224,7 +224,7 @@ function InfoStrips() {
     { icon: '🚚', title: 'Ödənişsiz çatdırılma', desc: 'Bakı daxilindəki bütün sifarişlər' },
     { icon: '⚡', title: '1–3 iş günü', desc: 'Sürətli hazırlıq və çatdırılma' },
     { icon: '✍️', title: 'Lazer yazısı', desc: 'İstədiyin ad, tarix, mesaj' },
-    { icon: '💬', title: 'WhatsApp dəstək', desc: 'Hər sualın üçün hazırıq' },
+      { icon: '🎁', title: 'Hədiyyəlik qablaşdırma', desc: 'Fərqli qutu seçimi və hədiyyəlik bağlama.' },
   ];
   return (
     <div style={{
