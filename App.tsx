@@ -73,6 +73,187 @@ const DEFAULT_BOXES = [
 
 export { DEFAULT_METRO, DEFAULT_BOXES };
 
+// ── Hero Banner Component ──────────────────────────────────────────────────────
+function HeroBanner({ onShopClick }: { onShopClick: () => void }) {
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  const slides = [
+    {
+      badge: '🎁 Yeni kolleksiya — 2025',
+      title: 'Hər hədiyyə,\nsənin adınla.',
+      titleAccent: 'sənin adınla.',
+      desc: 'Lazer yazılı qolbaq, fərdi təsbeh, domino və daha çoxu. 17 ₼-dən başlayır.',
+      bg: 'linear-gradient(135deg, #FF6A00 0%, #FF8C42 100%)',
+      cta: 'Kataloqa bax →',
+    },
+    {
+      badge: '🚀 Ödənişsiz çatdırılma',
+      title: '1–3 iş günündə\nkapınıza gəlir.',
+      titleAccent: 'kapınıza gəlir.',
+      desc: 'Bakı daxilindəki bütün sifarişlər üçün ödənişsiz kurye xidməti.',
+      bg: 'linear-gradient(135deg, #111111 0%, #2a2a2a 100%)',
+      cta: 'Sifarişə başla →',
+    },
+    {
+      badge: '✨ Toplu endirim',
+      title: '10+ ədəddə\nxüsusi qiymət.',
+      titleAccent: 'xüsusi qiymət.',
+      desc: 'Məzun lentləri, korporativ hədiyyə, sinif sifarişi — 3 AZN/ədəddən.',
+      bg: 'linear-gradient(135deg, #1a3a2a 0%, #2d6a4f 100%)',
+      cta: 'Toplu sifariş →',
+    },
+  ];
+
+  useEffect(() => {
+    const t = setInterval(() => setCurrentSlide(s => (s + 1) % slides.length), 4500);
+    return () => clearInterval(t);
+  }, []);
+
+  const slide = slides[currentSlide];
+
+  return (
+    <div style={{
+      background: slide.bg,
+      transition: 'background 0.8s ease',
+      borderRadius: 0,
+      padding: 'clamp(32px, 6vw, 64px) clamp(20px, 5vw, 48px)',
+      position: 'relative',
+      overflow: 'hidden',
+      minHeight: 'clamp(220px, 35vw, 340px)',
+      display: 'flex',
+      alignItems: 'center',
+    }}>
+      {/* Decorative circles */}
+      <div style={{
+        position: 'absolute', right: '-60px', top: '-60px',
+        width: 260, height: 260, borderRadius: '50%',
+        background: 'rgba(255,255,255,0.05)', pointerEvents: 'none',
+      }} />
+      <div style={{
+        position: 'absolute', right: '40px', bottom: '-80px',
+        width: 180, height: 180, borderRadius: '50%',
+        background: 'rgba(255,255,255,0.04)', pointerEvents: 'none',
+      }} />
+
+      <div style={{ maxWidth: 1280, width: '100%', margin: '0 auto', position: 'relative', zIndex: 1 }}>
+        <div style={{ maxWidth: 620 }}>
+          {/* Badge */}
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', gap: 8,
+            background: 'rgba(255,255,255,0.15)',
+            border: '1px solid rgba(255,255,255,0.25)',
+            borderRadius: 100, padding: '6px 16px', marginBottom: 20,
+            backdropFilter: 'blur(4px)',
+          }}>
+            <span style={{ fontSize: 12, fontWeight: 600, color: '#FFFFFF', letterSpacing: 0.3 }}>
+              {slide.badge}
+            </span>
+          </div>
+
+          {/* Title */}
+          <h2 style={{
+            fontSize: 'clamp(28px, 5vw, 52px)',
+            fontWeight: 800, color: '#FFFFFF',
+            lineHeight: 1.15, letterSpacing: '-1px',
+            margin: '0 0 16px',
+            whiteSpace: 'pre-line',
+          }}>
+            {slide.title.replace(slide.titleAccent, '')}
+            <span style={{ opacity: 0.75 }}>{slide.titleAccent}</span>
+          </h2>
+
+          {/* Description */}
+          <p style={{
+            fontSize: 'clamp(13px, 2vw, 16px)',
+            color: 'rgba(255,255,255,0.8)',
+            lineHeight: 1.65, margin: '0 0 28px',
+            fontWeight: 400, maxWidth: 460,
+          }}>
+            {slide.desc}
+          </p>
+
+          {/* CTA */}
+          <button
+            onClick={onShopClick}
+            style={{
+              padding: 'clamp(12px,2vw,15px) clamp(24px,4vw,36px)',
+              background: '#FFFFFF',
+              color: '#111111',
+              border: 'none', borderRadius: 10,
+              fontSize: 'clamp(13px,1.5vw,15px)', fontWeight: 700,
+              cursor: 'pointer', fontFamily: "'Inter', sans-serif",
+              boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
+              transition: 'transform 0.15s, box-shadow 0.15s',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 28px rgba(0,0,0,0.25)'; }}
+            onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.2)'; }}
+          >
+            {slide.cta}
+          </button>
+        </div>
+
+        {/* Slide dots */}
+        <div style={{
+          display: 'flex', gap: 8, marginTop: 32,
+          alignItems: 'center',
+        }}>
+          {slides.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setCurrentSlide(i)}
+              style={{
+                width: i === currentSlide ? 24 : 8,
+                height: 8, borderRadius: 4,
+                background: i === currentSlide ? '#FFFFFF' : 'rgba(255,255,255,0.35)',
+                border: 'none', cursor: 'pointer',
+                transition: 'all 0.3s ease', padding: 0,
+              }}
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Info Strips (mini banners below hero) ──────────────────────────────────────
+function InfoStrips() {
+  const strips = [
+    { icon: '🚚', title: 'Ödənişsiz çatdırılma', desc: 'Bakı daxilindəki bütün sifarişlər' },
+    { icon: '⚡', title: '1–3 iş günü', desc: 'Sürətli hazırlıq və çatdırılma' },
+    { icon: '✍️', title: 'Lazer yazısı', desc: 'İstədiyin ad, tarix, mesaj' },
+    { icon: '💬', title: 'WhatsApp dəstək', desc: 'Hər sualın üçün hazırıq' },
+  ];
+  return (
+    <div style={{
+      background: '#FFFFFF',
+      borderBottom: '1px solid #EDEBE7',
+      padding: '0 clamp(16px, 4vw, 32px)',
+    }}>
+      <div style={{
+        maxWidth: 1280, margin: '0 auto',
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
+        gap: 0,
+      }}>
+        {strips.map((s, i) => (
+          <div key={s.title} style={{
+            display: 'flex', alignItems: 'center', gap: 12,
+            padding: 'clamp(14px, 2vw, 20px) 16px',
+            borderLeft: i > 0 ? '1px solid #EDEBE7' : 'none',
+          }}>
+            <span style={{ fontSize: 'clamp(20px, 3vw, 26px)', flexShrink: 0 }}>{s.icon}</span>
+            <div>
+              <div style={{ fontSize: 'clamp(11px, 1.2vw, 13px)', fontWeight: 700, color: '#111111', marginBottom: 2 }}>{s.title}</div>
+              <div style={{ fontSize: 'clamp(10px, 1vw, 12px)', color: '#888888', fontWeight: 400 }}>{s.desc}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const [products, setProducts]               = useState<Product[]>([]);
   const [loading, setLoading]                 = useState(true);
@@ -136,125 +317,132 @@ export default function App() {
       <main>
         {/* ── HOME ── */}
         {view === 'home' && (
-          <>
-            <section style={{
-              background: '#FFFFFF',
-              borderBottom: '1px solid #EDEBE7',
-              padding: 'clamp(48px,7vw,80px) 32px',
+          <div
+            style={{
               opacity: visible ? 1 : 0,
               transform: visible ? 'translateY(0)' : 'translateY(16px)',
               transition: 'opacity 0.7s ease, transform 0.7s ease',
-            }}>
-              <div style={{ maxWidth: 1280, margin: '0 auto' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 40, flexWrap: 'wrap' as const }}>
-                  {/* LEFT */}
-                  <div style={{ flex: '1 1 420px', maxWidth: 580 }}>
-                    <div style={{
-                      display: 'inline-flex', alignItems: 'center', gap: 8,
-                      background: '#FFF3EC', border: '1px solid #FFD4B8',
-                      borderRadius: 100, padding: '6px 14px', marginBottom: 24,
-                    }}>
-                      <span style={{ fontSize: 14 }}>✨</span>
-                      <span style={{ fontSize: 12, fontWeight: 600, color: '#FF6A00' }}>
-                        Hər hədiyyə, hər duyğu — yalnız sənin üçün
-                      </span>
-                    </div>
+            }}
+          >
+            {/* HERO BANNER — slider */}
+            <HeroBanner onShopClick={() => goToProducts(null)} />
 
-                    <h1 style={{
-                      fontSize: 'clamp(36px,5.5vw,64px)',
-                      fontWeight: 800, color: '#111111',
-                      lineHeight: 1.1, letterSpacing: '-1.5px',
-                      margin: '0 0 20px',
-                    }}>
-                      Keyfiyyətli hədiyyə,<br />
-                      <span style={{ color: '#FF6A00' }}>rahat sifariş.</span>
-                    </h1>
+            {/* INFO STRIPS */}
+            <InfoStrips />
 
-                    <p style={{ fontSize: 16, fontWeight: 400, color: '#555555', lineHeight: 1.7, margin: '0 0 32px', maxWidth: 440 }}>
-                      Lazer yazılı qolbaq, fərdi təsbeh, domino və daha çoxu.
-                      17 ₼-dən başlayan qiymətlə, 1–3 iş günündə hazır.
-                    </p>
-
-                    <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' as const, marginBottom: 32 }}>
-                      {['✓ Ödənişsiz çatdırılma', '✓ 500+ müştəri', '✓ 1–3 iş günü'].map(t => (
-                        <span key={t} style={{ fontSize: 13, color: '#555555', fontWeight: 500 }}>{t}</span>
-                      ))}
-                    </div>
-
-                    <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' as const }}>
-                      <button
-                        onClick={() => goToProducts(null)}
-                        style={{
-                          padding: '15px 36px', background: '#FF6A00', color: '#FFFFFF',
-                          border: 'none', borderRadius: 10, fontSize: 15, fontWeight: 700,
-                          cursor: 'pointer', fontFamily: "'Inter', sans-serif",
-                          boxShadow: '0 4px 16px rgba(255,106,0,0.3)',
-                          transition: 'background 0.15s, transform 0.15s',
-                        }}
-                        onMouseEnter={e => { e.currentTarget.style.background = '#E55E00'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-                        onMouseLeave={e => { e.currentTarget.style.background = '#FF6A00'; e.currentTarget.style.transform = 'translateY(0)'; }}
-                      >Kataloqa bax →</button>
-                      <a href="https://wa.me/994519831483" target="_blank" rel="noreferrer"
-                        style={{
-                          padding: '15px 28px', background: 'transparent', color: '#111111',
-                          border: '1.5px solid #D5D0C8', borderRadius: 10, fontSize: 15, fontWeight: 600,
-                          cursor: 'pointer', textDecoration: 'none', fontFamily: "'Inter', sans-serif",
-                          display: 'inline-flex', alignItems: 'center', gap: 8,
-                          transition: 'border-color 0.15s',
-                        }}
-                        onMouseEnter={e => e.currentTarget.style.borderColor = '#FF6A00'}
-                        onMouseLeave={e => e.currentTarget.style.borderColor = '#D5D0C8'}
-                      >💬 WhatsApp</a>
-                    </div>
-                  </div>
-
-                  {/* RIGHT stats */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, maxWidth: 300, flex: '0 0 auto' }} className="r-desktop-nav">
-                    {[
-                      { num: '500+', label: 'Müştəri',     icon: '😊' },
-                      { num: '17 ₼', label: 'dan başlayır', icon: '💰' },
-                      { num: '1–3',  label: 'gün',          icon: '⚡' },
-                      { num: '100%', label: 'Özəl dizayn',  icon: '✨' },
-                    ].map(s => (
-                      <div key={s.label} style={{
-                        background: '#F5F2EC', borderRadius: 12,
-                        padding: '20px 16px', textAlign: 'center' as const,
-                        border: '1px solid #EDEBE7',
-                      }}>
-                        <div style={{ fontSize: 24, marginBottom: 6 }}>{s.icon}</div>
-                        <div style={{ fontSize: 22, fontWeight: 800, color: '#111111', lineHeight: 1 }}>{s.num}</div>
-                        <div style={{ fontSize: 11, color: '#888888', marginTop: 4, fontWeight: 500 }}>{s.label}</div>
-                      </div>
-                    ))}
-                  </div>
+            {/* PRODUCTS SECTION */}
+            <section style={{ maxWidth: 1280, margin: '0 auto', padding: 'clamp(32px,5vw,56px) clamp(16px,3vw,32px)' }}>
+              {/* Section header */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 28 }}>
+                <div>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: '#FF6A00', letterSpacing: 1.5, textTransform: 'uppercase', margin: '0 0 6px' }}>
+                    Kataloq
+                  </p>
+                  <h2 style={{ fontSize: 'clamp(22px,3.5vw,32px)', fontWeight: 800, color: '#111111', margin: 0, letterSpacing: '-0.3px' }}>
+                    Məhsullarımız
+                  </h2>
                 </div>
+                <button
+                  onClick={() => goToProducts(null)}
+                  style={{
+                    padding: '10px 22px', background: 'transparent',
+                    border: '1.5px solid #D5D0C8', borderRadius: 8,
+                    fontSize: 13, fontWeight: 600, color: '#111111',
+                    cursor: 'pointer', fontFamily: "'Inter', sans-serif",
+                    transition: 'border-color 0.15s, background 0.15s',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = '#FF6A00'; e.currentTarget.style.color = '#FF6A00'; }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = '#D5D0C8'; e.currentTarget.style.color = '#111111'; }}
+                >
+                  Hamısına bax →
+                </button>
               </div>
+
+              {/* Category pills (mobile-friendly) */}
+              {categories.length > 0 && (
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 24, overflowX: 'auto', paddingBottom: 4, scrollbarWidth: 'none' }}>
+                  <button onClick={() => setActiveCategory(null)} style={{
+                    padding: '7px 16px', borderRadius: 100, flexShrink: 0,
+                    border: `1.5px solid ${!activeCategory ? '#111111' : '#D5D0C8'}`,
+                    background: !activeCategory ? '#111111' : 'transparent',
+                    color: !activeCategory ? '#FFFFFF' : '#666666',
+                    fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                    fontFamily: "'Inter', sans-serif", whiteSpace: 'nowrap',
+                  }}>Hamısı</button>
+                  {categories.map(cat => (
+                    <button key={cat} onClick={() => setActiveCategory(cat)} style={{
+                      padding: '7px 16px', borderRadius: 100, flexShrink: 0,
+                      border: `1.5px solid ${activeCategory === cat ? '#111111' : '#D5D0C8'}`,
+                      background: activeCategory === cat ? '#111111' : 'transparent',
+                      color: activeCategory === cat ? '#FFFFFF' : '#666666',
+                      fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                      fontFamily: "'Inter', sans-serif", whiteSpace: 'nowrap',
+                    }}>{cat}</button>
+                  ))}
+                </div>
+              )}
+
+              {loading ? (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 16 }}>
+                  {[1,2,3,4,5,6].map(i => (
+                    <div key={i} style={{ background: '#FFFFFF', borderRadius: 12, overflow: 'hidden', border: '1px solid #EDEBE7' }}>
+                      <div style={{ aspectRatio: '1/1', background: '#F5F2EC', animation: 'pulse 1.5s ease-in-out infinite' }} />
+                      <div style={{ padding: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        <div style={{ height: 10, background: '#F5F2EC', borderRadius: 4, width: '45%', animation: 'pulse 1.5s ease-in-out infinite' }} />
+                        <div style={{ height: 14, background: '#F5F2EC', borderRadius: 4, width: '75%', animation: 'pulse 1.5s ease-in-out infinite' }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <ProductGrid
+                  products={filteredProducts.slice(0, 8)}
+                  onAddToCart={openProduct}
+                  onViewProduct={openProduct}
+                />
+              )}
+
+              {!loading && filteredProducts.length > 8 && (
+                <div style={{ textAlign: 'center', marginTop: 32 }}>
+                  <button
+                    onClick={() => goToProducts(null)}
+                    style={{
+                      padding: '14px 40px', background: '#FF6A00', color: '#FFFFFF',
+                      border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 700,
+                      cursor: 'pointer', fontFamily: "'Inter', sans-serif",
+                      boxShadow: '0 4px 16px rgba(255,106,0,0.3)',
+                    }}
+                  >
+                    Daha çox məhsul gör ({filteredProducts.length - 8}+)
+                  </button>
+                </div>
+              )}
             </section>
 
             {/* HOW IT WORKS */}
-            <section style={{ background: '#111111', padding: 'clamp(56px,7vw,96px) 32px' }}>
+            <section style={{ background: '#111111', padding: 'clamp(48px,7vw,96px) clamp(16px,3vw,32px)' }}>
               <div style={{ maxWidth: 1280, margin: '0 auto' }}>
-                <div style={{ textAlign: 'center' as const, marginBottom: 48 }}>
-                  <p style={{ fontSize: 11, fontWeight: 700, color: '#FF6A00', letterSpacing: 1.5, textTransform: 'uppercase' as const, margin: '0 0 12px' }}>
+                <div style={{ textAlign: 'center', marginBottom: 40 }}>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: '#FF6A00', letterSpacing: 1.5, textTransform: 'uppercase', margin: '0 0 12px' }}>
                     Necə işləyir
                   </p>
-                  <h2 style={{ fontSize: 'clamp(26px,4vw,40px)', fontWeight: 800, color: '#FFFFFF', margin: 0, letterSpacing: '-0.5px' }}>
+                  <h2 style={{ fontSize: 'clamp(24px,4vw,40px)', fontWeight: 800, color: '#FFFFFF', margin: 0, letterSpacing: '-0.5px' }}>
                     3 addımda sifariş
                   </h2>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 2 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 2 }}>
                   {[
                     { n: '01', icon: '🛍️', title: 'Məhsul seç',     desc: 'Kataloqdan bəyəndiyini seç, variantı müəyyən et' },
                     { n: '02', icon: '✍️', title: 'Ad / mesaj yaz',  desc: 'Lazer yazısı üçün istədiyini əlavə et' },
                     { n: '03', icon: '⚡', title: 'Ödənişsiz çatır', desc: '1–3 iş günündə hazır, ödənişsiz çatdırılır' },
                   ].map((s, i) => (
                     <div key={s.n} style={{
-                      background: '#1A1A1A', padding: '40px 32px',
+                      background: '#1A1A1A', padding: 'clamp(24px,4vw,40px) clamp(20px,3vw,32px)',
                       borderLeft: i > 0 ? '1px solid rgba(255,255,255,0.05)' : 'none',
                     }}>
-                      <div style={{ width: 52, height: 52, borderRadius: 12, background: 'rgba(255,106,0,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, marginBottom: 20 }}>{s.icon}</div>
-                      <div style={{ fontSize: 11, fontWeight: 700, color: '#FF6A00', letterSpacing: 2, marginBottom: 10 }}>{s.n}</div>
-                      <h3 style={{ fontSize: 18, fontWeight: 700, color: '#FFFFFF', margin: '0 0 10px' }}>{s.title}</h3>
+                      <div style={{ width: 48, height: 48, borderRadius: 12, background: 'rgba(255,106,0,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, marginBottom: 16 }}>{s.icon}</div>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: '#FF6A00', letterSpacing: 2, marginBottom: 8 }}>{s.n}</div>
+                      <h3 style={{ fontSize: 'clamp(15px,2vw,18px)', fontWeight: 700, color: '#FFFFFF', margin: '0 0 8px' }}>{s.title}</h3>
                       <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', lineHeight: 1.7, margin: 0 }}>{s.desc}</p>
                     </div>
                   ))}
@@ -265,15 +453,15 @@ export default function App() {
             <section style={{ background: '#F5F2EC' }}>
               <CustomerReviews />
             </section>
-          </>
+          </div>
         )}
 
         {/* ── PRODUCTS VIEW ── */}
         {(view as string) === 'products' && (
-          <div style={{ maxWidth: 1280, margin: '0 auto', padding: '32px 32px 64px' }}>
+          <div style={{ maxWidth: 1280, margin: '0 auto', padding: 'clamp(20px,3vw,32px) clamp(16px,3vw,32px) 64px' }}>
             <div style={{ display: 'flex', gap: 32, alignItems: 'flex-start' }}>
 
-              {/* SIDEBAR — sticky, scrollable inside */}
+              {/* SIDEBAR — desktop only */}
               <aside
                 className="r-desktop-nav"
                 style={{
@@ -282,20 +470,18 @@ export default function App() {
                   position: 'sticky',
                   top: 110,
                   maxHeight: 'calc(100vh - 130px)',
-                  overflowY: 'auto' as const,
+                  overflowY: 'auto',
                   paddingRight: 8,
-                  /* Hide scrollbar visually but keep functionality */
-                  scrollbarWidth: 'none' as const,
+                  scrollbarWidth: 'none',
                 }}
               >
                 <p style={{
                   fontSize: 10, fontWeight: 700, color: '#FF6A00',
-                  letterSpacing: 1.5, textTransform: 'uppercase' as const,
+                  letterSpacing: 1.5, textTransform: 'uppercase',
                   margin: '0 0 12px',
                 }}>Kateqoriyalar</p>
 
-                <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 2 }}>
-                  {/* All */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                   <button
                     onClick={() => setActiveCategory(null)}
                     style={{
@@ -303,7 +489,7 @@ export default function App() {
                       background: !activeCategory ? '#111111' : 'transparent',
                       color: !activeCategory ? '#FFFFFF' : '#555555',
                       fontSize: 13, fontWeight: !activeCategory ? 600 : 400,
-                      cursor: 'pointer', textAlign: 'left' as const,
+                      cursor: 'pointer', textAlign: 'left',
                       fontFamily: "'Inter', sans-serif",
                       transition: 'all 0.15s',
                       display: 'flex', justifyContent: 'space-between', alignItems: 'center',
@@ -325,7 +511,7 @@ export default function App() {
                           background: sel ? '#111111' : 'transparent',
                           color: sel ? '#FFFFFF' : '#555555',
                           fontSize: 13, fontWeight: sel ? 600 : 400,
-                          cursor: 'pointer', textAlign: 'left' as const,
+                          cursor: 'pointer', textAlign: 'left',
                           fontFamily: "'Inter', sans-serif",
                           transition: 'all 0.15s',
                           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
@@ -343,10 +529,9 @@ export default function App() {
 
               {/* MAIN content */}
               <div style={{ flex: 1, minWidth: 0 }}>
-                {/* Header */}
-                <div style={{ marginBottom: 24 }}>
+                <div style={{ marginBottom: 20 }}>
                   <h2 style={{
-                    fontSize: 'clamp(22px,3vw,30px)', fontWeight: 800,
+                    fontSize: 'clamp(20px,3vw,30px)', fontWeight: 800,
                     color: '#111111', margin: '0 0 4px', letterSpacing: '-0.3px',
                   }}>
                     {activeCategory || 'Bütün məhsullar'}
@@ -358,9 +543,9 @@ export default function App() {
 
                 {/* Mobile pills */}
                 {categories.length > 0 && (
-                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' as const, marginBottom: 20 }} className="r-mobile-nav">
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'nowrap', marginBottom: 20, overflowX: 'auto', paddingBottom: 8, scrollbarWidth: 'none' }} className="r-mobile-nav">
                     <button onClick={() => setActiveCategory(null)} style={{
-                      padding: '7px 16px', borderRadius: 100,
+                      padding: '7px 16px', borderRadius: 100, flexShrink: 0,
                       border: `1.5px solid ${!activeCategory ? '#111111' : '#D5D0C8'}`,
                       background: !activeCategory ? '#111111' : 'transparent',
                       color: !activeCategory ? '#FFFFFF' : '#666666',
@@ -369,7 +554,7 @@ export default function App() {
                     }}>Hamısı</button>
                     {categories.map(cat => (
                       <button key={cat} onClick={() => setActiveCategory(cat)} style={{
-                        padding: '7px 16px', borderRadius: 100,
+                        padding: '7px 16px', borderRadius: 100, flexShrink: 0,
                         border: `1.5px solid ${activeCategory === cat ? '#111111' : '#D5D0C8'}`,
                         background: activeCategory === cat ? '#111111' : 'transparent',
                         color: activeCategory === cat ? '#FFFFFF' : '#666666',
@@ -381,11 +566,11 @@ export default function App() {
                 )}
 
                 {loading ? (
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 20 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 16 }}>
                     {[1,2,3,4,5,6].map(i => (
                       <div key={i} style={{ background: '#FFFFFF', borderRadius: 12, overflow: 'hidden', border: '1px solid #EDEBE7' }}>
                         <div style={{ aspectRatio: '1/1', background: '#F5F2EC', animation: 'pulse 1.5s ease-in-out infinite' }} />
-                        <div style={{ padding: '14px', display: 'flex', flexDirection: 'column' as const, gap: 8 }}>
+                        <div style={{ padding: '14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
                           <div style={{ height: 10, background: '#F5F2EC', borderRadius: 4, width: '45%', animation: 'pulse 1.5s ease-in-out infinite' }} />
                           <div style={{ height: 14, background: '#F5F2EC', borderRadius: 4, width: '75%', animation: 'pulse 1.5s ease-in-out infinite' }} />
                         </div>
@@ -454,16 +639,23 @@ export default function App() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
         *, *::before, *::after { box-sizing: border-box; }
-        body { -webkit-font-smoothing: antialiased; }
+        body { -webkit-font-smoothing: antialiased; margin: 0; }
         ::selection { background: #FF6A00; color: #FFFFFF; }
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.45} }
         aside::-webkit-scrollbar { display: none; }
+        div::-webkit-scrollbar { display: none; }
+
         @media (max-width: 768px) {
           .r-desktop-nav { display: none !important; }
           .r-mobile-nav  { display: flex !important; }
         }
         @media (min-width: 769px) {
           .r-mobile-nav { display: none !important; }
+        }
+
+        /* Mobile padding fixes */
+        @media (max-width: 480px) {
+          main section, main > div { padding-left: 16px !important; padding-right: 16px !important; }
         }
       `}</style>
     </div>
