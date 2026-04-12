@@ -98,8 +98,9 @@ const ProductModal: React.FC<ProductModalProps> = ({
   const effectiveUnit = Math.max(0, baseUnit - bulkOff);
   const bulkDiscTotal = bulkOff * qty;
 
-  const box    = boxes.find(b => b.id === boxId) ?? boxes[0];
-  const boxFee = box?.price ?? 0;
+  const showBox = product.allowBoxSelection !== false;
+  const box    = showBox ? (boxes.find(b => b.id === boxId) ?? boxes[0]) : null;
+  const boxFee = showBox ? (box?.price ?? 0) : 0;
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -129,7 +130,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
       customerName:         '',
       phone:                '',
       birthDate:            '',
-      isGift:               boxId !== 'simple',
+      isGift: showBox && boxId !== 'simple',
       isFirstOrSecondOrder: false,
       customerType:         'new',
       deliveryType:         'standard',
@@ -432,7 +433,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
           </Sec>
 
           {/* Qablaşdırma */}
-          {boxes.length > 0 && (
+          {(boxes.length > 0 && product.allowBoxSelection !== false) && (
             <Sec last>
               <Label>Qablaşdırma</Label>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 10 }}>

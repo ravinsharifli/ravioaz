@@ -22,7 +22,8 @@ const PRODUCTS_QUERY = `*[_type == "product"] | order(bestSellerOrder asc) {
   isPremium, premiumOrder, premiumSize,
   isBestSeller, bestSellerOrder, orderCount,
   hasBulkDiscount, bulkDiscountNote,
-  bulkTiers[]{ minQty, maxQty, discountAmount, label }
+  bulkTiers[]{ minQty, maxQty, discountAmount, label },
+  allowBoxSelection
 }`;
 
 const SETTINGS_QUERY = `*[_type == "siteSettings"][0]{
@@ -56,6 +57,7 @@ function mapSanityProduct(raw: any): Product {
     hasBulkDiscount: raw.hasBulkDiscount || false,
     bulkDiscountNote: raw.bulkDiscountNote || '',
     bulkTiers: raw.bulkTiers || [],
+    allowBoxSelection: raw.allowBoxSelection !== false,
   };
 }
 
@@ -79,18 +81,18 @@ function HeroBanner({ onShopClick }: { onShopClick: () => void }) {
 
   const slides = [
     {
-      badge: '🎁 Sizə özəl hazırlanır',
+      badge: '🎁 Yeni kolleksiya — 2025',
       title: 'Hər hədiyyə,\nsənin adınla.',
       titleAccent: 'sənin adınla.',
-      desc: 'Lazer yazılı qolbaq, fərdi təsbeh, domino və daha çoxu. Məhsullara baxmadan seçim etmə!',
+      desc: 'Lazer yazılı qolbaq, fərdi təsbeh, domino və daha çoxu. Məhsullara bax və seçim et !',
       bg: 'linear-gradient(135deg, #FF6A00 0%, #FF8C42 100%)',
       cta: 'Kataloqa bax →',
     },
     {
-      badge: '🚀 Metrodaxili Ödənişsiz çatdırılma',
+      badge: '🚀 Ödənişsiz çatdırılma',
       title: '1–3 iş günündə\nkapınıza gəlir.',
       titleAccent: 'kapınıza gəlir.',
-      desc: 'Bakı və Abşeron ərazisində bütün sifarişlər üçün  kurye xidməti.',
+      desc: 'Bakı daxilindəki bütün sifarişlər üçün ödənişsiz kurye xidməti.',
       bg: 'linear-gradient(135deg, #111111 0%, #2a2a2a 100%)',
       cta: 'Sifarişə başla →',
     },
@@ -219,7 +221,7 @@ function HeroBanner({ onShopClick }: { onShopClick: () => void }) {
 // ── Info Strips (mini banners below hero) ──────────────────────────────────────
 function InfoStrips() {
   const strips = [
-    { icon: '🚚', title: 'Ödənişsiz çatdırılma', desc: 'Bakı daxilindəki bütün sifarişlər' },
+    { icon: '🚚', title: 'Ödənişsiz çatdırılma', desc: 'Metro daxili bütün çatdırılmalar' },
     { icon: '⚡', title: '1–3 iş günü', desc: 'Sürətli hazırlıq və çatdırılma' },
     { icon: '✍️', title: 'Lazer yazısı', desc: 'İstədiyin ad, tarix, mesaj' },
     { icon: '💬', title: 'WhatsApp dəstək', desc: 'Hər sualın üçün hazırıq' },

@@ -29,6 +29,7 @@ export interface Product {
   hasBulkDiscount?: boolean;
   bulkDiscountNote?: string;
   bulkTiers?: BulkTier[];
+  allowBoxSelection?: boolean; // 📦 Qutu seçimi aktiv/deaktiv
 }
 
 export interface CartItem {
@@ -53,7 +54,6 @@ export interface CartItem {
   deliveryType: 'standard' | 'urgent' | 'express';
   deliveryDetails: string;
   bulkDiscountAmount?: number;
-  // Yeni sahələr — 2 addımlı forma üçün
   boxType?: string;
   boxPrice?: number;
   couponCode?: string;

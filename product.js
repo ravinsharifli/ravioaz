@@ -21,6 +21,15 @@ export default {
       type: 'text',
     },
 
+    // 📦 QUTU SEÇİMİ
+    {
+      name: 'allowBoxSelection',
+      title: '📦 Qutu seçimi aktiv olsun?',
+      type: 'boolean',
+      description: 'AÇIN — bijuteriya, qolbaq, giftbox kimi məhsullar üçün. BAĞLAYIN — hoodie, köynək, libas kimi məhsullar üçün qutu seçimi görünməsin.',
+      initialValue: true,
+    },
+
     // 🎨 VARİANTLAR
     {
       name: 'variants',
@@ -220,16 +229,18 @@ export default {
       isPremium: 'isPremium',
       isBestSeller: 'isBestSeller',
       hasBulkDiscount: 'hasBulkDiscount',
+      allowBoxSelection: 'allowBoxSelection',
       variants: 'variants',
     },
     prepare(selection) {
-      const { title, isPremium, isBestSeller, hasBulkDiscount, variants } = selection;
+      const { title, isPremium, isBestSeller, hasBulkDiscount, allowBoxSelection, variants } = selection;
       const variantList = variants && Array.isArray(variants) ? variants : [];
       const totalStock = variantList.reduce((sum, v) => sum + (v?.stock || 0), 0);
       const badges = [
         isPremium ? '💎' : '',
         isBestSeller ? '⭐' : '',
         hasBulkDiscount ? '💰' : '',
+        allowBoxSelection === false ? '🚫📦' : '📦',
       ].filter(Boolean).join(' ');
       return {
         title: `${badges ? badges + ' ' : ''}${title || 'Məhsul'}`,
