@@ -84,7 +84,7 @@ function HeroBanner({ onShopClick }: { onShopClick: () => void }) {
       badge: '✨ Sizə özəl hazırlanır',
       title: 'Hər hədiyyə,\nsənin adınla.',
       titleAccent: 'sənin adınla.',
-      desc: 'Lazer yazılı qolbaq, fərdi təsbeh, domino və daha çoxu. 17 ₼-dən başlayır.',
+      desc: 'Lazer yazılı qolbaq, fərdi təsbeh, domino və daha çoxu. Sizə özəl hazırlanır.',
       bg: 'linear-gradient(135deg, #FF6A00 0%, #FF8C42 100%)',
       cta: 'Kataloqa bax →',
     },
