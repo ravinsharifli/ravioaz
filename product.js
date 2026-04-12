@@ -26,8 +26,76 @@ export default {
       name: 'allowBoxSelection',
       title: '📦 Qutu seçimi aktiv olsun?',
       type: 'boolean',
-      description: 'AÇIN — bijuteriya, qolbaq, giftbox kimi məhsullar üçün. BAĞLAYIN — hoodie, köynək, libas kimi məhsullar üçün qutu seçimi görünməsin.',
+      description: 'AÇIN — bijuteriya, qolbaq, təsbeh kimi məhsullar üçün. BAĞLAYIN — qutu seçimi lazım olmayan məhsullar üçün.',
       initialValue: true,
+    },
+    {
+      name: 'customBoxOptions',
+      title: '📦 Bu məhsula özəl qutu seçimləri',
+      type: 'array',
+      description: 'Boş buraxsanız — Sayt Tənzimləmələrindəki ümumi qutular göstərilir. Doldursanız — yalnız buradakı qutular göstərilir.',
+      hidden: ({ document }) => document?.allowBoxSelection === false,
+      of: [
+        {
+          type: 'object',
+          fields: [
+            {
+              name: 'id',
+              title: 'ID (unikal, məs: simple, orta, premium)',
+              type: 'string',
+              validation: Rule => Rule.required(),
+            },
+            {
+              name: 'name',
+              title: 'Qutu adı (müştəriyə görünür)',
+              type: 'string',
+              description: 'Məs: Sadə qutu, Gümüş qutu, Premium qutu',
+              validation: Rule => Rule.required(),
+            },
+            {
+              name: 'desc',
+              title: 'Qısa açıqlama',
+              type: 'string',
+              description: 'Məs: Standart qablaşdırma, Lent + köpük yastıq',
+            },
+            {
+              name: 'price',
+              title: 'Qiymət (₼) — 0 = pulsuz',
+              type: 'number',
+              initialValue: 0,
+              validation: Rule => Rule.required().min(0),
+            },
+            {
+              name: 'image',
+              title: '📸 Qutu şəkli',
+              type: 'image',
+              options: { hotspot: true },
+              description: 'Müştəri bu şəkli görüb seçim edəcək',
+            },
+            {
+              name: 'isActive',
+              title: 'Aktiv?',
+              type: 'boolean',
+              initialValue: true,
+            },
+          ],
+          preview: {
+            select: {
+              title: 'name',
+              subtitle: 'price',
+              isActive: 'isActive',
+              media: 'image',
+            },
+            prepare({ title, subtitle, isActive, media }) {
+              return {
+                title: `${isActive ? '✅' : '❌'} ${title || 'Qutu'}`,
+                subtitle: subtitle === 0 ? 'Pulsuz' : `+${subtitle} ₼`,
+                media,
+              };
+            },
+          },
+        },
+      ],
     },
 
     // 🎨 VARİANTLAR
