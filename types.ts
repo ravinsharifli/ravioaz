@@ -29,7 +29,22 @@ export interface Product {
   hasBulkDiscount?: boolean;
   bulkDiscountNote?: string;
   bulkTiers?: BulkTier[];
-  allowBoxSelection?: boolean; // 📦 Qutu seçimi aktiv/deaktiv
+  allowBoxSelection?: boolean;
+}
+
+// Metro cədvəli — hər stansiyanın öz günləri və saatları var
+export interface MetroDayEntry {
+  day: string;
+  times: string[];
+}
+
+export interface MetroStationEntry {
+  name: string;
+  schedule: MetroDayEntry[];
+}
+
+export interface MetroSchedule {
+  stations: MetroStationEntry[];
 }
 
 export interface CartItem {

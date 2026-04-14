@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, Trash2, ShoppingBag, ArrowRight, Edit3, ChevronLeft } from 'lucide-react';
-import { CartItem } from '../types';
+import { CartItem, MetroSchedule } from '../types';
 
 const FONT = "'Inter', -apple-system, sans-serif";
 
@@ -24,7 +24,6 @@ const C = {
 
 const MONTHS_AZ = ['Yanvar','Fevral','Mart','Aprel','May','İyun','İyul','Avqust','Sentyabr','Oktyabr','Noyabr','Dekabr'];
 const DAYS = Array.from({ length: 31 }, (_, i) => String(i + 1).padStart(2, '0'));
-const YEARS = ['2026', '2027'];
 
 const Label: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.8, textTransform: 'uppercase' as const, color: C.gray, margin: '0 0 10px', fontFamily: FONT }}>
@@ -77,6 +76,28 @@ const SRow: React.FC<{ l: string; r: string; accent?: boolean; bold?: boolean }>
   </div>
 );
 
+// Seçim düyməsi — stansiya, gün, saat üçün istifadə olunur
+const Chip: React.FC<{
+  label: string;
+  selected: boolean;
+  onClick: () => void;
+  color?: string;
+}> = ({ label, selected, onClick, color = C.black }) => (
+  <div
+    onClick={onClick}
+    style={{
+      padding: '7px 13px', borderRadius: 100, fontSize: 12, cursor: 'pointer',
+      fontWeight: selected ? 600 : 400,
+      background: selected ? color : C.bg,
+      color: selected ? C.white : C.gray,
+      border: `1px solid ${selected ? color : C.border}`,
+      transition: 'all 0.15s',
+    }}
+  >
+    {label}
+  </div>
+);
+
 interface CartDrawerProps {
   isOpen: boolean;
   onClose: () => void;
@@ -84,7 +105,7 @@ interface CartDrawerProps {
   onRemove: (cartId: string) => void;
   onEdit: (item: CartItem) => void;
   onGoToProducts?: () => void;
-  metroSchedule?: { stations: string[]; days: string[]; times: string[] };
+  metroSchedule?: MetroSchedule;
 }
 
 function getItemSubtotal(item: CartItem): number {
@@ -104,16 +125,40 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
   const [bdYear,       setBdYear]       = useState('');
   const [customerType, setCustomerType] = useState<'new' | 'loyal' | null>(null);
   const [delivery,     setDelivery]     = useState<'metro' | 'kuryer' | 'post'>('metro');
-  const [metro,        setMetro]        = useState('28 May');
+  const [metro,        setMetro]        = useState('');
   const [delDay,       setDelDay]       = useState('');
-  const [delMonth,     setDelMonth]     = useState('');
-  const [delYear,      setDelYear]      = useState('2026');
-  const [delTime,      setDelTime]      = useState('14:00');
+  const [delTime,      setDelTime]      = useState('');
   const [address,      setAddress]      = useState('');
+  // Kuryer/Poçt üçün tarix
+  const [kurDay,       setKurDay]       = useState('');
+  const [kurMonth,     setKurMonth]     = useState('');
+  const [kurYear,      setKurYear]      = useState('2026');
 
-  const stations = metroSchedule?.stations?.length ? metroSchedule.stations : ['28 May','Həzi Aslanov','Nərimanov','İçərişəhər','Memar Əcəmi'];
-  const times    = metroSchedule?.times?.length    ? metroSchedule.times    : ['14:00','15:00','16:00','17:00','18:00','19:00'];
+  // ── Metro məlumatları ──────────────────────────────────────────
+  const stations = metroSchedule?.stations ?? [];
 
+  // Seçilmiş stansiyanın cədvəli
+  const selectedStationData = stations.find(s => s.name === metro);
+  const availableDays       = selectedStationData?.schedule ?? [];
+
+  // Seçilmiş günün saatları
+  const selectedDayData = availableDays.find(d => d.day === delDay);
+  const availableTimes  = selectedDayData?.times ?? [];
+
+  // Stansiya dəyişdikdə gün və saatı sıfırla
+  const handleStationChange = (name: string) => {
+    setMetro(name);
+    setDelDay('');
+    setDelTime('');
+  };
+
+  // Gün dəyişdikdə saatı sıfırla
+  const handleDayChange = (day: string) => {
+    setDelDay(day);
+    setDelTime('');
+  };
+
+  // ── Hesablamalar ───────────────────────────────────────────────
   const baseTotal   = items.reduce((s, item) => s + getItemSubtotal(item), 0);
   const deliveryFee = delivery === 'metro' ? 0 : 4.99;
   const subtotal    = baseTotal + deliveryFee;
@@ -122,19 +167,25 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
   const grandTotal  = subtotal - custDisc;
   const grandBeh    = Math.ceil(grandTotal * 0.5);
 
+  // ── Forma yoxlaması ────────────────────────────────────────────
   const checkoutValid =
     custName.trim().length > 0 &&
     phone.trim().length > 0 &&
     customerType !== null &&
-    delDay !== '' && delMonth !== '' &&
-    (delivery === 'metro' || address.trim().length > 0);
+    (
+      delivery === 'metro'
+        ? metro !== '' && delDay !== '' && delTime !== ''
+        : kurDay !== '' && kurMonth !== '' && address.trim().length > 0
+    );
 
+  // ── WhatsApp mesajı ────────────────────────────────────────────
   const handleWhatsApp = () => {
     if (!checkoutValid) return;
     const birthStr = bdDay && bdMonth && bdYear ? `${bdDay} ${bdMonth} ${bdYear}` : 'Bildirilməyib';
-    const delStr   = delivery === 'metro'
-      ? `${delDay} ${delMonth} ${delYear} · Saat: ${delTime} · Metro: ${metro}`
-      : `${delDay} ${delMonth} ${delYear} · ${delivery === 'kuryer' ? 'Kuryer' : 'Poçt'} · Ünvan: ${address}`;
+
+    const delStr = delivery === 'metro'
+      ? `Metro: ${metro} · Gün: ${delDay} · Saat: ${delTime}`
+      : `${kurDay} ${kurMonth} ${kurYear} · ${delivery === 'kuryer' ? 'Kuryer' : 'Poçt'} · Ünvan: ${address}`;
 
     const itemsText = items.map((item, idx) => {
       const imgUrl = item.images?.[0] ?? '';
@@ -313,36 +364,80 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                 </div>
               </div>
 
-              {/* Metro */}
+              {/* ── METRO SEÇİMİ ── */}
               {delivery === 'metro' && (
                 <Sec>
+                  {/* 1. Stansiya seçimi */}
                   <Label>Metro stansiyası</Label>
-                  <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 7, marginBottom: 14 }}>
-                    {stations.map(m => (
-                      <div key={m} onClick={() => setMetro(m)} style={{
-                        padding: '7px 13px', borderRadius: 100, fontSize: 12, cursor: 'pointer',
-                        fontWeight: metro === m ? 600 : 400,
-                        background: metro === m ? C.black : C.bg,
-                        color: metro === m ? C.white : C.gray,
-                        border: `1px solid ${metro === m ? C.black : C.border}`,
-                        transition: 'all 0.15s',
-                      }}>{m}</div>
-                    ))}
-                  </div>
+                  {stations.length === 0 ? (
+                    <p style={{ fontSize: 12, color: C.grayLt, margin: '0 0 14px' }}>
+                      Admin paneldə stansiya əlavə edilməyib.
+                    </p>
+                  ) : (
+                    <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 7, marginBottom: 16 }}>
+                      {stations.map(s => (
+                        <Chip
+                          key={s.name}
+                          label={s.name}
+                          selected={metro === s.name}
+                          onClick={() => handleStationChange(s.name)}
+                          color={C.black}
+                        />
+                      ))}
+                    </div>
+                  )}
 
-                  <Label>Tarix</Label>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1fr', gap: 8, marginBottom: 12 }}>
-                    <Sel value={delDay}   onChange={setDelDay}   opts={DAYS}      placeholder="Gün" />
-                    <Sel value={delMonth} onChange={setDelMonth} opts={MONTHS_AZ} placeholder="Ay" />
-                    <Sel value={delYear}  onChange={setDelYear}  opts={YEARS}     placeholder="İl" />
-                  </div>
+                  {/* 2. Gün seçimi — stansiya seçildikdən sonra görünür */}
+                  {metro !== '' && (
+                    <>
+                      <Label>Çatdırılma günü</Label>
+                      {availableDays.length === 0 ? (
+                        <p style={{ fontSize: 12, color: C.grayLt, margin: '0 0 14px' }}>
+                          Bu stansiya üçün gün əlavə edilməyib.
+                        </p>
+                      ) : (
+                        <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 7, marginBottom: 16 }}>
+                          {availableDays.map(d => (
+                            <Chip
+                              key={d.day}
+                              label={d.day}
+                              selected={delDay === d.day}
+                              onClick={() => handleDayChange(d.day)}
+                              color={C.blue}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  )}
 
-                  <Label>Saat</Label>
-                  <Sel value={delTime} onChange={setDelTime} opts={times} placeholder="Saat seçin" />
+                  {/* 3. Saat seçimi — gün seçildikdən sonra görünür */}
+                  {delDay !== '' && (
+                    <>
+                      <Label>Çatdırılma saatı</Label>
+                      {availableTimes.length === 0 ? (
+                        <p style={{ fontSize: 12, color: C.grayLt, margin: 0 }}>
+                          Bu gün üçün saat əlavə edilməyib.
+                        </p>
+                      ) : (
+                        <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 7 }}>
+                          {availableTimes.map(t => (
+                            <Chip
+                              key={t}
+                              label={t}
+                              selected={delTime === t}
+                              onClick={() => setDelTime(t)}
+                              color={C.green}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  )}
                 </Sec>
               )}
 
-              {/* Kuryer / Poçt */}
+              {/* ── KURYER / POÇT ── */}
               {(delivery === 'kuryer' || delivery === 'post') && (
                 <Sec>
                   <Label>Çatdırılma ünvanı</Label>
@@ -358,22 +453,22 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
 
                   <Label>Tarix</Label>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1fr', gap: 8 }}>
-                    <Sel value={delDay}   onChange={setDelDay}   opts={DAYS}      placeholder="Gün" />
-                    <Sel value={delMonth} onChange={setDelMonth} opts={MONTHS_AZ} placeholder="Ay" />
-                    <Sel value={delYear}  onChange={setDelYear}  opts={YEARS}     placeholder="İl" />
+                    <Sel value={kurDay}   onChange={setKurDay}   opts={DAYS}      placeholder="Gün" />
+                    <Sel value={kurMonth} onChange={setKurMonth} opts={MONTHS_AZ} placeholder="Ay" />
+                    <Sel value={kurYear}  onChange={setKurYear}  opts={['2026','2027']} placeholder="İl" />
                   </div>
                   <p style={{ margin: '8px 0 0', fontSize: 11, color: C.grayLt }}>Çatdırılma üçün kuryer əlaqə saxlayacaq</p>
                 </Sec>
               )}
 
-              {/* Əlaqə */}
+              {/* Əlaqə məlumatları */}
               <Sec highlight>
                 <Label>Əlaqə məlumatları</Label>
                 <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 10 }}>
                   <Inp value={custName} onChange={e => setCustName(e.target.value)} placeholder="Adınız" />
                   <Inp value={phone} onChange={e => setPhone(e.target.value)} placeholder="Telefon (+994 50 xxx xx xx)" type="tel" />
                   <div>
-                    <p style={{ fontSize: 12, color: C.gray, margin: '0 0 6px', fontFamily: FONT }}>Doğum tarixi </p>
+                    <p style={{ fontSize: 12, color: C.gray, margin: '0 0 6px', fontFamily: FONT }}>Doğum tarixi</p>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1fr', gap: 8 }}>
                       <Sel value={bdDay}   onChange={setBdDay}   opts={DAYS}      placeholder="Gün" />
                       <Sel value={bdMonth} onChange={setBdMonth} opts={MONTHS_AZ} placeholder="Ay" />
@@ -383,7 +478,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                 </div>
               </Sec>
 
-              {/* Müştəri növü — kiçik, yan-yana */}
+              {/* Müştəri növü */}
               <Sec>
                 <Label>Müştəri növü</Label>
                 <div style={{ display: 'flex', gap: 8 }}>
@@ -418,7 +513,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                 </div>
               </Sec>
 
-              {/* Xülasə */}
+              {/* Sifariş xülasəsi */}
               <Sec>
                 <Label>Sifariş xülasəsi</Label>
                 {items.map(item => (

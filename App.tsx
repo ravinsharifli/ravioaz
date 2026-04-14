@@ -61,10 +61,29 @@ function mapSanityProduct(raw: any): Product {
   };
 }
 
-const DEFAULT_METRO = {
-  stations: ['28 May', 'Həzi Aslanov', 'Nərimanov', 'İçərişəhər', 'Memar Əcəmi'],
-  days: ['Çərşənbə axşamı', 'Cümə axşamı'],
-  times: ['14:00', '15:00', '16:00', '17:00', '18:00', '19:00'],
+const DEFAULT_METRO: import('./types').MetroSchedule = {
+  stations: [
+    {
+      name: '28 May',
+      schedule: [
+        { day: 'Çərşənbə', times: ['14:00', '15:00', '16:00'] },
+        { day: 'Cümə', times: ['17:00', '18:00'] },
+      ],
+    },
+    {
+      name: 'Nərimanov',
+      schedule: [
+        { day: 'Çərşənbə axşamı', times: ['13:00', '14:00'] },
+        { day: 'Şənbə', times: ['11:00', '12:00'] },
+      ],
+    },
+    {
+      name: 'Həzi Aslanov',
+      schedule: [
+        { day: 'Cümə axşamı', times: ['15:00', '16:00', '17:00'] },
+      ],
+    },
+  ],
 };
 
 const DEFAULT_BOXES = [

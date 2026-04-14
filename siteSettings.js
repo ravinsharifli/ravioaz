@@ -16,28 +16,78 @@ export default {
       name: 'metroSchedule',
       title: '🚇 Metro Qrafiki',
       type: 'object',
-      description: 'Müştəri yalnız siz aktiv etdiyiniz stansiya, gün və saatlardan seçə bilər.',
+      description: 'Hər stansiya üçün ayrıca gün və saat təyin edin. Müştəri yalnız sizin daxil etdiyiniz variantları görəcək.',
       fields: [
         {
           name: 'stations',
-          title: 'Metro Stansiyaları (aktiv olanlar)',
+          title: 'Metro Stansiyaları',
           type: 'array',
-          of: [{ type: 'string' }],
-          description: 'Yalnız bu stansiyalar müştəriyə görünəcək. Məs: 28 May, Nərimanov',
-        },
-        {
-          name: 'days',
-          title: 'Mövcud günlər',
-          type: 'array',
-          of: [{ type: 'string' }],
-          description: 'Məs: Çərşənbə axşamı, Cümə axşamı',
-        },
-        {
-          name: 'times',
-          title: 'Mövcud saatlar',
-          type: 'array',
-          of: [{ type: 'string' }],
-          description: 'Məs: 14:00, 15:00, 16:00',
+          description: 'Hər stansiyaya öz çatdırılma günlərini və saatlarını əlavə edin.',
+          of: [
+            {
+              type: 'object',
+              name: 'stationEntry',
+              title: 'Stansiya',
+              fields: [
+                {
+                  name: 'name',
+                  title: 'Stansiya adı',
+                  type: 'string',
+                  description: 'Məs: 28 May, Nərimanov, Həzi Aslanov',
+                  validation: Rule => Rule.required(),
+                },
+                {
+                  name: 'schedule',
+                  title: 'Çatdırılma cədvəli',
+                  type: 'array',
+                  description: 'Bu stansiya üçün hansı günlər və saatlar mövcuddur.',
+                  of: [
+                    {
+                      type: 'object',
+                      name: 'dayEntry',
+                      title: 'Gün',
+                      fields: [
+                        {
+                          name: 'day',
+                          title: 'Gün',
+                          type: 'string',
+                          description: 'Məs: Bazar ertəsi, Çərşənbə, Cümə axşamı',
+                          validation: Rule => Rule.required(),
+                        },
+                        {
+                          name: 'times',
+                          title: 'Saatlar',
+                          type: 'array',
+                          of: [{ type: 'string' }],
+                          description: 'Məs: 14:00, 15:30, 17:00',
+                          validation: Rule => Rule.required().min(1),
+                        },
+                      ],
+                      preview: {
+                        select: { title: 'day', times: 'times' },
+                        prepare({ title, times }) {
+                          return {
+                            title: title || 'Gün',
+                            subtitle: times?.join(', ') || '',
+                          };
+                        },
+                      },
+                    },
+                  ],
+                },
+              ],
+              preview: {
+                select: { title: 'name', schedule: 'schedule' },
+                prepare({ title, schedule }) {
+                  const count = schedule?.length ?? 0;
+                  return {
+                    title: `🚇 ${title || 'Stansiya'}`,
+                    subtitle: `${count} gün cədvəli`,
+                  };
+                },
+              },
+            },
+          ],
         },
       ],
     },
@@ -47,7 +97,7 @@ export default {
       name: 'boxes',
       title: '📦 Qutu Növləri',
       type: 'array',
-      description: 'Müştərinin seçə biləcəyi qutu növlərini buradan idarə edin. Şəkil əlavə edin ki müştəri görüb seçsin.',
+      description: 'Müştərinin seçə biləcəyi qutu növlərini buradan idarə edin.',
       of: [
         {
           type: 'object',
