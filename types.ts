@@ -32,21 +32,14 @@ export interface Product {
   allowBoxSelection?: boolean;
 }
 
-// Metro cədvəli — hər stansiyanın öz günləri və saatları var
-export interface MetroTimeSlot {
-  time: string;
-  isAvailable: boolean;
-}
-
-export interface MetroDayEntry {
-  day: string;
-  isActive: boolean;
-  timeSlots: MetroTimeSlot[];
-}
-
+// Metro cədvəli — checkbox sistemi
+// availableDays:      boş günlər (seçilmiş = çatdırılma var)
+// availableTimeSlots: boş saatlar (seçilmiş = çatdırılma var)
 export interface MetroStationEntry {
   name: string;
-  days: MetroDayEntry[];
+  isActive: boolean;
+  availableDays: string[];
+  availableTimeSlots: string[];
 }
 
 export interface MetroSchedule {

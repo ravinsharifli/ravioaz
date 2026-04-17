@@ -137,16 +137,16 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
   const [kurYear,      setKurYear]      = useState('2026');
 
   // ── Metro məlumatları ──────────────────────────────────────────
-  const stations = metroSchedule?.stations ?? [];
+  const stations = (metroSchedule?.stations ?? []).filter(s => s.isActive !== false);
 
-  // Seçilmiş stansiyanın aktiv günləri
+  // Seçilmiş stansiyanın boş günləri
   const selectedStationData = stations.find(s => s.name === metro);
-  const availableDays = selectedStationData?.days ?? [];
-  const activeDays = availableDays.filter(d => d.isActive);
+  const activeDays = selectedStationData?.availableDays ?? [];
 
-  // Seçilmiş günün boş saatları
-  const selectedDayData = availableDays.find(d => d.day === delDay);
-  const allTimeSlots = selectedDayData?.timeSlots ?? [];
+  // Seçilmiş günün boş saatları (gün seçilmişsə həmin stansiyaya aid bütün boş saatlar)
+  const allTimeSlots = delDay
+    ? (selectedStationData?.availableTimeSlots ?? [])
+    : [];
 
   // Stansiya dəyişdikdə sıfırla
   const handleStationChange = (name: string) => {
@@ -402,10 +402,10 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                         <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 7, marginBottom: 16 }}>
                           {activeDays.map(d => (
                             <Chip
-                              key={d.day}
-                              label={d.day}
-                              selected={delDay === d.day}
-                              onClick={() => handleDayChange(d.day)}
+                              key={d}
+                              label={d}
+                              selected={delDay === d}
+                              onClick={() => handleDayChange(d)}
                               color={C.blue}
                             />
                           ))}
@@ -427,12 +427,12 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                           <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 7 }}>
                             {allTimeSlots.map(slot => (
                               <Chip
-                                key={slot.time}
-                                label={slot.time}
-                                selected={delTime === slot.time}
-                                onClick={() => slot.isAvailable && setDelTime(slot.time)}
+                                key={slot}
+                                label={slot}
+                                selected={delTime === slot}
+                                onClick={() => setDelTime(slot)}
                                 color={C.green}
-                                disabled={!slot.isAvailable}
+                                
                               />
                             ))}
                           </div>

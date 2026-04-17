@@ -28,16 +28,11 @@ const PRODUCTS_QUERY = `*[_type == "product"] | order(bestSellerOrder asc) {
 
 const SETTINGS_QUERY = `*[_type == "siteSettings"][0]{
   "metroSchedule": {
-    "stations": metroSchedule.stations[]{
+    "stations": metroSchedule[]{
       name,
-      "days": days[]{
-        day,
-        isActive,
-        "timeSlots": timeSlots[]{
-          time,
-          isAvailable
-        }
-      }
+      isActive,
+      availableDays,
+      availableTimeSlots
     }
   },
   boxes[]{ id, name, desc, price, isActive, "imageUrl": image.asset->url }
@@ -77,23 +72,21 @@ const DEFAULT_METRO: import('./types').MetroSchedule = {
   stations: [
     {
       name: '28 May',
-      schedule: [
-        { day: 'Çərşənbə', times: ['14:00', '15:00', '16:00'] },
-        { day: 'Cümə', times: ['17:00', '18:00'] },
-      ],
+      isActive: true,
+      availableDays: ['Çərşənbə', 'Cümə'],
+      availableTimeSlots: ['14:00', '14:15', '14:30', '15:00', '15:15', '16:00', '17:00', '17:30', '18:00'],
     },
     {
       name: 'Nərimanov',
-      schedule: [
-        { day: 'Çərşənbə axşamı', times: ['13:00', '14:00'] },
-        { day: 'Şənbə', times: ['11:00', '12:00'] },
-      ],
+      isActive: true,
+      availableDays: ['Çərşənbə axşamı', 'Şənbə'],
+      availableTimeSlots: ['13:00', '13:15', '13:30', '14:00', '14:15'],
     },
     {
       name: 'Həzi Aslanov',
-      schedule: [
-        { day: 'Cümə axşamı', times: ['15:00', '16:00', '17:00'] },
-      ],
+      isActive: true,
+      availableDays: ['Cümə axşamı'],
+      availableTimeSlots: ['15:00', '15:15', '16:00', '16:30', '17:00'],
     },
   ],
 };

@@ -19,13 +19,13 @@ function generateTimeSlots() {
 const TIME_SLOTS = generateTimeSlots();
 
 const DAYS = [
-  { title: 'Bazar ertəsi',       value: 'bazar_ertesi' },
-  { title: 'Çərşənbə axşamı',    value: 'cersenbe_axsami' },
-  { title: 'Çərşənbə',           value: 'cersenbe' },
-  { title: 'Cümə axşamı',        value: 'cume_axsami' },
-  { title: 'Cümə',               value: 'cume' },
-  { title: 'Şənbə',              value: 'senbe' },
-  { title: 'Bazar',              value: 'bazar' },
+  { title: 'Bazar ertəsi',       value: 'Bazar ertəsi' },
+  { title: 'Çərşənbə axşamı',    value: 'Çərşənbə axşamı' },
+  { title: 'Çərşənbə',           value: 'Çərşənbə' },
+  { title: 'Cümə axşamı',        value: 'Cümə axşamı' },
+  { title: 'Cümə',               value: 'Cümə' },
+  { title: 'Şənbə',              value: 'Şənbə' },
+  { title: 'Bazar',              value: 'Bazar' },
 ];
 
 export default {
