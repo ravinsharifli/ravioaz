@@ -27,7 +27,15 @@ const PRODUCTS_QUERY = `*[_type == "product"] | order(bestSellerOrder asc) {
 }`;
 
 const SETTINGS_QUERY = `*[_type == "siteSettings"][0]{
-  metroSchedule,
+  "metroSchedule": {
+    "stations": metroSchedule.stations[]{
+      name,
+      "schedule": schedule[]{
+        day,
+        times
+      }
+    }
+  },
   boxes[]{ id, name, desc, price, isActive, "imageUrl": image.asset->url }
 }`;
 
