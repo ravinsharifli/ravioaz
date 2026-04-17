@@ -30,9 +30,13 @@ const SETTINGS_QUERY = `*[_type == "siteSettings"][0]{
   "metroSchedule": {
     "stations": metroSchedule.stations[]{
       name,
-      "schedule": schedule[]{
+      "days": days[]{
         day,
-        times
+        isActive,
+        "timeSlots": timeSlots[]{
+          time,
+          isAvailable
+        }
       }
     }
   },

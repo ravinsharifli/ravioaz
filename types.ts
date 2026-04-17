@@ -33,14 +33,20 @@ export interface Product {
 }
 
 // Metro cədvəli — hər stansiyanın öz günləri və saatları var
+export interface MetroTimeSlot {
+  time: string;
+  isAvailable: boolean;
+}
+
 export interface MetroDayEntry {
   day: string;
-  times: string[];
+  isActive: boolean;
+  timeSlots: MetroTimeSlot[];
 }
 
 export interface MetroStationEntry {
   name: string;
-  schedule: MetroDayEntry[];
+  days: MetroDayEntry[];
 }
 
 export interface MetroSchedule {
