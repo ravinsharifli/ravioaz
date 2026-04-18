@@ -33,6 +33,7 @@ const SETTINGS_QUERY = `*[_type == "siteSettings"][0]{
       isActive,
       "daySchedules": daySchedules[]{
         day,
+        allDayOpen,
         timeSlots
       }
     }

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { X, Trash2, ShoppingBag, ArrowRight, Edit3, ChevronLeft } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { X, Trash2, ShoppingBag, ArrowRight, Edit3, ChevronLeft, ChevronRight } from 'lucide-react';
 import { CartItem, MetroSchedule } from '../types';
 
 const FONT = "'Inter', -apple-system, sans-serif";
@@ -25,14 +25,48 @@ const C = {
 const MONTHS_AZ = ['Yanvar','Fevral','Mart','Aprel','May','İyun','İyul','Avqust','Sentyabr','Oktyabr','Noyabr','Dekabr'];
 const DAYS_LIST = Array.from({ length: 31 }, (_, i) => String(i + 1).padStart(2, '0'));
 
-// 06:00 → 21:45 arası bütün saatlar (allDayOpen üçün)
+// Günün adı (AZ) - JS getDay() sırasına görə
+const WEEKDAY_AZ = ['Bazar','Bazar ertəsi','Çərşənbə axşamı','Çərşənbə','Cümə axşamı','Cümə','Şənbə'];
+
+// 06:00 → 21:45 bütün saatlar
 const TIME_SLOTS: string[] = [];
 for (let h = 6; h < 22; h++) {
-  ['00', '15', '30', '45'].forEach(m => {
-    TIME_SLOTS.push(`${String(h).padStart(2, '0')}:${m}`);
+  ['00','15','30','45'].forEach(m => {
+    TIME_SLOTS.push(`${String(h).padStart(2,'0')}:${m}`);
   });
 }
 
+// ── Tarix köməkçiləri ──────────────────────────────────────────
+function todayDate(): Date {
+  const d = new Date();
+  d.setHours(0,0,0,0);
+  return d;
+}
+
+function addDays(d: Date, n: number): Date {
+  const r = new Date(d);
+  r.setDate(r.getDate() + n);
+  return r;
+}
+
+function formatDate(d: Date): string {
+  return `${String(d.getDate()).padStart(2,'0')} ${MONTHS_AZ[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+function dateKey(d: Date): string {
+  return d.toISOString().slice(0,10); // YYYY-MM-DD
+}
+
+function weekdayName(d: Date): string {
+  return WEEKDAY_AZ[d.getDay()];
+}
+
+function getNext30Days(): Date[] {
+  const t = todayDate();
+  return Array.from({ length: 30 }, (_, i) => addDays(t, i));
+}
+
+// ── UI komponentləri ───────────────────────────────────────────
 const Label: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.8, textTransform: 'uppercase' as const, color: C.gray, margin: '0 0 10px', fontFamily: FONT }}>
     {children}
@@ -108,6 +142,88 @@ const Chip: React.FC<{
   </div>
 );
 
+// ── Tarix seçici mini-təqvim ───────────────────────────────────
+const DatePicker: React.FC<{
+  selected: string;
+  onChange: (key: string, display: string, weekday: string) => void;
+  availableWeekdays: string[];
+}> = ({ selected, onChange, availableWeekdays }) => {
+  const [offset, setOffset] = useState(0);
+  const allDays = getNext30Days();
+  const page = allDays.slice(offset * 7, offset * 7 + 7);
+  const maxOffset = Math.floor((allDays.length - 1) / 7);
+
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+        <button
+          onClick={() => setOffset(o => Math.max(0, o - 1))}
+          disabled={offset === 0}
+          style={{
+            background: 'none', border: `1px solid ${C.border}`, borderRadius: 8,
+            width: 32, height: 32, cursor: offset === 0 ? 'not-allowed' : 'pointer',
+            color: offset === 0 ? C.grayLt : C.gray,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}
+        >
+          <ChevronLeft size={16} />
+        </button>
+        <span style={{ fontSize: 12, color: C.gray, fontWeight: 600 }}>
+          {page[0] ? `${page[0].getDate()} ${MONTHS_AZ[page[0].getMonth()]}` : ''}
+          {page[6] ? ` – ${page[6].getDate()} ${MONTHS_AZ[page[6].getMonth()]}` : ''}
+        </span>
+        <button
+          onClick={() => setOffset(o => Math.min(maxOffset, o + 1))}
+          disabled={offset >= maxOffset}
+          style={{
+            background: 'none', border: `1px solid ${C.border}`, borderRadius: 8,
+            width: 32, height: 32, cursor: offset >= maxOffset ? 'not-allowed' : 'pointer',
+            color: offset >= maxOffset ? C.grayLt : C.gray,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}
+        >
+          <ChevronRight size={16} />
+        </button>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4 }}>
+        {page.map(d => {
+          const key     = dateKey(d);
+          const wd      = weekdayName(d);
+          const isAvail = availableWeekdays.includes(wd);
+          const isSel   = selected === key;
+          const isToday = key === dateKey(todayDate());
+
+          return (
+            <div
+              key={key}
+              onClick={isAvail ? () => onChange(key, formatDate(d), wd) : undefined}
+              style={{
+                textAlign: 'center' as const,
+                padding: '8px 4px',
+                borderRadius: 10,
+                cursor: isAvail ? 'pointer' : 'not-allowed',
+                background: isSel ? C.blue : isToday && isAvail ? C.blueBg : 'transparent',
+                border: `1.5px solid ${isSel ? C.blue : isToday && isAvail ? C.blueBd : 'transparent'}`,
+                opacity: isAvail ? 1 : 0.3,
+                transition: 'all 0.15s',
+              }}
+            >
+              <div style={{ fontSize: 9, color: isSel ? 'rgba(255,255,255,0.75)' : C.grayLt, marginBottom: 2, fontWeight: 600 }}>
+                {wd.slice(0, 3).toUpperCase()}
+              </div>
+              <div style={{ fontSize: 14, fontWeight: isSel ? 700 : 500, color: isSel ? C.white : isAvail ? C.black : C.grayLt }}>
+                {d.getDate()}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+// ── Props ──────────────────────────────────────────────────────
 interface CartDrawerProps {
   isOpen: boolean;
   onClose: () => void;
@@ -124,6 +240,7 @@ function getItemSubtotal(item: CartItem): number {
   return base * item.quantity + (item.boxPrice ?? 0);
 }
 
+// ── Əsas komponent ─────────────────────────────────────────────
 const CartDrawer: React.FC<CartDrawerProps> = ({
   isOpen, onClose, items, onRemove, onEdit, onGoToProducts, metroSchedule,
 }) => {
@@ -136,7 +253,9 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
   const [customerType, setCustomerType] = useState<'new' | 'loyal' | null>(null);
   const [delivery,     setDelivery]     = useState<'metro' | 'kuryer' | 'post'>('metro');
   const [metro,        setMetro]        = useState('');
-  const [delDay,       setDelDay]       = useState('');
+  const [selDateKey,     setSelDateKey]     = useState('');
+  const [selDateDisplay, setSelDateDisplay] = useState('');
+  const [selWeekday,     setSelWeekday]     = useState('');
   const [delTime,      setDelTime]      = useState('');
   const [address,      setAddress]      = useState('');
   const [kurDay,       setKurDay]       = useState('');
@@ -145,16 +264,15 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
 
   // ── Metro məlumatları ──────────────────────────────────────────
   const stations = (metroSchedule?.stations ?? []).filter(s => s.isActive !== false);
-
-  // Seçilmiş stansiya
   const selectedStation = stations.find(s => s.name === metro);
 
-  // Bu stansiya üçün mövcud günlər
-  const activeDays = (selectedStation?.daySchedules ?? []).map((ds: any) => ds.day);
+  const availableWeekdays = useMemo(
+    () => (selectedStation?.daySchedules ?? []).map((ds: any) => ds.day),
+    [selectedStation]
+  );
 
-  // Seçilmiş günün məlumatı
-  const selectedDaySchedule = delDay
-    ? (selectedStation?.daySchedules ?? []).find((ds: any) => ds.day === delDay)
+  const selectedDaySchedule = selWeekday
+    ? (selectedStation?.daySchedules ?? []).find((ds: any) => ds.day === selWeekday)
     : null;
 
   // allDayOpen = true → bütün saatlar, false → yalnız seçilmiş saatlar
@@ -164,16 +282,18 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
         : (selectedDaySchedule.timeSlots ?? []))
     : [];
 
-  // Stansiya dəyişdikdə gün və saatı sıfırla
   const handleStationChange = (name: string) => {
     setMetro(name);
-    setDelDay('');
+    setSelDateKey('');
+    setSelDateDisplay('');
+    setSelWeekday('');
     setDelTime('');
   };
 
-  // Gün dəyişdikdə saatı sıfırla
-  const handleDayChange = (day: string) => {
-    setDelDay(day);
+  const handleDateChange = (key: string, display: string, weekday: string) => {
+    setSelDateKey(key);
+    setSelDateDisplay(display);
+    setSelWeekday(weekday);
     setDelTime('');
   };
 
@@ -186,18 +306,16 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
   const grandTotal  = subtotal - custDisc;
   const grandBeh    = Math.ceil(grandTotal * 0.5);
 
-  // ── Forma yoxlaması ────────────────────────────────────────────
   const checkoutValid =
     custName.trim().length > 0 &&
     phone.trim().length > 0 &&
     customerType !== null &&
     (
       delivery === 'metro'
-        ? metro !== '' && delDay !== '' && delTime !== ''
+        ? metro !== '' && selDateKey !== '' && delTime !== ''
         : kurDay !== '' && kurMonth !== '' && address.trim().length > 0
     );
 
-  // ── WhatsApp mesajı ────────────────────────────────────────────
   const handleWhatsApp = () => {
     if (!checkoutValid) return;
     const birthStr = bdDay && bdMonth && bdYear
@@ -205,7 +323,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
       : 'Bildirilməyib';
 
     const delStr = delivery === 'metro'
-      ? `Metro: ${metro} · Gün: ${delDay} · Saat: ${delTime}`
+      ? `Metro: ${metro} · Tarix: ${selDateDisplay} (${selWeekday}) · Saat: ${delTime}`
       : `${kurDay} ${kurMonth} ${kurYear} · ${delivery === 'kuryer' ? 'Kuryer' : 'Poçt'} · Ünvan: ${address}`;
 
     const itemsText = items.map((item, idx) => {
@@ -255,7 +373,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
         boxShadow: '-8px 0 32px rgba(0,0,0,0.12)',
       }}>
 
-        {/* ── Header ── */}
+        {/* Header */}
         <div style={{ background: C.white, borderBottom: `1px solid ${C.border}`, padding: '18px 20px', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -283,7 +401,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
           </div>
         </div>
 
-        {/* ── Boş səbət ── */}
+        {/* Boş səbət */}
         {items.length === 0 && (
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', gap: 16, padding: 32 }}>
             <ShoppingBag size={48} color={C.grayLt} />
@@ -298,7 +416,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
           </div>
         )}
 
-        {/* ═══ SƏBƏT LİSTİ ═══ */}
+        {/* SƏBƏT LİSTİ */}
         {items.length > 0 && !isCheckingOut && (
           <>
             <div style={{ flex: 1, overflowY: 'auto' as const, padding: '16px 20px' }}>
@@ -371,7 +489,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
           </>
         )}
 
-        {/* ═══ CHECKOUT ═══ */}
+        {/* CHECKOUT */}
         {items.length > 0 && isCheckingOut && (
           <>
             <div style={{ flex: 1, overflowY: 'auto' as const, padding: '16px 20px 20px' }}>
@@ -399,10 +517,9 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                 </div>
               </div>
 
-              {/* ── METRO SEÇİMİ ── */}
+              {/* METRO SEÇİMİ */}
               {delivery === 'metro' && (
                 <Sec>
-                  {/* 1. Stansiya */}
                   <Label>Metro stansiyası</Label>
                   {stations.length === 0 ? (
                     <p style={{ fontSize: 12, color: C.grayLt, margin: '0 0 14px' }}>
@@ -422,37 +539,45 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                     </div>
                   )}
 
-                  {/* 2. Gün */}
+                  {/* Tarix seçimi */}
                   {metro !== '' && (
                     <>
-                      <Label>Çatdırılma günü</Label>
-                      {activeDays.length === 0 ? (
+                      <Label>Çatdırılma tarixi</Label>
+                      {availableWeekdays.length === 0 ? (
                         <p style={{ fontSize: 12, color: C.grayLt, margin: '0 0 14px' }}>
                           Bu stansiya üçün aktiv gün yoxdur.
                         </p>
                       ) : (
-                        <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 7, marginBottom: 16 }}>
-                          {activeDays.map(d => (
-                            <Chip
-                              key={d}
-                              label={d}
-                              selected={delDay === d}
-                              onClick={() => handleDayChange(d)}
-                              color={C.blue}
-                            />
-                          ))}
+                        <div style={{ marginBottom: 16 }}>
+                          <p style={{ fontSize: 11, color: C.grayLt, margin: '0 0 10px' }}>
+                            Aktiv günlər: {availableWeekdays.join(', ')}
+                          </p>
+                          <DatePicker
+                            selected={selDateKey}
+                            onChange={handleDateChange}
+                            availableWeekdays={availableWeekdays}
+                          />
+                          {selDateKey && (
+                            <div style={{
+                              marginTop: 10, padding: '8px 12px',
+                              background: C.blueBg, border: `1px solid ${C.blueBd}`,
+                              borderRadius: 8, fontSize: 12, color: C.blue, fontWeight: 600,
+                            }}>
+                              ✅ {selDateDisplay} — {selWeekday}
+                            </div>
+                          )}
                         </div>
                       )}
                     </>
                   )}
 
-                  {/* 3. Saat */}
-                  {delDay !== '' && (
+                  {/* Saat seçimi */}
+                  {selDateKey !== '' && (
                     <>
                       <Label>Çatdırılma saatı</Label>
                       {allTimeSlots.length === 0 ? (
                         <p style={{ fontSize: 12, color: C.grayLt, margin: 0 }}>
-                          Bu gün üçün saat əlavə edilməyib.Səhər 6:00 -dan axşam 21:45-ə qədər bütün saatlar mövcuddur.
+                          Bu gün üçün boş saat yoxdur. Başqa tarix seçin.
                         </p>
                       ) : (
                         <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 7 }}>
@@ -472,7 +597,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                 </Sec>
               )}
 
-              {/* ── KURYER / POÇT ── */}
+              {/* KURYER / POÇT */}
               {(delivery === 'kuryer' || delivery === 'post') && (
                 <Sec>
                   <Label>Çatdırılma ünvanı</Label>
