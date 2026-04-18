@@ -1,8 +1,3 @@
-// ─────────────────────────────────────────────
-//  RAVIO – Sayt Tənzimləmələri
-//  Metro Qrafiki: Hər günün öz saatları
-// ─────────────────────────────────────────────
-
 function generateTimeSlots() {
   const slots = [];
   for (let h = 6; h < 22; h++) {
@@ -15,7 +10,7 @@ function generateTimeSlots() {
 
 const TIME_SLOTS = generateTimeSlots();
 
-const DAYS = [
+const ALL_DAYS = [
   { title: 'Bazar ertəsi',    value: 'Bazar ertəsi' },
   { title: 'Çərşənbə axşamı', value: 'Çərşənbə axşamı' },
   { title: 'Çərşənbə',        value: 'Çərşənbə' },
@@ -33,7 +28,6 @@ export default {
 
   fields: [
 
-    // ── LOQO ────────────────────────────────────────────────────────
     {
       name: 'logo',
       title: '🖼 Loqo',
@@ -41,12 +35,12 @@ export default {
       options: { hotspot: true },
     },
 
-    // ── METRO QRAFİKİ ────────────────────────────────────────────────
+    // ── METRO QRAFİKİ ─────────────────────────────────────────────
     {
       name: 'metroSchedule',
       title: '🚇 Metro Çatdırılma Qrafiki',
       type: 'array',
-      description: '➕ Hər stansiya üçün bir entry. Hər günün öz saatlarını ayrıca təyin et.',
+      description: '➕ Hər stansiya üçün BİR entry. Stansiya adını yaz, sonra aktiv günləri seç.',
       of: [
         {
           type: 'object',
@@ -59,63 +53,96 @@ export default {
               title: '🚇 Stansiya adı',
               type: 'string',
               description: 'Məs: Neftçilər, 28 May, Nərimanov',
-              validation: Rule => Rule.required().error('Stansiya adı mütləqdir'),
+              validation: Rule => Rule.required(),
             },
 
             {
               name: 'isActive',
-              title: '✅ Bu stansiya aktiv?',
+              title: '✅ Stansiya aktiv?',
               type: 'boolean',
-              description: 'Söndürsən bu stansiyaya ümumiyyətlə çatdırılma olmaz.',
               initialValue: true,
+              description: 'Söndür = bu stansiyaya heç bir çatdırılma olmaz',
             },
 
-            // ── HƏR GÜNÜN ÖZ SAATLARI ──────────────────────────────
+            // ── GÜNLƏR + SAATLAR ──────────────────────────────────
             {
               name: 'daySchedules',
               title: '📅 Günlər və saatlar',
               type: 'array',
-              description: '➕ Hər aktiv gün üçün bir sətir əlavə et, o günə aid saatları seç.',
+              description:
+                '➕ Aktiv olan hər gün üçün sətir əlavə et. ' +
+                'Əgər bütün gün boşdursa toggle-u yandır — saatları işarələməyə ehtiyac yoxdur. ' +
+                'Əgər yalnız bəzi saatlar boşdursa toggle söndür, o saatları işarələ.',
               of: [
                 {
                   type: 'object',
                   name: 'daySchedule',
-                  title: 'Gün cədvəli',
+                  title: 'Gün',
                   fields: [
+
+                    // Günü seç
                     {
                       name: 'day',
                       title: '📆 Gün',
                       type: 'string',
                       options: {
-                        list: DAYS,
+                        list: ALL_DAYS,
                         layout: 'radio',
                         direction: 'horizontal',
                       },
                       validation: Rule => Rule.required(),
                     },
+
+                    // Bütün gün boşdur toggle
+                    {
+                      name: 'allDayOpen',
+                      title: '🟢 Bütün gün boşdur (bütün saatlar avtomatik açıq)',
+                      type: 'boolean',
+                      initialValue: true,
+                      description:
+                        'ON = bütün saatlar boşdur, müştəri istənilən saatı seçə bilər. ' +
+                        'OFF = aşağıda yalnız boş saatları işarələ.',
+                    },
+
+                    // Seçilmiş boş saatlar (yalnız allDayOpen = false olduqda)
                     {
                       name: 'timeSlots',
-                      title: '🕐 Bu günün boş saatları',
+                      title: '🕐 Boş saatlar (yalnız bəzi saatlar boşdursa işarələ)',
                       type: 'array',
-                      description: 'İşarəli = çatdırılma var (boş saat)',
+                      description:
+                        '⬆ Yuxarıda "Bütün gün boşdur" OFF olduqda istifadə et. ' +
+                        'İşarəli = boş (müştəri seçə bilər). İşarəsiz = dolu.',
+                      hidden: ({ parent }) => parent?.allDayOpen === true,
                       of: [{ type: 'string' }],
                       options: {
                         list: TIME_SLOTS.map(t => ({ title: t, value: t })),
                         layout: 'grid',
                       },
                     },
+
                   ],
+
                   preview: {
-                    select: { day: 'day', slots: 'timeSlots' },
-                    prepare({ day, slots }) {
+                    select: {
+                      day:        'day',
+                      allDayOpen: 'allDayOpen',
+                      slots:      'timeSlots',
+                    },
+                    prepare({ day, allDayOpen, slots }) {
+                      if (allDayOpen) {
+                        return {
+                          title:    day || 'Gün seçilməyib',
+                          subtitle: '🟢 Bütün gün boşdur',
+                        };
+                      }
                       const count = slots?.length ?? 0;
                       const first = slots?.[0] ?? '';
                       const last  = slots?.[slots.length - 1] ?? '';
                       return {
                         title:    day || 'Gün seçilməyib',
                         subtitle: count > 0
-                          ? `${count} saat  (${first} – ${last})`
-                          : 'Saat yoxdur',
+                          ? `🕐 ${count} saat boş  (${first} – ${last})`
+                          : '⚠️ Heç bir saat seçilməyib',
                       };
                     },
                   },
@@ -137,7 +164,7 @@ export default {
                 title:    `${isActive ? '🚇' : '🚫'} ${title || 'Stansiya'}`,
                 subtitle: isActive
                   ? `${count} gün konfiqurasiya edilib`
-                  : 'Deaktiv — çatdırılma yoxdur',
+                  : 'Deaktiv',
               };
             },
           },
@@ -145,22 +172,21 @@ export default {
       ],
     },
 
-    // ── QUTU NÖVLƏRİ ────────────────────────────────────────────────
+    // ── QUTU NÖVLƏRİ ─────────────────────────────────────────────
     {
       name: 'boxes',
       title: '📦 Qutu Növləri',
       type: 'array',
-      description: 'Müştərinin seçə biləcəyi qutu növlərini buradan idarə edin.',
       of: [
         {
           type: 'object',
           fields: [
-            { name: 'id',    title: 'ID (unikal)',        type: 'string',  validation: Rule => Rule.required() },
-            { name: 'name',  title: 'Ad (müştəriyə görünür)', type: 'string', validation: Rule => Rule.required() },
-            { name: 'desc',  title: 'Qısa açıqlama',     type: 'string' },
-            { name: 'price', title: 'Qiymət (₼) — 0 = pulsuz', type: 'number', initialValue: 0, validation: Rule => Rule.required().min(0) },
-            { name: 'image', title: '📸 Qutu şəkli',     type: 'image', options: { hotspot: true } },
-            { name: 'isActive', title: 'Aktiv?',         type: 'boolean', initialValue: true },
+            { name: 'id',       title: 'ID (unikal)',              type: 'string',  validation: (Rule) => Rule.required() },
+            { name: 'name',     title: 'Ad (müştəriyə görünür)',   type: 'string',  validation: (Rule) => Rule.required() },
+            { name: 'desc',     title: 'Qısa açıqlama',            type: 'string'  },
+            { name: 'price',    title: 'Qiymət (₼) — 0 = pulsuz', type: 'number',  initialValue: 0, validation: (Rule) => Rule.required().min(0) },
+            { name: 'image',    title: '📸 Qutu şəkli',            type: 'image',   options: { hotspot: true } },
+            { name: 'isActive', title: 'Aktiv?',                   type: 'boolean', initialValue: true },
           ],
           preview: {
             select: { title: 'name', subtitle: 'price', isActive: 'isActive', media: 'image' },

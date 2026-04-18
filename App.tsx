@@ -76,16 +76,16 @@ const DEFAULT_METRO: import('./types').MetroSchedule = {
       name: '28 May',
       isActive: true,
       daySchedules: [
-        { day: 'Çərşənbə', timeSlots: ['14:00','14:15','14:30','15:00','15:30'] },
-        { day: 'Cümə',     timeSlots: ['14:00','14:15','15:00','16:00','17:00'] },
+        { day: 'Çərşənbə', allDayOpen: false, timeSlots: ['14:00','14:15','14:30','15:00','15:30'] },
+        { day: 'Cümə',     allDayOpen: false, timeSlots: ['14:00','14:15','15:00','16:00','17:00'] },
       ],
     },
     {
       name: 'Nərimanov',
       isActive: true,
       daySchedules: [
-        { day: 'Çərşənbə axşamı', timeSlots: ['13:00','13:15','13:30','14:00'] },
-        { day: 'Şənbə',           timeSlots: ['10:00','10:30','11:00','12:00'] },
+        { day: 'Çərşənbə axşamı', allDayOpen: false, timeSlots: ['13:00','13:15','13:30','14:00'] },
+        { day: 'Şənbə',           allDayOpen: true,  timeSlots: [] },
       ],
     },
   ],

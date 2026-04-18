@@ -25,6 +25,14 @@ const C = {
 const MONTHS_AZ = ['Yanvar','Fevral','Mart','Aprel','May','İyun','İyul','Avqust','Sentyabr','Oktyabr','Noyabr','Dekabr'];
 const DAYS_LIST = Array.from({ length: 31 }, (_, i) => String(i + 1).padStart(2, '0'));
 
+// 06:00 → 21:45 arası bütün saatlar (allDayOpen üçün)
+const TIME_SLOTS: string[] = [];
+for (let h = 6; h < 22; h++) {
+  ['00', '15', '30', '45'].forEach(m => {
+    TIME_SLOTS.push(`${String(h).padStart(2, '0')}:${m}`);
+  });
+}
+
 const Label: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.8, textTransform: 'uppercase' as const, color: C.gray, margin: '0 0 10px', fontFamily: FONT }}>
     {children}
@@ -86,13 +94,13 @@ const Chip: React.FC<{
   <div
     onClick={disabled ? undefined : onClick}
     style={{
-      padding: '7px 13px', borderRadius: 100, fontSize: 12, cursor: disabled ? 'not-allowed' : 'pointer',
+      padding: '7px 13px', borderRadius: 100, fontSize: 12,
+      cursor: disabled ? 'not-allowed' : 'pointer',
       fontWeight: selected ? 600 : 400,
       background: disabled ? '#F0F0F0' : selected ? color : C.bg,
       color: disabled ? '#CCCCCC' : selected ? C.white : C.gray,
       border: `1px solid ${disabled ? '#E0E0E0' : selected ? color : C.border}`,
       transition: 'all 0.15s',
-      textDecoration: disabled ? 'line-through' : 'none',
       opacity: disabled ? 0.6 : 1,
     }}
   >
@@ -141,12 +149,19 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
   // Seçilmiş stansiya
   const selectedStation = stations.find(s => s.name === metro);
 
-  // Bu stansiya üçün mövcud günlər (daySchedules-dən gün adlarını çıxar)
-  const activeDays = (selectedStation?.daySchedules ?? []).map(ds => ds.day);
+  // Bu stansiya üçün mövcud günlər
+  const activeDays = (selectedStation?.daySchedules ?? []).map((ds: any) => ds.day);
 
-  // Seçilmiş günə aid saatlar
-  const allTimeSlots = delDay
-    ? (selectedStation?.daySchedules ?? []).find(ds => ds.day === delDay)?.timeSlots ?? []
+  // Seçilmiş günün məlumatı
+  const selectedDaySchedule = delDay
+    ? (selectedStation?.daySchedules ?? []).find((ds: any) => ds.day === delDay)
+    : null;
+
+  // allDayOpen = true → bütün saatlar, false → yalnız seçilmiş saatlar
+  const allTimeSlots: string[] = selectedDaySchedule
+    ? (selectedDaySchedule.allDayOpen
+        ? TIME_SLOTS
+        : (selectedDaySchedule.timeSlots ?? []))
     : [];
 
   // Stansiya dəyişdikdə gün və saatı sıfırla
@@ -185,7 +200,9 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
   // ── WhatsApp mesajı ────────────────────────────────────────────
   const handleWhatsApp = () => {
     if (!checkoutValid) return;
-    const birthStr = bdDay && bdMonth && bdYear ? `${bdDay} ${bdMonth} ${bdYear}` : 'Bildirilməyib';
+    const birthStr = bdDay && bdMonth && bdYear
+      ? `${bdDay} ${bdMonth} ${bdYear}`
+      : 'Bildirilməyib';
 
     const delStr = delivery === 'metro'
       ? `Metro: ${metro} · Gün: ${delDay} · Saat: ${delTime}`
@@ -202,8 +219,8 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
         `- Ad: ${item.productName}\n- Model: ${item.modelName}\n- Rəng: ${item.colorName}\n` +
         (imgUrl ? `🖼 Şəkil: ${imgUrl}\n` : '') +
         lines +
-        (item.customText ? `- Yazı/Qeyd: ${item.customText}\n` : '') +
-        (item.specialRequest ? `- Xüsusi: ${item.specialRequest}\n` : '')
+        (item.customText    ? `- Yazı/Qeyd: ${item.customText}\n`    : '') +
+        (item.specialRequest ? `- Xüsusi: ${item.specialRequest}\n`  : '')
       );
     }).join('\n');
 
@@ -238,7 +255,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
         boxShadow: '-8px 0 32px rgba(0,0,0,0.12)',
       }}>
 
-        {/* Header */}
+        {/* ── Header ── */}
         <div style={{ background: C.white, borderBottom: `1px solid ${C.border}`, padding: '18px 20px', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -246,20 +263,27 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                 <button onClick={() => setIsCheckingOut(false)} style={{
                   background: 'none', border: 'none', cursor: 'pointer', padding: 4,
                   display: 'flex', alignItems: 'center', color: C.gray,
-                }}><ChevronLeft size={20} /></button>
+                }}>
+                  <ChevronLeft size={20} />
+                </button>
               )}
               <h2 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: C.black }}>
                 {isCheckingOut ? 'Sifarişi Tamamla' : `Səbətim (${items.length})`}
               </h2>
             </div>
-            <button onClick={() => { onClose(); setIsCheckingOut(false); }} style={{
-              width: 32, height: 32, borderRadius: '50%', background: C.bg, border: 'none',
-              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.gray,
-            }}><X size={16} /></button>
+            <button
+              onClick={() => { onClose(); setIsCheckingOut(false); }}
+              style={{
+                width: 32, height: 32, borderRadius: '50%', background: C.bg, border: 'none',
+                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.gray,
+              }}
+            >
+              <X size={16} />
+            </button>
           </div>
         </div>
 
-        {/* Boş səbət */}
+        {/* ── Boş səbət ── */}
         {items.length === 0 && (
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', gap: 16, padding: 32 }}>
             <ShoppingBag size={48} color={C.grayLt} />
@@ -268,7 +292,9 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
               padding: '12px 28px', background: C.orange, color: C.white,
               border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 600,
               cursor: 'pointer', fontFamily: FONT,
-            }}>Məhsullara bax</button>
+            }}>
+              Məhsullara bax
+            </button>
           </div>
         )}
 
@@ -283,7 +309,8 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                 }}>
                   <div style={{ display: 'flex', gap: 12 }}>
                     {item.images?.[0] && (
-                      <img src={item.images[0]} alt={item.productName}
+                      <img
+                        src={item.images[0]} alt={item.productName}
                         style={{ width: 64, height: 64, objectFit: 'cover', borderRadius: 8, border: `1px solid ${C.border}`, flexShrink: 0 }}
                         onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
                       />
@@ -310,13 +337,17 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                       background: C.bg, border: `1px solid ${C.border}`,
                       color: C.gray, fontSize: 12, cursor: 'pointer', fontFamily: FONT,
                       display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
-                    }}><Edit3 size={13} /> Düzəlt</button>
+                    }}>
+                      <Edit3 size={13} /> Düzəlt
+                    </button>
                     <button onClick={() => onRemove(item.cartId)} style={{
                       flex: 1, padding: '8px', borderRadius: 8,
                       background: '#FFF5F5', border: `1px solid #FFC9C9`,
                       color: C.red, fontSize: 12, cursor: 'pointer', fontFamily: FONT,
                       display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
-                    }}><Trash2 size={13} /> Sil</button>
+                    }}>
+                      <Trash2 size={13} /> Sil
+                    </button>
                   </div>
                 </div>
               ))}
@@ -351,8 +382,8 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                 <div style={{ display: 'flex', gap: 8 }}>
                   {[
                     { id: 'metro'  as const, icon: '🚇', label: 'Metro',  sub: 'Ödənişsiz' },
-                    { id: 'kuryer' as const, icon: '🛵', label: 'Kuryer', sub: '+4.99 ₼' },
-                    { id: 'post'   as const, icon: '📮', label: 'Poçt',   sub: '+4.99 ₼' },
+                    { id: 'kuryer' as const, icon: '🛵', label: 'Kuryer', sub: '+4.99 ₼'   },
+                    { id: 'post'   as const, icon: '📮', label: 'Poçt',   sub: '+4.99 ₼'   },
                   ].map(d => (
                     <div key={d.id} onClick={() => setDelivery(d.id)} style={{
                       flex: 1, background: delivery === d.id ? C.black : C.white,
@@ -391,7 +422,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                     </div>
                   )}
 
-                  {/* 2. Gün — yalnız həmin stansiyaya aid günlər */}
+                  {/* 2. Gün */}
                   {metro !== '' && (
                     <>
                       <Label>Çatdırılma günü</Label>
@@ -415,7 +446,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                     </>
                   )}
 
-                  {/* 3. Saat — yalnız seçilmiş günə aid saatlar */}
+                  {/* 3. Saat */}
                   {delDay !== '' && (
                     <>
                       <Label>Çatdırılma saatı</Label>
@@ -452,15 +483,19 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                     style={{ marginBottom: 12 }}
                   />
                   <p style={{ margin: '0 0 14px', fontSize: 11, color: C.grayLt }}>
-                    {delivery === 'post' ? 'Nümunə: Bakı, AZ1000, Əliağa Vahid küç. 12' : 'Nümunə: Qaraçuxur, Maşallah market yanı'}
+                    {delivery === 'post'
+                      ? 'Nümunə: Bakı, AZ1000, Əliağa Vahid küç. 12'
+                      : 'Nümunə: Qaraçuxur, Maşallah market yanı'}
                   </p>
                   <Label>Tarix</Label>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1fr', gap: 8 }}>
                     <Sel value={kurDay}   onChange={setKurDay}   opts={DAYS_LIST}       placeholder="Gün" />
-                    <Sel value={kurMonth} onChange={setKurMonth} opts={MONTHS_AZ}       placeholder="Ay" />
-                    <Sel value={kurYear}  onChange={setKurYear}  opts={['2026','2027']} placeholder="İl" />
+                    <Sel value={kurMonth} onChange={setKurMonth} opts={MONTHS_AZ}       placeholder="Ay"  />
+                    <Sel value={kurYear}  onChange={setKurYear}  opts={['2026','2027']} placeholder="İl"  />
                   </div>
-                  <p style={{ margin: '8px 0 0', fontSize: 11, color: C.grayLt }}>Çatdırılma üçün kuryer əlaqə saxlayacaq</p>
+                  <p style={{ margin: '8px 0 0', fontSize: 11, color: C.grayLt }}>
+                    Çatdırılma üçün kuryer əlaqə saxlayacaq
+                  </p>
                 </Sec>
               )}
 
@@ -473,9 +508,14 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                   <div>
                     <p style={{ fontSize: 12, color: C.gray, margin: '0 0 6px', fontFamily: FONT }}>Doğum tarixi</p>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1fr', gap: 8 }}>
-                      <Sel value={bdDay}   onChange={setBdDay}   opts={DAYS_LIST}  placeholder="Gün" />
-                      <Sel value={bdMonth} onChange={setBdMonth} opts={MONTHS_AZ}  placeholder="Ay" />
-                      <Sel value={bdYear}  onChange={setBdYear}  opts={['1970','1975','1980','1985','1990','1991','1992','1993','1994','1995','1996','1997','1998','1999','2000','2001','2002','2003','2004','2005','2006']} placeholder="İl" />
+                      <Sel value={bdDay}   onChange={setBdDay}   opts={DAYS_LIST} placeholder="Gün" />
+                      <Sel value={bdMonth} onChange={setBdMonth} opts={MONTHS_AZ} placeholder="Ay"  />
+                      <Sel value={bdYear}  onChange={setBdYear}
+                        opts={['1970','1975','1980','1985','1990','1991','1992','1993','1994',
+                               '1995','1996','1997','1998','1999','2000','2001','2002','2003',
+                               '2004','2005','2006']}
+                        placeholder="İl"
+                      />
                     </div>
                   </div>
                 </div>
@@ -486,7 +526,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                 <Label>Müştəri növü</Label>
                 <div style={{ display: 'flex', gap: 8 }}>
                   {[
-                    { id: 'new'   as const, label: 'Yeni müştəri',  sub: 'İlk sifarişim' },
+                    { id: 'new'   as const, label: 'Yeni müştəri',  sub: 'İlk sifarişim'  },
                     { id: 'loyal' as const, label: 'Daimi müştəri', sub: 'Əvvəl vermişəm' },
                   ].map(opt => {
                     const sel = customerType === opt.id;
@@ -522,9 +562,15 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                 {items.map(item => (
                   <SRow key={item.cartId} l={`${item.productName} ×${item.quantity}`} r={`${getItemSubtotal(item).toFixed(2)} ₼`} />
                 ))}
-                {deliveryFee > 0 && <SRow l={delivery === 'kuryer' ? 'Kuryer' : 'Poçt'} r={`+${deliveryFee.toFixed(2)} ₼`} />}
+                {deliveryFee > 0 && (
+                  <SRow l={delivery === 'kuryer' ? 'Kuryer' : 'Poçt'} r={`+${deliveryFee.toFixed(2)} ₼`} />
+                )}
                 {custDisc > 0 && (
-                  <SRow l={customerType === 'loyal' ? 'Daimi müştəri endirimi' : 'Yeni müştəri endirimi'} r={`−${custDisc.toFixed(2)} ₼`} accent />
+                  <SRow
+                    l={customerType === 'loyal' ? 'Daimi müştəri endirimi' : 'Yeni müştəri endirimi'}
+                    r={`−${custDisc.toFixed(2)} ₼`}
+                    accent
+                  />
                 )}
                 <div style={{ borderTop: `1px solid ${C.border}`, margin: '10px 0 12px' }} />
                 <SRow l="Ümumi məbləğ" r={`${grandTotal.toFixed(2)} ₼`} bold />
@@ -535,7 +581,9 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                 }}>
                   <div>
                     <div style={{ fontSize: 12, fontWeight: 700, color: C.orange }}>İndi ödəniləcək (50% beh)</div>
-                    <div style={{ fontSize: 11, color: C.gray, marginTop: 2 }}>Qalan {(grandTotal - grandBeh).toFixed(2)} ₼ məhsul alınarkən</div>
+                    <div style={{ fontSize: 11, color: C.gray, marginTop: 2 }}>
+                      Qalan {(grandTotal - grandBeh).toFixed(2)} ₼ məhsul alınarkən
+                    </div>
                   </div>
                   <div style={{ fontSize: 24, fontWeight: 800, color: C.orange }}>{grandBeh.toFixed(2)} ₼</div>
                 </div>
@@ -567,6 +615,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
             </div>
           </>
         )}
+
       </div>
     </div>
   );

@@ -35,6 +35,7 @@ export interface Product {
 // ── Metro cədvəli — hər günün öz saatları ──────────────────────
 export interface DaySchedule {
   day: string;
+  allDayOpen: boolean;
   timeSlots: string[];
 }
 
