@@ -31,8 +31,10 @@ const SETTINGS_QUERY = `*[_type == "siteSettings"][0]{
     "stations": metroSchedule[]{
       name,
       isActive,
-      availableDays,
-      availableTimeSlots
+      "daySchedules": daySchedules[]{
+        day,
+        timeSlots
+      }
     }
   },
   boxes[]{ id, name, desc, price, isActive, "imageUrl": image.asset->url }
@@ -73,20 +75,18 @@ const DEFAULT_METRO: import('./types').MetroSchedule = {
     {
       name: '28 May',
       isActive: true,
-      availableDays: ['Çərşənbə', 'Cümə'],
-      availableTimeSlots: ['14:00', '14:15', '14:30', '15:00', '15:15', '16:00', '17:00', '17:30', '18:00'],
+      daySchedules: [
+        { day: 'Çərşənbə', timeSlots: ['14:00','14:15','14:30','15:00','15:30'] },
+        { day: 'Cümə',     timeSlots: ['14:00','14:15','15:00','16:00','17:00'] },
+      ],
     },
     {
       name: 'Nərimanov',
       isActive: true,
-      availableDays: ['Çərşənbə axşamı', 'Şənbə'],
-      availableTimeSlots: ['13:00', '13:15', '13:30', '14:00', '14:15'],
-    },
-    {
-      name: 'Həzi Aslanov',
-      isActive: true,
-      availableDays: ['Cümə axşamı'],
-      availableTimeSlots: ['15:00', '15:15', '16:00', '16:30', '17:00'],
+      daySchedules: [
+        { day: 'Çərşənbə axşamı', timeSlots: ['13:00','13:15','13:30','14:00'] },
+        { day: 'Şənbə',           timeSlots: ['10:00','10:30','11:00','12:00'] },
+      ],
     },
   ],
 };

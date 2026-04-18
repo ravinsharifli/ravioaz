@@ -76,7 +76,6 @@ const SRow: React.FC<{ l: string; r: string; accent?: boolean; bold?: boolean }>
   </div>
 );
 
-// Seçim düyməsi
 const Chip: React.FC<{
   label: string;
   selected: boolean;
@@ -139,16 +138,18 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
   // ── Metro məlumatları ──────────────────────────────────────────
   const stations = (metroSchedule?.stations ?? []).filter(s => s.isActive !== false);
 
-  // Seçilmiş stansiyanın boş günləri
-  const selectedStationData = stations.find(s => s.name === metro);
-  const activeDays = selectedStationData?.availableDays ?? [];
+  // Seçilmiş stansiya
+  const selectedStation = stations.find(s => s.name === metro);
 
-  // Seçilmiş günün boş saatları (gün seçilmişsə həmin stansiyaya aid bütün boş saatlar)
+  // Bu stansiya üçün mövcud günlər (daySchedules-dən gün adlarını çıxar)
+  const activeDays = (selectedStation?.daySchedules ?? []).map(ds => ds.day);
+
+  // Seçilmiş günə aid saatlar
   const allTimeSlots = delDay
-    ? (selectedStationData?.availableTimeSlots ?? [])
+    ? (selectedStation?.daySchedules ?? []).find(ds => ds.day === delDay)?.timeSlots ?? []
     : [];
 
-  // Stansiya dəyişdikdə sıfırla
+  // Stansiya dəyişdikdə gün və saatı sıfırla
   const handleStationChange = (name: string) => {
     setMetro(name);
     setDelDay('');
@@ -390,7 +391,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                     </div>
                   )}
 
-                  {/* 2. Gün — yalnız aktiv günlər */}
+                  {/* 2. Gün — yalnız həmin stansiyaya aid günlər */}
                   {metro !== '' && (
                     <>
                       <Label>Çatdırılma günü</Label>
@@ -414,7 +415,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                     </>
                   )}
 
-                  {/* 3. Saat — boş və dolu saatlar */}
+                  {/* 3. Saat — yalnız seçilmiş günə aid saatlar */}
                   {delDay !== '' && (
                     <>
                       <Label>Çatdırılma saatı</Label>
@@ -423,23 +424,17 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                           Bu gün üçün saat əlavə edilməyib.
                         </p>
                       ) : (
-                        <>
-                          <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 7 }}>
-                            {allTimeSlots.map(slot => (
-                              <Chip
-                                key={slot}
-                                label={slot}
-                                selected={delTime === slot}
-                                onClick={() => setDelTime(slot)}
-                                color={C.green}
-                                
-                              />
-                            ))}
-                          </div>
-                          <p style={{ fontSize: 11, color: C.grayLt, margin: '10px 0 0' }}>
-                            ✅ Boş  ·  <span style={{ textDecoration: 'line-through' }}>Dolu</span>
-                          </p>
-                        </>
+                        <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 7 }}>
+                          {allTimeSlots.map(slot => (
+                            <Chip
+                              key={slot}
+                              label={slot}
+                              selected={delTime === slot}
+                              onClick={() => setDelTime(slot)}
+                              color={C.green}
+                            />
+                          ))}
+                        </div>
                       )}
                     </>
                   )}
@@ -461,8 +456,8 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                   </p>
                   <Label>Tarix</Label>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1fr', gap: 8 }}>
-                    <Sel value={kurDay}   onChange={setKurDay}   opts={DAYS_LIST}  placeholder="Gün" />
-                    <Sel value={kurMonth} onChange={setKurMonth} opts={MONTHS_AZ}  placeholder="Ay" />
+                    <Sel value={kurDay}   onChange={setKurDay}   opts={DAYS_LIST}       placeholder="Gün" />
+                    <Sel value={kurMonth} onChange={setKurMonth} opts={MONTHS_AZ}       placeholder="Ay" />
                     <Sel value={kurYear}  onChange={setKurYear}  opts={['2026','2027']} placeholder="İl" />
                   </div>
                   <p style={{ margin: '8px 0 0', fontSize: 11, color: C.grayLt }}>Çatdırılma üçün kuryer əlaqə saxlayacaq</p>
@@ -545,6 +540,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                   <div style={{ fontSize: 24, fontWeight: 800, color: C.orange }}>{grandBeh.toFixed(2)} ₼</div>
                 </div>
               </Sec>
+
             </div>
 
             <div style={{ padding: '14px 20px 28px', background: C.white, borderTop: `1px solid ${C.border}`, flexShrink: 0 }}>
