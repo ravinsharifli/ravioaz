@@ -452,7 +452,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                       <Label>Çatdırılma saatı</Label>
                       {allTimeSlots.length === 0 ? (
                         <p style={{ fontSize: 12, color: C.grayLt, margin: 0 }}>
-                          Bu gün üçün saat əlavə edilməyib.
+                          Bu gün üçün saat əlavə edilməyib.Səhər 6:00 -dan axşam 21:45-ə qədər bütün saatlar mövcuddur.
                         </p>
                       ) : (
                         <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 7 }}>
