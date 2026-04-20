@@ -678,17 +678,24 @@ export default function App() {
         aside::-webkit-scrollbar { display: none; }
         div::-webkit-scrollbar { display: none; }
 
+        /* Navbar desktop/mobile — controlled by Navbar.tsx */
         @media (max-width: 768px) {
           .r-desktop-nav { display: none !important; }
-          .r-mobile-nav  { display: flex !important; }
         }
         @media (min-width: 769px) {
           .r-mobile-nav { display: none !important; }
         }
 
-        /* Mobile padding fixes */
-        @media (max-width: 480px) {
-          main section, main > div { padding-left: 16px !important; padding-right: 16px !important; }
+        /* Mobile layout improvements */
+        @media (max-width: 640px) {
+          /* Prevent text from being too small */
+          body { font-size: 15px; }
+
+          /* Prevent iOS auto-zoom on all inputs */
+          input, select, textarea { font-size: 16px !important; }
+
+          /* Section horizontal padding on small screens */
+          .r-section { padding-left: 16px !important; padding-right: 16px !important; }
         }
       `}</style>
     </div>
