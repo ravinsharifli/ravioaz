@@ -22,6 +22,8 @@ const C = {
   red:      '#DC2626',
 };
 
+const IMGBB_API_KEY = '91e1c78670ebfc8011000f039872c757';
+
 function getActiveTier(tiers: BulkTier[], qty: number): BulkTier | null {
   if (!tiers?.length) return null;
   return [...tiers]
@@ -69,19 +71,24 @@ const ProductModal: React.FC<ProductModalProps> = ({
     }))
   );
 
-  const [imgIdx,      setImgIdx]      = useState(() => {
+  const [imgIdx,       setImgIdx]      = useState(() => {
     if (initialData?.variantIndex) {
       const fi = allImages.findIndex(img => img.vIdx === initialData.variantIndex);
       return fi >= 0 ? fi : 0;
     }
     return 0;
   });
-  const [variantIdx,  setVariantIdx]  = useState(initialData?.variantIndex ?? 0);
-  const [qty,         setQty]         = useState(initialData?.quantity ?? 1);
-  const [printText,   setPrintText]   = useState(initialData?.customText ?? '');
-  const [uploadedImg, setUploadedImg] = useState<string | null>(null);
-  const [uploadError, setUploadError] = useState('');
-  const [boxId,       setBoxId]       = useState(initialData?.boxType ?? boxes[0]?.id ?? 'simple');
+  const [variantIdx,   setVariantIdx]  = useState(initialData?.variantIndex ?? 0);
+  const [qty,          setQty]         = useState(initialData?.quantity ?? 1);
+  const [printText,    setPrintText]   = useState(initialData?.customText ?? '');
+
+  // Şəkil state-ləri
+  const [uploadedImgUrl,     setUploadedImgUrl]     = useState<string | null>(null); // ImgBB-dən gələn link
+  const [uploadedImgPreview, setUploadedImgPreview] = useState<string | null>(null); // Ekranda göstərmək üçün
+  const [uploadLoading,      setUploadLoading]      = useState(false);
+  const [uploadError,        setUploadError]        = useState('');
+
+  const [boxId, setBoxId] = useState(initialData?.boxType ?? boxes[0]?.id ?? 'simple');
 
   const variant  = variants[variantIdx] || variants[0];
   if (!variant) return null;
@@ -102,17 +109,78 @@ const ProductModal: React.FC<ProductModalProps> = ({
   const box    = showBox ? (boxes.find(b => b.id === boxId) ?? boxes[0]) : null;
   const boxFee = showBox ? (box?.price ?? 0) : 0;
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // ── ImgBB-yə yüklə ──────────────────────────────────────────────────────────
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) { setUploadError('Maks. 5 MB'); return; }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setUploadError('Şəkil 5 MB-dan böyük olmamalıdır');
+      return;
+    }
+
     setUploadError('');
-    const reader = new FileReader();
-    reader.onload = ev => setUploadedImg(ev.target?.result as string);
-    reader.readAsDataURL(file);
+    setUploadLoading(true);
+
+    // Önizləmə üçün local URL yarat
+    const localPreview = URL.createObjectURL(file);
+    setUploadedImgPreview(localPreview);
+
+    try {
+      // Base64-ə çevir
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = ev => {
+          const result = ev.target?.result as string;
+          // "data:image/jpeg;base64," hissəsini çıxar
+          resolve(result.split(',')[1]);
+        };
+        reader.onerror = () => reject(new Error('Fayl oxunmadı'));
+        reader.readAsDataURL(file);
+      });
+
+      // ImgBB API-yə göndər
+      const formData = new FormData();
+      formData.append('image', base64);
+      // 7 gün sonra avtomatik silinsin (604800 saniyə)
+      formData.append('expiration', '604800');
+
+      const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Yükləmə xətası');
+      }
+
+      const data = await response.json();
+
+      if (data.success) {
+        setUploadedImgUrl(data.data.url);
+        setUploadLoading(false);
+      } else {
+        throw new Error('Şəkil yüklənmədi');
+      }
+    } catch {
+      setUploadedImgPreview(null);
+      setUploadedImgUrl(null);
+      setUploadLoading(false);
+      setUploadError('Şəkil yüklənmədi, yenidən cəhd edin');
+    }
   };
 
+  const handleRemoveImage = () => {
+    setUploadedImgUrl(null);
+    setUploadedImgPreview(null);
+    setUploadError('');
+  };
+
+  // ── Səbətə əlavə et ─────────────────────────────────────────────────────────
   const handleAddToCart = () => {
+    // Şəkil hələ yüklənirirsə gözlə
+    if (uploadLoading) return;
+
     const subtotal = effectiveUnit * qty + boxFee;
     const item: CartItem = {
       cartId:               initialData?.cartId || Math.random().toString(36).substr(2, 9),
@@ -126,7 +194,8 @@ const ProductModal: React.FC<ProductModalProps> = ({
       discountPrice:        variant.discountPrice,
       quantity:             qty,
       customText:           printText,
-      specialRequest:       uploadedImg ? 'Şəkil əlavə edilib' : '',
+      // Şəkil linki burada saxlanır — CartDrawer WhatsApp mesajına əlavə edəcək
+      specialRequest:       uploadedImgUrl ? `Müştəri şəkli: ${uploadedImgUrl}` : '',
       customerName:         '',
       phone:                '',
       birthDate:            '',
@@ -138,7 +207,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
       bulkDiscountAmount:   bulkDiscTotal,
       boxType:              boxId,
       boxPrice:             boxFee,
-      hasQrCode:            !!uploadedImg,
+      hasQrCode:            !!uploadedImgUrl,
       lazerPrice:           0,
       deliveryMethod:       'metro' as any,
       finalTotal:           subtotal,
@@ -188,7 +257,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
         {/* Scroll area */}
         <div style={{ flex: 1, overflowY: 'auto' as const, padding: '16px 20px 8px', WebkitOverflowScrolling: 'touch' as any }}>
 
-          {/* Şəkil qalereyası — responsive height */}
+          {/* Şəkil qalereyası */}
           {totalImgs > 0 && (
             <div style={{
               position: 'relative', background: C.white,
@@ -404,23 +473,24 @@ const ProductModal: React.FC<ProductModalProps> = ({
             </div>
           </Sec>
 
-          {/* Şəkil yüklə */}
+          {/* ── Şəkil yüklə ── */}
           <Sec>
-            <Label>Şəkil əlavə et <span style={{ fontWeight: 400, textTransform: 'none' as const, letterSpacing: 0, color: C.grayLt, fontSize: 10 }}>— ödənişsiz</span></Label>
-            <div style={{ background: C.blueBg, border: `1px solid ${C.blueBd}`, borderRadius: 8, padding: '10px 13px', marginBottom: 12, fontSize: 12, color: '#1E40AF', lineHeight: 1.65 }}>
+            <Label>
+              Şəkil əlavə et{' '}
+              <span style={{ fontWeight: 400, textTransform: 'none' as const, letterSpacing: 0, color: C.grayLt, fontSize: 10 }}>
+                — ödənişsiz
+              </span>
+            </Label>
+            <div style={{
+              background: C.blueBg, border: `1px solid ${C.blueBd}`,
+              borderRadius: 8, padding: '10px 13px', marginBottom: 12,
+              fontSize: 12, color: '#1E40AF', lineHeight: 1.65,
+            }}>
               Portret, eskiz, logo və ya QR kod üçün şəkil göndərin — məhsula çap ediləcək.
             </div>
-            {uploadedImg ? (
-              <div style={{ position: 'relative' }}>
-                <img src={uploadedImg} alt="Yüklənmiş" style={{ width: '100%', height: 160, objectFit: 'contain', borderRadius: 8, background: C.bg, border: `1px solid ${C.border}` }} />
-                <button onClick={() => setUploadedImg(null)} style={{
-                  position: 'absolute', top: 8, right: 8, background: 'rgba(0,0,0,0.55)',
-                  border: 'none', borderRadius: '50%', width: 28, height: 28,
-                  color: C.white, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}><X size={14} /></button>
-                <p style={{ margin: '6px 0 0', fontSize: 12, color: C.green, fontWeight: 600 }}>✓ Şəkil əlavə edildi</p>
-              </div>
-            ) : (
+
+            {/* Şəkil seçilməyib */}
+            {!uploadedImgPreview && !uploadLoading && (
               <label style={{
                 display: 'flex', flexDirection: 'column' as const,
                 alignItems: 'center', justifyContent: 'center', gap: 8,
@@ -430,10 +500,84 @@ const ProductModal: React.FC<ProductModalProps> = ({
                 <Upload size={20} color={C.grayLt} />
                 <span style={{ fontSize: 13, color: C.gray }}>Şəkil seçmək üçün bura basın</span>
                 <span style={{ fontSize: 11, color: C.grayLt }}>JPG, PNG, WEBP · Maks. 5 MB</span>
-                <input type="file" accept="image/jpeg,image/png,image/webp" style={{ display: 'none' }} onChange={handleImageUpload} />
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  style={{ display: 'none' }}
+                  onChange={handleImageUpload}
+                />
               </label>
             )}
-            {uploadError && <p style={{ fontSize: 12, color: C.red, marginTop: 6 }}>{uploadError}</p>}
+
+            {/* Yüklənir göstəricisi */}
+            {uploadLoading && (
+              <div style={{
+                display: 'flex', flexDirection: 'column' as const,
+                alignItems: 'center', justifyContent: 'center', gap: 12,
+                padding: '24px', border: `1.5px dashed ${C.blueBd}`,
+                borderRadius: 10, background: C.blueBg,
+              }}>
+                {/* Şəkil önizləmə (yüklənir zamanı da görünsün) */}
+                {uploadedImgPreview && (
+                  <img
+                    src={uploadedImgPreview}
+                    alt="Önizləmə"
+                    style={{ width: '100%', maxHeight: 120, objectFit: 'contain', borderRadius: 8, opacity: 0.6 }}
+                  />
+                )}
+                {/* Spinner */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <svg width="18" height="18" viewBox="0 0 18 18" style={{ animation: 'spin 0.8s linear infinite' }}>
+                    <circle cx="9" cy="9" r="7" fill="none" stroke={C.blueBd} strokeWidth="2.5" />
+                    <path d="M9 2 A7 7 0 0 1 16 9" fill="none" stroke={C.blue} strokeWidth="2.5" strokeLinecap="round" />
+                  </svg>
+                  <span style={{ fontSize: 13, color: C.blue, fontWeight: 600 }}>Şəkil yüklənir...</span>
+                </div>
+                <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+              </div>
+            )}
+
+            {/* Şəkil uğurla yükləndi */}
+            {uploadedImgPreview && !uploadLoading && uploadedImgUrl && (
+              <div style={{ position: 'relative' }}>
+                <img
+                  src={uploadedImgPreview}
+                  alt="Yüklənmiş"
+                  style={{
+                    width: '100%', height: 160, objectFit: 'contain',
+                    borderRadius: 8, background: C.bg,
+                    border: `1px solid ${C.green}`,
+                  }}
+                />
+                <button
+                  onClick={handleRemoveImage}
+                  style={{
+                    position: 'absolute', top: 8, right: 8,
+                    background: 'rgba(0,0,0,0.55)',
+                    border: 'none', borderRadius: '50%', width: 28, height: 28,
+                    color: C.white, cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}
+                >
+                  <X size={14} />
+                </button>
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: 6,
+                  marginTop: 8, padding: '8px 12px',
+                  background: C.greenBg, border: '1px solid #BBF7D0',
+                  borderRadius: 8,
+                }}>
+                  <Check size={14} color={C.green} strokeWidth={2.5} />
+                  <span style={{ fontSize: 12, color: C.green, fontWeight: 600 }}>
+                    Şəkil hazırdır — sifariş ilə birlikdə göndəriləcək
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {uploadError && (
+              <p style={{ fontSize: 12, color: C.red, marginTop: 6, margin: '6px 0 0' }}>{uploadError}</p>
+            )}
           </Sec>
 
           {/* Qablaşdırma */}
@@ -490,7 +634,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
           <div style={{ height: 8 }} />
         </div>
 
-        {/* Footer — həmişə aşağıda görünür */}
+        {/* Footer */}
         <div style={{
           padding: '14px 20px',
           paddingBottom: 'max(20px, env(safe-area-inset-bottom, 20px))',
@@ -508,19 +652,22 @@ const ProductModal: React.FC<ProductModalProps> = ({
           </div>
           <button
             onClick={handleAddToCart}
+            disabled={uploadLoading}
             style={{
               width: '100%', padding: '15px', borderRadius: 10, border: 'none',
-              background: C.orange, color: C.white,
+              background: uploadLoading ? C.grayLt : C.orange,
+              color: C.white,
               fontSize: 16, fontWeight: 700,
-              cursor: 'pointer', fontFamily: FONT,
-              boxShadow: '0 4px 16px rgba(255,106,0,0.25)',
+              cursor: uploadLoading ? 'not-allowed' : 'pointer',
+              fontFamily: FONT,
+              boxShadow: uploadLoading ? 'none' : '0 4px 16px rgba(255,106,0,0.25)',
               transition: 'background 0.15s',
               minHeight: 52,
             }}
-            onMouseEnter={e => e.currentTarget.style.background = '#E55E00'}
-            onMouseLeave={e => e.currentTarget.style.background = C.orange}
+            onMouseEnter={e => { if (!uploadLoading) e.currentTarget.style.background = '#E55E00'; }}
+            onMouseLeave={e => { if (!uploadLoading) e.currentTarget.style.background = C.orange; }}
           >
-            🛒 Səbətə əlavə et
+            {uploadLoading ? '⏳ Şəkil yüklənir...' : '🛒 Səbətə əlavə et'}
           </button>
         </div>
       </div>

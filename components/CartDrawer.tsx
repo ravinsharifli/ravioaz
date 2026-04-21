@@ -338,7 +338,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
         (imgUrl ? `🖼 Şəkil: ${imgUrl}\n` : '') +
         lines +
         (item.customText    ? `- Yazı/Qeyd: ${item.customText}\n`    : '') +
-        (item.specialRequest ? `- Xüsusi: ${item.specialRequest}\n`  : '')
+        (item.specialRequest && item.specialRequest.startsWith('Müştəri şəkli:') ? `📎 ${item.specialRequest}\n` : item.specialRequest ? `- Xüsusi: ${item.specialRequest}\n` : '')
       );
     }).join('\n');
 
