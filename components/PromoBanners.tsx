@@ -28,6 +28,7 @@ const PromoBanners: React.FC = () => {
           <circle cx="100" cy="100" r="50" stroke="#BF912E" strokeWidth="1" fill="none" />
         </svg>
 
+        {/* Left content */}
         <div style={{ position: 'relative', zIndex: 1 }}>
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: 6,
@@ -37,7 +38,7 @@ const PromoBanners: React.FC = () => {
             marginBottom: 16,
           }}>
             <Sparkles size={10} color="#BF912E" />
-            <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: '1.5px', textTransform: 'uppercase', color: '#BF912E', fontFamily: "'Nunito Sans', sans-serif" }}>
+            <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: '1.5px', textTransform: 'uppercase' as const, color: '#BF912E', fontFamily: "'Inter', sans-serif" }}>
               Fərdiləşdirilmiş hədiyyə
             </span>
           </div>
@@ -63,14 +64,18 @@ const PromoBanners: React.FC = () => {
             padding: '11px 22px', borderRadius: 10,
             fontWeight: 800, fontSize: 13,
             textDecoration: 'none', letterSpacing: '0.3px',
-            fontFamily: "'Nunito Sans', sans-serif",
+            fontFamily: "'Inter', sans-serif",
           }}>
             Məhsullara bax <ArrowRight size={14} />
           </a>
         </div>
 
-        {/* Right: stat pills */}
-        <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', gap: 10, minWidth: 110 }} className="hidden sm:flex">
+        {/* Right: stat pills — mobilda gizlənir */}
+        <div className="promo-stats" style={{
+          position: 'relative', zIndex: 1,
+          display: 'flex', flexDirection: 'column' as const,
+          gap: 10, minWidth: 110,
+        }}>
           {[
             { n: '500+', l: 'Sifariş' },
             { n: '4.9★', l: 'Reytinq' },
@@ -80,13 +85,19 @@ const PromoBanners: React.FC = () => {
               background: 'rgba(250,248,244,0.06)',
               border: '1px solid rgba(191,145,46,0.2)',
               borderRadius: 12, padding: '12px 16px',
-              textAlign: 'center',
+              textAlign: 'center' as const,
             }}>
               <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 20, fontWeight: 700, color: '#BF912E', lineHeight: 1 }}>{item.n}</div>
               <div style={{ fontSize: 10, color: 'rgba(250,248,244,0.4)', marginTop: 3, fontWeight: 600 }}>{item.l}</div>
             </div>
           ))}
         </div>
+
+        <style>{`
+          @media (max-width: 560px) {
+            .promo-stats { display: none !important; }
+          }
+        `}</style>
       </div>
 
       {/* TWO SMALL BANNERS */}
@@ -96,7 +107,7 @@ const PromoBanners: React.FC = () => {
         <div style={{
           background: '#F2EDE5',
           border: '1px solid #E8E2D9',
-          borderRadius: 16, padding: 'clamp(18px,3vw,28px)',
+          borderRadius: 16, padding: 'clamp(16px,3vw,28px)',
           position: 'relative', overflow: 'hidden',
         }}>
           <div style={{
@@ -104,21 +115,21 @@ const PromoBanners: React.FC = () => {
             width: 90, height: 90, borderRadius: '50%',
             background: 'rgba(191,145,46,0.08)', pointerEvents: 'none',
           }} />
-          <Gift size={22} color="#BF912E" style={{ marginBottom: 12 }} />
+          <Gift size={22} color="#BF912E" style={{ marginBottom: 10 }} />
           <h3 style={{
             fontFamily: "'Cormorant Garamond', serif",
-            fontSize: 'clamp(16px,2.5vw,20px)', fontWeight: 700,
+            fontSize: 'clamp(14px,2.5vw,20px)', fontWeight: 700,
             color: '#1C1714', margin: '0 0 6px',
           }}>
             Premium Giftbox
           </h3>
-          <p style={{ fontSize: 12, color: '#8C7F77', margin: '0 0 14px', lineHeight: 1.5, fontWeight: 400 }}>
+          <p style={{ fontSize: 'clamp(11px,1.5vw,12px)', color: '#8C7F77', margin: '0 0 12px', lineHeight: 1.5, fontWeight: 400 }}>
             Pulqabı, saat, alışqan, kəmər — istədiyin hər şeyi bir qutuda yığırıq.
           </p>
           <a href="#mehsullar" style={{
             display: 'inline-flex', alignItems: 'center', gap: 5,
             fontSize: 12, fontWeight: 800, color: '#BF912E',
-            textDecoration: 'none', letterSpacing: '0.3px',
+            textDecoration: 'none',
           }}>
             Kəşf et <ArrowRight size={12} />
           </a>
@@ -127,7 +138,7 @@ const PromoBanners: React.FC = () => {
         {/* Mezun lentleri banner */}
         <div style={{
           background: '#1C1714',
-          borderRadius: 16, padding: 'clamp(18px,3vw,28px)',
+          borderRadius: 16, padding: 'clamp(16px,3vw,28px)',
           position: 'relative', overflow: 'hidden',
         }}>
           <div style={{
@@ -135,22 +146,22 @@ const PromoBanners: React.FC = () => {
             width: 100, height: 100, borderRadius: '50%',
             background: 'rgba(191,145,46,0.08)', pointerEvents: 'none',
           }} />
-          <GraduationCap size={22} color="#BF912E" style={{ marginBottom: 12 }} />
+          <GraduationCap size={22} color="#BF912E" style={{ marginBottom: 10 }} />
           <h3 style={{
             fontFamily: "'Cormorant Garamond', serif",
-            fontSize: 'clamp(16px,2.5vw,20px)', fontWeight: 700,
+            fontSize: 'clamp(14px,2.5vw,20px)', fontWeight: 700,
             color: '#FAF8F4', margin: '0 0 6px',
           }}>
             Məzun Lentləri
           </h3>
-          <p style={{ fontSize: 12, color: 'rgba(250,248,244,0.55)', margin: '0 0 14px', lineHeight: 1.5, fontWeight: 400 }}>
-            10+ ədəddə endirim tətbiq olunur. Sinif üçün toplu sifariş —{' '}
-            <span style={{ color: '#BF912E', fontWeight: 700 }}>Xüsusi endirimlə</span>.
+          <p style={{ fontSize: 'clamp(11px,1.5vw,12px)', color: 'rgba(250,248,244,0.55)', margin: '0 0 12px', lineHeight: 1.5, fontWeight: 400 }}>
+            10+ ədəddə endirim tətbiq olunur.{' '}
+            <span style={{ color: '#BF912E', fontWeight: 700 }}>Xüsusi endirimlə.</span>
           </p>
           <a href="#mehsullar" style={{
             display: 'inline-flex', alignItems: 'center', gap: 5,
             fontSize: 12, fontWeight: 800, color: '#BF912E',
-            textDecoration: 'none', letterSpacing: '0.3px',
+            textDecoration: 'none',
           }}>
             Qiymətlərə bax <ArrowRight size={12} />
           </a>

@@ -1,13 +1,26 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Star } from 'lucide-react';
+import { client } from '../sanityclient';
 
-const reviews = [
-  { name: 'Aytən M.', initials: 'AM', rating: 5, text: 'Sevgilimin adını qolbağa yazdırdım. Lazer yazısı çox dəqiq çıxdı, sanki fabrikdən çıxmış kimi. Paketləmə də çox gözəl idi.', product: 'Polad qolbaq', date: 'Mart 2026' },
-  { name: 'Rauf H.',  initials: 'RH', rating: 5, text: 'Məzun lentlərini sinif üçün aldım, 35 ədəd. Qiymət çox əlverişli idi, hamısı eyni keyfiyyətdə gəldi. Çatdırılma da vaxtında oldu.', product: 'Məzun lenti', date: 'İyun 2026' },
-  { name: 'Günel Ə.', initials: 'GƏ', rating: 5, text: 'Anama ad günü üçün giftbox aldım. Üzərinə "Ən sevimli anam" yazdırdım. Anama çox xoş gəldi, ağladı belə.', product: 'Premium giftbox', date: 'Fevral 2026' },
-  { name: 'Tural B.', initials: 'TB', rating: 5, text: 'Gümüş təsbeh aldım, üzərinə ayə yazdırdım. İşçilik çox yaxşı, gümüş əsl, daşlar real. Dostlara tövsiyə etdim.', product: 'Gümüş təsbeh', date: 'Yanvar 2026' },
-  { name: 'Lalə K.',  initials: 'LK', rating: 5, text: 'Cüt qolbaq sifarişi verdim, öz adımla sevgilimin adını yazdırdım. 1 gündə hazır oldu. Möhtəşəm çıxdı.', product: 'Cüt qolbaq dəsti', date: 'Aprel 2026' },
-];
+interface Review {
+  _id: string;
+  name: string;
+  product: string;
+  rating: number;
+  text: string;
+  date: string;
+  isActive: boolean;
+}
+
+const FONT = "'Inter', sans-serif";
+
+const Stars = ({ n }: { n: number }) => (
+  <div style={{ display: 'flex', gap: 2 }}>
+    {[1,2,3,4,5].map(i => (
+      <Star key={i} size={13} color="#FF6A00" fill={i <= n ? '#FF6A00' : 'none'} />
+    ))}
+  </div>
+);
 
 const TikTokIcon = () => (
   <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
@@ -23,30 +36,57 @@ const InstagramIcon = () => (
   </svg>
 );
 
-const Stars = ({ n }: { n: number }) => (
-  <div style={{ display: 'flex', gap: 2 }}>
-    {[1,2,3,4,5].map(i => (
-      <Star key={i} size={13} color="#FF6A00" fill={i <= n ? '#FF6A00' : 'none'} />
-    ))}
-  </div>
-);
+// Fallback rəylər — Sanity boş olsa bunlar göstərilir
+const FALLBACK_REVIEWS: Review[] = [
+  { _id: '1', name: 'Aytən M.', product: 'Polad qolbaq', rating: 5, text: 'Sevgilimin adını qolbağa yazdırdım. Lazer yazısı çox dəqiq çıxdı. Paketləmə də çox gözəl idi.', date: 'Mart 2026', isActive: true },
+  { _id: '2', name: 'Rauf H.',  product: 'Məzun lenti',  rating: 5, text: 'Məzun lentlərini sinif üçün aldım, 35 ədəd. Qiymət çox əlverişli idi, hamısı eyni keyfiyyətdə gəldi.', date: 'İyun 2026', isActive: true },
+  { _id: '3', name: 'Günel Ə.', product: 'Premium giftbox', rating: 5, text: 'Anama ad günü üçün giftbox aldım. Üzərinə "Ən sevimli anam" yazdırdım. Anama çox xoş gəldi.', date: 'Fevral 2026', isActive: true },
+  { _id: '4', name: 'Tural B.', product: 'Gümüş təsbeh', rating: 5, text: 'Gümüş təsbeh aldım, üzərinə ayə yazdırdım. İşçilik çox yaxşı, gümüş əsl. Dostlara tövsiyə etdim.', date: 'Yanvar 2026', isActive: true },
+  { _id: '5', name: 'Lalə K.',  product: 'Cüt qolbaq dəsti', rating: 5, text: 'Cüt qolbaq sifarişi verdim, öz adımla sevgilimin adını yazdırdım. 1 gündə hazır oldu. Möhtəşəm çıxdı.', date: 'Aprel 2026', isActive: true },
+];
 
 const CustomerReviews: React.FC = () => {
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    client.fetch<Review[]>(
+      `*[_type == "customerReview" && isActive == true] | order(order asc) {
+        _id, name, product, rating, text, date, isActive
+      }`
+    )
+      .then(data => {
+        setReviews(data && data.length > 0 ? data : FALLBACK_REVIEWS);
+        setLoading(false);
+      })
+      .catch(() => {
+        setReviews(FALLBACK_REVIEWS);
+        setLoading(false);
+      });
+  }, []);
+
+  const avgRating = reviews.length
+    ? Math.round((reviews.reduce((s, r) => s + r.rating, 0) / reviews.length) * 10) / 10
+    : 4.9;
+
+  const getInitials = (name: string) =>
+    name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+
   return (
-    <div style={{ maxWidth: 1280, margin: '0 auto', padding: 'clamp(48px,6vw,80px) 32px', fontFamily: "'Inter', sans-serif" }}>
+    <div style={{ maxWidth: 1280, margin: '0 auto', padding: 'clamp(40px,6vw,80px) clamp(16px,3vw,32px)', fontFamily: FONT }}>
 
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap' as const, gap: 16, marginBottom: 40 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap' as const, gap: 16, marginBottom: 32 }}>
         <div>
           <p style={{ fontSize: 11, fontWeight: 700, color: '#FF6A00', letterSpacing: 1.5, textTransform: 'uppercase' as const, margin: '0 0 8px' }}>
             Müştəri rəyləri
           </p>
-          <h2 style={{ fontSize: 'clamp(22px,4vw,32px)', fontWeight: 800, color: '#111111', margin: 0, letterSpacing: '-0.3px' }}>
+          <h2 style={{ fontSize: 'clamp(20px,4vw,32px)', fontWeight: 800, color: '#111111', margin: 0, letterSpacing: '-0.3px' }}>
             Real sifarişlər, real rəylər
           </h2>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontSize: 32, fontWeight: 800, color: '#111111', letterSpacing: '-1px' }}>4.9</span>
+          <span style={{ fontSize: 32, fontWeight: 800, color: '#111111', letterSpacing: '-1px' }}>{avgRating}</span>
           <div>
             <Stars n={5} />
             <p style={{ fontSize: 11, color: '#AAAAAA', margin: '4px 0 0', fontWeight: 500 }}>500+ sifarişdən</p>
@@ -55,101 +95,99 @@ const CustomerReviews: React.FC = () => {
       </div>
 
       {/* Review cards */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-        gap: 16, marginBottom: 56,
-      }}>
-        {reviews.map((r, i) => (
-          <div key={i} style={{
-            background: '#FFFFFF', borderRadius: 12,
-            padding: '20px', border: '1px solid #EDEBE7',
-            display: 'flex', flexDirection: 'column' as const, gap: 12,
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                <div style={{
-                  width: 40, height: 40, borderRadius: '50%',
-                  background: '#111111', color: '#FFFFFF',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 13, fontWeight: 700, flexShrink: 0,
-                }}>{r.initials}</div>
-                <div>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: '#111111' }}>{r.name}</div>
-                  <div style={{ fontSize: 11, color: '#AAAAAA', marginTop: 2 }}>{r.date}</div>
-                </div>
-              </div>
-              <Stars n={r.rating} />
+      {loading ? (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16, marginBottom: 48 }}>
+          {[1,2,3].map(i => (
+            <div key={i} style={{ background: '#FFFFFF', borderRadius: 12, padding: 20, border: '1px solid #EDEBE7', height: 160 }}>
+              <div style={{ width: '60%', height: 12, background: '#F5F2EC', borderRadius: 4, marginBottom: 12, animation: 'pulse 1.5s ease-in-out infinite' }} />
+              <div style={{ width: '100%', height: 10, background: '#F5F2EC', borderRadius: 4, marginBottom: 8, animation: 'pulse 1.5s ease-in-out infinite' }} />
+              <div style={{ width: '80%', height: 10, background: '#F5F2EC', borderRadius: 4, animation: 'pulse 1.5s ease-in-out infinite' }} />
             </div>
-
-            <p style={{ fontSize: 13, color: '#444444', lineHeight: 1.65, margin: 0 }}>{r.text}</p>
-
-            <div style={{
-              display: 'inline-flex', alignItems: 'center', gap: 6,
-              background: '#F5F2EC', borderRadius: 6, padding: '5px 10px',
-              alignSelf: 'flex-start',
+          ))}
+        </div>
+      ) : (
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+          gap: 16,
+          marginBottom: 48,
+        }}>
+          {reviews.map(r => (
+            <div key={r._id} style={{
+              background: '#FFFFFF', borderRadius: 12,
+              padding: '18px 16px', border: '1px solid #EDEBE7',
+              display: 'flex', flexDirection: 'column' as const, gap: 10,
             }}>
-              <span style={{ fontSize: 11, color: '#666666', fontWeight: 500 }}>📦 {r.product}</span>
-            </div>
-          </div>
-        ))}
-      </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                  <div style={{
+                    width: 38, height: 38, borderRadius: '50%',
+                    background: '#111111', color: '#FFFFFF',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 12, fontWeight: 700, flexShrink: 0,
+                  }}>{getInitials(r.name)}</div>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: '#111111' }}>{r.name}</div>
+                    <div style={{ fontSize: 11, color: '#AAAAAA', marginTop: 2 }}>{r.date}</div>
+                  </div>
+                </div>
+                <Stars n={r.rating} />
+              </div>
 
-      {/* Social CTA — Instagram + TikTok */}
+              <p style={{ fontSize: 13, color: '#444444', lineHeight: 1.65, margin: 0 }}>{r.text}</p>
+
+              <div style={{
+                display: 'inline-flex', alignItems: 'center', gap: 5,
+                background: '#F5F2EC', borderRadius: 6, padding: '4px 10px',
+                alignSelf: 'flex-start' as const,
+              }}>
+                <span style={{ fontSize: 11, color: '#666666', fontWeight: 500 }}>📦 {r.product}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Social CTA */}
       <div style={{
         background: '#111111', borderRadius: 16,
-        padding: 'clamp(32px,4vw,48px) clamp(24px,4vw,48px)',
+        padding: 'clamp(24px,4vw,48px) clamp(16px,4vw,48px)',
         display: 'flex', justifyContent: 'space-between',
-        alignItems: 'center', flexWrap: 'wrap' as const, gap: 24,
+        alignItems: 'center', flexWrap: 'wrap' as const, gap: 20,
       }}>
         <div>
-          <h3 style={{ fontSize: 'clamp(18px,3vw,24px)', fontWeight: 800, color: '#FFFFFF', margin: '0 0 8px', letterSpacing: '-0.3px' }}>
+          <h3 style={{ fontSize: 'clamp(16px,3vw,24px)', fontWeight: 800, color: '#FFFFFF', margin: '0 0 8px', letterSpacing: '-0.3px' }}>
             Siz də rəy bildirin
           </h3>
-          <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)', margin: 0, fontWeight: 400 }}>
+          <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', margin: 0 }}>
             Sosial şəbəkədə <strong style={{ color: '#FF6A00' }}>@ravio.az</strong> tag edin
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: 12 }}>
-          <a
-            href="https://instagram.com/ravio.az"
-            target="_blank" rel="noreferrer"
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' as const }}>
+          <a href="https://instagram.com/ravio.az" target="_blank" rel="noreferrer"
             style={{
               display: 'flex', alignItems: 'center', gap: 8,
-              padding: '12px 20px', borderRadius: 10,
+              padding: '11px 18px', borderRadius: 10,
               background: 'rgba(255,255,255,0.08)',
               border: '1px solid rgba(255,255,255,0.12)',
               color: '#FFFFFF', textDecoration: 'none',
-              fontSize: 14, fontWeight: 600,
-              fontFamily: "'Inter', sans-serif",
-              transition: 'all 0.2s',
+              fontSize: 13, fontWeight: 600, fontFamily: FONT,
             }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.15)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.25)'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)'; }}
           >
-            <InstagramIcon />
-            Instagram
+            <InstagramIcon /> Instagram
           </a>
-
-          <a
-            href="https://tiktok.com/@ravio.az"
-            target="_blank" rel="noreferrer"
+          <a href="https://tiktok.com/@ravio.az" target="_blank" rel="noreferrer"
             style={{
               display: 'flex', alignItems: 'center', gap: 8,
-              padding: '12px 20px', borderRadius: 10,
+              padding: '11px 18px', borderRadius: 10,
               background: 'rgba(255,255,255,0.08)',
               border: '1px solid rgba(255,255,255,0.12)',
               color: '#FFFFFF', textDecoration: 'none',
-              fontSize: 14, fontWeight: 600,
-              fontFamily: "'Inter', sans-serif",
-              transition: 'all 0.2s',
+              fontSize: 13, fontWeight: 600, fontFamily: FONT,
             }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.15)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.25)'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)'; }}
           >
-            <TikTokIcon />
-            TikTok
+            <TikTokIcon /> TikTok
           </a>
         </div>
       </div>
