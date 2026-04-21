@@ -387,7 +387,7 @@ export default function App() {
 
               {/* Category pills (mobile-friendly) */}
               {categories.length > 0 && (
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 24, overflowX: 'auto', paddingBottom: 4, scrollbarWidth: 'none' }}>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'nowrap', marginBottom: 24, overflowX: 'auto', paddingBottom: 8, scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch', msOverflowStyle: 'none' }}>
                   <button onClick={() => setActiveCategory(null)} style={{
                     padding: '7px 16px', borderRadius: 100, flexShrink: 0,
                     border: `1.5px solid ${!activeCategory ? '#111111' : '#D5D0C8'}`,
