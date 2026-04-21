@@ -260,11 +260,11 @@ function InfoStrips() {
       <div style={{
         maxWidth: 1280, margin: '0 auto',
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
+        gridTemplateColumns: 'repeat(4, 1fr)',
         gap: 0,
-      }}>
+      }} className="ravio-info-strips">
         {strips.map((s, i) => (
-          <div key={s.title} style={{
+          <div key={s.title} className={`ravio-strip-item ravio-strip-${i}`} style={{
             display: 'flex', alignItems: 'center', gap: 12,
             padding: 'clamp(14px, 2vw, 20px) 16px',
             borderLeft: i > 0 ? '1px solid #EDEBE7' : 'none',
@@ -629,20 +629,7 @@ export default function App() {
         onContactClick={() => setView('contact')}
       />
 
-      <a href="https://wa.me/994519831483?text=Salam%2C%20sifaris%20etmek%20isteyirem"
-        target="_blank" rel="noreferrer"
-        style={{
-          position: 'fixed', bottom: 24, right: 24,
-          background: '#25D366', color: '#FFFFFF',
-          width: 56, height: 56, borderRadius: '50%',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          textDecoration: 'none', fontSize: 24, zIndex: 999,
-          boxShadow: '0 8px 24px rgba(37,211,102,0.4)',
-          transition: 'transform 0.2s',
-        }}
-        onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.1)'}
-        onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
-      >💬</a>
+
 
       {selectedProduct && (
         <ProductModal
@@ -691,15 +678,16 @@ export default function App() {
           body { font-size: 15px; }
           input, select, textarea { font-size: 16px !important; }
           .r-section { padding-left: 16px !important; padding-right: 16px !important; }
-        }
-          /* Prevent text from being too small */
-          body { font-size: 15px; }
 
-          /* Prevent iOS auto-zoom on all inputs */
-          input, select, textarea { font-size: 16px !important; }
+          /* Info strips: 4 col → 2x2 */
+          .ravio-info-strips { grid-template-columns: repeat(2, 1fr) !important; }
+          .ravio-strip-0 { border-left: none !important; border-bottom: 1px solid #EDEBE7; }
+          .ravio-strip-1 { border-left: 1px solid #EDEBE7 !important; border-bottom: 1px solid #EDEBE7; }
+          .ravio-strip-2 { border-left: none !important; }
+          .ravio-strip-3 { border-left: 1px solid #EDEBE7 !important; }
 
-          /* Section horizontal padding on small screens */
-          .r-section { padding-left: 16px !important; padding-right: 16px !important; }
+          /* Footer: single column on mobile */
+          .ravio-footer-grid { grid-template-columns: 1fr !important; gap: 32px !important; }
         }
       `}</style>
     </div>

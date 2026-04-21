@@ -19,7 +19,7 @@ const Footer: React.FC<FooterProps> = ({ onReviewsClick, onProductsClick, onDeli
   return (
     <footer style={{ background: '#111111', color: '#FFFFFF', padding: 'clamp(48px,6vw,72px) clamp(16px,3vw,32px) 32px', fontFamily: "'Inter', sans-serif" }}>
       <div style={{ maxWidth: 1280, margin: '0 auto' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 48, marginBottom: 56 }}>
+        <div className="ravio-footer-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 48, marginBottom: 56 }}>
 
           {/* Brand */}
           <div>
