@@ -69,7 +69,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
     }))
   );
 
-  const [imgIdx, setImgIdx] = useState(() => {
+  const [imgIdx,      setImgIdx]      = useState(() => {
     if (initialData?.variantIndex) {
       const fi = allImages.findIndex(img => img.vIdx === initialData.variantIndex);
       return fi >= 0 ? fi : 0;
@@ -154,12 +154,18 @@ const ProductModal: React.FC<ProductModalProps> = ({
 
   return (
     <div
-      style={{ position: 'fixed', inset: 0, zIndex: 2000, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'flex-end', fontFamily: FONT }}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 2000,
+        background: 'rgba(0,0,0,0.5)',
+        display: 'flex', alignItems: 'flex-end',
+        fontFamily: FONT,
+      }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div style={{
         background: C.bg, width: '100%', maxWidth: 560, margin: '0 auto',
-        maxHeight: '94vh', borderRadius: '16px 16px 0 0',
+        maxHeight: 'min(94dvh, 94vh)',
+        borderRadius: '16px 16px 0 0',
         display: 'flex', flexDirection: 'column' as const, overflow: 'hidden',
         boxShadow: '0 -16px 48px rgba(0,0,0,0.12)',
       }}>
@@ -167,27 +173,28 @@ const ProductModal: React.FC<ProductModalProps> = ({
         {/* Header */}
         <div style={{ background: C.white, borderBottom: `1px solid ${C.border}`, padding: '16px 20px', flexShrink: 0 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <div>
+            <div style={{ flex: 1, minWidth: 0, paddingRight: 12 }}>
               <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: C.black, lineHeight: 1.3 }}>{product.name}</h2>
               {product.category && <span style={{ fontSize: 11, color: C.grayLt, fontWeight: 500, marginTop: 3, display: 'block' }}>{product.category}</span>}
             </div>
             <button onClick={onClose} style={{
               width: 32, height: 32, borderRadius: '50%', background: C.bg, border: 'none',
               cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: C.gray, flexShrink: 0, marginLeft: 12,
+              color: C.gray, flexShrink: 0,
             }}><X size={16} /></button>
           </div>
         </div>
 
         {/* Scroll area */}
-        <div style={{ flex: 1, overflowY: 'auto' as const, padding: '16px 20px 20px' }}>
+        <div style={{ flex: 1, overflowY: 'auto' as const, padding: '16px 20px 8px', WebkitOverflowScrolling: 'touch' as any }}>
 
-          {/* Şəkil qalereyası — bütün variantların şəkilləri */}
+          {/* Şəkil qalereyası — responsive height */}
           {totalImgs > 0 && (
             <div style={{
               position: 'relative', background: C.white,
               borderRadius: 12, overflow: 'hidden',
-              marginBottom: 16, height: 280,
+              marginBottom: 16,
+              height: 'clamp(200px, 40vw, 280px)',
               border: `1px solid ${C.border}`,
             }}>
               <img
@@ -319,18 +326,18 @@ const ProductModal: React.FC<ProductModalProps> = ({
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', alignItems: 'center' }}>
                 <button onClick={() => setQty(q => Math.max(1, q - 1))} style={{
-                  width: 36, height: 36, borderRadius: '8px 0 0 8px',
+                  width: 40, height: 40, borderRadius: '8px 0 0 8px',
                   border: `1px solid ${C.border}`, background: C.bg,
                   cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}><Minus size={14} /></button>
                 <div style={{
-                  width: 52, height: 36, border: `1px solid ${C.border}`,
+                  width: 52, height: 40, border: `1px solid ${C.border}`,
                   borderLeft: 'none', borderRight: 'none',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: 15, fontWeight: 700, background: C.white, color: C.black,
                 }}>{qty}</div>
                 <button onClick={() => setQty(q => q + 1)} style={{
-                  width: 36, height: 36, borderRadius: '0 8px 8px 0',
+                  width: 40, height: 40, borderRadius: '0 8px 8px 0',
                   border: `1px solid ${C.border}`, background: C.bg,
                   cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}><Plus size={14} /></button>
@@ -384,11 +391,11 @@ const ProductModal: React.FC<ProductModalProps> = ({
               style={{
                 width: '100%', background: C.white, border: `1px solid ${C.border}`,
                 borderRadius: 8, padding: '11px 14px',
-                color: C.black, fontSize: 14, fontFamily: FONT,
+                color: C.black, fontFamily: FONT,
                 outline: 'none', boxSizing: 'border-box' as const,
                 resize: 'vertical' as const, minHeight: 80,
-                transition: 'border-color 0.15s',
-              }}
+                fontSize: 16,
+              } as React.CSSProperties}
               onFocus={e => e.currentTarget.style.borderColor = C.blue}
               onBlur={e => e.currentTarget.style.borderColor = C.border}
             />
@@ -419,10 +426,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
                 alignItems: 'center', justifyContent: 'center', gap: 8,
                 padding: '20px', border: `1.5px dashed ${C.border}`,
                 borderRadius: 10, cursor: 'pointer', background: C.bg,
-              }}
-                onMouseEnter={e => (e.currentTarget as HTMLLabelElement).style.borderColor = C.blue}
-                onMouseLeave={e => (e.currentTarget as HTMLLabelElement).style.borderColor = C.border}
-              >
+              }}>
                 <Upload size={20} color={C.grayLt} />
                 <span style={{ fontSize: 13, color: C.gray }}>Şəkil seçmək üçün bura basın</span>
                 <span style={{ fontSize: 11, color: C.grayLt }}>JPG, PNG, WEBP · Maks. 5 MB</span>
@@ -436,7 +440,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
           {(boxes.length > 0 && product.allowBoxSelection !== false) && (
             <Sec last>
               <Label>Qablaşdırma</Label>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 10 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))', gap: 10 }}>
                 {boxes.map(b => {
                   const sel = boxId === b.id;
                   return (
@@ -452,14 +456,14 @@ const ProductModal: React.FC<ProductModalProps> = ({
                           <img src={b.imageUrl} alt={b.name}
                             style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                         ) : (
-                          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32 }}>
+                          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28 }}>
                             📦
                           </div>
                         )}
                       </div>
-                      <div style={{ padding: '8px 10px' }}>
-                        <div style={{ fontSize: 12, fontWeight: 600, color: sel ? C.black : C.gray, marginBottom: 2 }}>{b.name}</div>
-                        <div style={{ fontSize: 12, fontWeight: 700, color: sel ? C.orange : b.price > 0 ? C.orange : C.green }}>
+                      <div style={{ padding: '7px 8px' }}>
+                        <div style={{ fontSize: 11, fontWeight: 600, color: sel ? C.black : C.gray, marginBottom: 2 }}>{b.name}</div>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: sel ? C.orange : b.price > 0 ? C.orange : C.green }}>
                           {b.price === 0 ? 'Pulsuz' : `+${b.price.toFixed(2)} ₼`}
                         </div>
                       </div>
@@ -482,11 +486,15 @@ const ProductModal: React.FC<ProductModalProps> = ({
               )}
             </Sec>
           )}
+
+          <div style={{ height: 8 }} />
         </div>
 
-        {/* Footer */}
+        {/* Footer — həmişə aşağıda görünür */}
         <div style={{
-          padding: '14px 20px 28px', background: C.white,
+          padding: '14px 20px',
+          paddingBottom: 'max(20px, env(safe-area-inset-bottom, 20px))',
+          background: C.white,
           borderTop: `1px solid ${C.border}`,
           flexShrink: 0,
         }}>
@@ -501,12 +509,13 @@ const ProductModal: React.FC<ProductModalProps> = ({
           <button
             onClick={handleAddToCart}
             style={{
-              width: '100%', padding: '14px', borderRadius: 10, border: 'none',
+              width: '100%', padding: '15px', borderRadius: 10, border: 'none',
               background: C.orange, color: C.white,
-              fontSize: 15, fontWeight: 700,
+              fontSize: 16, fontWeight: 700,
               cursor: 'pointer', fontFamily: FONT,
               boxShadow: '0 4px 16px rgba(255,106,0,0.25)',
               transition: 'background 0.15s',
+              minHeight: 52,
             }}
             onMouseEnter={e => e.currentTarget.style.background = '#E55E00'}
             onMouseLeave={e => e.currentTarget.style.background = C.orange}

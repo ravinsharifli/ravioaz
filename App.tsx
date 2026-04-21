@@ -688,6 +688,10 @@ export default function App() {
 
         /* Mobile layout improvements */
         @media (max-width: 640px) {
+          body { font-size: 15px; }
+          input, select, textarea { font-size: 16px !important; }
+          .r-section { padding-left: 16px !important; padding-right: 16px !important; }
+        }
           /* Prevent text from being too small */
           body { font-size: 15px; }
 
