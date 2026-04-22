@@ -10,6 +10,31 @@ export default {
       validation: Rule => Rule.required()
     },
     {
+      name: 'slug',
+      title: '🔗 URL (slug)',
+      type: 'slug',
+      description: 'Məhsulun saytdakı linki. "Generate" düyməsinə bas — avtomatik yaranır.',
+      options: {
+        source: 'name',
+        maxLength: 96,
+        slugify: input =>
+          input
+            .toLowerCase()
+            .replace(/ə/g, 'e')
+            .replace(/ı/g, 'i')
+            .replace(/ö/g, 'o')
+            .replace(/ü/g, 'u')
+            .replace(/ğ/g, 'g')
+            .replace(/ş/g, 's')
+            .replace(/ç/g, 'c')
+            .replace(/[^a-z0-9\s-]/g, '')
+            .replace(/\s+/g, '-')
+            .replace(/-+/g, '-')
+            .slice(0, 96),
+      },
+      validation: Rule => Rule.required(),
+    },
+    {
       name: 'category',
       title: 'Kateqoriya',
       type: 'reference',
@@ -175,7 +200,7 @@ export default {
       name: 'isBestSeller',
       title: '⭐ Ən çox satılan?',
       type: 'boolean',
-      description: 'Açın — "Ən çox satılanlar" bölməsində görünsün.',
+      description: 'Açın — \"Ən çox satılanlar\" bölməsində görünsün.',
       initialValue: false,
     },
     {
@@ -189,7 +214,7 @@ export default {
       name: 'orderCount',
       title: '📦 Ümumi sifariş sayı (avtomatik artır)',
       type: 'number',
-      description: 'Hər sifarişdə avtomatik artır. Çox olduqda "Ən çox satılan"a düşür.',
+      description: 'Hər sifarişdə avtomatik artır. Çox olduqda \"Ən çox satılan\"a düşür.',
       initialValue: 0,
       readOnly: false,
     },
@@ -206,7 +231,7 @@ export default {
       name: 'bulkDiscountNote',
       title: 'Endirim bildirişi (qırmızı yazı ilə göstərilir)',
       type: 'string',
-      description: 'Məs: "2+ sifariş etdikdə xüsusi endirim əldə et!"',
+      description: 'Məs: \"2+ sifariş etdikdə xüsusi endirim əldə et!\"',
       hidden: ({ document }) => !document?.hasBulkDiscount,
     },
     {
@@ -229,7 +254,7 @@ export default {
               name: 'maxQty',
               title: 'Maksimum say (məs: 10, 20 — sonsuz üçün boş burax)',
               type: 'number',
-              description: 'Boş buraxsanız "və daha çox" mənasını verir.',
+              description: 'Boş buraxsanız \"və daha çox\" mənasını verir.',
             },
             {
               name: 'discountAmount',
@@ -240,7 +265,7 @@ export default {
             },
             {
               name: 'label',
-              title: 'Göstəriləcək mətn (məs: "1-10 ədəd")',
+              title: 'Göstəriləcək mətn (məs: \"1-10 ədəd\")',
               type: 'string',
             },
           ],

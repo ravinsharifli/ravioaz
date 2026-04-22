@@ -1,6 +1,8 @@
 import product from './product'
 import siteSettings from './siteSettings'
 import customerReview from './customerReview'
+import order from './order'
+
 const category = {
   name: 'category',
   title: 'Kateqoriya',
@@ -33,7 +35,6 @@ const promoBanner = {
   title: 'Kampaniya Baneri',
   type: 'document',
   fields: [
-    // --- ÖLÇÜ ---
     {
       name: 'size',
       title: '📐 Baner Ölçüsü',
@@ -52,19 +53,15 @@ const promoBanner = {
       },
       initialValue: 'wide-medium',
     },
-
-    // --- ŞƏKİL ---
     {
       name: 'image',
       title: '🖼 Baner Şəkli',
       type: 'image',
-      description: 'İstənilən şəkil yükləyə bilərsiniz - Canva, Google, telefon şəkli. Şəkil arxa fon olacaq, üstündə yazdığınız başlıq və mətnlər görünəcək. Bütün yazıları şəklin üzərindən yazacaqsınızsa, başlıq/alt başlıq sahələrini boş buraxın.',
+      description: 'İstənilən şəkil yükləyə bilərsiniz - Canva, Google, telefon şəkli.',
       options: {
         hotspot: true,
       },
     },
-
-    // --- MƏTN SAHƏLƏRİ ---
     {
       name: 'badge',
       title: '🏷 Nişan mətni',
@@ -94,25 +91,21 @@ const promoBanner = {
       name: 'backgroundColor',
       title: '🎨 Arxa fon rəngi (şəkil yoxdursa)',
       type: 'string',
-      description: 'Hex kod: #1A1A1A (qara), #FF8C00 (narıncı). Şəkil varsa bu sahə istifadə edilmir.',
+      description: 'Hex kod: #1A1A1A (qara), #FF8C00 (narıncı).',
       initialValue: '#1A1A1A',
     },
-
-    // --- DÜYMƏ ---
     {
       name: 'buttonText',
       title: '🔘 Düymə mətni',
       type: 'string',
-      description: 'Məsələn: Sifariş et, Dəstək ol, İndi kəşf et, Alışa başla',
+      description: 'Məsələn: Sifariş et, Dəstək ol, İndi kəşf et',
     },
     {
       name: 'buttonCategory',
       title: '📂 Düymə kateqoriyası',
       type: 'string',
-      description: 'Düyməyə basdıqda hansı kateqoriya açılsın? Sanity-dəki kateqoriya adını dəqiq yazın. Boş buraxsanız bütün məhsullar açılır.',
+      description: 'Düyməyə basdıqda hansı kateqoriya açılsın? Sanity-dəki kateqoriya adını dəqiq yazın.',
     },
-
-    // --- AKTİV/SIRA ---
     {
       name: 'isActive',
       title: '✅ Aktiv?',
@@ -154,4 +147,4 @@ const promoBanner = {
   },
 }
 
-export const schemaTypes = [category, product, promoBanner, siteSettings, customerReview]
+export const schemaTypes = [category, product, promoBanner, siteSettings, customerReview, order]

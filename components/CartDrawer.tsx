@@ -316,7 +316,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
         : kurDay !== '' && kurMonth !== '' && address.trim().length > 0
     );
 
-  const handleWhatsApp = () => {
+  const handleWhatsApp = async () => {
     if (!checkoutValid) return;
     const birthStr = bdDay && bdMonth && bdYear
       ? `${bdDay} ${bdMonth} ${bdYear}`
@@ -355,6 +355,46 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
       `*ÜMUMİ: ${grandTotal.toFixed(2)} ₼*\n` +
       `*💳 ÖN ÖDƏNİŞ (50% beh): ${grandBeh.toFixed(2)} ₼*\n` +
       `Qalan ${(grandTotal - grandBeh).toFixed(2)} ₼ məhsul alınarkən`;
+
+    // ── Sanity-ə sifariş yaz ──────────────────────────────────────────────
+    try {
+      const { createClient } = await import('@sanity/client');
+      const sanityClient = createClient({
+        projectId: 'w7scii42',
+        dataset: 'production',
+        apiVersion: '2024-01-01',
+        useCdn: false,
+        token: (import.meta as any).env?.VITE_SANITY_TOKEN,
+      });
+
+      const orderId = 'R-' + Date.now().toString(36).toUpperCase();
+
+      await sanityClient.create({
+        _type: 'order',
+        orderId,
+        status: 'new',
+        customerName: custName,
+        phone,
+        deliveryMethod: delivery,
+        deliveryDetails: delStr,
+        totalAmount: grandTotal,
+        depositAmount: grandBeh,
+        createdAt: new Date().toISOString(),
+        items: items.map(item => ({
+          _key: item.cartId,
+          productName: item.productName,
+          modelName: item.modelName,
+          colorName: item.colorName,
+          quantity: item.quantity,
+          price: item.discountPrice ?? item.price,
+          customText: item.customText || '',
+          boxType: item.boxType || '',
+        })),
+      });
+    } catch (err) {
+      // Sanity yazma xətası WhatsApp-ı dayandırmasın
+      console.error('Sanity order error:', err);
+    }
 
     window.open(`https://wa.me/994519831483?text=${encodeURIComponent(msg)}`, '_blank');
   };
