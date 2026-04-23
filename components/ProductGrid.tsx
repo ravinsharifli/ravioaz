@@ -2,6 +2,22 @@
 import { ShoppingBag, Zap, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Product } from '../types';
 
+// Sanity CDN şəkillərini WebP formatına çevir və ölçüsünü optimallaşdır
+function toWebP(url: string, width: number = 600): string {
+  if (!url || !url.includes('cdn.sanity.io')) return url;
+  try {
+    const u = new URL(url);
+    u.searchParams.set('w', String(width));
+    u.searchParams.set('fm', 'webp');
+    u.searchParams.set('q', '80');
+    u.searchParams.set('fit', 'max');
+    u.searchParams.set('auto', 'format');
+    return u.toString();
+  } catch {
+    return url;
+  }
+}
+
 interface ProductGridProps {
   products: Product[];
   onAddToCart: (product: Product) => void;
@@ -39,11 +55,14 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart, onView
           gap: 16px;
           grid-template-columns: repeat(4, 1fr);
         }
-        @media (max-width: 1024px) {
+        @media (max-width: 1200px) {
           .ravio-product-grid { grid-template-columns: repeat(3, 1fr); }
         }
-        @media (max-width: 640px) {
-          .ravio-product-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        @media (max-width: 900px) {
+          .ravio-product-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        }
+        @media (max-width: 400px) {
+          .ravio-product-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
         }
       `}</style>
       <div className="ravio-product-grid">
@@ -127,7 +146,9 @@ const Card: React.FC<CardProps> = ({
       >
         {images.length > 0 ? (
           <img
-            src={images[imgIdx]} alt={product.name}
+            src={toWebP(images[imgIdx], 480)} alt={product.name}
+            loading="lazy"
+            decoding="async"
             style={{
               width: '100%', height: '100%', objectFit: 'cover', display: 'block',
               transition: 'transform 0.5s ease',

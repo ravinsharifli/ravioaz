@@ -406,12 +406,27 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
       style={{ position: 'fixed', inset: 0, zIndex: 1500, background: 'rgba(0,0,0,0.5)', fontFamily: FONT }}
       onClick={e => { if (e.target === e.currentTarget) { onClose(); setIsCheckingOut(false); } }}
     >
-      <div style={{
-        position: 'absolute', right: 0, top: 0, bottom: 0,
-        width: '100%', maxWidth: 480,
-        background: C.bg, display: 'flex', flexDirection: 'column' as const,
-        boxShadow: '-8px 0 32px rgba(0,0,0,0.12)',
-      }}>
+      <style>{`
+        .ravio-cart-drawer {
+          position: absolute;
+          right: 0; top: 0; bottom: 0;
+          width: 100%;
+          background: ${C.bg};
+          display: flex;
+          flex-direction: column;
+          box-shadow: -8px 0 32px rgba(0,0,0,0.12);
+        }
+        @media (min-width: 480px) {
+          .ravio-cart-drawer { max-width: 480px; }
+        }
+        @media (min-width: 768px) {
+          .ravio-cart-drawer { max-width: 520px; }
+        }
+        @media (min-width: 1024px) {
+          .ravio-cart-drawer { max-width: 560px; }
+        }
+      `}</style>
+      <div className="ravio-cart-drawer">
 
         {/* Header */}
         <div style={{ background: C.white, borderBottom: `1px solid ${C.border}`, padding: '18px 20px', flexShrink: 0 }}>

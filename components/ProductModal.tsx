@@ -2,6 +2,21 @@ import React, { useState } from 'react';
 import { X, ChevronLeft, ChevronRight, Upload, Minus, Plus, Check } from 'lucide-react';
 import { Product, CartItem, BulkTier } from '../types';
 
+function toWebP(url: string, width: number = 800): string {
+  if (!url || !url.includes('cdn.sanity.io')) return url;
+  try {
+    const u = new URL(url);
+    u.searchParams.set('w', String(width));
+    u.searchParams.set('fm', 'webp');
+    u.searchParams.set('q', '85');
+    u.searchParams.set('fit', 'max');
+    u.searchParams.set('auto', 'format');
+    return u.toString();
+  } catch {
+    return url;
+  }
+}
+
 const FONT = "'Inter', -apple-system, sans-serif";
 
 const C = {
@@ -223,6 +238,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
 
   return (
     <div
+      className="ravio-modal-wrapper"
       style={{
         position: 'fixed', inset: 0, zIndex: 2000,
         background: 'rgba(0,0,0,0.5)',
@@ -231,13 +247,36 @@ const ProductModal: React.FC<ProductModalProps> = ({
       }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div style={{
-        background: C.bg, width: '100%', maxWidth: 560, margin: '0 auto',
-        maxHeight: 'min(94dvh, 94vh)',
-        borderRadius: '16px 16px 0 0',
-        display: 'flex', flexDirection: 'column' as const, overflow: 'hidden',
-        boxShadow: '0 -16px 48px rgba(0,0,0,0.12)',
-      }}>
+      <style>{`
+        .ravio-modal-inner {
+          background: ${C.bg};
+          width: 100%;
+          max-height: min(94dvh, 94vh);
+          border-radius: 16px 16px 0 0;
+          display: flex;
+          flex-direction: column;
+          overflow: hidden;
+          box-shadow: 0 -16px 48px rgba(0,0,0,0.12);
+          margin: 0 auto;
+        }
+        @media (min-width: 600px) {
+          .ravio-modal-inner { max-width: 560px; }
+        }
+        @media (min-width: 768px) {
+          .ravio-modal-wrapper {
+            align-items: center !important;
+          }
+          .ravio-modal-inner {
+            max-width: 600px;
+            max-height: min(90dvh, 90vh);
+            border-radius: 16px;
+          }
+        }
+        @media (min-width: 1024px) {
+          .ravio-modal-inner { max-width: 640px; }
+        }
+      `}</style>
+      <div className="ravio-modal-inner">
 
         {/* Header */}
         <div style={{ background: C.white, borderBottom: `1px solid ${C.border}`, padding: '16px 20px', flexShrink: 0 }}>
@@ -267,8 +306,10 @@ const ProductModal: React.FC<ProductModalProps> = ({
               border: `1px solid ${C.border}`,
             }}>
               <img
-                src={allImages[imgIdx]?.url}
+                src={toWebP(allImages[imgIdx]?.url ?? '', 800)}
                 alt={product.name}
+                loading="lazy"
+                decoding="async"
                 style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
                 onError={e => { (e.target as HTMLImageElement).src = 'https://placehold.co/400x280/F5F2EC/AAAAAA?text=Şəkil+yoxdur'; }}
               />

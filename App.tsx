@@ -369,7 +369,7 @@ function AppShell() {
     return (
       <div style={{ maxWidth: 1280, margin: '0 auto', padding: 'clamp(20px,3vw,32px) clamp(16px,3vw,32px) 64px' }}>
         <div style={{ display: 'flex', gap: 32, alignItems: 'flex-start' }}>
-          <aside className="r-desktop-nav" style={{ flexShrink: 0, width: 200, position: 'sticky', top: 110, maxHeight: 'calc(100vh - 130px)', overflowY: 'auto', paddingRight: 8, scrollbarWidth: 'none' }}>
+          <aside className="r-desktop-nav r-catalog-aside" style={{ flexShrink: 0, width: 200, position: 'sticky', top: 110, maxHeight: 'calc(100vh - 130px)', overflowY: 'auto', paddingRight: 8, scrollbarWidth: 'none' }}>
             <p style={{ fontSize: 10, fontWeight: 700, color: '#FF6A00', letterSpacing: 1.5, textTransform: 'uppercase', margin: '0 0 12px' }}>Kateqoriyalar</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <button onClick={() => setActiveCategory(null)} style={{ padding: '10px 12px', borderRadius: 8, border: 'none', background: !activeCategory ? '#111111' : 'transparent', color: !activeCategory ? '#FFFFFF' : '#555555', fontSize: 13, fontWeight: !activeCategory ? 600 : 400, cursor: 'pointer', textAlign: 'left', fontFamily: "'Inter', sans-serif", transition: 'all 0.15s', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -504,6 +504,10 @@ function AppShell() {
         div::-webkit-scrollbar { display: none; }
         @media (max-width: 768px) { .r-desktop-nav { display: none !important; } }
         @media (min-width: 769px) { .r-mobile-nav { display: none !important; } }
+        @media (max-width: 900px) {
+          .r-catalog-aside { display: none !important; }
+          .r-catalog-main { margin-left: 0 !important; }
+        }
         @media (max-width: 640px) {
           body { font-size: 15px; }
           input, select, textarea { font-size: 16px !important; }
