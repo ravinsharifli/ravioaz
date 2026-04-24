@@ -50,6 +50,24 @@ export interface MetroSchedule {
   stations: MetroStation[];
 }
 
+// ── Real İşlər post (Sanity-dən gəlir) ────────────────────────
+export interface ReelPost {
+  imageUrl: string;
+  label?: string;
+  title: string;
+  subtitle?: string;
+  ctaText?: string;
+}
+
+export interface Coupon {
+  code: string;
+  discountType: 'fixed' | 'percent';
+  discountValue: number;
+  minOrderAmount: number;
+  isActive: boolean;
+  description?: string;
+}
+
 export interface CartItem {
   cartId: string;
   productId: string;

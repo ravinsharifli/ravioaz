@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { X, Trash2, ShoppingBag, ArrowRight, Edit3, ChevronLeft, ChevronRight } from 'lucide-react';
-import { CartItem, MetroSchedule } from '../types';
+import { X, Trash2, ShoppingBag, ArrowRight, Edit3, ChevronLeft, ChevronRight, Tag, CheckCircle, AlertCircle } from 'lucide-react';
+import { CartItem, MetroSchedule, Coupon } from '../types';
 
 const FONT = "'Inter', -apple-system, sans-serif";
 
@@ -16,14 +16,27 @@ const C = {
   orangeBd: '#FFD4B8',
   green:    '#16A34A',
   greenBg:  '#F0FDF4',
+  greenBd:  '#BBF7D0',
   blue:     '#2563EB',
   blueBg:   '#EFF6FF',
   blueBd:   '#BFDBFE',
   red:      '#DC2626',
+  redBg:    '#FEF2F2',
+  redBd:    '#FECACA',
 };
 
 const MONTHS_AZ = ['Yanvar','Fevral','Mart','Aprel','May','İyun','İyul','Avqust','Sentyabr','Oktyabr','Noyabr','Dekabr'];
 const DAYS_LIST = Array.from({ length: 31 }, (_, i) => String(i + 1).padStart(2, '0'));
+
+// Doğum illəri — 1970-dən bu ilə qədər
+const currentYear = new Date().getFullYear();
+const BIRTH_YEARS = Array.from(
+  { length: currentYear - 1969 },
+  (_, i) => String(1970 + i)
+).reverse(); // ən yeni il əvvəl
+
+// Sifariş ili seçimləri
+const ORDER_YEARS = ['2025', '2026', '2027'];
 
 // Günün adı (AZ) - JS getDay() sırasına görə
 const WEEKDAY_AZ = ['Bazar','Bazar ertəsi','Çərşənbə axşamı','Çərşənbə','Cümə axşamı','Cümə','Şənbə'];
@@ -54,7 +67,7 @@ function formatDate(d: Date): string {
 }
 
 function dateKey(d: Date): string {
-  return d.toISOString().slice(0,10); // YYYY-MM-DD
+  return d.toISOString().slice(0,10);
 }
 
 function weekdayName(d: Date): string {
@@ -73,12 +86,17 @@ const Label: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   </p>
 );
 
-const Sec: React.FC<{ children: React.ReactNode; highlight?: boolean }> = ({ children, highlight }) => (
-  <div style={{
-    background: C.white, border: `1.5px solid ${highlight ? C.blue : C.border}`,
-    borderRadius: 12, padding: '14px 16px', marginBottom: 12,
-  }}>{children}</div>
-);
+const Sec: React.FC<{ children: React.ReactNode; highlight?: boolean; success?: boolean }> = ({ children, highlight, success }) => {
+  let borderColor = C.border;
+  if (highlight) borderColor = C.blue;
+  if (success) borderColor = C.green;
+  return (
+    <div style={{
+      background: C.white, border: `1.5px solid ${borderColor}`,
+      borderRadius: 12, padding: '14px 16px', marginBottom: 12,
+    }}>{children}</div>
+  );
+};
 
 const Inp: React.FC<React.InputHTMLAttributes<HTMLInputElement>> = ({ onFocus, onBlur, ...props }) => (
   <input
@@ -111,10 +129,15 @@ const Sel: React.FC<{ value: string; onChange: (v: string) => void; opts: string
   </select>
 );
 
-const SRow: React.FC<{ l: string; r: string; accent?: boolean; bold?: boolean }> = ({ l, r, accent, bold }) => (
+const SRow: React.FC<{ l: string; r: string; accent?: boolean; bold?: boolean; strike?: boolean }> = ({ l, r, accent, bold, strike }) => (
   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
     <span style={{ fontSize: 13, color: C.gray, fontFamily: FONT }}>{l}</span>
-    <span style={{ fontSize: 13, fontWeight: bold ? 700 : 500, color: accent ? C.green : C.black, fontFamily: FONT }}>{r}</span>
+    <span style={{
+      fontSize: 13, fontWeight: bold ? 700 : 500,
+      color: accent ? C.green : C.black, fontFamily: FONT,
+      textDecoration: strike ? 'line-through' : 'none',
+      opacity: strike ? 0.5 : 1,
+    }}>{r}</span>
   </div>
 );
 
@@ -223,6 +246,125 @@ const DatePicker: React.FC<{
   );
 };
 
+// ── Kupon bölməsi ──────────────────────────────────────────────
+const CouponSection: React.FC<{
+  coupons: Coupon[];
+  subtotalBeforeCoupon: number;
+  appliedCoupon: Coupon | null;
+  onApply: (coupon: Coupon) => void;
+  onRemove: () => void;
+}> = ({ coupons, subtotalBeforeCoupon, appliedCoupon, onApply, onRemove }) => {
+  const [inputCode, setInputCode]   = useState('');
+  const [error, setError]           = useState('');
+  const [inputFocused, setInputFocused] = useState(false);
+
+  const handleApply = () => {
+    const trimmed = inputCode.trim().toUpperCase();
+    if (!trimmed) { setError('Kupon kodu daxil edin'); return; }
+
+    const found = coupons.find(c => c.code.toUpperCase() === trimmed && c.isActive);
+    if (!found) {
+      setError('Bu kupon kodu tapılmadı və ya artıq deaktivdir');
+      return;
+    }
+
+    if (found.minOrderAmount > 0 && subtotalBeforeCoupon < found.minOrderAmount) {
+      setError(`Bu kupon üçün minimum sifariş məbləği ${found.minOrderAmount}₼-dir`);
+      return;
+    }
+
+    setError('');
+    onApply(found);
+    setInputCode('');
+  };
+
+  if (appliedCoupon) {
+    const discount =
+      appliedCoupon.discountType === 'percent'
+        ? Math.round(subtotalBeforeCoupon * appliedCoupon.discountValue / 100 * 100) / 100
+        : appliedCoupon.discountValue;
+
+    return (
+      <div style={{
+        background: C.greenBg, border: `1.5px solid ${C.greenBd}`,
+        borderRadius: 12, padding: '12px 16px', marginBottom: 12,
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <CheckCircle size={18} color={C.green} />
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: C.green, fontFamily: FONT }}>
+              {appliedCoupon.code}
+            </div>
+            <div style={{ fontSize: 11, color: '#166534', fontFamily: FONT, marginTop: 1 }}>
+              −{discount.toFixed(2)}₼ endirim tətbiq edildi
+            </div>
+          </div>
+        </div>
+        <button
+          onClick={onRemove}
+          style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            color: C.gray, padding: 4, display: 'flex', alignItems: 'center',
+          }}
+        >
+          <X size={16} />
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ marginBottom: 12 }}>
+      <div style={{ display: 'flex', gap: 8 }}>
+        <div style={{ flex: 1, position: 'relative' as const }}>
+          <Tag size={15} style={{
+            position: 'absolute', left: 12, top: '50%',
+            transform: 'translateY(-50%)', color: C.grayLt, pointerEvents: 'none',
+          }} />
+          <input
+            value={inputCode}
+            onChange={e => { setInputCode(e.target.value.toUpperCase()); setError(''); }}
+            onKeyDown={e => e.key === 'Enter' && handleApply()}
+            placeholder="Endirim kodu"
+            onFocus={() => setInputFocused(true)}
+            onBlur={() => setInputFocused(false)}
+            style={{
+              width: '100%', background: C.white,
+              border: `1px solid ${error ? C.red : inputFocused ? C.blue : C.border}`,
+              borderRadius: 8, padding: '11px 12px 11px 36px',
+              color: C.black, fontSize: 13, fontFamily: FONT,
+              outline: 'none', boxSizing: 'border-box' as const,
+              transition: 'border-color 0.15s',
+              letterSpacing: 1,
+            }}
+          />
+        </div>
+        <button
+          onClick={handleApply}
+          style={{
+            padding: '0 18px', background: C.black, color: C.white,
+            border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600,
+            cursor: 'pointer', fontFamily: FONT, whiteSpace: 'nowrap' as const,
+            flexShrink: 0,
+          }}
+        >
+          Tətbiq et
+        </button>
+      </div>
+      {error && (
+        <div style={{
+          marginTop: 8, display: 'flex', alignItems: 'center', gap: 6,
+          fontSize: 12, color: C.red, fontFamily: FONT,
+        }}>
+          <AlertCircle size={13} />
+          {error}
+        </div>
+      )}
+    </div>
+  );
+};
+
 // ── Props ──────────────────────────────────────────────────────
 interface CartDrawerProps {
   isOpen: boolean;
@@ -232,6 +374,7 @@ interface CartDrawerProps {
   onEdit: (item: CartItem) => void;
   onGoToProducts?: () => void;
   metroSchedule?: MetroSchedule;
+  coupons?: Coupon[];
 }
 
 function getItemSubtotal(item: CartItem): number {
@@ -242,7 +385,7 @@ function getItemSubtotal(item: CartItem): number {
 
 // ── Əsas komponent ─────────────────────────────────────────────
 const CartDrawer: React.FC<CartDrawerProps> = ({
-  isOpen, onClose, items, onRemove, onEdit, onGoToProducts, metroSchedule,
+  isOpen, onClose, items, onRemove, onEdit, onGoToProducts, metroSchedule, coupons = [],
 }) => {
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [custName,     setCustName]     = useState('');
@@ -261,6 +404,9 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
   const [kurDay,       setKurDay]       = useState('');
   const [kurMonth,     setKurMonth]     = useState('');
   const [kurYear,      setKurYear]      = useState('2026');
+  const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
+
+  if (!isOpen) return null;
 
   // ── Metro məlumatları ──────────────────────────────────────────
   const stations = (metroSchedule?.stations ?? []).filter(s => s.isActive !== false);
@@ -275,7 +421,6 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
     ? (selectedStation?.daySchedules ?? []).find((ds: any) => ds.day === selWeekday)
     : null;
 
-  // allDayOpen = true → bütün saatlar, false → yalnız seçilmiş saatlar
   const allTimeSlots: string[] = selectedDaySchedule
     ? (selectedDaySchedule.allDayOpen
         ? TIME_SLOTS
@@ -301,10 +446,21 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
   const baseTotal   = items.reduce((s, item) => s + getItemSubtotal(item), 0);
   const deliveryFee = delivery === 'metro' ? 0 : 4.99;
   const subtotal    = baseTotal + deliveryFee;
-  const discRate    = customerType === 'loyal' ? 20 : customerType === 'new' ? 10 : 0;
-  const custDisc    = customerType ? Math.round(subtotal * discRate / 100 * 100) / 100 : 0;
-  const grandTotal  = subtotal - custDisc;
-  const grandBeh    = Math.ceil(grandTotal * 0.5);
+
+  // Müştəri endirimi
+  const discRate = customerType === 'loyal' ? 20 : customerType === 'new' ? 10 : 0;
+  const custDisc = customerType ? Math.round(subtotal * discRate / 100 * 100) / 100 : 0;
+  const afterCustDisc = subtotal - custDisc;
+
+  // Kupon endirimi (müştəri endirimindən sonra tətbiq edilir)
+  const couponDiscount = appliedCoupon
+    ? appliedCoupon.discountType === 'percent'
+      ? Math.round(afterCustDisc * appliedCoupon.discountValue / 100 * 100) / 100
+      : Math.min(appliedCoupon.discountValue, afterCustDisc)
+    : 0;
+
+  const grandTotal = Math.max(0, afterCustDisc - couponDiscount);
+  const grandBeh   = Math.ceil(grandTotal * 0.5);
 
   const checkoutValid =
     custName.trim().length > 0 &&
@@ -316,15 +472,30 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
         : kurDay !== '' && kurMonth !== '' && address.trim().length > 0
     );
 
+  // ── GA4 + Meta Pixel tracking ──────────────────────────────────
+  const trackEvent = (name: string, params?: Record<string, any>) => {
+    try {
+      if (typeof (window as any).trackEvent === 'function') {
+        (window as any).trackEvent(name, params);
+      }
+      // Meta Pixel
+      if (typeof (window as any).fbq === 'function') {
+        (window as any).fbq('track', name, params);
+      }
+    } catch (_) {}
+  };
+
+  // ── WhatsApp göndər ────────────────────────────────────────────
   const handleWhatsApp = async () => {
     if (!checkoutValid) return;
+
     const birthStr = bdDay && bdMonth && bdYear
       ? `${bdDay} ${bdMonth} ${bdYear}`
       : 'Bildirilməyib';
 
     const delStr = delivery === 'metro'
       ? `Metro: ${metro} · Tarix: ${selDateDisplay} (${selWeekday}) · Saat: ${delTime}`
-      : `${kurDay} ${kurMonth} ${kurYear} · ${delivery === 'kuryer' ? 'Kuryer' : 'Poçt'} · Ünvan: ${address}`;
+      : `${kurDay} ${kurMonth} ${kurYear} · ${delivery === 'post' ? 'Poçt' : 'Kuryer'} · Ünvan: ${address}`;
 
     const itemsText = items.map((item, idx) => {
       const imgUrl = item.images?.[0] ?? '';
@@ -350,13 +521,39 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
       `- Müştəri növü: ${customerType === 'loyal' ? 'Daimi müştəri' : 'Yeni müştəri'}\n\n` +
       `━━━━━━━━━━━━━━━\n` +
       `Məhsullar cəmi: ${baseTotal.toFixed(2)} ₼\n` +
-      (deliveryFee > 0 ? `Çatdırılma: +${deliveryFee.toFixed(2)} ₼\n` : `Çatdırılma: Pulsuz\n`) +
-      (custDisc > 0 ? `Endirim (${discRate}%): -${custDisc.toFixed(2)} ₼\n` : '') +
+      (deliveryFee > 0 ? `${delivery === 'post' ? 'Poçt' : 'Çatdırılma'}: +${deliveryFee.toFixed(2)} ₼\n` : `Çatdırılma: Pulsuz\n`) +
+      (custDisc > 0 ? `Müştəri endirimi (${discRate}%): -${custDisc.toFixed(2)} ₼\n` : '') +
+      (appliedCoupon && couponDiscount > 0
+        ? `Kupon endirimi (${appliedCoupon.code}): -${couponDiscount.toFixed(2)} ₼\n`
+        : '') +
       `*ÜMUMİ: ${grandTotal.toFixed(2)} ₼*\n` +
       `*💳 ÖN ÖDƏNİŞ (50% beh): ${grandBeh.toFixed(2)} ₼*\n` +
       `Qalan ${(grandTotal - grandBeh).toFixed(2)} ₼ məhsul alınarkən`;
 
-    // ── Sanity-ə sifariş yaz ──────────────────────────────────────────────
+    // ── GA4 Purchase event ──────────────────────────────────────
+    trackEvent('purchase', {
+      currency: 'AZN',
+      value: grandTotal,
+      coupon: appliedCoupon?.code ?? '',
+      items: items.map((item, i) => ({
+        item_id: item.productId,
+        item_name: item.productName,
+        price: item.discountPrice ?? item.price,
+        quantity: item.quantity,
+        index: i,
+      })),
+    });
+
+    // Meta Pixel Purchase
+    if (typeof (window as any).fbq === 'function') {
+      (window as any).fbq('track', 'Purchase', {
+        value: grandTotal,
+        currency: 'AZN',
+        num_items: items.reduce((s, it) => s + it.quantity, 0),
+      });
+    }
+
+    // ── Sanity-ə sifariş yaz ──────────────────────────────────────
     try {
       const { createClient } = await import('@sanity/client');
       const sanityClient = createClient({
@@ -379,6 +576,8 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
         deliveryDetails: delStr,
         totalAmount: grandTotal,
         depositAmount: grandBeh,
+        couponCode: appliedCoupon?.code ?? '',
+        couponDiscount: couponDiscount,
         createdAt: new Date().toISOString(),
         items: items.map(item => ({
           _key: item.cartId,
@@ -392,15 +591,13 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
         })),
       });
     } catch (err) {
-      // Sanity yazma xətası WhatsApp-ı dayandırmasın
       console.error('Sanity order error:', err);
     }
 
     window.open(`https://wa.me/994519831483?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
-  if (!isOpen) return null;
-
+  // ── Render ─────────────────────────────────────────────────────
   return (
     <div
       style={{ position: 'fixed', inset: 0, zIndex: 1500, background: 'rgba(0,0,0,0.5)', fontFamily: FONT }}
@@ -531,13 +728,23 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                 <span style={{ fontSize: 14, color: C.gray }}>{items.length} məhsul</span>
                 <span style={{ fontSize: 16, fontWeight: 800, color: C.black }}>{baseTotal.toFixed(2)} ₼</span>
               </div>
-              <button onClick={() => setIsCheckingOut(true)} style={{
-                width: '100%', padding: '15px', borderRadius: 10, border: 'none',
-                background: C.orange, color: C.white,
-                fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: FONT,
-                boxShadow: '0 4px 16px rgba(255,106,0,0.25)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-              }}>
+              <button
+                onClick={() => {
+                  setIsCheckingOut(true);
+                  trackEvent('begin_checkout', {
+                    currency: 'AZN',
+                    value: baseTotal,
+                    num_items: items.reduce((s, it) => s + it.quantity, 0),
+                  });
+                }}
+                style={{
+                  width: '100%', padding: '15px', borderRadius: 10, border: 'none',
+                  background: C.orange, color: C.white,
+                  fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: FONT,
+                  boxShadow: '0 4px 16px rgba(255,106,0,0.25)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                }}
+              >
                 Sifarişi Tamamla <ArrowRight size={18} />
               </button>
             </div>
@@ -549,7 +756,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
           <>
             <div style={{ flex: 1, overflowY: 'auto' as const, padding: '16px 20px 20px' }}>
 
-              {/* Çatdırılma üsulu */}
+              {/* Çatdırılma üsulu — POÇT ÇIXARILDI */}
               <div style={{ marginBottom: 12 }}>
                 <Label>Çatdırılma üsulu</Label>
                 <div style={{ display: 'flex', gap: 8 }}>
@@ -594,7 +801,6 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                     </div>
                   )}
 
-                  {/* Tarix seçimi */}
                   {metro !== '' && (
                     <>
                       <Label>Çatdırılma tarixi</Label>
@@ -626,7 +832,6 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                     </>
                   )}
 
-                  {/* Saat seçimi */}
                   {selDateKey !== '' && (
                     <>
                       <Label>Çatdırılma saatı</Label>
@@ -664,17 +869,19 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                   />
                   <p style={{ margin: '0 0 14px', fontSize: 11, color: C.grayLt }}>
                     {delivery === 'post'
-                      ? 'Nümunə: Bakı, AZ1000, Əliağa Vahid küç. 12'
+                      ? 'Nümunə: Gəncə, AZ2000, Nizami küç. 45'
                       : 'Nümunə: Qaraçuxur, Maşallah market yanı'}
                   </p>
-                  <Label>Tarix</Label>
+                  <Label>Çatdırılma tarixi</Label>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1fr', gap: 8 }}>
-                    <Sel value={kurDay}   onChange={setKurDay}   opts={DAYS_LIST}       placeholder="Gün" />
-                    <Sel value={kurMonth} onChange={setKurMonth} opts={MONTHS_AZ}       placeholder="Ay"  />
-                    <Sel value={kurYear}  onChange={setKurYear}  opts={['2026','2027']} placeholder="İl"  />
+                    <Sel value={kurDay}   onChange={setKurDay}   opts={DAYS_LIST}   placeholder="Gün" />
+                    <Sel value={kurMonth} onChange={setKurMonth} opts={MONTHS_AZ}   placeholder="Ay"  />
+                    <Sel value={kurYear}  onChange={setKurYear}  opts={ORDER_YEARS} placeholder="İl"  />
                   </div>
                   <p style={{ margin: '8px 0 0', fontSize: 11, color: C.grayLt }}>
-                    Çatdırılma üçün kuryer əlaqə saxlayacaq
+                    {delivery === 'post'
+                      ? 'Poçt göndərişi 3–7 iş günü çəkir'
+                      : 'Çatdırılma üçün kuryer əlaqə saxlayacaq'}
                   </p>
                 </Sec>
               )}
@@ -686,16 +893,11 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                   <Inp value={custName} onChange={e => setCustName(e.target.value)} placeholder="Adınız" />
                   <Inp value={phone} onChange={e => setPhone(e.target.value)} placeholder="Telefon (+994 50 xxx xx xx)" type="tel" />
                   <div>
-                    <p style={{ fontSize: 12, color: C.gray, margin: '0 0 6px', fontFamily: FONT }}>Doğum tarixi</p>
+                    <p style={{ fontSize: 12, color: C.gray, margin: '0 0 6px', fontFamily: FONT }}>Doğum tarixi (isteğe bağlı)</p>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1fr', gap: 8 }}>
-                      <Sel value={bdDay}   onChange={setBdDay}   opts={DAYS_LIST} placeholder="Gün" />
-                      <Sel value={bdMonth} onChange={setBdMonth} opts={MONTHS_AZ} placeholder="Ay"  />
-                      <Sel value={bdYear}  onChange={setBdYear}
-                        opts={['1970','1975','1980','1985','1990','1991','1992','1993','1994',
-                               '1995','1996','1997','1998','1999','2000','2001','2002','2003',
-                               '2004','2005','2006']}
-                        placeholder="İl"
-                      />
+                      <Sel value={bdDay}   onChange={setBdDay}   opts={DAYS_LIST}  placeholder="Gün" />
+                      <Sel value={bdMonth} onChange={setBdMonth} opts={MONTHS_AZ}  placeholder="Ay"  />
+                      <Sel value={bdYear}  onChange={setBdYear}  opts={BIRTH_YEARS} placeholder="İl" />
                     </div>
                   </div>
                 </div>
@@ -736,19 +938,41 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                 </div>
               </Sec>
 
+              {/* ── ENDİRİM KODU ─────────────────────────────────────── */}
+              <div style={{ marginBottom: 12 }}>
+                <Label>🎟 Endirim kodu</Label>
+                <CouponSection
+                  coupons={coupons}
+                  subtotalBeforeCoupon={afterCustDisc}
+                  appliedCoupon={appliedCoupon}
+                  onApply={coupon => {
+                    setAppliedCoupon(coupon);
+                    trackEvent('coupon_applied', { coupon_code: coupon.code });
+                  }}
+                  onRemove={() => setAppliedCoupon(null)}
+                />
+              </div>
+
               {/* Sifariş xülasəsi */}
-              <Sec>
+              <Sec success={!!appliedCoupon}>
                 <Label>Sifariş xülasəsi</Label>
                 {items.map(item => (
                   <SRow key={item.cartId} l={`${item.productName} ×${item.quantity}`} r={`${getItemSubtotal(item).toFixed(2)} ₼`} />
                 ))}
                 {deliveryFee > 0 && (
-                  <SRow l={delivery === 'kuryer' ? 'Kuryer' : 'Poçt'} r={`+${deliveryFee.toFixed(2)} ₼`} />
+                  <SRow l={delivery === 'kuryer' ? 'Kuryer çatdırılması' : 'Poçt göndərişi'} r={`+${deliveryFee.toFixed(2)} ₼`} />
                 )}
                 {custDisc > 0 && (
                   <SRow
-                    l={customerType === 'loyal' ? 'Daimi müştəri endirimi' : 'Yeni müştəri endirimi'}
+                    l={customerType === 'loyal' ? `Daimi müştəri (${discRate}%)` : `Yeni müştəri (${discRate}%)`}
                     r={`−${custDisc.toFixed(2)} ₼`}
+                    accent
+                  />
+                )}
+                {appliedCoupon && couponDiscount > 0 && (
+                  <SRow
+                    l={`Kupon: ${appliedCoupon.code}`}
+                    r={`−${couponDiscount.toFixed(2)} ₼`}
                     accent
                   />
                 )}
@@ -774,7 +998,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
             <div style={{ padding: '14px 20px 28px', background: C.white, borderTop: `1px solid ${C.border}`, flexShrink: 0 }}>
               {!checkoutValid && (
                 <p style={{ fontSize: 12, color: C.grayLt, textAlign: 'center' as const, margin: '0 0 10px', fontFamily: FONT }}>
-                  Bütün xanaları doldurun
+                  Bütün məcburi xanaları doldurun
                 </p>
               )}
               <button

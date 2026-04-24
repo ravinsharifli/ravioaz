@@ -39,7 +39,12 @@ const SETTINGS_QUERY = `*[_type == "siteSettings"][0]{
       }
     }
   },
-  boxes[]{ id, name, desc, price, isActive, "imageUrl": image.asset->url }
+  boxes[]{ id, name, desc, price, isActive, "imageUrl": image.asset->url },
+  coupons[]{ code, discountType, discountValue, minOrderAmount, isActive, description },
+  "reelPosts": reelPosts[isActive != false]{
+    label, title, subtitle, ctaText,
+    "imageUrl": image.asset->url
+  }
 }`;
 
 function mapSanityProduct(raw: any): Product {
@@ -101,6 +106,199 @@ export const DEFAULT_BOXES = [
 ];
 
 // ── Hero Banner ────────────────────────────────────────────────────────────────
+// ── Real İşlər Karusel Banner ──────────────────────────────────────────────────
+function RealWorksBanner({ posts, onShopClick }: { posts: import('./types').ReelPost[]; onShopClick: () => void }) {
+  const [current, setCurrent] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
+
+  useEffect(() => {
+    if (posts.length <= 1 || isHovered) return;
+    const t = setInterval(() => setCurrent(c => (c + 1) % posts.length), 3500);
+    return () => clearInterval(t);
+  }, [posts.length, isHovered]);
+
+  if (!posts.length) return null;
+
+  const post = posts[current];
+
+  return (
+    <div style={{
+      background: '#111111',
+      padding: '48px clamp(16px, 5vw, 48px)',
+      position: 'relative',
+      overflow: 'hidden',
+    }}>
+      {/* Başlıq */}
+      <div style={{ maxWidth: 1280, margin: '0 auto 28px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+        <div>
+          <p style={{ margin: 0, fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase' as const, color: '#FF6A00', fontFamily: "'Inter', sans-serif", marginBottom: 6 }}>
+            📸 Real İşlər
+          </p>
+          <h2 style={{ margin: 0, fontSize: 'clamp(18px, 3vw, 26px)', fontWeight: 800, color: '#FFFFFF', fontFamily: "'Inter', sans-serif", letterSpacing: '-0.5px' }}>
+            Hazırladığımız işlər
+          </h2>
+        </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button
+            onClick={() => setCurrent(c => (c - 1 + posts.length) % posts.length)}
+            style={{
+              width: 36, height: 36, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.2)',
+              background: 'rgba(255,255,255,0.08)', color: '#FFFFFF', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16,
+            }}
+          >‹</button>
+          <button
+            onClick={() => setCurrent(c => (c + 1) % posts.length)}
+            style={{
+              width: 36, height: 36, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.2)',
+              background: 'rgba(255,255,255,0.08)', color: '#FFFFFF', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16,
+            }}
+          >›</button>
+        </div>
+      </div>
+
+      {/* Kart karusel */}
+      <div style={{ maxWidth: 1280, margin: '0 auto', display: 'flex', gap: 16, overflow: 'hidden' }}>
+        {/* Böyük aktiv kart */}
+        <div
+          key={post.imageUrl + current}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+          style={{
+            flex: '0 0 clamp(260px, 45%, 420px)',
+            borderRadius: 16,
+            overflow: 'hidden',
+            position: 'relative',
+            aspectRatio: '4/5',
+            background: '#1a1a1a',
+            cursor: 'pointer',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+            animation: 'ravio-fadein 0.4s ease',
+          }}
+          onClick={onShopClick}
+        >
+          {post.imageUrl && (
+            <img
+              src={post.imageUrl}
+              alt={post.title}
+              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+            />
+          )}
+          {/* Overlay */}
+          <div style={{
+            position: 'absolute', inset: 0,
+            background: 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.1) 50%, transparent 100%)',
+          }} />
+          {/* Etiket */}
+          {post.label && (
+            <div style={{
+              position: 'absolute', top: 14, left: 14,
+              background: '#FF6A00', borderRadius: 100,
+              padding: '5px 12px', fontSize: 11, fontWeight: 700, color: '#FFFFFF',
+              fontFamily: "'Inter', sans-serif", letterSpacing: 0.3,
+            }}>
+              {post.label}
+            </div>
+          )}
+          {/* Mətn */}
+          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '20px 18px' }}>
+            <p style={{ margin: '0 0 4px', fontSize: 16, fontWeight: 700, color: '#FFFFFF', fontFamily: "'Inter', sans-serif", lineHeight: 1.3 }}>
+              {post.title}
+            </p>
+            {post.subtitle && (
+              <p style={{ margin: '0 0 12px', fontSize: 12, color: 'rgba(255,255,255,0.7)', fontFamily: "'Inter', sans-serif" }}>
+                {post.subtitle}
+              </p>
+            )}
+            <div style={{
+              display: 'inline-block',
+              background: '#FF6A00', color: '#FFFFFF',
+              borderRadius: 8, padding: '8px 18px',
+              fontSize: 12, fontWeight: 700, fontFamily: "'Inter', sans-serif",
+            }}>
+              {post.ctaText || 'Sifariş et →'}
+            </div>
+          </div>
+        </div>
+
+        {/* Kiçik önizlə kartları (sağda 2-3 ədəd) */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column' as const, gap: 12, overflow: 'hidden' }}>
+          {posts
+            .map((p, i) => ({ p, i }))
+            .filter(({ i }) => i !== current)
+            .slice(0, 3)
+            .map(({ p, i }) => (
+              <div
+                key={i}
+                onClick={() => setCurrent(i)}
+                style={{
+                  flex: 1, borderRadius: 12, overflow: 'hidden',
+                  position: 'relative', cursor: 'pointer', background: '#1a1a1a',
+                  border: '2px solid rgba(255,255,255,0.08)',
+                  display: 'flex', alignItems: 'stretch',
+                  transition: 'border-color 0.2s',
+                  maxHeight: 120,
+                }}
+                onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(255,106,0,0.5)')}
+                onMouseLeave={e => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)')}
+              >
+                {p.imageUrl && (
+                  <img
+                    src={p.imageUrl}
+                    alt={p.title}
+                    style={{ width: 80, height: '100%', objectFit: 'cover', flexShrink: 0 }}
+                  />
+                )}
+                <div style={{ padding: '10px 14px', display: 'flex', flexDirection: 'column' as const, justifyContent: 'center', overflow: 'hidden' }}>
+                  {p.label && (
+                    <span style={{ fontSize: 10, color: '#FF6A00', fontWeight: 700, marginBottom: 4, fontFamily: "'Inter', sans-serif" }}>
+                      {p.label}
+                    </span>
+                  )}
+                  <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: '#FFFFFF', fontFamily: "'Inter', sans-serif", lineHeight: 1.35,
+                    overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as any }}>
+                    {p.title}
+                  </p>
+                  {p.subtitle && (
+                    <p style={{ margin: '4px 0 0', fontSize: 11, color: 'rgba(255,255,255,0.5)', fontFamily: "'Inter', sans-serif",
+                      overflow: 'hidden', whiteSpace: 'nowrap' as const, textOverflow: 'ellipsis' }}>
+                      {p.subtitle}
+                    </p>
+                  )}
+                </div>
+              </div>
+            ))}
+        </div>
+      </div>
+
+      {/* Nöqtə indikatoru */}
+      {posts.length > 1 && (
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 6, marginTop: 24 }}>
+          {posts.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setCurrent(i)}
+              style={{
+                width: i === current ? 20 : 6, height: 6, borderRadius: 3,
+                background: i === current ? '#FF6A00' : 'rgba(255,255,255,0.25)',
+                border: 'none', cursor: 'pointer', padding: 0, transition: 'all 0.3s',
+              }}
+            />
+          ))}
+        </div>
+      )}
+
+      <style>{`
+        @keyframes ravio-fadein {
+          from { opacity: 0; transform: scale(0.98); }
+          to   { opacity: 1; transform: scale(1); }
+        }
+      `}</style>
+    </div>
+  );
+}
+
 function HeroBanner({ onShopClick }: { onShopClick: () => void }) {
   const [currentSlide, setCurrentSlide] = useState(0);
 
@@ -163,7 +361,10 @@ function HeroBanner({ onShopClick }: { onShopClick: () => void }) {
           </h2>
           <p style={{ fontSize: 'clamp(13px, 2vw, 16px)', color: 'rgba(255,255,255,0.8)', lineHeight: 1.65, margin: '0 0 28px', fontWeight: 400, maxWidth: 460 }}>{slide.desc}</p>
           <button
-            onClick={onShopClick}
+            onClick={() => {
+              onShopClick();
+              try { if (typeof (window as any).trackEvent === 'function') (window as any).trackEvent('hero_cta_clicked', { slide: currentSlide, cta: slide.cta }); } catch(_) {}
+            }}
             style={{ padding: 'clamp(12px,2vw,15px) clamp(24px,4vw,36px)', background: '#FFFFFF', color: '#111111', border: 'none', borderRadius: 10, fontSize: 'clamp(13px,1.5vw,15px)', fontWeight: 700, cursor: 'pointer', fontFamily: "'Inter', sans-serif", boxShadow: '0 4px 20px rgba(0,0,0,0.2)', transition: 'transform 0.15s, box-shadow 0.15s' }}
             onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 28px rgba(0,0,0,0.25)'; }}
             onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.2)'; }}
@@ -236,6 +437,8 @@ function AppShell() {
 
   const metroSchedule = settings?.metroSchedule || DEFAULT_METRO;
   const boxes = ((settings?.boxes || DEFAULT_BOXES) as any[]).filter(b => b.isActive !== false);
+  const coupons = (settings?.coupons || []) as import('./types').Coupon[];
+  const reelPosts: import('./types').ReelPost[] = settings?.reelPosts || [];
 
   const categories       = Array.from(new Set(products.map(p => p.category).filter(Boolean))) as string[];
   const filteredProducts = activeCategory ? products.filter(p => p.category === activeCategory) : products;
@@ -288,6 +491,9 @@ function AppShell() {
     return (
       <div style={{ opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(16px)', transition: 'opacity 0.7s ease, transform 0.7s ease' }}>
         <HeroBanner onShopClick={() => goToProducts(null)} />
+        {reelPosts.length > 0 && (
+          <RealWorksBanner posts={reelPosts} onShopClick={() => goToProducts(null)} />
+        )}
         <InfoStrips />
 
         <section style={{ maxWidth: 1280, margin: '0 auto', padding: 'clamp(32px,5vw,56px) clamp(16px,3vw,32px)' }}>
@@ -492,6 +698,7 @@ function AppShell() {
         onEdit={handleEdit}
         onGoToProducts={() => { setCartOpen(false); navigate('/mehsullar'); }}
         metroSchedule={metroSchedule}
+        coupons={coupons}
       />
 
       <style>{`
