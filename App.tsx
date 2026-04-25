@@ -106,7 +106,6 @@ export const DEFAULT_BOXES = [
   { id: 'gift',    name: 'Premium qutu', price: 17, desc: 'Bağlama + qeyd kartı', isActive: true, imageUrl: null },
 ];
 
-// ── Hero Banner ────────────────────────────────────────────────────────────────
 // ── Real İşlər Karusel Banner ──────────────────────────────────────────────────
 function RealWorksBanner({ posts, onShopClick }: { posts: import('./types').ReelPost[]; onShopClick: () => void }) {
   const [current, setCurrent] = useState(0);
@@ -129,7 +128,6 @@ function RealWorksBanner({ posts, onShopClick }: { posts: import('./types').Reel
       position: 'relative',
       overflow: 'hidden',
     }}>
-      {/* Başlıq */}
       <div style={{ maxWidth: 1280, margin: '0 auto 28px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
         <div>
           <p style={{ margin: 0, fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase' as const, color: '#FF6A00', fontFamily: "'Inter', sans-serif", marginBottom: 6 }}>
@@ -159,9 +157,7 @@ function RealWorksBanner({ posts, onShopClick }: { posts: import('./types').Reel
         </div>
       </div>
 
-      {/* Kart karusel */}
       <div style={{ maxWidth: 1280, margin: '0 auto', display: 'flex', gap: 16, overflow: 'hidden' }}>
-        {/* Böyük aktiv kart */}
         <div
           key={post.imageUrl + current}
           onMouseEnter={() => setIsHovered(true)}
@@ -186,12 +182,10 @@ function RealWorksBanner({ posts, onShopClick }: { posts: import('./types').Reel
               style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
             />
           )}
-          {/* Overlay */}
           <div style={{
             position: 'absolute', inset: 0,
             background: 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.1) 50%, transparent 100%)',
           }} />
-          {/* Etiket */}
           {post.label && (
             <div style={{
               position: 'absolute', top: 14, left: 14,
@@ -202,7 +196,6 @@ function RealWorksBanner({ posts, onShopClick }: { posts: import('./types').Reel
               {post.label}
             </div>
           )}
-          {/* Mətn */}
           <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '20px 18px' }}>
             <p style={{ margin: '0 0 4px', fontSize: 16, fontWeight: 700, color: '#FFFFFF', fontFamily: "'Inter', sans-serif", lineHeight: 1.3 }}>
               {post.title}
@@ -223,7 +216,6 @@ function RealWorksBanner({ posts, onShopClick }: { posts: import('./types').Reel
           </div>
         </div>
 
-        {/* Kiçik önizlə kartları (sağda 2-3 ədəd) */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column' as const, gap: 12, overflow: 'hidden' }}>
           {posts
             .map((p, i) => ({ p, i }))
@@ -241,8 +233,8 @@ function RealWorksBanner({ posts, onShopClick }: { posts: import('./types').Reel
                   transition: 'border-color 0.2s',
                   maxHeight: 120,
                 }}
-                onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(255,106,0,0.5)')}
-                onMouseLeave={e => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)')}
+                onMouseEnter={(e: React.MouseEvent<HTMLDivElement>) => (e.currentTarget.style.borderColor = 'rgba(255,106,0,0.5)')}
+                onMouseLeave={(e: React.MouseEvent<HTMLDivElement>) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)')}
               >
                 {p.imageUrl && (
                   <img
@@ -273,7 +265,6 @@ function RealWorksBanner({ posts, onShopClick }: { posts: import('./types').Reel
         </div>
       </div>
 
-      {/* Nöqtə indikatoru */}
       {posts.length > 1 && (
         <div style={{ display: 'flex', justifyContent: 'center', gap: 6, marginTop: 24 }}>
           {posts.map((_, i) => (
@@ -367,8 +358,8 @@ function HeroBanner({ onShopClick }: { onShopClick: () => void }) {
               try { if (typeof (window as any).trackEvent === 'function') (window as any).trackEvent('hero_cta_clicked', { slide: currentSlide, cta: slide.cta }); } catch(_) {}
             }}
             style={{ padding: 'clamp(12px,2vw,15px) clamp(24px,4vw,36px)', background: '#FFFFFF', color: '#111111', border: 'none', borderRadius: 10, fontSize: 'clamp(13px,1.5vw,15px)', fontWeight: 700, cursor: 'pointer', fontFamily: "'Inter', sans-serif", boxShadow: '0 4px 20px rgba(0,0,0,0.2)', transition: 'transform 0.15s, box-shadow 0.15s' }}
-            onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 28px rgba(0,0,0,0.25)'; }}
-            onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.2)'; }}
+            onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 28px rgba(0,0,0,0.25)'; }}
+            onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.2)'; }}
           >{slide.cta}</button>
         </div>
         <div style={{ display: 'flex', gap: 8, marginTop: 32, alignItems: 'center' }}>
@@ -423,7 +414,54 @@ function NotFound({ onHome }: { onHome: () => void }) {
   );
 }
 
-// ── Main App Shell (içindəki bütün state burada) ───────────────────────────────
+// ── WhatsApp Sticky Button ─────────────────────────────────────────────────────
+function WhatsAppButton() {
+  return (
+    <a
+      href="https://wa.me/994519831483?text=Salam!%20Sifariş%20etmək%20istəyirəm."
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label="WhatsApp ilə əlaqə"
+      style={{
+        position: 'fixed' as const,
+        bottom: 24,
+        right: 24,
+        width: 56,
+        height: 56,
+        borderRadius: '50%',
+        background: '#25D366',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        boxShadow: '0 4px 20px rgba(37,211,102,0.4)',
+        zIndex: 9999,
+        textDecoration: 'none',
+        transition: 'transform 0.2s, box-shadow 0.2s',
+      }}
+      onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => {
+        e.currentTarget.style.transform = 'scale(1.1)';
+        e.currentTarget.style.boxShadow = '0 6px 28px rgba(37,211,102,0.55)';
+      }}
+      onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => {
+        e.currentTarget.style.transform = 'scale(1)';
+        e.currentTarget.style.boxShadow = '0 4px 20px rgba(37,211,102,0.4)';
+      }}
+      onClick={() => {
+        try {
+          if (typeof (window as any).trackEvent === 'function') {
+            (window as any).trackEvent('whatsapp_click', { source: 'sticky_button' });
+          }
+        } catch (_) {}
+      }}
+    >
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="#FFFFFF">
+        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+      </svg>
+    </a>
+  );
+}
+
+// ── Main App Shell ─────────────────────────────────────────────────────────────
 function AppShell() {
   const navigate  = useNavigate();
   const location  = useLocation();
@@ -448,13 +486,12 @@ function AppShell() {
     setTimeout(() => setVisible(true), 60);
   }, []);
 
-  // URL dəyişdikdə scroll to top
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [location.pathname]);
 
   const metroSchedule = settings?.metroSchedule || DEFAULT_METRO;
-  const boxes = ((settings?.boxes || DEFAULT_BOXES) as any[]).filter(b => b.isActive !== false);
+  const boxes = ((settings?.boxes || DEFAULT_BOXES) as any[]).filter((b: any) => b.isActive !== false);
   const coupons = (settings?.coupons || []) as import('./types').Coupon[];
   const reelPosts: import('./types').ReelPost[] = settings?.reelPosts || [];
 
@@ -472,12 +509,11 @@ function AppShell() {
     const p = products.find(p => p.id === item.productId);
     if (p) { setSelectedProduct(p); setEditingItem(item); }
   };
-  const cartCount  = cart.reduce((s, c) => s + c.quantity, 0);
+  const cartCount = cart.reduce((s, c) => s + c.quantity, 0);
 
   const openProduct = (p: Product) => {
     setSelectedProduct(p);
     setEditingItem(undefined);
-    // məhsulun öz URL-inə keç
     if (p.slug) {
       navigate(`/mehsullar/${p.slug}`);
     }
@@ -500,7 +536,6 @@ function AppShell() {
         }
       }
     }, [slug, products]);
-    // məhsullar səhifəsini render et, modal özü açılacaq
     const currentProduct = slug ? products.find(p => p.slug === slug) : null;
     return (
       <>
@@ -537,7 +572,12 @@ function AppShell() {
               <p style={{ fontSize: 11, fontWeight: 700, color: '#FF6A00', letterSpacing: 1.5, textTransform: 'uppercase', margin: '0 0 6px' }}>Kataloq</p>
               <h2 style={{ fontSize: 'clamp(22px,3.5vw,32px)', fontWeight: 800, color: '#111111', margin: 0, letterSpacing: '-0.3px' }}>Məhsullarımız</h2>
             </div>
-            <button onClick={() => goToProducts(null)} style={{ padding: '10px 22px', background: 'transparent', border: '1.5px solid #D5D0C8', borderRadius: 8, fontSize: 13, fontWeight: 600, color: '#111111', cursor: 'pointer', fontFamily: "'Inter', sans-serif", transition: 'border-color 0.15s, background 0.15s' }} onMouseEnter={e => { e.currentTarget.style.borderColor = '#FF6A00'; e.currentTarget.style.color = '#FF6A00'; }} onMouseLeave={e => { e.currentTarget.style.borderColor = '#D5D0C8'; e.currentTarget.style.color = '#111111'; }}>
+            <button
+              onClick={() => goToProducts(null)}
+              style={{ padding: '10px 22px', background: 'transparent', border: '1.5px solid #D5D0C8', borderRadius: 8, fontSize: 13, fontWeight: 600, color: '#111111', cursor: 'pointer', fontFamily: "'Inter', sans-serif", transition: 'border-color 0.15s, background 0.15s' }}
+              onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => { e.currentTarget.style.borderColor = '#FF6A00'; e.currentTarget.style.color = '#FF6A00'; }}
+              onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => { e.currentTarget.style.borderColor = '#D5D0C8'; e.currentTarget.style.color = '#111111'; }}
+            >
               Hamısına bax →
             </button>
           </div>
@@ -687,14 +727,13 @@ function AppShell() {
 
       <main>
         <Routes>
-          <Route path="/"              element={<HomePage />} />
-          <Route path="/mehsullar"     element={<ProductsPage />} />
+          <Route path="/"                element={<HomePage />} />
+          <Route path="/mehsullar"       element={<ProductsPage />} />
           <Route path="/mehsullar/:slug" element={<ProductPageHandler />} />
-          <Route path="/haqqimizda"    element={<AboutUs />} />
-          <Route path="/elaqe"         element={<Contact />} />
-          <Route path="/catdirilma"    element={<DeliveryInfo />} />
-          {/* Köhnə linklərdən gələnlər üçün yönləndirmə */}
-          <Route path="*" element={<NotFound onHome={() => navigate('/')} />} />
+          <Route path="/haqqimizda"      element={<AboutUs />} />
+          <Route path="/elaqe"           element={<Contact />} />
+          <Route path="/catdirilma"      element={<DeliveryInfo />} />
+          <Route path="*"                element={<NotFound onHome={() => navigate('/')} />} />
         </Routes>
       </main>
 
@@ -715,13 +754,12 @@ function AppShell() {
           onClose={() => {
             setSelectedProduct(null);
             setEditingItem(undefined);
-            // Modal bağlananda məhsullar səhifəsinə qayıt
             if (location.pathname.startsWith('/mehsullar/')) {
               navigate('/mehsullar');
             }
           }}
           onAddToCart={handleAddToCart}
-          onOpenCategory={cat => {
+          onOpenCategory={(cat: string) => {
             setSelectedProduct(null);
             setEditingItem(undefined);
             setActiveCategory(cat);
@@ -741,8 +779,9 @@ function AppShell() {
         coupons={coupons}
       />
 
+      <WhatsAppButton />
+
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
         *, *::before, *::after { box-sizing: border-box; }
         body { -webkit-font-smoothing: antialiased; margin: 0; }
         ::selection { background: #FF6A00; color: #FFFFFF; }
@@ -771,7 +810,7 @@ function AppShell() {
   );
 }
 
-// ── Root: BrowserRouter burada ─────────────────────────────────────────────────
+// ── Root ───────────────────────────────────────────────────────────────────────
 export default function App() {
   return (
     <BrowserRouter>

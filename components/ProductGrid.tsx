@@ -146,7 +146,7 @@ const Card: React.FC<CardProps> = ({
       >
         {images.length > 0 ? (
           <img
-            src={toWebP(images[imgIdx], 480)} alt={product.name}
+            src={toWebP(images[imgIdx], 480)} alt={`${product.name} — fərdi hədiyyə, Bakı | Ravio`}
             loading="lazy"
             decoding="async"
             style={{
