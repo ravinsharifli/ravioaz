@@ -405,6 +405,23 @@ function InfoStrips() {
   );
 }
 
+function NotFound({ onHome }: { onHome: () => void }) {
+  return (
+    <div style={{ minHeight: '70vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 32 }}>
+      <div style={{ textAlign: 'center' }}>
+        <h1 style={{ fontSize: 48, margin: 0, color: '#111111' }}>404</h1>
+        <p style={{ margin: '16px 0 24px', fontSize: 16, color: '#555555' }}>Səhifə tapılmadı.</p>
+        <button
+          onClick={onHome}
+          style={{ padding: '12px 24px', borderRadius: 10, border: 'none', background: '#FF6A00', color: '#FFFFFF', fontWeight: 700, cursor: 'pointer' }}
+        >
+          Əsas səhifəyə qayıt
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ── Main App Shell (içindəki bütün state burada) ───────────────────────────────
 function AppShell() {
   const navigate  = useNavigate();
@@ -654,7 +671,7 @@ function AppShell() {
           <Route path="/elaqe"         element={<Contact />} />
           <Route path="/catdirilma"    element={<DeliveryInfo />} />
           {/* Köhnə linklərdən gələnlər üçün yönləndirmə */}
-          <Route path="*"              element={<HomePage />} />
+          <Route path="*" element={<NotFound onHome={() => navigate('/')} />} />
         </Routes>
       </main>
 

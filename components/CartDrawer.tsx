@@ -594,6 +594,21 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
       console.error('Sanity order error:', err);
     }
 
+// GA4 event — WhatsApp sifarişi
+if (typeof (window as any).TrackEvent === 'function') {
+  (window as any).TrackEvent('purchase_intent', {
+    event_category: 'order',
+    event_label: 'whatsapp_send',
+    value: grandTotal,
+    currency: 'AZN',
+    items: items.map(i => ({
+      item_id: i.productId,
+      item_name: i.productName,
+      quantity: i.quantity,
+      price: i.price,
+    })),
+  });
+}
     window.open(`https://wa.me/994519831483?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
