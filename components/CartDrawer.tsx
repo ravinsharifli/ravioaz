@@ -406,8 +406,6 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
   const [kurYear,      setKurYear]      = useState('2026');
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
 
-  if (!isOpen) return null;
-
   // ── Metro məlumatları ──────────────────────────────────────────
   const stations = (metroSchedule?.stations ?? []).filter(s => s.isActive !== false);
   const selectedStation = stations.find(s => s.name === metro);
@@ -426,6 +424,8 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
         ? TIME_SLOTS
         : (selectedDaySchedule.timeSlots ?? []))
     : [];
+
+  if (!isOpen) return null;
 
   const handleStationChange = (name: string) => {
     setMetro(name);
