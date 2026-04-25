@@ -1,4 +1,5 @@
 import React from 'react';
+import { Helmet } from 'react-helmet-async';
 
 const FONT = "'Inter', sans-serif";
 const C = {
@@ -9,6 +10,12 @@ const C = {
 const AboutUs: React.FC = () => {
   return (
     <div style={{ maxWidth: 1280, margin: '0 auto', padding: 'clamp(48px,6vw,80px) 32px', fontFamily: FONT }}>
+      <Helmet>
+        <title>Haqqımızda | Ravio</title>
+        <meta name="description" content="Ravio — Bakıda fərdi hədiyyələr hazırlayan onlayn mağaza. Lazer yazısı, özəl qablaşdırma, sürətli çatdırılma. Hər məhsul sizin üçün xüsusi hazırlanır." />
+        <link rel="canonical" href="https://ravioaz.vercel.app/haqqimizda" />
+      </Helmet>
+
       <p style={{ fontSize: 11, fontWeight: 700, color: C.orange, letterSpacing: 1.5, textTransform: 'uppercase' as const, margin: '0 0 8px' }}>
         Haqqımızda
       </p>

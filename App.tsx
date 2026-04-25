@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { BrowserRouter, Routes, Route, useNavigate, useParams, useLocation } from 'react-router-dom';
 import { client } from './sanityclient';
 import { Product, CartItem } from './types';
@@ -500,13 +501,30 @@ function AppShell() {
       }
     }, [slug, products]);
     // məhsullar səhifəsini render et, modal özü açılacaq
-    return <ProductsPage />;
+    const currentProduct = slug ? products.find(p => p.slug === slug) : null;
+    return (
+      <>
+        <Helmet>
+          <title>{currentProduct ? `${currentProduct.name} | Ravio` : 'Məhsul | Ravio'}</title>
+          <meta name="description" content={currentProduct ? `${currentProduct.name} — fərdi hazırlanmış hədiyyə. Ravio-dan sifariş et, 1–3 iş günündə çatdırılır.` : 'Fərdi hazırlanmış hədiyyə — Ravio'} />
+          <link rel="canonical" href={`https://ravioaz.vercel.app/mehsullar/${slug ?? ''}`} />
+        </Helmet>
+        <ProductsPage />
+      </>
+    );
   }
 
   // ── Səhifələr ──────────────────────────────────────────────────────────────
   function HomePage() {
     return (
       <div style={{ opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(16px)', transition: 'opacity 0.7s ease, transform 0.7s ease' }}>
+        <Helmet>
+          <title>Ravio — Sizə Özəl Hədiyyələr | Bakı</title>
+          <meta name="description" content="Lazer yazılı qolbaq, fərdi təsbeh, domino və giftbox. Hər məhsul sizin üçün özəl hazırlanır. 17₼-dən başlayan qiymətlə, 1–3 iş günündə çatdırılma." />
+          <meta property="og:title" content="Ravio — Sizə Özəl Hədiyyələr" />
+          <meta property="og:description" content="Lazer yazılı qolbaq, fərdi təsbeh, domino və giftbox. 17₼-dən başlayan qiymətlə." />
+          <link rel="canonical" href="https://ravioaz.vercel.app/" />
+        </Helmet>
         <HeroBanner onShopClick={() => goToProducts(null)} />
         {reelPosts.length > 0 && (
           <RealWorksBanner posts={reelPosts} onShopClick={() => goToProducts(null)} />
@@ -591,6 +609,11 @@ function AppShell() {
   function ProductsPage() {
     return (
       <div style={{ maxWidth: 1280, margin: '0 auto', padding: 'clamp(20px,3vw,32px) clamp(16px,3vw,32px) 64px' }}>
+        <Helmet>
+          <title>{activeCategory ? `${activeCategory} | Ravio` : 'Bütün Məhsullar | Ravio'}</title>
+          <meta name="description" content={activeCategory ? `${activeCategory} məhsulları — Ravio-da fərdi hazırlanmış hədiyyələr. Bakı daxili pulsuz çatdırılma, 1–3 iş günü.` : 'Lazer yazılı qolbaq, fərdi təsbeh, domino, giftbox — bütün məhsullarımız. Bakı daxili pulsuz çatdırılma.'} />
+          <link rel="canonical" href="https://ravioaz.vercel.app/mehsullar" />
+        </Helmet>
         <div style={{ display: 'flex', gap: 32, alignItems: 'flex-start' }}>
           <aside className="r-desktop-nav r-catalog-aside" style={{ flexShrink: 0, width: 200, position: 'sticky', top: 110, maxHeight: 'calc(100vh - 130px)', overflowY: 'auto', paddingRight: 8, scrollbarWidth: 'none' }}>
             <p style={{ fontSize: 10, fontWeight: 700, color: '#FF6A00', letterSpacing: 1.5, textTransform: 'uppercase', margin: '0 0 12px' }}>Kateqoriyalar</p>

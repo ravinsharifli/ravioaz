@@ -1,4 +1,5 @@
 import React from 'react';
+import { Helmet } from 'react-helmet-async';
 
 const FONT = "'Inter', sans-serif";
 const C = {
@@ -32,6 +33,12 @@ const Contact: React.FC = () => {
 
   return (
     <div style={{ maxWidth: 1280, margin: '0 auto', padding: 'clamp(48px,6vw,80px) 32px', fontFamily: FONT }}>
+      <Helmet>
+        <title>Əlaqə | Ravio</title>
+        <meta name="description" content="Ravio ilə əlaqə saxlayın. WhatsApp, Instagram və ya telefon ilə sifariş verin. Bakı daxili pulsuz çatdırılma, 1–3 iş günündə hazır." />
+        <link rel="canonical" href="https://ravioaz.vercel.app/elaqe" />
+      </Helmet>
+
       <p style={{ fontSize: 11, fontWeight: 700, color: C.orange, letterSpacing: 1.5, textTransform: 'uppercase' as const, margin: '0 0 8px' }}>
         Əlaqə
       </p>
@@ -65,12 +72,9 @@ const Contact: React.FC = () => {
               e.currentTarget.style.boxShadow = 'none';
             }}
           >
-            {/* Icon */}
             <div style={{ fontSize: 28, color: item.highlight ? C.white : C.black }}>
               {item.isTikTok ? <TikTokIcon /> : item.emoji}
             </div>
-
-            {/* Text */}
             <div>
               <p style={{
                 margin: '0 0 4px', fontSize: 11, fontWeight: 700,
@@ -83,8 +87,6 @@ const Contact: React.FC = () => {
                 letterSpacing: '-0.3px',
               }}>{item.value}</p>
             </div>
-
-            {/* CTA */}
             <div style={{
               fontSize: 12, fontWeight: 600,
               color: item.highlight ? C.white : C.orange,

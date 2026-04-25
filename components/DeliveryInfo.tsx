@@ -1,4 +1,5 @@
 import React from 'react';
+import { Helmet } from 'react-helmet-async';
 
 const FONT = "'Inter', sans-serif";
 const C = {
@@ -62,12 +63,17 @@ const DeliveryInfo: React.FC<DeliveryInfoProps> = () => {
     },
     {
       q: 'Sifarişi ləğv etmək olurmu?',
-      a: 'Lazer yazısı başlamazdan əvvəl ləğv mümkündür. Başlandıqdan sonra ləğv qəbul edilmir.Çünki özəl hazırlanan məhsul başqa müştərilərə satıla bilməz',
+      a: 'Lazer yazısı başlamazdan əvvəl ləğv mümkündür. Başlandıqdan sonra ləğv qəbul edilmir. Çünki özəl hazırlanan məhsul başqa müştərilərə satıla bilməz.',
     },
   ];
 
   return (
     <div style={{ maxWidth: 1280, margin: '0 auto', padding: 'clamp(48px,6vw,80px) clamp(16px,3vw,32px)', fontFamily: FONT }}>
+      <Helmet>
+        <title>Çatdırılma | Ravio</title>
+        <meta name="description" content="Ravio çatdırılma şərtləri: metro görüşü ödənişsiz, kuryer Bakı, Sumqayıt, Abşeron daxili 4.99₼. Azərpoçt ilə bütün Azərbaycana çatdırılır. 1–3 iş günü." />
+        <link rel="canonical" href="https://ravioaz.vercel.app/catdirilma" />
+      </Helmet>
 
       <p style={{ fontSize: 11, fontWeight: 700, color: C.orange, letterSpacing: 1.5, textTransform: 'uppercase' as const, margin: '0 0 8px' }}>
         Çatdırılma
