@@ -108,18 +108,23 @@ const Navbar: React.FC<NavbarProps> = ({
           height: NAV_H, display: 'flex', alignItems: 'center',
           justifyContent: 'space-between', gap: 16,
         }}>
-          {/* Logo */}
+          {/* Logo — real şəkil */}
           <button onClick={onLogoClick} style={{
             background: 'none', border: 'none', cursor: 'pointer',
             padding: 0, flexShrink: 0,
             display: 'flex', alignItems: 'center', gap: 8,
           }}>
-            <div style={{
-              width: 30, height: 30, background: '#111111',
-              borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
-              <span style={{ color: '#FF6A00', fontSize: 16, fontWeight: 800, fontFamily: "'Inter', sans-serif", lineHeight: 1 }}>R</span>
-            </div>
+            <img
+              src="/ravio-logo.jpeg"
+              alt="Ravio logo"
+              style={{
+                width: 38,
+                height: 38,
+                borderRadius: 8,
+                objectFit: 'cover',
+                display: 'block',
+              }}
+            />
             <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 18, fontWeight: 800, color: '#111111', letterSpacing: '-0.5px' }}>
               ravio
             </span>
