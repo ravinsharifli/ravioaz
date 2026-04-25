@@ -486,7 +486,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
   };
 
   // ── WhatsApp göndər ────────────────────────────────────────────
-  const handleWhatsApp = async () => {
+  const handleWhatsApp = () => {
     if (!checkoutValid) return;
 
     const birthStr = bdDay && bdMonth && bdYear
@@ -508,8 +508,10 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
         `- Ad: ${item.productName}\n- Model: ${item.modelName}\n- Rəng: ${item.colorName}\n` +
         (imgUrl ? `🖼 Şəkil: ${imgUrl}\n` : '') +
         lines +
-        (item.customText    ? `- Yazı/Qeyd: ${item.customText}\n`    : '') +
-        (item.specialRequest && item.specialRequest.startsWith('Müştəri şəkli:') ? `📎 ${item.specialRequest}\n` : item.specialRequest ? `- Xüsusi: ${item.specialRequest}\n` : '')
+        (item.customText ? `- Yazı/Qeyd: ${item.customText}\n` : '') +
+        (item.specialRequest && item.specialRequest.startsWith('Müştəri şəkli:')
+          ? `📎 ${item.specialRequest}\n`
+          : item.specialRequest ? `- Xüsusi: ${item.specialRequest}\n` : '')
       );
     }).join('\n');
 
@@ -530,85 +532,29 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
       `*💳 ÖN ÖDƏNİŞ (50% beh): ${grandBeh.toFixed(2)} ₼*\n` +
       `Qalan ${(grandTotal - grandBeh).toFixed(2)} ₼ məhsul alınarkən`;
 
-    // ── GA4 Purchase event ──────────────────────────────────────
-    trackEvent('purchase', {
-      currency: 'AZN',
-      value: grandTotal,
-      coupon: appliedCoupon?.code ?? '',
-      items: items.map((item, i) => ({
-        item_id: item.productId,
-        item_name: item.productName,
-        price: item.discountPrice ?? item.price,
-        quantity: item.quantity,
-        index: i,
-      })),
-    });
-
-    // Meta Pixel Purchase
-    if (typeof (window as any).fbq === 'function') {
-      (window as any).fbq('track', 'Purchase', {
-        value: grandTotal,
-        currency: 'AZN',
-        num_items: items.reduce((s, it) => s + it.quantity, 0),
-      });
-    }
-
-    // ── Sanity-ə sifariş yaz ──────────────────────────────────────
+    // GA4 + Meta Pixel
     try {
-      const { createClient } = await import('@sanity/client');
-      const sanityClient = createClient({
-        projectId: 'w7scii42',
-        dataset: 'production',
-        apiVersion: '2024-01-01',
-        useCdn: false,
-        token: (import.meta as any).env?.VITE_SANITY_TOKEN,
-      });
-
-      const orderId = 'R-' + Date.now().toString(36).toUpperCase();
-
-      await sanityClient.create({
-        _type: 'order',
-        orderId,
-        status: 'new',
-        customerName: custName,
-        phone,
-        deliveryMethod: delivery,
-        deliveryDetails: delStr,
-        totalAmount: grandTotal,
-        depositAmount: grandBeh,
-        couponCode: appliedCoupon?.code ?? '',
-        couponDiscount: couponDiscount,
-        createdAt: new Date().toISOString(),
-        items: items.map(item => ({
-          _key: item.cartId,
-          productName: item.productName,
-          modelName: item.modelName,
-          colorName: item.colorName,
-          quantity: item.quantity,
+      trackEvent('purchase', {
+        currency: 'AZN',
+        value: grandTotal,
+        coupon: appliedCoupon?.code ?? '',
+        items: items.map((item, i) => ({
+          item_id: item.productId,
+          item_name: item.productName,
           price: item.discountPrice ?? item.price,
-          customText: item.customText || '',
-          boxType: item.boxType || '',
+          quantity: item.quantity,
+          index: i,
         })),
       });
-    } catch (err) {
-      console.error('Sanity order error:', err);
-    }
+      if (typeof (window as any).fbq === 'function') {
+        (window as any).fbq('track', 'Purchase', {
+          value: grandTotal,
+          currency: 'AZN',
+          num_items: items.reduce((s, it) => s + it.quantity, 0),
+        });
+      }
+    } catch (_) {}
 
-// GA4 event — WhatsApp sifarişi
-if (typeof (window as any).trackEvent === 'function') {
-  (window as any).trackEvent('purchase_intent', {
-    event_category: 'order',
-    event_label: 'whatsapp_send',
-    value: grandTotal,
-    currency: 'AZN',
-    items: items.map(i => ({
-      item_id: i.productId,
-      item_name: i.productName,
-      quantity: i.quantity,
-      price: i.price,
-    })),
-  });
-}
     window.open(`https://wa.me/994519831483?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
