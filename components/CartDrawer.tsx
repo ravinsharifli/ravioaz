@@ -595,8 +595,8 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
     }
 
 // GA4 event — WhatsApp sifarişi
-if (typeof (window as any).TrackEvent === 'function') {
-  (window as any).TrackEvent('purchase_intent', {
+if (typeof (window as any).trackEvent === 'function') {
+  (window as any).trackEvent('purchase_intent', {
     event_category: 'order',
     event_label: 'whatsapp_send',
     value: grandTotal,
