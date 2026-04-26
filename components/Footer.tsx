@@ -23,11 +23,12 @@ const Footer: React.FC<FooterProps> = ({ onReviewsClick, onProductsClick, onDeli
 
           {/* Brand */}
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-              <div style={{ width: 30, height: 30, background: '#FF6A00', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <span style={{ color: '#FFFFFF', fontSize: 15, fontWeight: 800 }}>R</span>
-              </div>
-              <span style={{ fontSize: 18, fontWeight: 800, color: '#FFFFFF', letterSpacing: '-0.5px' }}>ravio</span>
+            <div style={{ marginBottom: 16 }}>
+              <img
+                src="/ravio-logo.jpeg"
+                alt="Ravio"
+                style={{ width: 52, height: 52, borderRadius: 10, objectFit: 'cover' }}
+              />
             </div>
             <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', lineHeight: 1.8, margin: '0 0 24px', maxWidth: 220 }}>
               Lazer yazı, fərdi təsbeh, polad qolbaq. Hər məhsul yalnız sənin üçün hazırlanır.
@@ -57,10 +58,10 @@ const Footer: React.FC<FooterProps> = ({ onReviewsClick, onProductsClick, onDeli
               Keçidlər
             </h4>
             {[
-              { label: 'Məhsullar',     action: onProductsClick },
-              { label: 'Çatdırılma',    action: onDeliveryClick },
+              { label: 'Məhsullar',       action: onProductsClick },
+              { label: 'Çatdırılma',      action: onDeliveryClick },
               { label: 'Müştəri rəyləri', action: onReviewsClick },
-              { label: 'Haqqımızda',    action: onAboutClick },
+              { label: 'Haqqımızda',      action: onAboutClick },
             ].map((link, i) => (
               <div key={i} style={{ marginBottom: 12 }}>
                 <button onClick={link.action} style={{
