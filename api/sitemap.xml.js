@@ -28,20 +28,16 @@ export default async function handler(req, res) {
 
     const today = new Date().toISOString().split('T')[0];
 
-    const staticUrls = STATIC_PAGES.map(
-      (p) => `
+    const staticUrls = STATIC_PAGES.map((p) => `
   <url>
     <loc>${BASE_URL}${p.loc}</loc>
     <lastmod>${today}</lastmod>
     <changefreq>${p.changefreq}</changefreq>
     <priority>${p.priority}</priority>
-  </url>`
-    ).join('');
+  </url>`).join('');
 
     const productUrls = products.map((p) => {
-      const lastmod = p._updatedAt
-        ? p._updatedAt.split('T')[0]
-        : today;
+      const lastmod = p._updatedAt ? p._updatedAt.split('T')[0] : today;
       return `
   <url>
     <loc>${BASE_URL}/mehsullar/${p.slug}</loc>
@@ -57,11 +53,12 @@ ${staticUrls}
 ${productUrls}
 </urlset>`;
 
-    res.setHeader('Content-Type', 'application/xml; charset=utf-8');
-    res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=86400');
+    res.setHeader('Content-Type', 'text/xml; charset=utf-8');
+    res.setHeader('Cache-Control', 'public, s-maxage=3600');
+    res.setHeader('Access-Control-Allow-Origin', '*');
     res.status(200).send(xml);
   } catch (err) {
     console.error('Sitemap error:', err);
-    res.status(500).send('Sitemap yaradılarkən xəta baş verdi.');
+    res.status(500).send('Sitemap error');
   }
 }
