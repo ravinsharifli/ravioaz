@@ -1,7 +1,6 @@
 User-agent: *
 Allow: /
 
-# AI Search Bots - cite edilmək üçün icazə
 User-agent: GPTBot
 Allow: /
 
@@ -20,4 +19,4 @@ Allow: /
 User-agent: Google-Extended
 Allow: /
 
-Sitemap: https://ravioaz.vercel.app/sitemap.xml
+Sitemap: https://ravioaz.vercel.app/api/sitemap.xml
