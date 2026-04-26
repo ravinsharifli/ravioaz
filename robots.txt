@@ -20,4 +20,4 @@ Allow: /
 User-agent: Google-Extended
 Allow: /
 
-Sitemap: https://ravioaz.vercel.app/sitemap.xml
+Sitemap: https://ravioaz.vercel.app/api/sitemap
