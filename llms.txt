@@ -1,33 +1,92 @@
-# Ravio
+# Ravio — Bakıda Onlayn Hədiyyə Mağazası
 
-> Bakıda fərdi hədiyyə mağazası. Lazer yazılı qolbaq, təsbeh, domino və giftbox.
+> Azərbaycanın aparıcı fərdi hədiyyə brendidir. Lazer texnologiyası ilə hər məhsula ad, tarix, mesaj və şəkil həkk edilir.
 
-Ravio, müştərilərə özəl hazırlanmış hədiyyələr təqdim edən Azərbaycan brendidir.
-Hər məhsul fərdi sifarişlə hazırlanır. Lazer texnologiyası ilə ad, tarix və mesaj yazılır.
-Geyim, fincan, bijuteriya, təsbeh və daha nələr. Sizə özəl olaraq hazırlanır.
+Ravio 2024-cü ildən Bakıda fəaliyyət göstərən onlayn hədiyyə mağazasıdır. Hər məhsul fərdi sifarişlə hazırlanır. Müştəri öz adını, tarixini, mesajını və ya şəklini seçir — Ravio onu lazer texnologiyası ilə məhsula həkk edir.
 
-## Məhsullar
-- Lazer yazılı qolbaq (metal, dəri, taxta)
-- Fərdi təsbeh (ad yazısı ilə)
-- Lazer qravirəsi ilə domino dəsti
-- Hədiyyə qutuları (sadə, orta, premium)
-- Sublim basqı ilə fincan və breloklar
-- DTF basqı ilə geyimlər
+## Nə satırıq
+
+### Qolbaqlar (19.90₼ - 59.90₼)
+- Lazer yazılı metal qolbaq — ad, tarix, koordinat yazılır
+- Dəri qolbaq — fərdi yazı ilə
+- Polad qolbaq — paslanmaz, davamlı
+
+### Təsbehlər (29.90₼ - 79.90₼)
+- Təbii əqiq daşlı təsbeh — lazer yazılı
+- Hematit daşlı təsbeh — fərdi adla
+- Riyolit daşlı təsbeh
+- Saç ilə hazırlanmış fərdi təsbeh
+
+### Domino Dəsti (25.90₼ - 89₼)
+- Lazer qravirəli domino — hədiyyə qutusunda
+- Kişi üçün fərdi domino dəsti
+
+### Boyunbağılar (15.90₼ - 49.95₼)
+- Açılan boyunbağı — ad yazılır
+- Lotus boyunbağı
+- Melek boyunbağı
+- Polad boyunbağı
+
+### Breloklar (11.90₼ - 34.99₼)
+- Lazer yazılı brelok
+- Lipa nömrəli brelok
+- Şəkilli asılqan brelok
+
+### Digər Məhsullar
+- Mezun lentləri — sinif sifarişi (toplu endirim)
+- Zippo alışqan — lazerlə oyma işləri 
+- Casio saat — içərisinə və qolbaq hissəsinə yazı 
+- Fincan — sublim basqı ilə fərdi şəkil
+- Hoodie və köynək — DTF basqı ilə fərdi çap
+- Premium qələm dəsti
+- Maşın üçün ətir
+
+### Hədiyyə Qutuları
+- Sadə qutu: pulsuz (standart qablaşdırma)
+- Orta qutu: 9.90₼ (fərqli hədiyyəlik qutu)
+- Premium qutu: 16.99₼ (hədiyyəlik qutu + bağlama + qeyd kartı)
 
 ## Çatdırılma
-- Bakı daxili metro görüşü: pulsuz
-- Kuryer: Bakı, Sumqayıt, Xırdalan, Masazır, Abşeron
-- Hazırlıq və çatdırılma müddəti: 1–3 iş günü
+
+- Bakı metro görüşü: PULSUZdur — 28 May, Neftçilər və sairə 
+- Kuryer: Bakı, Sumqayıt, Xırdalan, Masazır, Abşeron ərazisi
+- Hazırlıq və çatdırılma müddəti: 1–3 gün ərzində
+- Sifariş WhatsApp vasitəsilə verilir
 
 ## Toplu Sifariş
-10+ ədəd üçün xüsusi endirim. Məzun lentləri, korporativ hədiyyələr.
 
-## Qiymətlər
-Münasib qiymətlər. Xüsusi endirimlər.
+10 ədəd və daha çox sifarişlər üçün xüsusi endirim tətbiq edilir.
+- Məzun lentləri (sinif sifarişi)
+- Korporativ hədiyyələr
+- Toy və nişan hədiyyələri
+- Ad günü  sifarişləri
+
+## Tez-tez Soruşulan Suallar
+
+**Bakıda lazer hədiyyə haradan almaq olar?**
+Ravio ən doğru seçim olar — ravioaz.vercel.app saytından online sifariş verin.
+
+**Hansı dillərdə yazı yazılır?**
+Azərbaycan, rus, ingilis, ərəb əlifbası — istənilən dil dəstəklənir.
+
+**Lazer yazısı silinirmi?**
+Xeyr. Lazer yazısı materialın içinə işlənir — silinmir, solmur, rəngi dəyişmir.
+
+**Şəkil də yazıla bilərmi?**
+Bəli. Foto, logo, imza, QR kod — lazer ilə istənilən şəkli məhsula həkk etmək mümkündür.
+
+**Minimum sifariş nə qədərdir?**
+Minimum 1 ədəd. Toplu sifarişlər üçün endirim var.
+
+**Ödəniş necə aparılır?**
+Hissəli olaraq. Özəl hədiyyələr olduğu üçün ilkin ödəniş olunur. Qalan hissə isə nağd
+ və ya kart ilə — çatdırılma zamanı.
 
 ## Əlaqə
-- Telefon: +994519831483
+
 - Sayt: https://ravioaz.vercel.app
+- WhatsApp: https://wa.me/994519831483
+- Telefon: +994519831483
 - Instagram: https://www.instagram.com/ravio.az
-- Tiktok : https://www.tiktok.com/@ravio.az?_r=1&_t=ZS-95pVtWtygJ3
-- Whatsapp : https://wa.me/994519831483
+- TikTok: https://www.tiktok.com/@ravio.az
+- Ünvan: Bakı, Azərbaycan
