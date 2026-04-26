@@ -115,7 +115,7 @@ const Navbar: React.FC<NavbarProps> = ({
             display: 'flex', alignItems: 'center', gap: 8,
           }}>
             <img
-              src="/ravio-logo.jpeg"
+              src="/og-ravio.png"
               alt="Ravio logo"
               style={{
                 width: 38,
@@ -126,7 +126,7 @@ const Navbar: React.FC<NavbarProps> = ({
               }}
             />
             <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 18, fontWeight: 800, color: '#111111', letterSpacing: '-0.5px' }}>
-              ravio
+              Sizə Özəl Hədiyyələr 
             </span>
           </button>
 
