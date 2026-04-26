@@ -116,7 +116,7 @@ const Navbar: React.FC<NavbarProps> = ({
           }}>
             <img
               src="/og-ravio.png"
-              alt="Ravio logo"
+              alt="og-ravio.png"
               style={{
                 width: 38,
                 height: 38,
