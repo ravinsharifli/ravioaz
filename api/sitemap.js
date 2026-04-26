@@ -59,6 +59,6 @@ ${productUrls}
     res.status(200).send(xml);
   } catch (err) {
     console.error('Sitemap error:', err);
-    res.status(500).send('Sitemap error');
+    res.status(500).send('<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>');
   }
 }
