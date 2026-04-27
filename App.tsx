@@ -414,6 +414,13 @@ function NotFound({ onHome }: { onHome: () => void }) {
   );
 }
 
+function getProductPriceRange(product: Product) {
+  const variants = product.variants || [];
+  if (!variants.length) return { min: 0, max: 0 };
+  const prices = variants.map(v => v.discountPrice ?? v.price);
+  return { min: Math.min(...prices), max: Math.max(...prices) };
+}
+
 // ── Main App Shell ─────────────────────────────────────────────────────────────
 function AppShell() {
   const navigate  = useNavigate();
@@ -429,8 +436,6 @@ function AppShell() {
   const [visible, setVisible]                 = useState(false);
   const [settings, setSettings]               = useState<any>(null);
 
-  // Bu ref modal-ın proqramatik olaraq bağlandığını izləyir.
-  // Bağlananda ProductPageHandler-in useEffect-i yenidən açmasın deyə.
   const isClosingModal = useRef(false);
 
   useEffect(() => {
@@ -478,14 +483,12 @@ function AppShell() {
   };
 
   const closeModal = () => {
-    // Modal bağlanır — flag qoy ki ProductPageHandler yenidən açmasın
     isClosingModal.current = true;
     setSelectedProduct(null);
     setEditingItem(undefined);
     if (location.pathname.startsWith('/mehsullar/')) {
       navigate('/mehsullar');
     }
-    // Qısa müddət sonra flag-i sıfırla
     setTimeout(() => { isClosingModal.current = false; }, 500);
   };
 
@@ -494,29 +497,116 @@ function AppShell() {
     navigate('/mehsullar');
   };
 
-  // URL-dən slug oxuyub məhsulu aç
+  // ── Hər məhsul üçün ayrı SEO səhifəsi ────────────────────────────────────
   function ProductPageHandler() {
     const { slug } = useParams<{ slug: string }>();
-    useEffect(() => {
-      // Əgər modal yenicə bağlanıbsa, yenidən açma
-      if (isClosingModal.current) return;
-      if (slug && products.length > 0) {
-        const found = products.find(p => p.slug === slug);
-        if (found) {
-          setSelectedProduct(found);
-          setEditingItem(undefined);
-        }
-      }
-    }, [slug, products]);
     const currentProduct = slug ? products.find(p => p.slug === slug) : null;
+    const primaryImage = currentProduct?.variants?.[0]?.images?.[0] || '';
+    const { min, max } = currentProduct ? getProductPriceRange(currentProduct) : { min: 0, max: 0 };
+    const totalStock = currentProduct
+      ? (currentProduct.variants || []).reduce((sum, v) => sum + (v.stock || 0), 0)
+      : 0;
+    const productUrl = `https://ravioaz.vercel.app/mehsullar/${slug ?? ''}`;
+
+    // Məhsul tapılmadısa
+    if (!loading && !currentProduct) {
+      return (
+        <div style={{ maxWidth: 960, margin: '0 auto', padding: '32px 16px 56px' }}>
+          <Helmet>
+            <title>Məhsul tapılmadı | Ravio</title>
+            <meta name="robots" content="noindex,follow" />
+            <link rel="canonical" href={productUrl} />
+          </Helmet>
+          <NotFound onHome={() => navigate('/mehsullar')} />
+        </div>
+      );
+    }
+
     return (
       <>
         <Helmet>
           <title>{currentProduct ? `${currentProduct.name} | Ravio` : 'Məhsul | Ravio'}</title>
-          <meta name="description" content={currentProduct ? `${currentProduct.name} — fərdi hazırlanmış hədiyyə. Ravio-dan sifariş et, 1–3 iş günündə çatdırılır.` : 'Fərdi hazırlanmış hədiyyə — Ravio'} />
-          <link rel="canonical" href={`https://ravioaz.vercel.app/mehsullar/${slug ?? ''}`} />
+          <meta
+            name="description"
+            content={currentProduct
+              ? `${currentProduct.name} — fərdi hazırlanmış hədiyyə. Qiymət ${min === max ? `${min} ₼` : `${min}–${max} ₼`}.`
+              : 'Fərdi hazırlanmış hədiyyə — Ravio'}
+          />
+          <meta property="og:type" content="product" />
+          <meta property="og:title" content={currentProduct ? `${currentProduct.name} | Ravio` : 'Məhsul | Ravio'} />
+          <meta property="og:description" content={currentProduct ? (currentProduct.description || `${currentProduct.name} — Ravio`) : 'Məhsul'} />
+          {primaryImage && <meta property="og:image" content={primaryImage} />}
+          <link rel="canonical" href={productUrl} />
+          {currentProduct && (
+            <script type="application/ld+json">
+              {JSON.stringify({
+                '@context': 'https://schema.org',
+                '@type': 'Product',
+                name: currentProduct.name,
+                image: currentProduct.variants.flatMap(v => v.images || []).slice(0, 5),
+                description: currentProduct.description || `${currentProduct.name} - Ravio`,
+                sku: currentProduct.id,
+                brand: { '@type': 'Brand', name: 'Ravio' },
+                offers: {
+                  '@type': 'Offer',
+                  url: productUrl,
+                  priceCurrency: 'AZN',
+                  price: String(min),
+                  availability: totalStock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+                },
+              })}
+            </script>
+          )}
         </Helmet>
-        <ProductsPage />
+
+        <div style={{ maxWidth: 1120, margin: '0 auto', padding: '28px 16px 56px' }}>
+          {loading && <p style={{ color: '#666666' }}>Yüklənir...</p>}
+
+          {currentProduct && (
+            <>
+              <div style={{ marginBottom: 16 }}>
+                <button
+                  onClick={() => navigate('/mehsullar')}
+                  style={{ border: 'none', background: 'transparent', color: '#FF6A00', fontWeight: 700, cursor: 'pointer', padding: 0, fontSize: 14 }}
+                >
+                  ← Bütün məhsullara qayıt
+                </button>
+              </div>
+
+              <article style={{ display: 'grid', gridTemplateColumns: 'minmax(280px, 480px) 1fr', gap: 24, background: '#FFFFFF', borderRadius: 14, padding: 20, border: '1px solid #EDEBE7' }}>
+                <div>
+                  {primaryImage ? (
+                    <img src={primaryImage} alt={currentProduct.name} style={{ width: '100%', borderRadius: 10, objectFit: 'cover' }} />
+                  ) : (
+                    <div style={{ width: '100%', aspectRatio: '1 / 1', borderRadius: 10, background: '#F5F2EC' }} />
+                  )}
+                </div>
+                <div>
+                  <h1 style={{ margin: 0, fontSize: 'clamp(24px,3vw,34px)', color: '#111111' }}>{currentProduct.name}</h1>
+                  <p style={{ color: '#666666', marginTop: 8 }}>{currentProduct.category || 'Məhsul'}</p>
+                  <p style={{ fontSize: 24, fontWeight: 800, margin: '12px 0 8px', color: '#111111' }}>
+                    {min === max ? `${min} ₼` : `${min} ₼ - ${max} ₼`}
+                  </p>
+                  <p style={{ color: totalStock > 0 ? '#0A7A2F' : '#B00020', marginTop: 0, fontWeight: 600 }}>
+                    {totalStock > 0 ? `Stokda var` : 'Stokda yoxdur'}
+                  </p>
+                  <p style={{ lineHeight: 1.6, color: '#333333' }}>
+                    {currentProduct.description || `${currentProduct.name} üçün fərdi yazı əlavə edə bilərsiniz.`}
+                  </p>
+                  <button
+                    onClick={() => {
+                      setSelectedProduct(currentProduct);
+                      setEditingItem(undefined);
+                    }}
+                    style={{ marginTop: 8, padding: '14px 24px', background: '#FF6A00', color: '#FFFFFF', border: 'none', borderRadius: 10, fontWeight: 700, cursor: 'pointer', fontSize: 15, fontFamily: "'Inter', sans-serif" }}
+                  >
+                    Sifariş et →
+                  </button>
+                </div>
+              </article>
+            </>
+          )}
+        </div>
       </>
     );
   }
