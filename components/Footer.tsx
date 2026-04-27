@@ -25,7 +25,7 @@ const Footer: React.FC<FooterProps> = ({ onReviewsClick, onProductsClick, onDeli
           <div>
             <div style={{ marginBottom: 16 }}>
               <img
-                src="/ravio-logo.jpeg"
+                src="/og-ravio.png"
                 alt="Ravio"
                 style={{ width: 52, height: 52, borderRadius: 10, objectFit: 'cover' }}
               />
