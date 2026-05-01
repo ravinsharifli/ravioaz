@@ -2,7 +2,6 @@
 import { ShoppingBag, Zap, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Product } from '../types';
 
-// Sanity CDN şəkillərini WebP formatına çevir və ölçüsünü optimallaşdır
 function toWebP(url: string, width: number = 600): string {
   if (!url || !url.includes('cdn.sanity.io')) return url;
   try {
@@ -105,16 +104,16 @@ const Card: React.FC<CardProps> = ({
   lowStock, outOfStock, stock,
   onView, onAdd,
 }) => {
-  const [hovered, setHovered]         = useState(false);
-  const [imgIdx, setImgIdx]           = useState(0);
-  const [touchStart, setTouchStart]   = useState<number | null>(null);
+  const [hovered, setHovered]       = useState(false);
+  const [imgIdx, setImgIdx]         = useState(0);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
 
   const allImages = (product.variants || []).flatMap(v => v.images || []).filter(Boolean);
   const images    = allImages.length > 0 ? allImages : [];
   const totalImgs = images.length;
 
-  const nextImg = (e: React.MouseEvent) => { e.stopPropagation(); setImgIdx(i => (i + 1) % totalImgs); };
-  const prevImg = (e: React.MouseEvent) => { e.stopPropagation(); setImgIdx(i => (i - 1 + totalImgs) % totalImgs); };
+  const nextImg = (e: React.MouseEvent) => { e.stopPropagation(); e.preventDefault(); setImgIdx(i => (i + 1) % totalImgs); };
+  const prevImg = (e: React.MouseEvent) => { e.stopPropagation(); e.preventDefault(); setImgIdx(i => (i - 1 + totalImgs) % totalImgs); };
 
   const handleTouchStart = (e: React.TouchEvent) => setTouchStart(e.touches[0].clientX);
   const handleTouchEnd   = (e: React.TouchEvent) => {
@@ -124,11 +123,20 @@ const Card: React.FC<CardProps> = ({
     setTouchStart(null);
   };
 
+  // ── SEO: <a> tag işlədirik ki Google hər məhsul URL-ini tapa bilsin ──
+  // onClick-də e.preventDefault() linki açmır, modal açır (istifadəçi üçün eyni)
+  const productUrl = product.slug ? `/mehsullar/${product.slug}` : '#';
+
   return (
-    <div
+    <a
+      href={productUrl}
+      onClick={(e) => { e.preventDefault(); onView(); }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
+        display: 'block',
+        textDecoration: 'none',
+        color: 'inherit',
         background: '#FFFFFF', borderRadius: 12,
         overflow: 'hidden', cursor: 'pointer',
         border: hovered ? '1px solid #E0DDD8' : '1px solid #EDEBE7',
@@ -136,7 +144,6 @@ const Card: React.FC<CardProps> = ({
         transition: 'box-shadow 0.25s, border-color 0.25s, transform 0.25s',
         transform: hovered ? 'translateY(-3px)' : 'translateY(0)',
       }}
-      onClick={onView}
     >
       {/* Image */}
       <div
@@ -146,7 +153,8 @@ const Card: React.FC<CardProps> = ({
       >
         {images.length > 0 ? (
           <img
-            src={toWebP(images[imgIdx], 480)} alt={`${product.name} — fərdi hədiyyə, Bakı | Ravio`}
+            src={toWebP(images[imgIdx], 480)}
+            alt={`${product.name} — fərdi hədiyyə, Bakı | Ravio`}
             loading="lazy"
             decoding="async"
             style={{
@@ -201,7 +209,6 @@ const Card: React.FC<CardProps> = ({
           </div>
         )}
 
-        {/* Desktop hover nav arrows */}
         {totalImgs > 1 && hovered && (
           <>
             <button onClick={prevImg} style={{
@@ -221,7 +228,6 @@ const Card: React.FC<CardProps> = ({
           </>
         )}
 
-        {/* Dots */}
         {totalImgs > 1 && (
           <div style={{
             position: 'absolute', bottom: 8, left: '50%', transform: 'translateX(-50%)',
@@ -237,7 +243,6 @@ const Card: React.FC<CardProps> = ({
           </div>
         )}
 
-        {/* Quick add — always visible on mobile, hover on desktop */}
         {!outOfStock && (
           <div
             className="card-quick-add"
@@ -250,7 +255,7 @@ const Card: React.FC<CardProps> = ({
             }}
           >
             <button
-              onClick={e => { e.stopPropagation(); onAdd(); }}
+              onClick={e => { e.stopPropagation(); e.preventDefault(); onAdd(); }}
               style={{
                 width: '100%', padding: '10px 0',
                 background: '#FF6A00', color: '#FFFFFF',
@@ -334,7 +339,7 @@ const Card: React.FC<CardProps> = ({
           }
         }
       `}</style>
-    </div>
+    </a>
   );
 };
 
