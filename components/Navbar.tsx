@@ -126,7 +126,7 @@ const Navbar: React.FC<NavbarProps> = ({
                 display: 'block',
               }}
             />
-            <span style={{ fontFamily: F.sans, fontSize: 18, fontWeight: 800, color: C.black, letterSpacing: '-0.5px' }}>
+            <span className="ravio-nav-brand-text" style={{ fontFamily: F.sans, fontSize: 18, fontWeight: 800, color: C.black, letterSpacing: '-0.5px' }}>
               Sizə Özəl Hədiyyələr 
             </span>
           </button>
@@ -309,6 +309,9 @@ const Navbar: React.FC<NavbarProps> = ({
         }
         @media (min-width: 769px) {
           .r-mobile-menu-btn { display: none !important; }
+        }
+        @media (max-width: 420px) {
+          .ravio-nav-brand-text { display: none !important; }
         }
       `}</style>
     </>

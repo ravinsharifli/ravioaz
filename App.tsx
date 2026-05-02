@@ -541,7 +541,56 @@ function ProductPageHandler({
         })()}
       </Helmet>
 
-      <div style={{ maxWidth: 1120, margin: '0 auto', padding: '28px 16px 56px' }}>
+      <style>{`
+        .ravio-product-article {
+          display: grid;
+          grid-template-columns: minmax(280px, 480px) 1fr;
+          gap: 24px;
+          background: ${C.white};
+          border-radius: 14px;
+          padding: 24px;
+          border: 1px solid #EDEBE7;
+        }
+        .ravio-product-img {
+          width: 100%;
+          border-radius: 10px;
+          object-fit: cover;
+          display: block;
+        }
+        .ravio-product-order-btn {
+          margin-top: 12px;
+          padding: 16px 28px;
+          background: ${C.primary};
+          color: ${C.white};
+          border: none;
+          border-radius: 12px;
+          font-weight: 700;
+          cursor: pointer;
+          font-size: 16px;
+          font-family: ${F.sans};
+          width: 100%;
+          box-shadow: 0 4px 16px rgba(255,106,0,0.28);
+          transition: background 0.15s;
+          letter-spacing: 0.2px;
+        }
+        .ravio-product-order-btn:hover { background: #E55E00; }
+        @media (max-width: 680px) {
+          .ravio-product-article {
+            grid-template-columns: 1fr !important;
+            padding: 14px !important;
+            gap: 16px !important;
+          }
+          .ravio-product-img {
+            max-height: 300px;
+            object-fit: contain;
+            background: ${C.bg};
+          }
+          .ravio-product-page-wrap {
+            padding: '20px 12px 48px' !important;
+          }
+        }
+      `}</style>
+      <div className="ravio-product-page-wrap" style={{ maxWidth: 1120, margin: '0 auto', padding: '28px 16px 56px' }}>
         {loading && <p style={{ color: C.textSec }}>Yüklənir...</p>}
 
         {currentProduct && (
@@ -555,34 +604,34 @@ function ProductPageHandler({
               </button>
             </div>
 
-            <article style={{ display: 'grid', gridTemplateColumns: 'minmax(280px, 480px) 1fr', gap: 24, background: C.white, borderRadius: 14, padding: 20, border: '1px solid #EDEBE7' }}>
+            <article className="ravio-product-article">
               <div>
                 {primaryImage ? (
-                  <img src={primaryImage} alt={currentProduct.name} style={{ width: '100%', borderRadius: 10, objectFit: 'cover' }} />
+                  <img src={primaryImage} alt={currentProduct.name} className="ravio-product-img" />
                 ) : (
                   <div style={{ width: '100%', aspectRatio: '1 / 1', borderRadius: 10, background: C.bg }} />
                 )}
               </div>
               <div>
-                <h1 style={{ margin: 0, fontSize: 'clamp(24px,3vw,34px)', color: C.black }}>{currentProduct.name}</h1>
-                <p style={{ color: C.textSec, marginTop: 8 }}>{currentProduct.category || 'Məhsul'}</p>
-                <p style={{ fontSize: 24, fontWeight: 800, margin: '12px 0 8px', color: C.black }}>
-                  {min === max ? `${min} ₼` : `${min} ₼ - ${max} ₼`}
+                <h1 style={{ margin: 0, fontSize: 'clamp(22px,3vw,34px)', color: C.black, lineHeight: 1.25 }}>{currentProduct.name}</h1>
+                <p style={{ color: C.textSec, marginTop: 6, marginBottom: 0, fontSize: 13 }}>{currentProduct.category || 'Məhsul'}</p>
+                <p style={{ fontSize: 'clamp(22px,4vw,28px)', fontWeight: 800, margin: '10px 0 4px', color: C.black, letterSpacing: '-0.5px' }}>
+                  {min === max ? `${min} ₼` : `${min} ₼ – ${max} ₼`}
                 </p>
-                <p style={{ color: totalStock > 0 ? C.success : C.error, marginTop: 0, fontWeight: 600 }}>
-                  {totalStock > 0 ? `Stokda var` : 'Stokda yoxdur'}
+                <p style={{ color: totalStock > 0 ? C.success : C.error, marginTop: 0, fontWeight: 600, fontSize: 14 }}>
+                  {totalStock > 0 ? `✓ Stokda var` : 'Stokda yoxdur'}
                 </p>
-                <p style={{ lineHeight: 1.6, color: '#333333' }}>
+                <p style={{ lineHeight: 1.7, color: '#333333', marginTop: 10, fontSize: 14 }}>
                   {currentProduct.description || `${currentProduct.name} üçün fərdi yazı əlavə edə bilərsiniz.`}
                 </p>
                 <button
+                  className="ravio-product-order-btn"
                   onClick={() => {
                     setSelectedProduct(currentProduct);
                     setEditingItem(undefined);
                   }}
-                  style={{ marginTop: 8, padding: '14px 24px', background: C.primary, color: C.white, border: 'none', borderRadius: 10, fontWeight: 700, cursor: 'pointer', fontSize: 15, fontFamily: F.sans }}
                 >
-                  Sifariş et →
+                  🛒 Sifariş et →
                 </button>
               </div>
             </article>
