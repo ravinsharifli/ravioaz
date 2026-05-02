@@ -366,6 +366,268 @@ const CouponSection: React.FC<{
   );
 };
 
+// ── Metro Wizard (3-addım) ─────────────────────────────────────
+interface MetroWizardProps {
+  stations: any[];
+  metro: string;
+  selDateKey: string;
+  selDateDisplay: string;
+  selWeekday: string;
+  delTime: string;
+  availableWeekdays: string[];
+  allTimeSlots: string[];
+  onStationChange: (name: string) => void;
+  onDateChange: (key: string, display: string, weekday: string) => void;
+  onTimeChange: (time: string) => void;
+}
+
+const MetroWizard: React.FC<MetroWizardProps> = ({
+  stations, metro, selDateKey, selDateDisplay, selWeekday, delTime,
+  availableWeekdays, allTimeSlots,
+  onStationChange, onDateChange, onTimeChange,
+}) => {
+  // Hansi addım edit modundadır
+  const [editStep, setEditStep] = useState<1 | 2 | 3 | null>(
+    metro === '' ? 1 : selDateKey === '' ? 2 : delTime === '' ? 3 : null
+  );
+
+  // Addım tamamlandıqda növbəti addıma keç
+  const handleStationSelect = (name: string) => {
+    onStationChange(name);
+    setEditStep(2);
+  };
+
+  const handleDateSelect = (key: string, display: string, weekday: string) => {
+    onDateChange(key, display, weekday);
+    setEditStep(3);
+  };
+
+  const handleTimeSelect = (time: string) => {
+    onTimeChange(time);
+    setEditStep(null);
+  };
+
+  // Addım statusu
+  const step1Done = metro !== '';
+  const step2Done = selDateKey !== '';
+  const step3Done = delTime !== '';
+
+  const stepStyle = (stepNum: 1 | 2 | 3, done: boolean, active: boolean): React.CSSProperties => ({
+    background: C.white,
+    border: `1.5px solid ${active ? C.blue : done ? C.green : C.border}`,
+    borderRadius: 12,
+    marginBottom: 8,
+    overflow: 'hidden',
+    transition: 'border-color 0.2s',
+  });
+
+  const stepHeaderStyle = (done: boolean, active: boolean, locked: boolean): React.CSSProperties => ({
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: '13px 16px',
+    cursor: locked ? 'default' : 'pointer',
+    background: active ? C.blueBg : done ? C.greenBg : C.white,
+    transition: 'background 0.2s',
+  });
+
+  const stepNumStyle = (done: boolean, active: boolean, locked: boolean): React.CSSProperties => ({
+    width: 26, height: 26, borderRadius: '50%', flexShrink: 0,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    fontSize: 11, fontWeight: 800,
+    background: done ? C.green : active ? C.blue : '#E8E8E8',
+    color: done || active ? C.white : '#AAAAAA',
+    marginRight: 10,
+    transition: 'all 0.2s',
+  });
+
+  return (
+    <div style={{ marginBottom: 12 }}>
+
+      {/* ── ADDIM 1: Stansiya ── */}
+      <div style={stepStyle(1, step1Done, editStep === 1)}>
+        <div
+          style={stepHeaderStyle(step1Done, editStep === 1, false)}
+          onClick={() => setEditStep(1)}
+        >
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <div style={stepNumStyle(step1Done, editStep === 1, false)}>
+              {step1Done ? '✓' : '1'}
+            </div>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: step1Done ? C.green : editStep === 1 ? C.blue : C.gray }}>
+                Metro stansiyası
+              </div>
+              {step1Done && editStep !== 1 && (
+                <div style={{ fontSize: 12, color: C.black, fontWeight: 500, marginTop: 1 }}>
+                  🚇 {metro}
+                </div>
+              )}
+            </div>
+          </div>
+          {step1Done && (
+            <span style={{ fontSize: 11, color: C.blue, fontWeight: 600, padding: '4px 10px', border: `1px solid ${C.blueBd}`, borderRadius: 20, background: C.white }}>
+              Dəyiş
+            </span>
+          )}
+        </div>
+
+        {editStep === 1 && (
+          <div style={{ padding: '4px 16px 16px' }}>
+            {stations.length === 0 ? (
+              <p style={{ fontSize: 12, color: C.grayLt, margin: '8px 0 0' }}>
+                Admin paneldə stansiya əlavə edilməyib.
+              </p>
+            ) : (
+              <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 7, paddingTop: 8 }}>
+                {stations.map(s => (
+                  <Chip
+                    key={s.name}
+                    label={`🚇 ${s.name}`}
+                    selected={metro === s.name}
+                    onClick={() => handleStationSelect(s.name)}
+                    color={C.black}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* ── ADDIM 2: Tarix ── */}
+      <div style={stepStyle(2, step2Done, editStep === 2)}>
+        <div
+          style={stepHeaderStyle(step2Done, editStep === 2, !step1Done)}
+          onClick={() => step1Done && setEditStep(2)}
+        >
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <div style={stepNumStyle(step2Done, editStep === 2, !step1Done)}>
+              {step2Done ? '✓' : '2'}
+            </div>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: !step1Done ? '#BBBBBB' : step2Done ? C.green : editStep === 2 ? C.blue : C.gray }}>
+                Çatdırılma tarixi
+              </div>
+              {step2Done && editStep !== 2 && (
+                <div style={{ fontSize: 12, color: C.black, fontWeight: 500, marginTop: 1 }}>
+                  📅 {selDateDisplay}
+                </div>
+              )}
+              {!step1Done && (
+                <div style={{ fontSize: 11, color: '#BBBBBB', marginTop: 1 }}>Əvvəlcə stansiya seçin</div>
+              )}
+            </div>
+          </div>
+          {step2Done && (
+            <span style={{ fontSize: 11, color: C.blue, fontWeight: 600, padding: '4px 10px', border: `1px solid ${C.blueBd}`, borderRadius: 20, background: C.white }}>
+              Dəyiş
+            </span>
+          )}
+        </div>
+
+        {editStep === 2 && step1Done && (
+          <div style={{ padding: '4px 16px 16px' }}>
+            {availableWeekdays.length === 0 ? (
+              <p style={{ fontSize: 12, color: C.grayLt, margin: '8px 0 0' }}>
+                Bu stansiya üçün aktiv gün yoxdur.
+              </p>
+            ) : (
+              <>
+                <p style={{ fontSize: 11, color: C.grayLt, margin: '8px 0 10px' }}>
+                  Mövcud günlər: {availableWeekdays.join(', ')}
+                </p>
+                <DatePicker
+                  selected={selDateKey}
+                  onChange={handleDateSelect}
+                  availableWeekdays={availableWeekdays}
+                />
+              </>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* ── ADDIM 3: Saat ── */}
+      <div style={stepStyle(3, step3Done, editStep === 3)}>
+        <div
+          style={stepHeaderStyle(step3Done, editStep === 3, !step2Done)}
+          onClick={() => step2Done && setEditStep(3)}
+        >
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <div style={stepNumStyle(step3Done, editStep === 3, !step2Done)}>
+              {step3Done ? '✓' : '3'}
+            </div>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: !step2Done ? '#BBBBBB' : step3Done ? C.green : editStep === 3 ? C.blue : C.gray }}>
+                Çatdırılma saatı
+              </div>
+              {step3Done && editStep !== 3 && (
+                <div style={{ fontSize: 12, color: C.black, fontWeight: 500, marginTop: 1 }}>
+                  🕐 {delTime}
+                </div>
+              )}
+              {!step2Done && (
+                <div style={{ fontSize: 11, color: '#BBBBBB', marginTop: 1 }}>Əvvəlcə tarix seçin</div>
+              )}
+            </div>
+          </div>
+          {step3Done && (
+            <span style={{ fontSize: 11, color: C.blue, fontWeight: 600, padding: '4px 10px', border: `1px solid ${C.blueBd}`, borderRadius: 20, background: C.white }}>
+              Dəyiş
+            </span>
+          )}
+        </div>
+
+        {editStep === 3 && step2Done && (
+          <div style={{ padding: '4px 16px 16px' }}>
+            {allTimeSlots.length === 0 ? (
+              <p style={{ fontSize: 12, color: C.grayLt, margin: '8px 0 0' }}>
+                Bu gün üçün boş saat yoxdur. Başqa tarix seçin.
+              </p>
+            ) : (
+              <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 7, paddingTop: 8 }}>
+                {allTimeSlots.map(slot => (
+                  <Chip
+                    key={slot}
+                    label={slot}
+                    selected={delTime === slot}
+                    onClick={() => handleTimeSelect(slot)}
+                    color={C.green}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Hamısı tamamlandıqda xülasə */}
+      {step1Done && step2Done && step3Done && editStep === null && (
+        <div style={{
+          background: C.greenBg, border: `1.5px solid ${C.greenBd}`,
+          borderRadius: 12, padding: '12px 16px',
+          display: 'flex', alignItems: 'center', gap: 10, marginTop: 4,
+        }}>
+          <span style={{ fontSize: 18 }}>✅</span>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: C.green }}>Metro çatdırılması təsdiqləndi</div>
+            <div style={{ fontSize: 12, color: '#166534', marginTop: 2 }}>
+              {metro} · {selDateDisplay} · {delTime}
+            </div>
+          </div>
+          <span
+            onClick={() => setEditStep(1)}
+            style={{ fontSize: 11, color: C.blue, fontWeight: 600, cursor: 'pointer', padding: '4px 10px', border: `1px solid ${C.blueBd}`, borderRadius: 20, background: C.white, whiteSpace: 'nowrap' as const }}
+          >
+            Dəyiş
+          </span>
+        </div>
+      )}
+    </div>
+  );
+};
+
 // ── Props ──────────────────────────────────────────────────────
 interface CartDrawerProps {
   isOpen: boolean;
@@ -744,82 +1006,21 @@ setIsCheckingOut(false);
                 </div>
               </div>
 
-              {/* METRO SEÇİMİ */}
+              {/* METRO SEÇİMİ — Wizard */}
               {delivery === 'metro' && (
-                <Sec>
-                  <Label>Metro stansiyası</Label>
-                  {stations.length === 0 ? (
-                    <p style={{ fontSize: 12, color: C.grayLt, margin: '0 0 14px' }}>
-                      Admin paneldə stansiya əlavə edilməyib.
-                    </p>
-                  ) : (
-                    <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 7, marginBottom: 16 }}>
-                      {stations.map(s => (
-                        <Chip
-                          key={s.name}
-                          label={s.name}
-                          selected={metro === s.name}
-                          onClick={() => handleStationChange(s.name)}
-                          color={C.black}
-                        />
-                      ))}
-                    </div>
-                  )}
-
-                  {metro !== '' && (
-                    <>
-                      <Label>Çatdırılma tarixi</Label>
-                      {availableWeekdays.length === 0 ? (
-                        <p style={{ fontSize: 12, color: C.grayLt, margin: '0 0 14px' }}>
-                          Bu stansiya üçün aktiv gün yoxdur.
-                        </p>
-                      ) : (
-                        <div style={{ marginBottom: 16 }}>
-                          <p style={{ fontSize: 11, color: C.grayLt, margin: '0 0 10px' }}>
-                            Aktiv günlər: {availableWeekdays.join(', ')}
-                          </p>
-                          <DatePicker
-                            selected={selDateKey}
-                            onChange={handleDateChange}
-                            availableWeekdays={availableWeekdays}
-                          />
-                          {selDateKey && (
-                            <div style={{
-                              marginTop: 10, padding: '8px 12px',
-                              background: C.blueBg, border: `1px solid ${C.blueBd}`,
-                              borderRadius: 8, fontSize: 12, color: C.blue, fontWeight: 600,
-                            }}>
-                              ✅ {selDateDisplay} — {selWeekday}
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </>
-                  )}
-
-                  {selDateKey !== '' && (
-                    <>
-                      <Label>Çatdırılma saatı</Label>
-                      {allTimeSlots.length === 0 ? (
-                        <p style={{ fontSize: 12, color: C.grayLt, margin: 0 }}>
-                          Bu gün üçün boş saat yoxdur. Başqa tarix seçin.
-                        </p>
-                      ) : (
-                        <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 7 }}>
-                          {allTimeSlots.map(slot => (
-                            <Chip
-                              key={slot}
-                              label={slot}
-                              selected={delTime === slot}
-                              onClick={() => setDelTime(slot)}
-                              color={C.green}
-                            />
-                          ))}
-                        </div>
-                      )}
-                    </>
-                  )}
-                </Sec>
+                <MetroWizard
+                  stations={stations}
+                  metro={metro}
+                  selDateKey={selDateKey}
+                  selDateDisplay={selDateDisplay}
+                  selWeekday={selWeekday}
+                  delTime={delTime}
+                  availableWeekdays={availableWeekdays}
+                  allTimeSlots={allTimeSlots}
+                  onStationChange={handleStationChange}
+                  onDateChange={handleDateChange}
+                  onTimeChange={setDelTime}
+                />
               )}
 
               {/* KURYER / POÇT */}

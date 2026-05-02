@@ -254,13 +254,24 @@ const ProductModal: React.FC<ProductModalProps> = ({
         .ravio-modal-inner {
           background: ${C.bg};
           width: 100%;
-          max-height: min(94dvh, 94vh);
-          border-radius: 16px 16px 0 0;
+          /* svh = small viewport height, iOS browser chrome-u nəzərə alır */
+          height: 92svh;
+          height: 92dvh; /* fallback: dvh dinamik viewport */
+          max-height: 92svh;
+          max-height: 92dvh;
+          border-radius: 20px 20px 0 0;
           display: flex;
           flex-direction: column;
           overflow: hidden;
-          box-shadow: 0 -16px 48px rgba(0,0,0,0.12);
+          box-shadow: 0 -16px 48px rgba(0,0,0,0.18);
           margin: 0 auto;
+        }
+        .ravio-modal-drag-handle {
+          width: 36px; height: 4px;
+          background: rgba(0,0,0,0.18);
+          border-radius: 2px;
+          margin: 10px auto 0;
+          flex-shrink: 0;
         }
         @media (min-width: 600px) {
           .ravio-modal-inner { max-width: 560px; }
@@ -271,15 +282,20 @@ const ProductModal: React.FC<ProductModalProps> = ({
           }
           .ravio-modal-inner {
             max-width: 600px;
+            height: auto;
             max-height: min(90dvh, 90vh);
             border-radius: 16px;
           }
+          .ravio-modal-drag-handle { display: none; }
         }
         @media (min-width: 1024px) {
           .ravio-modal-inner { max-width: 640px; }
         }
       `}</style>
       <div className="ravio-modal-inner">
+
+        {/* Drag handle — mobil üçün */}
+        <div className="ravio-modal-drag-handle" />
 
         {/* Header */}
         <div style={{ background: C.white, borderBottom: `1px solid ${C.border}`, padding: '16px 20px', flexShrink: 0 }}>
