@@ -41,7 +41,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart, onView
     return (
       <div style={{ textAlign: 'center' as const, padding: '80px 24px', color: '#999' }}>
         <ShoppingBag size={40} strokeWidth={1} style={{ marginBottom: 12, opacity: 0.3 }} />
-        <p style={{ fontSize: 15, fontFamily: "'Inter', sans-serif" }}>Bu kateqoriyada məhsul yoxdur</p>
+        <p style={{ fontSize: 15, fontFamily: F.sans }}>Bu kateqoriyada məhsul yoxdur</p>
       </div>
     );
   }
@@ -137,7 +137,7 @@ const Card: React.FC<CardProps> = ({
         display: 'block',
         textDecoration: 'none',
         color: 'inherit',
-        background: '#FFFFFF', borderRadius: 12,
+        background: C.white, borderRadius: 12,
         overflow: 'hidden', cursor: 'pointer',
         border: hovered ? '1px solid #E0DDD8' : '1px solid #EDEBE7',
         boxShadow: hovered ? '0 8px 32px rgba(0,0,0,0.08)' : '0 1px 4px rgba(0,0,0,0.04)',
@@ -147,7 +147,7 @@ const Card: React.FC<CardProps> = ({
     >
       {/* Image */}
       <div
-        style={{ position: 'relative', aspectRatio: '1/1', overflow: 'hidden', background: '#F5F2EC' }}
+        style={{ position: 'relative', aspectRatio: '1/1', overflow: 'hidden', background: C.bg }}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
@@ -172,7 +172,7 @@ const Card: React.FC<CardProps> = ({
         {hasDiscount && (
           <div style={{
             position: 'absolute', top: 8, left: 8,
-            background: '#FF6A00', color: '#FFFFFF',
+            background: C.primary, color: C.white,
             fontSize: 10, fontWeight: 800,
             padding: '3px 8px', borderRadius: 6,
           }}>−{pct}%</div>
@@ -181,7 +181,7 @@ const Card: React.FC<CardProps> = ({
         {product.isBestSeller && !hasDiscount && (
           <div style={{
             position: 'absolute', top: 8, left: 8,
-            background: '#111111', color: '#FFFFFF',
+            background: C.black, color: C.white,
             fontSize: 10, fontWeight: 700,
             padding: '3px 8px', borderRadius: 6,
           }}>✦ Populyar</div>
@@ -190,12 +190,12 @@ const Card: React.FC<CardProps> = ({
         {lowStock && (
           <div style={{
             position: 'absolute', top: 8, right: 8,
-            background: '#FF6A00', color: '#FFFFFF',
+            background: C.primary, color: C.white,
             fontSize: 10, fontWeight: 700,
             padding: '3px 7px', borderRadius: 6,
             display: 'flex', alignItems: 'center', gap: 3,
           }}>
-            <Zap size={9} fill="#FFFFFF" />Son {stock}
+            <Zap size={9} fill=C.white />Son {stock}
           </div>
         )}
 
@@ -236,7 +236,7 @@ const Card: React.FC<CardProps> = ({
             {images.map((_, i) => (
               <div key={i} style={{
                 width: i === imgIdx ? 16 : 5, height: 5,
-                borderRadius: 3, background: i === imgIdx ? '#FF6A00' : 'rgba(0,0,0,0.25)',
+                borderRadius: 3, background: i === imgIdx ? C.primary : 'rgba(0,0,0,0.25)',
                 transition: 'all 0.2s',
               }} />
             ))}
@@ -258,10 +258,10 @@ const Card: React.FC<CardProps> = ({
               onClick={e => { e.stopPropagation(); e.preventDefault(); onAdd(); }}
               style={{
                 width: '100%', padding: '10px 0',
-                background: '#FF6A00', color: '#FFFFFF',
+                background: C.primary, color: C.white,
                 border: 'none', borderRadius: 8,
                 fontSize: 12, fontWeight: 700,
-                cursor: 'pointer', fontFamily: "'Inter', sans-serif",
+                cursor: 'pointer', fontFamily: F.sans,
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
               }}
             >
@@ -278,14 +278,14 @@ const Card: React.FC<CardProps> = ({
             fontSize: 9, fontWeight: 600, color: '#999999',
             letterSpacing: 0.8, textTransform: 'uppercase' as const,
             display: 'block', marginBottom: 4,
-            fontFamily: "'Inter', sans-serif",
+            fontFamily: F.sans,
           }}>{product.category}</span>
         )}
 
         <h3 style={{
           margin: '0 0 8px', fontSize: 13, fontWeight: 600,
-          color: '#111111', lineHeight: 1.35,
-          fontFamily: "'Inter', sans-serif",
+          color: C.black, lineHeight: 1.35,
+          fontFamily: F.sans,
           display: '-webkit-box' as any,
           WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as any,
           overflow: 'hidden',
@@ -298,13 +298,13 @@ const Card: React.FC<CardProps> = ({
                 fontSize: 10, color: '#BBBBBB',
                 textDecoration: 'line-through',
                 display: 'block', lineHeight: 1, marginBottom: 2,
-                fontFamily: "'Inter', sans-serif",
+                fontFamily: F.sans,
               }}>{minOld.toFixed(2)} ₼</span>
             )}
             <span style={{
               fontSize: 16, fontWeight: 800,
-              color: hasDiscount ? '#FF6A00' : '#111111',
-              fontFamily: "'Inter', sans-serif",
+              color: hasDiscount ? C.primary : C.black,
+              fontFamily: F.sans,
               letterSpacing: '-0.5px',
             }}>
               {min.toFixed(2)}{!samePrice ? `–${max.toFixed(2)}` : ''} ₼
@@ -314,9 +314,9 @@ const Card: React.FC<CardProps> = ({
           {product.variants && product.variants.length > 1 && (
             <span style={{
               fontSize: 9, color: '#999',
-              background: '#F5F2EC', borderRadius: 6,
+              background: C.bg, borderRadius: 6,
               padding: '3px 6px', fontWeight: 500,
-              fontFamily: "'Inter', sans-serif", flexShrink: 0,
+              fontFamily: F.sans, flexShrink: 0,
             }}>{product.variants.length} var.</span>
           )}
         </div>
@@ -324,7 +324,7 @@ const Card: React.FC<CardProps> = ({
         <div style={{
           marginTop: 8, fontSize: 10, color: '#555',
           display: 'flex', alignItems: 'center', gap: 3,
-          fontFamily: "'Inter', sans-serif",
+          fontFamily: F.sans,
         }}>
           <span style={{ color: '#16A34A', fontWeight: 700 }}>✓</span>
           Ödənişsiz çatdırılma

@@ -1,4 +1,5 @@
 import React from 'react';
+import { F } from '../tokens';
 import { ArrowRight, Sparkles, Gift, GraduationCap } from 'lucide-react';
 
 const PromoBanners: React.FC = () => {
@@ -38,7 +39,7 @@ const PromoBanners: React.FC = () => {
             marginBottom: 16,
           }}>
             <Sparkles size={10} color="#BF912E" />
-            <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: '1.5px', textTransform: 'uppercase' as const, color: '#BF912E', fontFamily: "'Inter', sans-serif" }}>
+            <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: '1.5px', textTransform: 'uppercase' as const, color: '#BF912E', fontFamily: F.sans }}>
               Fərdiləşdirilmiş hədiyyə
             </span>
           </div>
@@ -64,7 +65,7 @@ const PromoBanners: React.FC = () => {
             padding: '11px 22px', borderRadius: 10,
             fontWeight: 800, fontSize: 13,
             textDecoration: 'none', letterSpacing: '0.3px',
-            fontFamily: "'Inter', sans-serif",
+            fontFamily: F.sans,
           }}>
             Məhsullara bax <ArrowRight size={14} />
           </a>

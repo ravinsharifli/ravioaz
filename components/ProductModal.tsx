@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { F } from '../tokens';
 import { X, ChevronLeft, ChevronRight, Upload, Minus, Plus, Check } from 'lucide-react';
 import { Product, CartItem, BulkTier } from '../types';
 
@@ -17,16 +18,18 @@ function toWebP(url: string, width: number = 800): string {
   }
 }
 
-const FONT = "'Inter', -apple-system, sans-serif";
+// Bu komponent oz lokal renk palitrasından istifade edir.
+// Esas rengler CSS deyisenleri vasitesile idarə olunur — index.html-den deyisdirilir.
+const FONT = F.sans;
 
 const C = {
-  bg:       '#F5F2EC',
-  white:    '#FFFFFF',
-  black:    '#111111',
-  gray:     '#666666',
-  grayLt:   '#AAAAAA',
+  bg:       'var(--clr-bg)',
+  white:    'var(--clr-white)',
+  black:    'var(--clr-black)',
+  gray:     'var(--clr-text-sec)',
+  grayLt:   'var(--clr-text-muted)',
   border:   '#E5E1DB',
-  orange:   '#FF6A00',
+  orange:   'var(--clr-primary)',
   orangeBg: '#FFF3EC',
   orangeBd: '#FFD4B8',
   green:    '#16A34A',
@@ -636,7 +639,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
                       transition: 'all 0.15s',
                       background: sel ? '#F8F8F8' : C.white,
                     }}>
-                      <div style={{ aspectRatio: '1/1', background: '#F5F2EC', overflow: 'hidden' }}>
+                      <div style={{ aspectRatio: '1/1', background: C.bg, overflow: 'hidden' }}>
                         {b.imageUrl ? (
                           <img src={b.imageUrl} alt={b.name}
                             style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />

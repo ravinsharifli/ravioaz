@@ -1,4 +1,5 @@
 import React from 'react';
+import { C, F } from '../tokens';
 import { Instagram, Phone, MapPin } from 'lucide-react';
 
 interface FooterProps {
@@ -17,7 +18,7 @@ const TikTokIcon = () => (
 
 const Footer: React.FC<FooterProps> = ({ onReviewsClick, onProductsClick, onDeliveryClick, onAboutClick, onContactClick }) => {
   return (
-    <footer style={{ background: '#111111', color: '#FFFFFF', padding: 'clamp(48px,6vw,72px) clamp(16px,3vw,32px) 32px', fontFamily: "'Inter', sans-serif" }}>
+    <footer style={{ background: C.black, color: C.white, padding: 'clamp(48px,6vw,72px) clamp(16px,3vw,32px) 32px', fontFamily: F.sans }}>
       <div style={{ maxWidth: 1280, margin: '0 auto' }}>
         <div className="ravio-footer-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 48, marginBottom: 56 }}>
 
@@ -45,7 +46,7 @@ const Footer: React.FC<FooterProps> = ({ onReviewsClick, onProductsClick, onDeli
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     color: 'rgba(255,255,255,0.4)', textDecoration: 'none', transition: 'all 0.2s',
                   }}
-                  onMouseEnter={e => { e.currentTarget.style.borderColor = '#FF6A00'; e.currentTarget.style.color = '#FF6A00'; }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = C.primary; e.currentTarget.style.color = C.primary; }}
                   onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)'; e.currentTarget.style.color = 'rgba(255,255,255,0.4)'; }}
                 >{s.icon}</a>
               ))}
@@ -54,7 +55,7 @@ const Footer: React.FC<FooterProps> = ({ onReviewsClick, onProductsClick, onDeli
 
           {/* Links */}
           <div>
-            <h4 style={{ fontSize: 11, fontWeight: 700, color: '#FF6A00', letterSpacing: 1.5, textTransform: 'uppercase' as const, margin: '0 0 20px' }}>
+            <h4 style={{ fontSize: 11, fontWeight: 700, color: C.primary, letterSpacing: 1.5, textTransform: 'uppercase' as const, margin: '0 0 20px' }}>
               Keçidlər
             </h4>
             {[
@@ -67,10 +68,10 @@ const Footer: React.FC<FooterProps> = ({ onReviewsClick, onProductsClick, onDeli
                 <button onClick={link.action} style={{
                   background: 'none', border: 'none', padding: 0,
                   color: 'rgba(255,255,255,0.4)', fontSize: 14,
-                  cursor: 'pointer', fontFamily: "'Inter', sans-serif",
+                  cursor: 'pointer', fontFamily: F.sans,
                   fontWeight: 400, display: 'block', textAlign: 'left' as const, transition: 'color 0.15s',
                 }}
-                  onMouseEnter={e => e.currentTarget.style.color = '#FFFFFF'}
+                  onMouseEnter={e => e.currentTarget.style.color = C.white}
                   onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.4)'}
                 >{link.label}</button>
               </div>
@@ -79,7 +80,7 @@ const Footer: React.FC<FooterProps> = ({ onReviewsClick, onProductsClick, onDeli
 
           {/* Delivery info summary */}
           <div>
-            <h4 style={{ fontSize: 11, fontWeight: 700, color: '#FF6A00', letterSpacing: 1.5, textTransform: 'uppercase' as const, margin: '0 0 20px' }}>
+            <h4 style={{ fontSize: 11, fontWeight: 700, color: C.primary, letterSpacing: 1.5, textTransform: 'uppercase' as const, margin: '0 0 20px' }}>
               Çatdırılma
             </h4>
             {[
@@ -97,7 +98,7 @@ const Footer: React.FC<FooterProps> = ({ onReviewsClick, onProductsClick, onDeli
 
           {/* Contact */}
           <div>
-            <h4 style={{ fontSize: 11, fontWeight: 700, color: '#FF6A00', letterSpacing: 1.5, textTransform: 'uppercase' as const, margin: '0 0 20px' }}>
+            <h4 style={{ fontSize: 11, fontWeight: 700, color: C.primary, letterSpacing: 1.5, textTransform: 'uppercase' as const, margin: '0 0 20px' }}>
               Əlaqə
             </h4>
             {[
@@ -105,7 +106,7 @@ const Footer: React.FC<FooterProps> = ({ onReviewsClick, onProductsClick, onDeli
               { icon: <MapPin size={13} />, text: 'Bakı, Azərbaycan' },
             ].map((item, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 13 }}>
-                <span style={{ color: '#FF6A00', flexShrink: 0 }}>{item.icon}</span>
+                <span style={{ color: C.primary, flexShrink: 0 }}>{item.icon}</span>
                 <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)' }}>{item.text}</span>
               </div>
             ))}
@@ -113,10 +114,10 @@ const Footer: React.FC<FooterProps> = ({ onReviewsClick, onProductsClick, onDeli
               marginTop: 8, padding: '10px 20px',
               background: 'transparent', border: '1px solid rgba(255,255,255,0.15)',
               borderRadius: 8, color: 'rgba(255,255,255,0.6)', fontSize: 13,
-              cursor: 'pointer', fontFamily: "'Inter', sans-serif",
+              cursor: 'pointer', fontFamily: F.sans,
               transition: 'all 0.15s',
             }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = '#FF6A00'; e.currentTarget.style.color = '#FF6A00'; }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = C.primary; e.currentTarget.style.color = C.primary; }}
               onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)'; e.currentTarget.style.color = 'rgba(255,255,255,0.6)'; }}
             >Əlaqə səhifəsi →</button>
           </div>

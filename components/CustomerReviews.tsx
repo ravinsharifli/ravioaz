@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { C, F } from '../tokens';
 import { Star } from 'lucide-react';
 import { client } from '../sanityclient';
 
@@ -12,12 +13,12 @@ interface Review {
   isActive: boolean;
 }
 
-const FONT = "'Inter', sans-serif";
+const FONT = F.sans;
 
 const Stars = ({ n }: { n: number }) => (
   <div style={{ display: 'flex', gap: 2 }}>
     {[1,2,3,4,5].map(i => (
-      <Star key={i} size={13} color="#FF6A00" fill={i <= n ? '#FF6A00' : 'none'} />
+      <Star key={i} size={13} color=C.primary fill={i <= n ? C.primary : 'none'} />
     ))}
   </div>
 );
@@ -78,18 +79,18 @@ const CustomerReviews: React.FC = () => {
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap' as const, gap: 16, marginBottom: 32 }}>
         <div>
-          <p style={{ fontSize: 11, fontWeight: 700, color: '#FF6A00', letterSpacing: 1.5, textTransform: 'uppercase' as const, margin: '0 0 8px' }}>
+          <p style={{ fontSize: 11, fontWeight: 700, color: C.primary, letterSpacing: 1.5, textTransform: 'uppercase' as const, margin: '0 0 8px' }}>
             Müştəri rəyləri
           </p>
-          <h2 style={{ fontSize: 'clamp(20px,4vw,32px)', fontWeight: 800, color: '#111111', margin: 0, letterSpacing: '-0.3px' }}>
+          <h2 style={{ fontSize: 'clamp(20px,4vw,32px)', fontWeight: 800, color: C.black, margin: 0, letterSpacing: '-0.3px' }}>
             Real sifarişlər, real rəylər
           </h2>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontSize: 32, fontWeight: 800, color: '#111111', letterSpacing: '-1px' }}>{avgRating}</span>
+          <span style={{ fontSize: 32, fontWeight: 800, color: C.black, letterSpacing: '-1px' }}>{avgRating}</span>
           <div>
             <Stars n={5} />
-            <p style={{ fontSize: 11, color: '#AAAAAA', margin: '4px 0 0', fontWeight: 500 }}>500+ sifarişdən</p>
+            <p style={{ fontSize: 11, color: C.textMuted, margin: '4px 0 0', fontWeight: 500 }}>500+ sifarişdən</p>
           </div>
         </div>
       </div>
@@ -98,10 +99,10 @@ const CustomerReviews: React.FC = () => {
       {loading ? (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16, marginBottom: 48 }}>
           {[1,2,3].map(i => (
-            <div key={i} style={{ background: '#FFFFFF', borderRadius: 12, padding: 20, border: '1px solid #EDEBE7', height: 160 }}>
-              <div style={{ width: '60%', height: 12, background: '#F5F2EC', borderRadius: 4, marginBottom: 12, animation: 'pulse 1.5s ease-in-out infinite' }} />
-              <div style={{ width: '100%', height: 10, background: '#F5F2EC', borderRadius: 4, marginBottom: 8, animation: 'pulse 1.5s ease-in-out infinite' }} />
-              <div style={{ width: '80%', height: 10, background: '#F5F2EC', borderRadius: 4, animation: 'pulse 1.5s ease-in-out infinite' }} />
+            <div key={i} style={{ background: C.white, borderRadius: 12, padding: 20, border: '1px solid #EDEBE7', height: 160 }}>
+              <div style={{ width: '60%', height: 12, background: C.bg, borderRadius: 4, marginBottom: 12, animation: 'pulse 1.5s ease-in-out infinite' }} />
+              <div style={{ width: '100%', height: 10, background: C.bg, borderRadius: 4, marginBottom: 8, animation: 'pulse 1.5s ease-in-out infinite' }} />
+              <div style={{ width: '80%', height: 10, background: C.bg, borderRadius: 4, animation: 'pulse 1.5s ease-in-out infinite' }} />
             </div>
           ))}
         </div>
@@ -114,7 +115,7 @@ const CustomerReviews: React.FC = () => {
         }}>
           {reviews.map(r => (
             <div key={r._id} style={{
-              background: '#FFFFFF', borderRadius: 12,
+              background: C.white, borderRadius: 12,
               padding: '18px 16px', border: '1px solid #EDEBE7',
               display: 'flex', flexDirection: 'column' as const, gap: 10,
             }}>
@@ -122,13 +123,13 @@ const CustomerReviews: React.FC = () => {
                 <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
                   <div style={{
                     width: 38, height: 38, borderRadius: '50%',
-                    background: '#111111', color: '#FFFFFF',
+                    background: C.black, color: C.white,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: 12, fontWeight: 700, flexShrink: 0,
                   }}>{getInitials(r.name)}</div>
                   <div>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: '#111111' }}>{r.name}</div>
-                    <div style={{ fontSize: 11, color: '#AAAAAA', marginTop: 2 }}>{r.date}</div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: C.black }}>{r.name}</div>
+                    <div style={{ fontSize: 11, color: C.textMuted, marginTop: 2 }}>{r.date}</div>
                   </div>
                 </div>
                 <Stars n={r.rating} />
@@ -138,10 +139,10 @@ const CustomerReviews: React.FC = () => {
 
               <div style={{
                 display: 'inline-flex', alignItems: 'center', gap: 5,
-                background: '#F5F2EC', borderRadius: 6, padding: '4px 10px',
+                background: C.bg, borderRadius: 6, padding: '4px 10px',
                 alignSelf: 'flex-start' as const,
               }}>
-                <span style={{ fontSize: 11, color: '#666666', fontWeight: 500 }}>📦 {r.product}</span>
+                <span style={{ fontSize: 11, color: C.textSec, fontWeight: 500 }}>📦 {r.product}</span>
               </div>
             </div>
           ))}
@@ -150,17 +151,17 @@ const CustomerReviews: React.FC = () => {
 
       {/* Social CTA */}
       <div style={{
-        background: '#111111', borderRadius: 16,
+        background: C.black, borderRadius: 16,
         padding: 'clamp(24px,4vw,48px) clamp(16px,4vw,48px)',
         display: 'flex', justifyContent: 'space-between',
         alignItems: 'center', flexWrap: 'wrap' as const, gap: 20,
       }}>
         <div>
-          <h3 style={{ fontSize: 'clamp(16px,3vw,24px)', fontWeight: 800, color: '#FFFFFF', margin: '0 0 8px', letterSpacing: '-0.3px' }}>
+          <h3 style={{ fontSize: 'clamp(16px,3vw,24px)', fontWeight: 800, color: C.white, margin: '0 0 8px', letterSpacing: '-0.3px' }}>
             Siz də rəy bildirin
           </h3>
           <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', margin: 0 }}>
-            Sosial şəbəkədə <strong style={{ color: '#FF6A00' }}>@ravio.az</strong> tag edin
+            Sosial şəbəkədə <strong style={{ color: C.primary }}>@ravio.az</strong> tag edin
           </p>
         </div>
 
@@ -171,7 +172,7 @@ const CustomerReviews: React.FC = () => {
               padding: '11px 18px', borderRadius: 10,
               background: 'rgba(255,255,255,0.08)',
               border: '1px solid rgba(255,255,255,0.12)',
-              color: '#FFFFFF', textDecoration: 'none',
+              color: C.white, textDecoration: 'none',
               fontSize: 13, fontWeight: 600, fontFamily: FONT,
             }}
           >
@@ -183,7 +184,7 @@ const CustomerReviews: React.FC = () => {
               padding: '11px 18px', borderRadius: 10,
               background: 'rgba(255,255,255,0.08)',
               border: '1px solid rgba(255,255,255,0.12)',
-              color: '#FFFFFF', textDecoration: 'none',
+              color: C.white, textDecoration: 'none',
               fontSize: 13, fontWeight: 600, fontFamily: FONT,
             }}
           >

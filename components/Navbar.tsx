@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { C, F } from '../tokens';
 import { ShoppingBag, Search, X, Menu } from 'lucide-react';
 import { Product } from '../types';
 
@@ -78,11 +79,11 @@ const Navbar: React.FC<NavbarProps> = ({
       <div
         ref={announcementRef}
         style={{
-          background: '#111111', color: '#FFFFFF',
+          background: C.black, color: C.white,
           textAlign: 'center' as const,
           fontSize: 12, fontWeight: 500,
           padding: '9px 16px',
-          fontFamily: "'Inter', sans-serif",
+          fontFamily: F.sans,
           letterSpacing: 0.2,
           lineHeight: 1.5,
           position: 'fixed',
@@ -91,14 +92,14 @@ const Navbar: React.FC<NavbarProps> = ({
         }}
       >
         ✨ Sizə özəl hazırlanır &nbsp;·&nbsp;
-        <strong style={{ color: '#FF6A00' }}>Ödənişsiz çatdırılma</strong>
+        <strong style={{ color: C.primary }}>Ödənişsiz çatdırılma</strong>
         &nbsp;·&nbsp; Hər məhsul fərdidir
       </div>
 
       {/* Main nav */}
       <nav style={{
         position: 'fixed', top: announcementH, left: 0, right: 0, zIndex: 1000,
-        background: '#FFFFFF',
+        background: C.white,
         borderBottom: scrolled ? '1px solid #E5E1DB' : '1px solid #EDEBE7',
         boxShadow: scrolled ? '0 2px 16px rgba(0,0,0,0.07)' : 'none',
         transition: 'box-shadow 0.3s',
@@ -125,7 +126,7 @@ const Navbar: React.FC<NavbarProps> = ({
                 display: 'block',
               }}
             />
-            <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 18, fontWeight: 800, color: '#111111', letterSpacing: '-0.5px' }}>
+            <span style={{ fontFamily: F.sans, fontSize: 18, fontWeight: 800, color: C.black, letterSpacing: '-0.5px' }}>
               Sizə Özəl Hədiyyələr 
             </span>
           </button>
@@ -136,10 +137,10 @@ const Navbar: React.FC<NavbarProps> = ({
               <button key={link.label} onClick={link.action} style={{
                 background: 'none', border: 'none', cursor: 'pointer',
                 padding: '8px 14px', fontSize: 13, fontWeight: 500,
-                color: '#444444', fontFamily: "'Inter', sans-serif",
+                color: '#444444', fontFamily: F.sans,
                 borderRadius: 6, transition: 'color 0.15s, background 0.15s',
               }}
-                onMouseEnter={e => { e.currentTarget.style.color = '#111111'; e.currentTarget.style.background = '#F5F2EC'; }}
+                onMouseEnter={e => { e.currentTarget.style.color = C.black; e.currentTarget.style.background = C.bg; }}
                 onMouseLeave={e => { e.currentTarget.style.color = '#444444'; e.currentTarget.style.background = 'transparent'; }}
               >{link.label}</button>
             ))}
@@ -162,13 +163,13 @@ const Navbar: React.FC<NavbarProps> = ({
                 <div style={{
                   position: 'absolute', right: 0, top: 46,
                   width: 'min(340px, calc(100vw - 32px))',
-                  background: '#FFFFFF',
+                  background: C.white,
                   border: '1px solid #E5E1DB', borderRadius: 12,
                   boxShadow: '0 16px 48px rgba(0,0,0,0.12)',
                   overflow: 'hidden', zIndex: 500,
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', borderBottom: '1px solid #F0EBE2' }}>
-                    <Search size={14} color="#FF6A00" />
+                    <Search size={14} color=C.primary />
                     <input
                       autoFocus
                       value={query}
@@ -176,8 +177,8 @@ const Navbar: React.FC<NavbarProps> = ({
                       placeholder="Məhsul axtar..."
                       style={{
                         flex: 1, border: 'none', outline: 'none',
-                        fontSize: 14, color: '#111111',
-                        fontFamily: "'Inter', sans-serif",
+                        fontSize: 14, color: C.black,
+                        fontFamily: F.sans,
                         background: 'transparent',
                       }}
                     />
@@ -199,19 +200,19 @@ const Navbar: React.FC<NavbarProps> = ({
                               padding: '10px 16px', background: 'none', border: 'none',
                               cursor: 'pointer', textAlign: 'left' as const,
                             }}
-                            onMouseEnter={e => e.currentTarget.style.background = '#F5F2EC'}
+                            onMouseEnter={e => e.currentTarget.style.background = C.bg}
                             onMouseLeave={e => e.currentTarget.style.background = 'none'}
                           >
                             {p.variants?.[0]?.images?.[0] && (
-                              <div style={{ width: 44, height: 44, borderRadius: 8, overflow: 'hidden', background: '#F5F2EC', flexShrink: 0 }}>
+                              <div style={{ width: 44, height: 44, borderRadius: 8, overflow: 'hidden', background: C.bg, flexShrink: 0 }}>
                                 <img src={p.variants[0].images[0]} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
                               </div>
                             )}
                             <div style={{ flex: 1, minWidth: 0 }}>
-                              <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: '#111111', fontFamily: "'Inter', sans-serif", overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>
+                              <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: C.black, fontFamily: F.sans, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>
                                 {p.name}
                               </p>
-                              <p style={{ margin: '2px 0 0', fontSize: 13, color: '#FF6A00', fontWeight: 700 }}>
+                              <p style={{ margin: '2px 0 0', fontSize: 13, color: C.primary, fontWeight: 700 }}>
                                 {(p.variants[0]?.discountPrice ?? p.variants[0]?.price ?? 0).toFixed(2)} ₼
                               </p>
                             </div>
@@ -239,7 +240,7 @@ const Navbar: React.FC<NavbarProps> = ({
               {cartCount > 0 && (
                 <span style={{
                   position: 'absolute', top: 5, right: 5,
-                  background: '#FF6A00', color: '#FFFFFF',
+                  background: C.primary, color: C.white,
                   fontSize: 9, fontWeight: 800,
                   width: 16, height: 16, borderRadius: '50%',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -256,7 +257,7 @@ const Navbar: React.FC<NavbarProps> = ({
                 width: 40, height: 40, borderRadius: 8,
                 display: 'none',
                 alignItems: 'center', justifyContent: 'center',
-                color: '#111111',
+                color: C.black,
               }}
             >
               {menuOpen ? <X size={19} /> : <Menu size={19} />}
@@ -267,7 +268,7 @@ const Navbar: React.FC<NavbarProps> = ({
         {/* Mobile dropdown */}
         {menuOpen && (
           <div style={{
-            background: '#FFFFFF',
+            background: C.white,
             borderTop: '1px solid #F0EBE2',
             padding: '8px 16px 28px',
           }}>
@@ -276,8 +277,8 @@ const Navbar: React.FC<NavbarProps> = ({
                 style={{
                   width: '100%', background: 'none', border: 'none', cursor: 'pointer',
                   padding: '15px 8px', textAlign: 'left' as const, display: 'block',
-                  fontSize: 16, fontWeight: 500, color: '#111111',
-                  fontFamily: "'Inter', sans-serif",
+                  fontSize: 16, fontWeight: 500, color: C.black,
+                  fontFamily: F.sans,
                   borderBottom: '1px solid #F5F2EC',
                 }}
               >{link.label}</button>
@@ -287,10 +288,10 @@ const Navbar: React.FC<NavbarProps> = ({
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                 marginTop: 20, padding: '15px', width: '100%',
-                background: '#FF6A00', color: '#FFFFFF',
+                background: C.primary, color: C.white,
                 border: 'none', borderRadius: 12,
                 fontSize: 16, fontWeight: 700,
-                fontFamily: "'Inter', sans-serif",
+                fontFamily: F.sans,
                 cursor: 'pointer',
               }}
             >🛍️ Sifarişə başla</button>

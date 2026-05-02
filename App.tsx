@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { C, F, R } from './tokens';
 import { Helmet } from 'react-helmet-async';
 import { BrowserRouter, Routes, Route, useNavigate, useParams, useLocation } from 'react-router-dom';
 import { client } from './sanityclient';
@@ -123,17 +124,17 @@ function RealWorksBanner({ posts, onShopClick }: { posts: import('./types').Reel
 
   return (
     <div style={{
-      background: '#111111',
+      background: C.black,
       padding: '48px clamp(16px, 5vw, 48px)',
       position: 'relative',
       overflow: 'hidden',
     }}>
       <div style={{ maxWidth: 1280, margin: '0 auto 28px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
         <div>
-          <p style={{ margin: 0, fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase' as const, color: '#FF6A00', fontFamily: "'Inter', sans-serif", marginBottom: 6 }}>
+          <p style={{ margin: 0, fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase' as const, color: C.primary, fontFamily: F.sans, marginBottom: 6 }}>
             📸 Real İşlər
           </p>
-          <h2 style={{ margin: 0, fontSize: 'clamp(18px, 3vw, 26px)', fontWeight: 800, color: '#FFFFFF', fontFamily: "'Inter', sans-serif", letterSpacing: '-0.5px' }}>
+          <h2 style={{ margin: 0, fontSize: 'clamp(18px, 3vw, 26px)', fontWeight: 800, color: C.white, fontFamily: F.sans, letterSpacing: '-0.5px' }}>
             Hazırladığımız işlər
           </h2>
         </div>
@@ -142,7 +143,7 @@ function RealWorksBanner({ posts, onShopClick }: { posts: import('./types').Reel
             onClick={() => setCurrent(c => (c - 1 + posts.length) % posts.length)}
             style={{
               width: 36, height: 36, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.2)',
-              background: 'rgba(255,255,255,0.08)', color: '#FFFFFF', cursor: 'pointer',
+              background: 'rgba(255,255,255,0.08)', color: C.white, cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16,
             }}
           >‹</button>
@@ -150,7 +151,7 @@ function RealWorksBanner({ posts, onShopClick }: { posts: import('./types').Reel
             onClick={() => setCurrent(c => (c + 1) % posts.length)}
             style={{
               width: 36, height: 36, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.2)',
-              background: 'rgba(255,255,255,0.08)', color: '#FFFFFF', cursor: 'pointer',
+              background: 'rgba(255,255,255,0.08)', color: C.white, cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16,
             }}
           >›</button>
@@ -189,27 +190,27 @@ function RealWorksBanner({ posts, onShopClick }: { posts: import('./types').Reel
           {post.label && (
             <div style={{
               position: 'absolute', top: 14, left: 14,
-              background: '#FF6A00', borderRadius: 100,
-              padding: '5px 12px', fontSize: 11, fontWeight: 700, color: '#FFFFFF',
-              fontFamily: "'Inter', sans-serif", letterSpacing: 0.3,
+              background: C.primary, borderRadius: 100,
+              padding: '5px 12px', fontSize: 11, fontWeight: 700, color: C.white,
+              fontFamily: F.sans, letterSpacing: 0.3,
             }}>
               {post.label}
             </div>
           )}
           <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '20px 18px' }}>
-            <p style={{ margin: '0 0 4px', fontSize: 16, fontWeight: 700, color: '#FFFFFF', fontFamily: "'Inter', sans-serif", lineHeight: 1.3 }}>
+            <p style={{ margin: '0 0 4px', fontSize: 16, fontWeight: 700, color: C.white, fontFamily: F.sans, lineHeight: 1.3 }}>
               {post.title}
             </p>
             {post.subtitle && (
-              <p style={{ margin: '0 0 12px', fontSize: 12, color: 'rgba(255,255,255,0.7)', fontFamily: "'Inter', sans-serif" }}>
+              <p style={{ margin: '0 0 12px', fontSize: 12, color: 'rgba(255,255,255,0.7)', fontFamily: F.sans }}>
                 {post.subtitle}
               </p>
             )}
             <div style={{
               display: 'inline-block',
-              background: '#FF6A00', color: '#FFFFFF',
+              background: C.primary, color: C.white,
               borderRadius: 8, padding: '8px 18px',
-              fontSize: 12, fontWeight: 700, fontFamily: "'Inter', sans-serif",
+              fontSize: 12, fontWeight: 700, fontFamily: F.sans,
             }}>
               {post.ctaText || 'Sifariş et →'}
             </div>
@@ -245,16 +246,16 @@ function RealWorksBanner({ posts, onShopClick }: { posts: import('./types').Reel
                 )}
                 <div style={{ padding: '10px 14px', display: 'flex', flexDirection: 'column' as const, justifyContent: 'center', overflow: 'hidden' }}>
                   {p.label && (
-                    <span style={{ fontSize: 10, color: '#FF6A00', fontWeight: 700, marginBottom: 4, fontFamily: "'Inter', sans-serif" }}>
+                    <span style={{ fontSize: 10, color: C.primary, fontWeight: 700, marginBottom: 4, fontFamily: F.sans }}>
                       {p.label}
                     </span>
                   )}
-                  <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: '#FFFFFF', fontFamily: "'Inter', sans-serif", lineHeight: 1.35,
+                  <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: C.white, fontFamily: F.sans, lineHeight: 1.35,
                     overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as any }}>
                     {p.title}
                   </p>
                   {p.subtitle && (
-                    <p style={{ margin: '4px 0 0', fontSize: 11, color: 'rgba(255,255,255,0.5)', fontFamily: "'Inter', sans-serif",
+                    <p style={{ margin: '4px 0 0', fontSize: 11, color: 'rgba(255,255,255,0.5)', fontFamily: F.sans,
                       overflow: 'hidden', whiteSpace: 'nowrap' as const, textOverflow: 'ellipsis' }}>
                       {p.subtitle}
                     </p>
@@ -273,7 +274,7 @@ function RealWorksBanner({ posts, onShopClick }: { posts: import('./types').Reel
               onClick={() => setCurrent(i)}
               style={{
                 width: i === current ? 20 : 6, height: 6, borderRadius: 3,
-                background: i === current ? '#FF6A00' : 'rgba(255,255,255,0.25)',
+                background: i === current ? C.primary : 'rgba(255,255,255,0.25)',
                 border: 'none', cursor: 'pointer', padding: 0, transition: 'all 0.3s',
               }}
             />
@@ -300,7 +301,7 @@ function HeroBanner({ onShopClick }: { onShopClick: () => void }) {
       title: 'Hər hədiyyə,\nsənin adınla.',
       titleAccent: 'sənin adınla.',
       desc: 'Lazer yazılı qolbaq, fərdi təsbeh, domino və daha çoxu. Sizə özəl hazırlanır.',
-      bg: 'linear-gradient(135deg, #FF6A00 0%, #FF8C42 100%)',
+      bg: 'linear-gradient(135deg, var(--clr-primary) 0%, #FF8C42 100%)',
       cta: 'Kataloqa bax →',
     },
     {
@@ -308,7 +309,7 @@ function HeroBanner({ onShopClick }: { onShopClick: () => void }) {
       title: '1–3 iş günündə\nkapınıza gəlir.',
       titleAccent: 'kapınıza gəlir.',
       desc: 'Metrodaxili çatdırılma ödənişsizdir. Kuryer xidməti - Bakı,Sumqayıt,Abşeron daxil.',
-      bg: 'linear-gradient(135deg, #111111 0%, #2a2a2a 100%)',
+      bg: 'linear-gradient(135deg, var(--clr-dark) 0%, #2a2a2a 100%)',
       cta: 'Sifarişə başla →',
     },
     {
@@ -345,9 +346,9 @@ function HeroBanner({ onShopClick }: { onShopClick: () => void }) {
       <div style={{ maxWidth: 1280, width: '100%', margin: '0 auto', position: 'relative', zIndex: 1 }}>
         <div style={{ maxWidth: 620 }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.25)', borderRadius: 100, padding: '6px 16px', marginBottom: 20, backdropFilter: 'blur(4px)' }}>
-            <span style={{ fontSize: 12, fontWeight: 600, color: '#FFFFFF', letterSpacing: 0.3 }}>{slide.badge}</span>
+            <span style={{ fontSize: 12, fontWeight: 600, color: C.white, letterSpacing: 0.3 }}>{slide.badge}</span>
           </div>
-          <h2 style={{ fontSize: 'clamp(28px, 5vw, 52px)', fontWeight: 800, color: '#FFFFFF', lineHeight: 1.15, letterSpacing: '-1px', margin: '0 0 16px', whiteSpace: 'pre-line' }}>
+          <h2 style={{ fontSize: 'clamp(28px, 5vw, 52px)', fontWeight: 800, color: C.white, lineHeight: 1.15, letterSpacing: '-1px', margin: '0 0 16px', whiteSpace: 'pre-line' }}>
             {slide.title.replace(slide.titleAccent, '')}
             <span style={{ opacity: 0.75 }}>{slide.titleAccent}</span>
           </h2>
@@ -357,14 +358,14 @@ function HeroBanner({ onShopClick }: { onShopClick: () => void }) {
               onShopClick();
               try { if (typeof (window as any).trackEvent === 'function') (window as any).trackEvent('hero_cta_clicked', { slide: currentSlide, cta: slide.cta }); } catch(_) {}
             }}
-            style={{ padding: 'clamp(12px,2vw,15px) clamp(24px,4vw,36px)', background: '#FFFFFF', color: '#111111', border: 'none', borderRadius: 10, fontSize: 'clamp(13px,1.5vw,15px)', fontWeight: 700, cursor: 'pointer', fontFamily: "'Inter', sans-serif", boxShadow: '0 4px 20px rgba(0,0,0,0.2)', transition: 'transform 0.15s, box-shadow 0.15s' }}
+            style={{ padding: 'clamp(12px,2vw,15px) clamp(24px,4vw,36px)', background: C.white, color: C.black, border: 'none', borderRadius: 10, fontSize: 'clamp(13px,1.5vw,15px)', fontWeight: 700, cursor: 'pointer', fontFamily: F.sans, boxShadow: '0 4px 20px rgba(0,0,0,0.2)', transition: 'transform 0.15s, box-shadow 0.15s' }}
             onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 28px rgba(0,0,0,0.25)'; }}
             onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.2)'; }}
           >{slide.cta}</button>
         </div>
         <div style={{ display: 'flex', gap: 8, marginTop: 32, alignItems: 'center' }}>
           {slides.map((_, i) => (
-            <button key={i} onClick={() => setCurrentSlide(i)} style={{ width: i === currentSlide ? 24 : 8, height: 8, borderRadius: 4, background: i === currentSlide ? '#FFFFFF' : 'rgba(255,255,255,0.35)', border: 'none', cursor: 'pointer', transition: 'all 0.3s ease', padding: 0 }} />
+            <button key={i} onClick={() => setCurrentSlide(i)} style={{ width: i === currentSlide ? 24 : 8, height: 8, borderRadius: 4, background: i === currentSlide ? C.white : 'rgba(255,255,255,0.35)', border: 'none', cursor: 'pointer', transition: 'all 0.3s ease', padding: 0 }} />
           ))}
         </div>
       </div>
@@ -381,13 +382,13 @@ function InfoStrips() {
     { icon: '🎁', title: 'Hədiyyəlik qablaşdırma', desc: 'Fərqli qutu seçimi və hədiyyəlik bağlama.' },
   ];
   return (
-    <div style={{ background: '#FFFFFF', borderBottom: '1px solid #EDEBE7', padding: '0 clamp(16px, 4vw, 32px)' }}>
+    <div style={{ background: C.white, borderBottom: '1px solid #EDEBE7', padding: '0 clamp(16px, 4vw, 32px)' }}>
       <div style={{ maxWidth: 1280, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 0 }} className="ravio-info-strips">
         {strips.map((s, i) => (
           <div key={s.title} className={`ravio-strip-item ravio-strip-${i}`} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 'clamp(14px, 2vw, 20px) 16px', borderLeft: i > 0 ? '1px solid #EDEBE7' : 'none' }}>
             <span style={{ fontSize: 'clamp(20px, 3vw, 26px)', flexShrink: 0 }}>{s.icon}</span>
             <div>
-              <div style={{ fontSize: 'clamp(11px, 1.2vw, 13px)', fontWeight: 700, color: '#111111', marginBottom: 2 }}>{s.title}</div>
+              <div style={{ fontSize: 'clamp(11px, 1.2vw, 13px)', fontWeight: 700, color: C.black, marginBottom: 2 }}>{s.title}</div>
               <div style={{ fontSize: 'clamp(10px, 1vw, 12px)', color: '#888888', fontWeight: 400 }}>{s.desc}</div>
             </div>
           </div>
@@ -401,11 +402,11 @@ function NotFound({ onHome }: { onHome: () => void }) {
   return (
     <div style={{ minHeight: '70vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 32 }}>
       <div style={{ textAlign: 'center' }}>
-        <h1 style={{ fontSize: 48, margin: 0, color: '#111111' }}>404</h1>
+        <h1 style={{ fontSize: 48, margin: 0, color: C.black }}>404</h1>
         <p style={{ margin: '16px 0 24px', fontSize: 16, color: '#555555' }}>Səhifə tapılmadı.</p>
         <button
           onClick={onHome}
-          style={{ padding: '12px 24px', borderRadius: 10, border: 'none', background: '#FF6A00', color: '#FFFFFF', fontWeight: 700, cursor: 'pointer' }}
+          style={{ padding: '12px 24px', borderRadius: 10, border: 'none', background: C.primary, color: C.white, fontWeight: 700, cursor: 'pointer' }}
         >
           Əsas səhifəyə qayıt
         </button>
@@ -540,34 +541,34 @@ function ProductPageHandler({
       </Helmet>
 
       <div style={{ maxWidth: 1120, margin: '0 auto', padding: '28px 16px 56px' }}>
-        {loading && <p style={{ color: '#666666' }}>Yüklənir...</p>}
+        {loading && <p style={{ color: C.textSec }}>Yüklənir...</p>}
 
         {currentProduct && (
           <>
             <div style={{ marginBottom: 16 }}>
               <button
                 onClick={() => navigate('/mehsullar')}
-                style={{ border: 'none', background: 'transparent', color: '#FF6A00', fontWeight: 700, cursor: 'pointer', padding: 0, fontSize: 14 }}
+                style={{ border: 'none', background: 'transparent', color: C.primary, fontWeight: 700, cursor: 'pointer', padding: 0, fontSize: 14 }}
               >
                 ← Bütün məhsullara qayıt
               </button>
             </div>
 
-            <article style={{ display: 'grid', gridTemplateColumns: 'minmax(280px, 480px) 1fr', gap: 24, background: '#FFFFFF', borderRadius: 14, padding: 20, border: '1px solid #EDEBE7' }}>
+            <article style={{ display: 'grid', gridTemplateColumns: 'minmax(280px, 480px) 1fr', gap: 24, background: C.white, borderRadius: 14, padding: 20, border: '1px solid #EDEBE7' }}>
               <div>
                 {primaryImage ? (
                   <img src={primaryImage} alt={currentProduct.name} style={{ width: '100%', borderRadius: 10, objectFit: 'cover' }} />
                 ) : (
-                  <div style={{ width: '100%', aspectRatio: '1 / 1', borderRadius: 10, background: '#F5F2EC' }} />
+                  <div style={{ width: '100%', aspectRatio: '1 / 1', borderRadius: 10, background: C.bg }} />
                 )}
               </div>
               <div>
-                <h1 style={{ margin: 0, fontSize: 'clamp(24px,3vw,34px)', color: '#111111' }}>{currentProduct.name}</h1>
-                <p style={{ color: '#666666', marginTop: 8 }}>{currentProduct.category || 'Məhsul'}</p>
-                <p style={{ fontSize: 24, fontWeight: 800, margin: '12px 0 8px', color: '#111111' }}>
+                <h1 style={{ margin: 0, fontSize: 'clamp(24px,3vw,34px)', color: C.black }}>{currentProduct.name}</h1>
+                <p style={{ color: C.textSec, marginTop: 8 }}>{currentProduct.category || 'Məhsul'}</p>
+                <p style={{ fontSize: 24, fontWeight: 800, margin: '12px 0 8px', color: C.black }}>
                   {min === max ? `${min} ₼` : `${min} ₼ - ${max} ₼`}
                 </p>
-                <p style={{ color: totalStock > 0 ? '#0A7A2F' : '#B00020', marginTop: 0, fontWeight: 600 }}>
+                <p style={{ color: totalStock > 0 ? C.success : C.error, marginTop: 0, fontWeight: 600 }}>
                   {totalStock > 0 ? `Stokda var` : 'Stokda yoxdur'}
                 </p>
                 <p style={{ lineHeight: 1.6, color: '#333333' }}>
@@ -578,7 +579,7 @@ function ProductPageHandler({
                     setSelectedProduct(currentProduct);
                     setEditingItem(undefined);
                   }}
-                  style={{ marginTop: 8, padding: '14px 24px', background: '#FF6A00', color: '#FFFFFF', border: 'none', borderRadius: 10, fontWeight: 700, cursor: 'pointer', fontSize: 15, fontFamily: "'Inter', sans-serif" }}
+                  style={{ marginTop: 8, padding: '14px 24px', background: C.primary, color: C.white, border: 'none', borderRadius: 10, fontWeight: 700, cursor: 'pointer', fontSize: 15, fontFamily: F.sans }}
                 >
                   Sifariş et →
                 </button>
@@ -650,14 +651,14 @@ function HomePage({
       <section style={{ maxWidth: 1280, margin: '0 auto', padding: 'clamp(32px,5vw,56px) clamp(16px,3vw,32px)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 28 }}>
           <div>
-            <p style={{ fontSize: 11, fontWeight: 700, color: '#FF6A00', letterSpacing: 1.5, textTransform: 'uppercase', margin: '0 0 6px' }}>Kataloq</p>
-            <h2 style={{ fontSize: 'clamp(22px,3.5vw,32px)', fontWeight: 800, color: '#111111', margin: 0, letterSpacing: '-0.3px' }}>Məhsullarımız</h2>
+            <p style={{ fontSize: 11, fontWeight: 700, color: C.primary, letterSpacing: 1.5, textTransform: 'uppercase', margin: '0 0 6px' }}>Kataloq</p>
+            <h2 style={{ fontSize: 'clamp(22px,3.5vw,32px)', fontWeight: 800, color: C.black, margin: 0, letterSpacing: '-0.3px' }}>Məhsullarımız</h2>
           </div>
           <button
             onClick={() => goToProducts(null)}
-            style={{ padding: '10px 22px', background: 'transparent', border: '1.5px solid #D5D0C8', borderRadius: 8, fontSize: 13, fontWeight: 600, color: '#111111', cursor: 'pointer', fontFamily: "'Inter', sans-serif", transition: 'border-color 0.15s, background 0.15s' }}
-            onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => { e.currentTarget.style.borderColor = '#FF6A00'; e.currentTarget.style.color = '#FF6A00'; }}
-            onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => { e.currentTarget.style.borderColor = '#D5D0C8'; e.currentTarget.style.color = '#111111'; }}
+            style={{ padding: '10px 22px', background: 'transparent', border: '1.5px solid #D5D0C8', borderRadius: 8, fontSize: 13, fontWeight: 600, color: C.black, cursor: 'pointer', fontFamily: F.sans, transition: 'border-color 0.15s, background 0.15s' }}
+            onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => { e.currentTarget.style.borderColor = C.primary; e.currentTarget.style.color = C.primary; }}
+            onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => { e.currentTarget.style.borderColor = C.borderMid; e.currentTarget.style.color = C.black; }}
           >
             Hamısına bax →
           </button>
@@ -665,9 +666,9 @@ function HomePage({
 
         {categories.length > 0 && (
           <div style={{ display: 'flex', gap: 8, flexWrap: 'nowrap', marginBottom: 24, overflowX: 'auto', paddingBottom: 8, scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch', msOverflowStyle: 'none' }}>
-            <button onClick={() => setActiveCategory(null)} style={{ padding: '7px 16px', borderRadius: 100, flexShrink: 0, border: `1.5px solid ${!activeCategory ? '#111111' : '#D5D0C8'}`, background: !activeCategory ? '#111111' : 'transparent', color: !activeCategory ? '#FFFFFF' : '#666666', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: "'Inter', sans-serif", whiteSpace: 'nowrap' }}>Hamısı</button>
+            <button onClick={() => setActiveCategory(null)} style={{ padding: '7px 16px', borderRadius: 100, flexShrink: 0, border: `1.5px solid ${!activeCategory ? C.black : C.borderMid}`, background: !activeCategory ? C.black : 'transparent', color: !activeCategory ? C.white : C.textSec, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: F.sans, whiteSpace: 'nowrap' }}>Hamısı</button>
             {categories.map(cat => (
-              <button key={cat} onClick={() => setActiveCategory(cat)} style={{ padding: '7px 16px', borderRadius: 100, flexShrink: 0, border: `1.5px solid ${activeCategory === cat ? '#111111' : '#D5D0C8'}`, background: activeCategory === cat ? '#111111' : 'transparent', color: activeCategory === cat ? '#FFFFFF' : '#666666', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: "'Inter', sans-serif", whiteSpace: 'nowrap' }}>{cat}</button>
+              <button key={cat} onClick={() => setActiveCategory(cat)} style={{ padding: '7px 16px', borderRadius: 100, flexShrink: 0, border: `1.5px solid ${activeCategory === cat ? C.black : C.borderMid}`, background: activeCategory === cat ? C.black : 'transparent', color: activeCategory === cat ? C.white : C.textSec, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: F.sans, whiteSpace: 'nowrap' }}>{cat}</button>
             ))}
           </div>
         )}
@@ -675,11 +676,11 @@ function HomePage({
         {loading ? (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 16 }}>
             {[1,2,3,4,5,6].map(i => (
-              <div key={i} style={{ background: '#FFFFFF', borderRadius: 12, overflow: 'hidden', border: '1px solid #EDEBE7' }}>
-                <div style={{ aspectRatio: '1/1', background: '#F5F2EC', animation: 'pulse 1.5s ease-in-out infinite' }} />
+              <div key={i} style={{ background: C.white, borderRadius: 12, overflow: 'hidden', border: '1px solid #EDEBE7' }}>
+                <div style={{ aspectRatio: '1/1', background: C.bg, animation: 'pulse 1.5s ease-in-out infinite' }} />
                 <div style={{ padding: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  <div style={{ height: 10, background: '#F5F2EC', borderRadius: 4, width: '45%', animation: 'pulse 1.5s ease-in-out infinite' }} />
-                  <div style={{ height: 14, background: '#F5F2EC', borderRadius: 4, width: '75%', animation: 'pulse 1.5s ease-in-out infinite' }} />
+                  <div style={{ height: 10, background: C.bg, borderRadius: 4, width: '45%', animation: 'pulse 1.5s ease-in-out infinite' }} />
+                  <div style={{ height: 14, background: C.bg, borderRadius: 4, width: '75%', animation: 'pulse 1.5s ease-in-out infinite' }} />
                 </div>
               </div>
             ))}
@@ -690,18 +691,18 @@ function HomePage({
 
         {!loading && filteredProducts.length > 8 && (
           <div style={{ textAlign: 'center', marginTop: 32 }}>
-            <button onClick={() => goToProducts(null)} style={{ padding: '14px 40px', background: '#FF6A00', color: '#FFFFFF', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: "'Inter', sans-serif", boxShadow: '0 4px 16px rgba(255,106,0,0.3)' }}>
+            <button onClick={() => goToProducts(null)} style={{ padding: '14px 40px', background: C.primary, color: C.white, border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: F.sans, boxShadow: '0 4px 16px rgba(255,106,0,0.3)' }}>
               Daha çox məhsul gör ({filteredProducts.length - 8}+)
             </button>
           </div>
         )}
       </section>
 
-      <section style={{ background: '#111111', padding: 'clamp(48px,7vw,96px) clamp(16px,3vw,32px)' }}>
+      <section style={{ background: C.black, padding: 'clamp(48px,7vw,96px) clamp(16px,3vw,32px)' }}>
         <div style={{ maxWidth: 1280, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 40 }}>
-            <p style={{ fontSize: 11, fontWeight: 700, color: '#FF6A00', letterSpacing: 1.5, textTransform: 'uppercase', margin: '0 0 12px' }}>Necə işləyir</p>
-            <h2 style={{ fontSize: 'clamp(24px,4vw,40px)', fontWeight: 800, color: '#FFFFFF', margin: 0, letterSpacing: '-0.5px' }}>3 addımda sifariş</h2>
+            <p style={{ fontSize: 11, fontWeight: 700, color: C.primary, letterSpacing: 1.5, textTransform: 'uppercase', margin: '0 0 12px' }}>Necə işləyir</p>
+            <h2 style={{ fontSize: 'clamp(24px,4vw,40px)', fontWeight: 800, color: C.white, margin: 0, letterSpacing: '-0.5px' }}>3 addımda sifariş</h2>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 2 }}>
             {[
@@ -709,10 +710,10 @@ function HomePage({
               { n: '02', icon: '✍️', title: 'Ad / mesaj yaz',  desc: 'Lazer yazısı üçün istədiyini əlavə et' },
               { n: '03', icon: '⚡', title: 'Ödənişsiz çatır', desc: '1–3 iş günündə hazır. Metro görüşü ödənişsizdir.' },
             ].map((s, i) => (
-              <div key={s.n} style={{ background: '#1A1A1A', padding: 'clamp(24px,4vw,40px) clamp(20px,3vw,32px)', borderLeft: i > 0 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}>
+              <div key={s.n} style={{ background: C.darkCard, padding: 'clamp(24px,4vw,40px) clamp(20px,3vw,32px)', borderLeft: i > 0 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}>
                 <div style={{ width: 48, height: 48, borderRadius: 12, background: 'rgba(255,106,0,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, marginBottom: 16 }}>{s.icon}</div>
-                <div style={{ fontSize: 11, fontWeight: 700, color: '#FF6A00', letterSpacing: 2, marginBottom: 8 }}>{s.n}</div>
-                <h3 style={{ fontSize: 'clamp(15px,2vw,18px)', fontWeight: 700, color: '#FFFFFF', margin: '0 0 8px' }}>{s.title}</h3>
+                <div style={{ fontSize: 11, fontWeight: 700, color: C.primary, letterSpacing: 2, marginBottom: 8 }}>{s.n}</div>
+                <h3 style={{ fontSize: 'clamp(15px,2vw,18px)', fontWeight: 700, color: C.white, margin: '0 0 8px' }}>{s.title}</h3>
                 <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', lineHeight: 1.7, margin: 0 }}>{s.desc}</p>
               </div>
             ))}
@@ -720,7 +721,7 @@ function HomePage({
         </div>
       </section>
 
-      <section style={{ background: '#F5F2EC' }}>
+      <section style={{ background: C.bg }}>
         <CustomerReviews />
       </section>
     </div>
@@ -755,16 +756,16 @@ function ProductsPage({
       </Helmet>
       <div style={{ display: 'flex', gap: 32, alignItems: 'flex-start' }}>
         <aside className="r-desktop-nav r-catalog-aside" style={{ flexShrink: 0, width: 200, position: 'sticky', top: 110, maxHeight: 'calc(100vh - 130px)', overflowY: 'auto', paddingRight: 8, scrollbarWidth: 'none' }}>
-          <p style={{ fontSize: 10, fontWeight: 700, color: '#FF6A00', letterSpacing: 1.5, textTransform: 'uppercase', margin: '0 0 12px' }}>Kateqoriyalar</p>
+          <p style={{ fontSize: 10, fontWeight: 700, color: C.primary, letterSpacing: 1.5, textTransform: 'uppercase', margin: '0 0 12px' }}>Kateqoriyalar</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <button onClick={() => setActiveCategory(null)} style={{ padding: '10px 12px', borderRadius: 8, border: 'none', background: !activeCategory ? '#111111' : 'transparent', color: !activeCategory ? '#FFFFFF' : '#555555', fontSize: 13, fontWeight: !activeCategory ? 600 : 400, cursor: 'pointer', textAlign: 'left', fontFamily: "'Inter', sans-serif", transition: 'all 0.15s', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <button onClick={() => setActiveCategory(null)} style={{ padding: '10px 12px', borderRadius: 8, border: 'none', background: !activeCategory ? C.black : 'transparent', color: !activeCategory ? C.white : '#555555', fontSize: 13, fontWeight: !activeCategory ? 600 : 400, cursor: 'pointer', textAlign: 'left', fontFamily: F.sans, transition: 'all 0.15s', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span>Hamısı</span><span style={{ fontSize: 11, opacity: 0.55 }}>{products.length}</span>
             </button>
             {categories.map(cat => {
               const count = products.filter(p => p.category === cat).length;
               const sel   = activeCategory === cat;
               return (
-                <button key={cat} onClick={() => setActiveCategory(cat)} style={{ padding: '10px 12px', borderRadius: 8, border: 'none', background: sel ? '#111111' : 'transparent', color: sel ? '#FFFFFF' : '#555555', fontSize: 13, fontWeight: sel ? 600 : 400, cursor: 'pointer', textAlign: 'left', fontFamily: "'Inter', sans-serif", transition: 'all 0.15s', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <button key={cat} onClick={() => setActiveCategory(cat)} style={{ padding: '10px 12px', borderRadius: 8, border: 'none', background: sel ? C.black : 'transparent', color: sel ? C.white : '#555555', fontSize: 13, fontWeight: sel ? 600 : 400, cursor: 'pointer', textAlign: 'left', fontFamily: F.sans, transition: 'all 0.15s', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span>{cat}</span><span style={{ fontSize: 11, opacity: 0.55 }}>{count}</span>
                 </button>
               );
@@ -774,17 +775,17 @@ function ProductsPage({
 
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ marginBottom: 20 }}>
-            <h1 style={{ fontSize: 'clamp(20px,3vw,30px)', fontWeight: 800, color: '#111111', margin: '0 0 4px', letterSpacing: '-0.3px' }}>
+            <h1 style={{ fontSize: 'clamp(20px,3vw,30px)', fontWeight: 800, color: C.black, margin: '0 0 4px', letterSpacing: '-0.3px' }}>
               {activeCategory || 'Bütün məhsullar'}
             </h1>
-            <p style={{ fontSize: 13, color: '#AAAAAA', margin: 0 }}>{filteredProducts.length} məhsul · Ödənişsiz çatdırılma</p>
+            <p style={{ fontSize: 13, color: C.textMuted, margin: 0 }}>{filteredProducts.length} məhsul · Ödənişsiz çatdırılma</p>
           </div>
 
           {categories.length > 0 && (
             <div style={{ display: 'flex', gap: 8, flexWrap: 'nowrap', marginBottom: 20, overflowX: 'auto', paddingBottom: 8, scrollbarWidth: 'none' }} className="r-mobile-nav">
-              <button onClick={() => setActiveCategory(null)} style={{ padding: '7px 16px', borderRadius: 100, flexShrink: 0, border: `1.5px solid ${!activeCategory ? '#111111' : '#D5D0C8'}`, background: !activeCategory ? '#111111' : 'transparent', color: !activeCategory ? '#FFFFFF' : '#666666', fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: "'Inter', sans-serif" }}>Hamısı</button>
+              <button onClick={() => setActiveCategory(null)} style={{ padding: '7px 16px', borderRadius: 100, flexShrink: 0, border: `1.5px solid ${!activeCategory ? C.black : C.borderMid}`, background: !activeCategory ? C.black : 'transparent', color: !activeCategory ? C.white : C.textSec, fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: F.sans }}>Hamısı</button>
               {categories.map(cat => (
-                <button key={cat} onClick={() => setActiveCategory(cat)} style={{ padding: '7px 16px', borderRadius: 100, flexShrink: 0, border: `1.5px solid ${activeCategory === cat ? '#111111' : '#D5D0C8'}`, background: activeCategory === cat ? '#111111' : 'transparent', color: activeCategory === cat ? '#FFFFFF' : '#666666', fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: "'Inter', sans-serif" }}>{cat}</button>
+                <button key={cat} onClick={() => setActiveCategory(cat)} style={{ padding: '7px 16px', borderRadius: 100, flexShrink: 0, border: `1.5px solid ${activeCategory === cat ? C.black : C.borderMid}`, background: activeCategory === cat ? C.black : 'transparent', color: activeCategory === cat ? C.white : C.textSec, fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: F.sans }}>{cat}</button>
               ))}
             </div>
           )}
@@ -792,11 +793,11 @@ function ProductsPage({
           {loading ? (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 16 }}>
               {[1,2,3,4,5,6].map(i => (
-                <div key={i} style={{ background: '#FFFFFF', borderRadius: 12, overflow: 'hidden', border: '1px solid #EDEBE7' }}>
-                  <div style={{ aspectRatio: '1/1', background: '#F5F2EC', animation: 'pulse 1.5s ease-in-out infinite' }} />
+                <div key={i} style={{ background: C.white, borderRadius: 12, overflow: 'hidden', border: '1px solid #EDEBE7' }}>
+                  <div style={{ aspectRatio: '1/1', background: C.bg, animation: 'pulse 1.5s ease-in-out infinite' }} />
                   <div style={{ padding: '14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    <div style={{ height: 10, background: '#F5F2EC', borderRadius: 4, width: '45%', animation: 'pulse 1.5s ease-in-out infinite' }} />
-                    <div style={{ height: 14, background: '#F5F2EC', borderRadius: 4, width: '75%', animation: 'pulse 1.5s ease-in-out infinite' }} />
+                    <div style={{ height: 10, background: C.bg, borderRadius: 4, width: '45%', animation: 'pulse 1.5s ease-in-out infinite' }} />
+                    <div style={{ height: 14, background: C.bg, borderRadius: 4, width: '75%', animation: 'pulse 1.5s ease-in-out infinite' }} />
                   </div>
                 </div>
               ))}
@@ -907,7 +908,7 @@ useEffect(() => {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: '#F5F2EC', fontFamily: "'Inter', sans-serif", color: '#111111' }}>
+    <div style={{ minHeight: '100vh', background: C.bg, fontFamily: F.sans, color: C.black }}>
       <Navbar
         cartCount={cartCount}
         onLogoClick={() => navigate('/')}
@@ -975,7 +976,7 @@ useEffect(() => {
       <style>{`
         *, *::before, *::after { box-sizing: border-box; }
         body { -webkit-font-smoothing: antialiased; margin: 0; }
-        ::selection { background: #FF6A00; color: #FFFFFF; }
+        ::selection { background: var(--clr-primary); color: var(--clr-white); }
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.45} }
         aside::-webkit-scrollbar { display: none; }
         div::-webkit-scrollbar { display: none; }
@@ -990,10 +991,10 @@ useEffect(() => {
           input, select, textarea { font-size: 16px !important; }
           .r-section { padding-left: 16px !important; padding-right: 16px !important; }
           .ravio-info-strips { grid-template-columns: repeat(2, 1fr) !important; }
-          .ravio-strip-0 { border-left: none !important; border-bottom: 1px solid #EDEBE7; }
-          .ravio-strip-1 { border-left: 1px solid #EDEBE7 !important; border-bottom: 1px solid #EDEBE7; }
+          .ravio-strip-0 { border-left: none !important; border-bottom: 1px solid var(--clr-border); }
+          .ravio-strip-1 { border-left: 1px solid var(--clr-border) !important; border-bottom: 1px solid var(--clr-border); }
           .ravio-strip-2 { border-left: none !important; }
-          .ravio-strip-3 { border-left: 1px solid #EDEBE7 !important; }
+          .ravio-strip-3 { border-left: 1px solid var(--clr-border) !important; }
           .ravio-footer-grid { grid-template-columns: 1fr !important; gap: 32px !important; }
         }
       `}</style>

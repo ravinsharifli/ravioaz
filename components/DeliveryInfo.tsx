@@ -1,10 +1,11 @@
 import React from 'react';
+import { C, F } from '../tokens';
 import { Helmet } from 'react-helmet-async';
 
-const FONT = "'Inter', sans-serif";
+const FONT = F.sans;
 const C = {
-  black: '#111111', gray: '#555555', grayLt: '#AAAAAA',
-  orange: '#FF6A00', bg: '#F5F2EC', border: '#EDEBE7', white: '#FFFFFF',
+  black: C.black, gray: '#555555', grayLt: C.textMuted,
+  orange: C.primary, bg: C.bg, border: C.border, white: C.white,
   green: '#16A34A',
 };
 
