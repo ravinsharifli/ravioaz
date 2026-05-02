@@ -37,7 +37,7 @@ const C = {
   red:      '#DC2626',
 };
 
-const IMGBB_API_KEY = import.meta.env.VITE_IMGBB_API_KEY || '91e1c78670ebfc8011000f039872c757';
+const IMGBB_API_KEY = import.meta.env.VITE_IMGBB_API_KEY;
 
 function getActiveTier(tiers: BulkTier[], qty: number): BulkTier | null {
   if (!tiers?.length) return null;

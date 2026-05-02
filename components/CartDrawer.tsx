@@ -373,6 +373,7 @@ interface CartDrawerProps {
   onRemove: (cartId: string) => void;
   onEdit: (item: CartItem) => void;
   onGoToProducts?: () => void;
+  onClearCart?: () => void;
   metroSchedule?: MetroSchedule;
   coupons?: Coupon[];
 }
@@ -385,7 +386,7 @@ function getItemSubtotal(item: CartItem): number {
 
 // ── Əsas komponent ─────────────────────────────────────────────
 const CartDrawer: React.FC<CartDrawerProps> = ({
-  isOpen, onClose, items, onRemove, onEdit, onGoToProducts, metroSchedule, coupons = [],
+  isOpen, onClose, items, onRemove, onEdit, onGoToProducts,onClearCart, metroSchedule, coupons = [],
 }) => {
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [custName,     setCustName]     = useState('');
@@ -556,6 +557,8 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
     } catch (_) {}
 
     window.open(`https://wa.me/994519831483?text=${encodeURIComponent(msg)}`, '_blank');
+    onClearCart?.();
+setIsCheckingOut(false);
   };
 
   // ── Render ─────────────────────────────────────────────────────

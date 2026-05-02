@@ -430,7 +430,15 @@ function AppShell() {
   const [loading, setLoading]                 = useState(true);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [editingItem, setEditingItem]         = useState<CartItem | undefined>(undefined);
-  const [cart, setCart]                       = useState<CartItem[]>([]);
+  // YENİ
+const [cart, setCart] = useState<CartItem[]>(() => {
+  try {
+    const saved = localStorage.getItem('ravio_cart');
+    return saved ? JSON.parse(saved) : [];
+  } catch {
+    return [];
+  }
+});
   const [cartOpen, setCartOpen]               = useState(false);
   const [activeCategory, setActiveCategory]   = useState<string | null>(null);
   const [visible, setVisible]                 = useState(false);
@@ -438,6 +446,14 @@ function AppShell() {
 
   const isClosingModal = useRef(false);
 
+  // Cart dəyişəndə avtomatik yadda saxla
+useEffect(() => {
+  try {
+    localStorage.setItem('ravio_cart', JSON.stringify(cart));
+  } catch {
+    console.warn('Cart localStorage-a yazıla bilmədi');
+  }
+}, [cart]);
   useEffect(() => {
     client.fetch(PRODUCTS_QUERY)
       .then((raw: any[]) => { setProducts(raw.map(mapSanityProduct)); setLoading(false); })
@@ -471,6 +487,10 @@ function AppShell() {
     const p = products.find(p => p.id === item.productId);
     if (p) { setSelectedProduct(p); setEditingItem(item); }
   };
+  const handleClearCart = () => {
+  setCart([]);
+  localStorage.removeItem('ravio_cart');
+};
   const cartCount = cart.reduce((s, c) => s + c.quantity, 0);
 
   const openProduct = (p: Product) => {
@@ -889,6 +909,7 @@ function AppShell() {
         items={cart}
         onRemove={handleRemove}
         onEdit={handleEdit}
+        onClearCart={handleClearCart}
         onGoToProducts={() => { setCartOpen(false); navigate('/mehsullar'); }}
         metroSchedule={metroSchedule}
         coupons={coupons}
