@@ -1,4 +1,5 @@
 ﻿import React, { useState } from 'react';
+import { C, F } from '../tokens';
 import { ShoppingBag, Zap, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Product } from '../types';
 
@@ -195,7 +196,7 @@ const Card: React.FC<CardProps> = ({
             padding: '3px 7px', borderRadius: 6,
             display: 'flex', alignItems: 'center', gap: 3,
           }}>
-            <Zap size={9} fill=C.white />Son {stock}
+            <Zap size={9} fill={C.white} />Son {stock}
           </div>
         )}
 

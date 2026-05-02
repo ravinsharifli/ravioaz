@@ -169,7 +169,7 @@ const Navbar: React.FC<NavbarProps> = ({
                   overflow: 'hidden', zIndex: 500,
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', borderBottom: '1px solid #F0EBE2' }}>
-                    <Search size={14} color=C.primary />
+                    <Search size={14} color={C.primary} />
                     <input
                       autoFocus
                       value={query}

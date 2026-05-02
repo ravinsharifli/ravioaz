@@ -18,7 +18,7 @@ const FONT = F.sans;
 const Stars = ({ n }: { n: number }) => (
   <div style={{ display: 'flex', gap: 2 }}>
     {[1,2,3,4,5].map(i => (
-      <Star key={i} size={13} color=C.primary fill={i <= n ? C.primary : 'none'} />
+      <Star key={i} size={13} color={C.primary} fill={i <= n ? C.primary : 'none'} />
     ))}
   </div>
 );
