@@ -1,18 +1,18 @@
 import React, { useState, useMemo } from 'react';
-import { C, F } from '../tokens';
+import { F } from '../tokens';
 import { X, Trash2, ShoppingBag, ArrowRight, Edit3, ChevronLeft, ChevronRight, Tag, CheckCircle, AlertCircle } from 'lucide-react';
 import { CartItem, MetroSchedule, Coupon } from '../types';
 
-const FONT = "'Inter', -apple-system, sans-serif";
+const FONT = F.sans;
 
 const C = {
-  bg:       C.bg,
-  white:    C.white,
-  black:    C.black,
-  gray:     C.textSec,
-  grayLt:   C.textMuted,
+  bg:       'var(--clr-bg)',
+  white:    'var(--clr-white)',
+  black:    'var(--clr-black)',
+  gray:     'var(--clr-text-sec)',
+  grayLt:   'var(--clr-text-muted)',
   border:   '#E5E1DB',
-  orange:   C.primary,
+  orange:   'var(--clr-primary)',
   orangeBg: '#FFF3EC',
   orangeBd: '#FFD4B8',
   green:    '#16A34A',

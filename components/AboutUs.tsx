@@ -1,11 +1,11 @@
 import React from 'react';
-import { C, F } from '../tokens';
+import { F } from '../tokens';
 import { Helmet } from 'react-helmet-async';
 
 const FONT = F.sans;
 const C = {
-  black: C.black, gray: '#555555', grayLt: C.textMuted,
-  orange: C.primary, bg: C.bg, border: C.border, white: C.white,
+  black: 'var(--clr-black)', gray: '#555555', grayLt: 'var(--clr-text-muted)',
+  orange: 'var(--clr-primary)', bg: 'var(--clr-bg)', border: 'var(--clr-border)', white: 'var(--clr-white)',
 };
 
 const AboutUs: React.FC = () => {
