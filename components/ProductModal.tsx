@@ -417,7 +417,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
           {variants.length > 1 && (
             <Sec>
               <Label>Model / Rəng</Label>
-              <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 8 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 6 }}>
                 {variants.map((v, i) => {
                   const oos = v.stock === 0;
                   const sel = variantIdx === i;
@@ -431,16 +431,18 @@ const ProductModal: React.FC<ProductModalProps> = ({
                       }
                     }}
                       style={{
-                        padding: '9px 14px', borderRadius: 8, cursor: oos ? 'not-allowed' : 'pointer',
-                        background: sel ? C.black : C.bg,
+                        padding: '8px 10px', borderRadius: 8, cursor: oos ? 'not-allowed' : 'pointer',
+                        background: sel ? C.black : C.white,
                         color: sel ? C.white : oos ? C.grayLt : C.black,
                         border: `1.5px solid ${sel ? C.black : C.border}`,
-                        opacity: oos ? 0.5 : 1, transition: 'all 0.15s',
+                        opacity: oos ? 0.45 : 1, transition: 'all 0.15s',
+                        display: 'flex', flexDirection: 'column' as const, gap: 2,
                       }}
                     >
-                      <div style={{ fontSize: 13, fontWeight: sel ? 600 : 400 }}>{lbl}</div>
-                      <div style={{ fontSize: 11, fontWeight: 700, marginTop: 2, color: sel ? 'rgba(255,255,255,0.7)' : C.orange }}>
-                        {(v.discountPrice ?? v.price).toFixed(2)} ₼{oos ? ' · Bitib' : ''}
+                      <div style={{ fontSize: 12, fontWeight: sel ? 600 : 500, lineHeight: 1.3, wordBreak: 'break-word' as const }}>{lbl}</div>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: sel ? 'rgba(255,255,255,0.65)' : oos ? C.grayLt : C.orange, display: 'flex', alignItems: 'center', gap: 3 }}>
+                        {(v.discountPrice ?? v.price).toFixed(2)} ₼
+                        {oos && <span style={{ fontSize: 10, fontWeight: 500 }}>· Bitib</span>}
                       </div>
                     </div>
                   );
