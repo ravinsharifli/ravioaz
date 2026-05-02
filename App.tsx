@@ -421,6 +421,395 @@ function getProductPriceRange(product: Product) {
   return { min: Math.min(...prices), max: Math.max(...prices) };
 }
 
+// ── Page Components ───────────────────────────────────────────────────────────
+// DÜZƏLTMƏ: Əvvəl bu komponentlər AppShell içində define edilmişdi.
+// Bu, hər render-də onları yenidən yaradırdı → React unmount/remount edirdi.
+// İndi AppShell-dən XARICƏ çıxarılıb, lazımi state props vasitəsilə ötürülür.
+
+interface ProductPageHandlerProps {
+  selectedProduct: Product | null;
+  products: Product[];
+  loading: boolean;
+  setSelectedProduct: React.Dispatch<React.SetStateAction<Product | null>>;
+  setEditingItem: React.Dispatch<React.SetStateAction<CartItem | undefined>>;
+}
+
+function ProductPageHandler({
+  selectedProduct,
+  products,
+  loading,
+  setSelectedProduct,
+  setEditingItem,
+}: ProductPageHandlerProps) {
+  const navigate = useNavigate();
+  if (selectedProduct) return null;
+  const { slug } = useParams<{ slug: string }>();
+  const currentProduct = slug ? products.find(p => p.slug === slug) : null;
+  const primaryImage = currentProduct?.variants?.[0]?.images?.[0] || '';
+  const { min, max } = currentProduct ? getProductPriceRange(currentProduct) : { min: 0, max: 0 };
+  const totalStock = currentProduct
+    ? (currentProduct.variants || []).reduce((sum, v) => sum + (v.stock || 0), 0)
+    : 0;
+  const productUrl = `https://ravioaz.vercel.app/mehsullar/${slug ?? ''}`;
+
+  if (!loading && !currentProduct) {
+    return (
+      <div style={{ maxWidth: 960, margin: '0 auto', padding: '32px 16px 56px' }}>
+        <Helmet>
+          <title>Məhsul tapılmadı | Ravio</title>
+          <meta name="robots" content="noindex,follow" />
+          <link rel="canonical" href={productUrl} />
+        </Helmet>
+        <NotFound onHome={() => navigate('/mehsullar')} />
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <Helmet>
+        <title>{currentProduct ? `${currentProduct.name} | Ravio` : 'Məhsul | Ravio'}</title>
+        <meta
+          name="description"
+          content={currentProduct
+            ? `${currentProduct.name} — fərdi hazırlanmış hədiyyə. Qiymət ${min === max ? `${min} ₼` : `${min}–${max} ₼`}.`
+            : 'Fərdi hazırlanmış hədiyyə — Ravio'}
+        />
+        <meta property="og:type" content="product" />
+        <meta property="og:title" content={currentProduct ? `${currentProduct.name} | Ravio` : 'Məhsul | Ravio'} />
+        <meta property="og:description" content={currentProduct ? (currentProduct.description || `${currentProduct.name} — Ravio`) : 'Məhsul'} />
+        <meta property="og:url" content={productUrl} />
+        <meta property="og:locale" content="az_AZ" />
+        {primaryImage && <meta property="og:image" content={primaryImage} />}
+        <meta name="twitter:card" content="summary_large_image" />
+        {primaryImage && <meta name="twitter:image" content={primaryImage} />}
+        <link rel="canonical" href={productUrl} />
+        {currentProduct && (() => {
+          const allPrices = currentProduct.variants.map(v => v.discountPrice ?? v.price).filter(Boolean);
+          const priceMin  = allPrices.length ? Math.min(...allPrices) : min;
+          const priceMax  = allPrices.length ? Math.max(...allPrices) : max;
+          const allImages = currentProduct.variants.flatMap(v => v.images || []).slice(0, 5);
+          const avail     = totalStock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock';
+
+          const productSchema = {
+            '@context': 'https://schema.org',
+            '@type': 'Product',
+            name: currentProduct.name,
+            image: allImages,
+            description: currentProduct.description || `${currentProduct.name} - Ravio`,
+            sku: currentProduct.id,
+            brand: { '@type': 'Brand', name: 'Ravio' },
+            offers: priceMin === priceMax
+              ? {
+                  '@type': 'Offer',
+                  url: productUrl,
+                  priceCurrency: 'AZN',
+                  price: String(priceMin),
+                  availability: avail,
+                  seller: { '@type': 'Organization', name: 'Ravio' },
+                }
+              : {
+                  '@type': 'AggregateOffer',
+                  url: productUrl,
+                  priceCurrency: 'AZN',
+                  lowPrice: String(priceMin),
+                  highPrice: String(priceMax),
+                  offerCount: currentProduct.variants.length,
+                  availability: avail,
+                  seller: { '@type': 'Organization', name: 'Ravio' },
+                },
+          };
+
+          const breadcrumbSchema = {
+            '@context': 'https://schema.org',
+            '@type': 'BreadcrumbList',
+            itemListElement: [
+              { '@type': 'ListItem', position: 1, name: 'Ana Səhifə', item: 'https://ravioaz.vercel.app/' },
+              { '@type': 'ListItem', position: 2, name: 'Məhsullar',  item: 'https://ravioaz.vercel.app/mehsullar' },
+              { '@type': 'ListItem', position: 3, name: currentProduct.name, item: productUrl },
+            ],
+          };
+
+          return (
+            <>
+              <script type="application/ld+json">{JSON.stringify(productSchema)}</script>
+              <script type="application/ld+json">{JSON.stringify(breadcrumbSchema)}</script>
+            </>
+          );
+        })()}
+      </Helmet>
+
+      <div style={{ maxWidth: 1120, margin: '0 auto', padding: '28px 16px 56px' }}>
+        {loading && <p style={{ color: '#666666' }}>Yüklənir...</p>}
+
+        {currentProduct && (
+          <>
+            <div style={{ marginBottom: 16 }}>
+              <button
+                onClick={() => navigate('/mehsullar')}
+                style={{ border: 'none', background: 'transparent', color: '#FF6A00', fontWeight: 700, cursor: 'pointer', padding: 0, fontSize: 14 }}
+              >
+                ← Bütün məhsullara qayıt
+              </button>
+            </div>
+
+            <article style={{ display: 'grid', gridTemplateColumns: 'minmax(280px, 480px) 1fr', gap: 24, background: '#FFFFFF', borderRadius: 14, padding: 20, border: '1px solid #EDEBE7' }}>
+              <div>
+                {primaryImage ? (
+                  <img src={primaryImage} alt={currentProduct.name} style={{ width: '100%', borderRadius: 10, objectFit: 'cover' }} />
+                ) : (
+                  <div style={{ width: '100%', aspectRatio: '1 / 1', borderRadius: 10, background: '#F5F2EC' }} />
+                )}
+              </div>
+              <div>
+                <h1 style={{ margin: 0, fontSize: 'clamp(24px,3vw,34px)', color: '#111111' }}>{currentProduct.name}</h1>
+                <p style={{ color: '#666666', marginTop: 8 }}>{currentProduct.category || 'Məhsul'}</p>
+                <p style={{ fontSize: 24, fontWeight: 800, margin: '12px 0 8px', color: '#111111' }}>
+                  {min === max ? `${min} ₼` : `${min} ₼ - ${max} ₼`}
+                </p>
+                <p style={{ color: totalStock > 0 ? '#0A7A2F' : '#B00020', marginTop: 0, fontWeight: 600 }}>
+                  {totalStock > 0 ? `Stokda var` : 'Stokda yoxdur'}
+                </p>
+                <p style={{ lineHeight: 1.6, color: '#333333' }}>
+                  {currentProduct.description || `${currentProduct.name} üçün fərdi yazı əlavə edə bilərsiniz.`}
+                </p>
+                <button
+                  onClick={() => {
+                    setSelectedProduct(currentProduct);
+                    setEditingItem(undefined);
+                  }}
+                  style={{ marginTop: 8, padding: '14px 24px', background: '#FF6A00', color: '#FFFFFF', border: 'none', borderRadius: 10, fontWeight: 700, cursor: 'pointer', fontSize: 15, fontFamily: "'Inter', sans-serif" }}
+                >
+                  Sifariş et →
+                </button>
+              </div>
+            </article>
+          </>
+        )}
+      </div>
+    </>
+  );
+}
+
+interface HomePageProps {
+  visible: boolean;
+  reelPosts: import('./types').ReelPost[];
+  categories: string[];
+  filteredProducts: Product[];
+  loading: boolean;
+  activeCategory: string | null;
+  setActiveCategory: React.Dispatch<React.SetStateAction<string | null>>;
+  goToProducts: (cat?: string | null) => void;
+  openProduct: (p: Product) => void;
+}
+
+function HomePage({
+  visible,
+  reelPosts,
+  categories,
+  filteredProducts,
+  loading,
+  activeCategory,
+  setActiveCategory,
+  goToProducts,
+  openProduct,
+}: HomePageProps) {
+  return (
+    <div style={{ opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(16px)', transition: 'opacity 0.7s ease, transform 0.7s ease' }}>
+      <Helmet>
+        <title>Ravio — Sizə Özəl Hədiyyələr | Bakı</title>
+        <meta name="description" content="Lazer yazılı qolbaq, fərdi təsbeh, domino və giftbox. Hər məhsul sizin üçün özəl hazırlanır. 17₼-dən başlayan qiymətlə, 1–3 iş günündə çatdırılma." />
+        <meta property="og:type"        content="website" />
+        <meta property="og:title"       content="Ravio — Sizə Özəl Hədiyyələr | Bakı" />
+        <meta property="og:description" content="Lazer yazılı qolbaq, fərdi təsbeh, domino və giftbox. 17₼-dən başlayan qiymətlə." />
+        <meta property="og:url"         content="https://ravioaz.vercel.app/" />
+        <meta property="og:image"       content="https://ravioaz.vercel.app/og-cover.jpg" />
+        <meta property="og:locale"      content="az_AZ" />
+        <meta name="twitter:card"        content="summary_large_image" />
+        <meta name="twitter:title"       content="Ravio — Sizə Özəl Hədiyyələr | Bakı" />
+        <meta name="twitter:description" content="Lazer yazılı qolbaq, fərdi təsbeh, domino və giftbox. 17₼-dən başlayan qiymətlə." />
+        <meta name="twitter:image"       content="https://ravioaz.vercel.app/og-cover.jpg" />
+        <link rel="canonical" href="https://ravioaz.vercel.app/" />
+        <script type="application/ld+json">{JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'Organization',
+          name: 'Ravio',
+          url: 'https://ravioaz.vercel.app',
+          logo: 'https://ravioaz.vercel.app/og-cover.jpg',
+          description: 'Bakıda fərdi hədiyyələr — lazer yazılı qolbaq, təsbeh, domino, giftbox.',
+          contactPoint: { '@type': 'ContactPoint', contactType: 'customer service', availableLanguage: 'Azerbaijani' },
+          areaServed: { '@type': 'Country', name: 'Azerbaijan' },
+        })}</script>
+      </Helmet>
+      <HeroBanner onShopClick={() => goToProducts(null)} />
+      {reelPosts.length > 0 && (
+        <RealWorksBanner posts={reelPosts} onShopClick={() => goToProducts(null)} />
+      )}
+      <InfoStrips />
+
+      <section style={{ maxWidth: 1280, margin: '0 auto', padding: 'clamp(32px,5vw,56px) clamp(16px,3vw,32px)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 28 }}>
+          <div>
+            <p style={{ fontSize: 11, fontWeight: 700, color: '#FF6A00', letterSpacing: 1.5, textTransform: 'uppercase', margin: '0 0 6px' }}>Kataloq</p>
+            <h2 style={{ fontSize: 'clamp(22px,3.5vw,32px)', fontWeight: 800, color: '#111111', margin: 0, letterSpacing: '-0.3px' }}>Məhsullarımız</h2>
+          </div>
+          <button
+            onClick={() => goToProducts(null)}
+            style={{ padding: '10px 22px', background: 'transparent', border: '1.5px solid #D5D0C8', borderRadius: 8, fontSize: 13, fontWeight: 600, color: '#111111', cursor: 'pointer', fontFamily: "'Inter', sans-serif", transition: 'border-color 0.15s, background 0.15s' }}
+            onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => { e.currentTarget.style.borderColor = '#FF6A00'; e.currentTarget.style.color = '#FF6A00'; }}
+            onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => { e.currentTarget.style.borderColor = '#D5D0C8'; e.currentTarget.style.color = '#111111'; }}
+          >
+            Hamısına bax →
+          </button>
+        </div>
+
+        {categories.length > 0 && (
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'nowrap', marginBottom: 24, overflowX: 'auto', paddingBottom: 8, scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch', msOverflowStyle: 'none' }}>
+            <button onClick={() => setActiveCategory(null)} style={{ padding: '7px 16px', borderRadius: 100, flexShrink: 0, border: `1.5px solid ${!activeCategory ? '#111111' : '#D5D0C8'}`, background: !activeCategory ? '#111111' : 'transparent', color: !activeCategory ? '#FFFFFF' : '#666666', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: "'Inter', sans-serif", whiteSpace: 'nowrap' }}>Hamısı</button>
+            {categories.map(cat => (
+              <button key={cat} onClick={() => setActiveCategory(cat)} style={{ padding: '7px 16px', borderRadius: 100, flexShrink: 0, border: `1.5px solid ${activeCategory === cat ? '#111111' : '#D5D0C8'}`, background: activeCategory === cat ? '#111111' : 'transparent', color: activeCategory === cat ? '#FFFFFF' : '#666666', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: "'Inter', sans-serif", whiteSpace: 'nowrap' }}>{cat}</button>
+            ))}
+          </div>
+        )}
+
+        {loading ? (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 16 }}>
+            {[1,2,3,4,5,6].map(i => (
+              <div key={i} style={{ background: '#FFFFFF', borderRadius: 12, overflow: 'hidden', border: '1px solid #EDEBE7' }}>
+                <div style={{ aspectRatio: '1/1', background: '#F5F2EC', animation: 'pulse 1.5s ease-in-out infinite' }} />
+                <div style={{ padding: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <div style={{ height: 10, background: '#F5F2EC', borderRadius: 4, width: '45%', animation: 'pulse 1.5s ease-in-out infinite' }} />
+                  <div style={{ height: 14, background: '#F5F2EC', borderRadius: 4, width: '75%', animation: 'pulse 1.5s ease-in-out infinite' }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <ProductGrid products={filteredProducts.slice(0, 8)} onAddToCart={openProduct} onViewProduct={openProduct} />
+        )}
+
+        {!loading && filteredProducts.length > 8 && (
+          <div style={{ textAlign: 'center', marginTop: 32 }}>
+            <button onClick={() => goToProducts(null)} style={{ padding: '14px 40px', background: '#FF6A00', color: '#FFFFFF', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: "'Inter', sans-serif", boxShadow: '0 4px 16px rgba(255,106,0,0.3)' }}>
+              Daha çox məhsul gör ({filteredProducts.length - 8}+)
+            </button>
+          </div>
+        )}
+      </section>
+
+      <section style={{ background: '#111111', padding: 'clamp(48px,7vw,96px) clamp(16px,3vw,32px)' }}>
+        <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: 40 }}>
+            <p style={{ fontSize: 11, fontWeight: 700, color: '#FF6A00', letterSpacing: 1.5, textTransform: 'uppercase', margin: '0 0 12px' }}>Necə işləyir</p>
+            <h2 style={{ fontSize: 'clamp(24px,4vw,40px)', fontWeight: 800, color: '#FFFFFF', margin: 0, letterSpacing: '-0.5px' }}>3 addımda sifariş</h2>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 2 }}>
+            {[
+              { n: '01', icon: '🛍️', title: 'Məhsul seç',     desc: 'Kataloqdan bəyəndiyini seç, variantı müəyyən et' },
+              { n: '02', icon: '✍️', title: 'Ad / mesaj yaz',  desc: 'Lazer yazısı üçün istədiyini əlavə et' },
+              { n: '03', icon: '⚡', title: 'Ödənişsiz çatır', desc: '1–3 iş günündə hazır. Metro görüşü ödənişsizdir.' },
+            ].map((s, i) => (
+              <div key={s.n} style={{ background: '#1A1A1A', padding: 'clamp(24px,4vw,40px) clamp(20px,3vw,32px)', borderLeft: i > 0 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}>
+                <div style={{ width: 48, height: 48, borderRadius: 12, background: 'rgba(255,106,0,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, marginBottom: 16 }}>{s.icon}</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#FF6A00', letterSpacing: 2, marginBottom: 8 }}>{s.n}</div>
+                <h3 style={{ fontSize: 'clamp(15px,2vw,18px)', fontWeight: 700, color: '#FFFFFF', margin: '0 0 8px' }}>{s.title}</h3>
+                <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', lineHeight: 1.7, margin: 0 }}>{s.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section style={{ background: '#F5F2EC' }}>
+        <CustomerReviews />
+      </section>
+    </div>
+  );
+}
+
+interface ProductsPageProps {
+  activeCategory: string | null;
+  setActiveCategory: React.Dispatch<React.SetStateAction<string | null>>;
+  categories: string[];
+  products: Product[];
+  filteredProducts: Product[];
+  loading: boolean;
+  openProduct: (p: Product) => void;
+}
+
+function ProductsPage({
+  activeCategory,
+  setActiveCategory,
+  categories,
+  products,
+  filteredProducts,
+  loading,
+  openProduct,
+}: ProductsPageProps) {
+  return (
+    <div style={{ maxWidth: 1280, margin: '0 auto', padding: 'clamp(20px,3vw,32px) clamp(16px,3vw,32px) 64px' }}>
+      <Helmet>
+        <title>{activeCategory ? `${activeCategory} | Ravio` : 'Bütün Məhsullar | Ravio'}</title>
+        <meta name="description" content={activeCategory ? `${activeCategory} məhsulları — Ravio-da fərdi hazırlanmış hədiyyələr. Bakı daxili pulsuz çatdırılma, 1–3 iş günü.` : 'Lazer yazılı qolbaq, fərdi təsbeh, domino, giftbox — bütün məhsullarımız. Bakı daxili pulsuz çatdırılma.'} />
+        <link rel="canonical" href="https://ravioaz.vercel.app/mehsullar" />
+      </Helmet>
+      <div style={{ display: 'flex', gap: 32, alignItems: 'flex-start' }}>
+        <aside className="r-desktop-nav r-catalog-aside" style={{ flexShrink: 0, width: 200, position: 'sticky', top: 110, maxHeight: 'calc(100vh - 130px)', overflowY: 'auto', paddingRight: 8, scrollbarWidth: 'none' }}>
+          <p style={{ fontSize: 10, fontWeight: 700, color: '#FF6A00', letterSpacing: 1.5, textTransform: 'uppercase', margin: '0 0 12px' }}>Kateqoriyalar</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <button onClick={() => setActiveCategory(null)} style={{ padding: '10px 12px', borderRadius: 8, border: 'none', background: !activeCategory ? '#111111' : 'transparent', color: !activeCategory ? '#FFFFFF' : '#555555', fontSize: 13, fontWeight: !activeCategory ? 600 : 400, cursor: 'pointer', textAlign: 'left', fontFamily: "'Inter', sans-serif", transition: 'all 0.15s', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span>Hamısı</span><span style={{ fontSize: 11, opacity: 0.55 }}>{products.length}</span>
+            </button>
+            {categories.map(cat => {
+              const count = products.filter(p => p.category === cat).length;
+              const sel   = activeCategory === cat;
+              return (
+                <button key={cat} onClick={() => setActiveCategory(cat)} style={{ padding: '10px 12px', borderRadius: 8, border: 'none', background: sel ? '#111111' : 'transparent', color: sel ? '#FFFFFF' : '#555555', fontSize: 13, fontWeight: sel ? 600 : 400, cursor: 'pointer', textAlign: 'left', fontFamily: "'Inter', sans-serif", transition: 'all 0.15s', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span>{cat}</span><span style={{ fontSize: 11, opacity: 0.55 }}>{count}</span>
+                </button>
+              );
+            })}
+          </div>
+        </aside>
+
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ marginBottom: 20 }}>
+            <h1 style={{ fontSize: 'clamp(20px,3vw,30px)', fontWeight: 800, color: '#111111', margin: '0 0 4px', letterSpacing: '-0.3px' }}>
+              {activeCategory || 'Bütün məhsullar'}
+            </h1>
+            <p style={{ fontSize: 13, color: '#AAAAAA', margin: 0 }}>{filteredProducts.length} məhsul · Ödənişsiz çatdırılma</p>
+          </div>
+
+          {categories.length > 0 && (
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'nowrap', marginBottom: 20, overflowX: 'auto', paddingBottom: 8, scrollbarWidth: 'none' }} className="r-mobile-nav">
+              <button onClick={() => setActiveCategory(null)} style={{ padding: '7px 16px', borderRadius: 100, flexShrink: 0, border: `1.5px solid ${!activeCategory ? '#111111' : '#D5D0C8'}`, background: !activeCategory ? '#111111' : 'transparent', color: !activeCategory ? '#FFFFFF' : '#666666', fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: "'Inter', sans-serif" }}>Hamısı</button>
+              {categories.map(cat => (
+                <button key={cat} onClick={() => setActiveCategory(cat)} style={{ padding: '7px 16px', borderRadius: 100, flexShrink: 0, border: `1.5px solid ${activeCategory === cat ? '#111111' : '#D5D0C8'}`, background: activeCategory === cat ? '#111111' : 'transparent', color: activeCategory === cat ? '#FFFFFF' : '#666666', fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: "'Inter', sans-serif" }}>{cat}</button>
+              ))}
+            </div>
+          )}
+
+          {loading ? (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 16 }}>
+              {[1,2,3,4,5,6].map(i => (
+                <div key={i} style={{ background: '#FFFFFF', borderRadius: 12, overflow: 'hidden', border: '1px solid #EDEBE7' }}>
+                  <div style={{ aspectRatio: '1/1', background: '#F5F2EC', animation: 'pulse 1.5s ease-in-out infinite' }} />
+                  <div style={{ padding: '14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <div style={{ height: 10, background: '#F5F2EC', borderRadius: 4, width: '45%', animation: 'pulse 1.5s ease-in-out infinite' }} />
+                    <div style={{ height: 14, background: '#F5F2EC', borderRadius: 4, width: '75%', animation: 'pulse 1.5s ease-in-out infinite' }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <ProductGrid products={filteredProducts} onAddToCart={openProduct} onViewProduct={openProduct} />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Main App Shell ─────────────────────────────────────────────────────────────
 function AppShell() {
   const navigate  = useNavigate();
@@ -517,338 +906,6 @@ useEffect(() => {
     navigate('/mehsullar');
   };
 
-  // ── Hər məhsul üçün ayrı SEO səhifəsi ────────────────────────────────────
-  function ProductPageHandler() {
-  if (selectedProduct) return null;   // ← BUNU ƏLAVƏ ET
-  const { slug } = useParams<{ slug: string }>();
-         const currentProduct = slug ? products.find(p => p.slug === slug) : null;
-    const primaryImage = currentProduct?.variants?.[0]?.images?.[0] || '';
-    const { min, max } = currentProduct ? getProductPriceRange(currentProduct) : { min: 0, max: 0 };
-    const totalStock = currentProduct
-      ? (currentProduct.variants || []).reduce((sum, v) => sum + (v.stock || 0), 0)
-      : 0;
-    const productUrl = `https://ravioaz.vercel.app/mehsullar/${slug ?? ''}`;
-
-    // Məhsul tapılmadısa
-    if (!loading && !currentProduct) {
-      return (
-        <div style={{ maxWidth: 960, margin: '0 auto', padding: '32px 16px 56px' }}>
-          <Helmet>
-            <title>Məhsul tapılmadı | Ravio</title>
-            <meta name="robots" content="noindex,follow" />
-            <link rel="canonical" href={productUrl} />
-          </Helmet>
-          <NotFound onHome={() => navigate('/mehsullar')} />
-        </div>
-      );
-    }
-
-    return (
-      <>
-        <Helmet>
-          <title>{currentProduct ? `${currentProduct.name} | Ravio` : 'Məhsul | Ravio'}</title>
-          <meta
-            name="description"
-            content={currentProduct
-              ? `${currentProduct.name} — fərdi hazırlanmış hədiyyə. Qiymət ${min === max ? `${min} ₼` : `${min}–${max} ₼`}.`
-              : 'Fərdi hazırlanmış hədiyyə — Ravio'}
-          />
-          <meta property="og:type" content="product" />
-          <meta property="og:title" content={currentProduct ? `${currentProduct.name} | Ravio` : 'Məhsul | Ravio'} />
-          <meta property="og:description" content={currentProduct ? (currentProduct.description || `${currentProduct.name} — Ravio`) : 'Məhsul'} />
-          <meta property="og:url" content={productUrl} />
-          <meta property="og:locale" content="az_AZ" />
-          {primaryImage && <meta property="og:image" content={primaryImage} />}
-          <meta name="twitter:card" content="summary_large_image" />
-          {primaryImage && <meta name="twitter:image" content={primaryImage} />}
-          <link rel="canonical" href={productUrl} />
-          {currentProduct && (() => {
-            const allPrices = currentProduct.variants.map(v => v.discountPrice ?? v.price).filter(Boolean);
-            const priceMin  = allPrices.length ? Math.min(...allPrices) : min;
-            const priceMax  = allPrices.length ? Math.max(...allPrices) : max;
-            const allImages = currentProduct.variants.flatMap(v => v.images || []).slice(0, 5);
-            const avail     = totalStock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock';
-
-            const productSchema = {
-              '@context': 'https://schema.org',
-              '@type': 'Product',
-              name: currentProduct.name,
-              image: allImages,
-              description: currentProduct.description || `${currentProduct.name} - Ravio`,
-              sku: currentProduct.id,
-              brand: { '@type': 'Brand', name: 'Ravio' },
-              offers: priceMin === priceMax
-                ? {
-                    '@type': 'Offer',
-                    url: productUrl,
-                    priceCurrency: 'AZN',
-                    price: String(priceMin),
-                    availability: avail,
-                    seller: { '@type': 'Organization', name: 'Ravio' },
-                  }
-                : {
-                    '@type': 'AggregateOffer',
-                    url: productUrl,
-                    priceCurrency: 'AZN',
-                    lowPrice: String(priceMin),
-                    highPrice: String(priceMax),
-                    offerCount: currentProduct.variants.length,
-                    availability: avail,
-                    seller: { '@type': 'Organization', name: 'Ravio' },
-                  },
-            };
-
-            const breadcrumbSchema = {
-              '@context': 'https://schema.org',
-              '@type': 'BreadcrumbList',
-              itemListElement: [
-                { '@type': 'ListItem', position: 1, name: 'Ana Səhifə', item: 'https://ravioaz.vercel.app/' },
-                { '@type': 'ListItem', position: 2, name: 'Məhsullar',  item: 'https://ravioaz.vercel.app/mehsullar' },
-                { '@type': 'ListItem', position: 3, name: currentProduct.name, item: productUrl },
-              ],
-            };
-
-            return (
-              <>
-                <script type="application/ld+json">{JSON.stringify(productSchema)}</script>
-                <script type="application/ld+json">{JSON.stringify(breadcrumbSchema)}</script>
-              </>
-            );
-          })()}
-        </Helmet>
-
-        <div style={{ maxWidth: 1120, margin: '0 auto', padding: '28px 16px 56px' }}>
-          {loading && <p style={{ color: '#666666' }}>Yüklənir...</p>}
-
-          {currentProduct && (
-            <>
-              <div style={{ marginBottom: 16 }}>
-                <button
-                  onClick={() => navigate('/mehsullar')}
-                  style={{ border: 'none', background: 'transparent', color: '#FF6A00', fontWeight: 700, cursor: 'pointer', padding: 0, fontSize: 14 }}
-                >
-                  ← Bütün məhsullara qayıt
-                </button>
-              </div>
-
-              <article style={{ display: 'grid', gridTemplateColumns: 'minmax(280px, 480px) 1fr', gap: 24, background: '#FFFFFF', borderRadius: 14, padding: 20, border: '1px solid #EDEBE7' }}>
-                <div>
-                  {primaryImage ? (
-                    <img src={primaryImage} alt={currentProduct.name} style={{ width: '100%', borderRadius: 10, objectFit: 'cover' }} />
-                  ) : (
-                    <div style={{ width: '100%', aspectRatio: '1 / 1', borderRadius: 10, background: '#F5F2EC' }} />
-                  )}
-                </div>
-                <div>
-                  <h1 style={{ margin: 0, fontSize: 'clamp(24px,3vw,34px)', color: '#111111' }}>{currentProduct.name}</h1>
-                  <p style={{ color: '#666666', marginTop: 8 }}>{currentProduct.category || 'Məhsul'}</p>
-                  <p style={{ fontSize: 24, fontWeight: 800, margin: '12px 0 8px', color: '#111111' }}>
-                    {min === max ? `${min} ₼` : `${min} ₼ - ${max} ₼`}
-                  </p>
-                  <p style={{ color: totalStock > 0 ? '#0A7A2F' : '#B00020', marginTop: 0, fontWeight: 600 }}>
-                    {totalStock > 0 ? `Stokda var` : 'Stokda yoxdur'}
-                  </p>
-                  <p style={{ lineHeight: 1.6, color: '#333333' }}>
-                    {currentProduct.description || `${currentProduct.name} üçün fərdi yazı əlavə edə bilərsiniz.`}
-                  </p>
-                  <button
-                    onClick={() => {
-                      setSelectedProduct(currentProduct);
-                      setEditingItem(undefined);
-                    }}
-                    style={{ marginTop: 8, padding: '14px 24px', background: '#FF6A00', color: '#FFFFFF', border: 'none', borderRadius: 10, fontWeight: 700, cursor: 'pointer', fontSize: 15, fontFamily: "'Inter', sans-serif" }}
-                  >
-                    Sifariş et →
-                  </button>
-                </div>
-              </article>
-            </>
-          )}
-        </div>
-      </>
-    );
-  }
-
-  // ── Səhifələr ──────────────────────────────────────────────────────────────
-  function HomePage() {
-    return (
-      <div style={{ opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(16px)', transition: 'opacity 0.7s ease, transform 0.7s ease' }}>
-        <Helmet>
-          <title>Ravio — Sizə Özəl Hədiyyələr | Bakı</title>
-          <meta name="description" content="Lazer yazılı qolbaq, fərdi təsbeh, domino və giftbox. Hər məhsul sizin üçün özəl hazırlanır. 17₼-dən başlayan qiymətlə, 1–3 iş günündə çatdırılma." />
-          <meta property="og:type"        content="website" />
-          <meta property="og:title"       content="Ravio — Sizə Özəl Hədiyyələr | Bakı" />
-          <meta property="og:description" content="Lazer yazılı qolbaq, fərdi təsbeh, domino və giftbox. 17₼-dən başlayan qiymətlə." />
-          <meta property="og:url"         content="https://ravioaz.vercel.app/" />
-          <meta property="og:image"       content="https://ravioaz.vercel.app/og-cover.jpg" />
-          <meta property="og:locale"      content="az_AZ" />
-          <meta name="twitter:card"        content="summary_large_image" />
-          <meta name="twitter:title"       content="Ravio — Sizə Özəl Hədiyyələr | Bakı" />
-          <meta name="twitter:description" content="Lazer yazılı qolbaq, fərdi təsbeh, domino və giftbox. 17₼-dən başlayan qiymətlə." />
-          <meta name="twitter:image"       content="https://ravioaz.vercel.app/og-cover.jpg" />
-          <link rel="canonical" href="https://ravioaz.vercel.app/" />
-          <script type="application/ld+json">{JSON.stringify({
-            '@context': 'https://schema.org',
-            '@type': 'Organization',
-            name: 'Ravio',
-            url: 'https://ravioaz.vercel.app',
-            logo: 'https://ravioaz.vercel.app/og-cover.jpg',
-            description: 'Bakıda fərdi hədiyyələr — lazer yazılı qolbaq, təsbeh, domino, giftbox.',
-            contactPoint: { '@type': 'ContactPoint', contactType: 'customer service', availableLanguage: 'Azerbaijani' },
-            areaServed: { '@type': 'Country', name: 'Azerbaijan' },
-          })}</script>
-        </Helmet>
-        <HeroBanner onShopClick={() => goToProducts(null)} />
-        {reelPosts.length > 0 && (
-          <RealWorksBanner posts={reelPosts} onShopClick={() => goToProducts(null)} />
-        )}
-        <InfoStrips />
-
-        <section style={{ maxWidth: 1280, margin: '0 auto', padding: 'clamp(32px,5vw,56px) clamp(16px,3vw,32px)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 28 }}>
-            <div>
-              <p style={{ fontSize: 11, fontWeight: 700, color: '#FF6A00', letterSpacing: 1.5, textTransform: 'uppercase', margin: '0 0 6px' }}>Kataloq</p>
-              <h2 style={{ fontSize: 'clamp(22px,3.5vw,32px)', fontWeight: 800, color: '#111111', margin: 0, letterSpacing: '-0.3px' }}>Məhsullarımız</h2>
-            </div>
-            <button
-              onClick={() => goToProducts(null)}
-              style={{ padding: '10px 22px', background: 'transparent', border: '1.5px solid #D5D0C8', borderRadius: 8, fontSize: 13, fontWeight: 600, color: '#111111', cursor: 'pointer', fontFamily: "'Inter', sans-serif", transition: 'border-color 0.15s, background 0.15s' }}
-              onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => { e.currentTarget.style.borderColor = '#FF6A00'; e.currentTarget.style.color = '#FF6A00'; }}
-              onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => { e.currentTarget.style.borderColor = '#D5D0C8'; e.currentTarget.style.color = '#111111'; }}
-            >
-              Hamısına bax →
-            </button>
-          </div>
-
-          {categories.length > 0 && (
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'nowrap', marginBottom: 24, overflowX: 'auto', paddingBottom: 8, scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch', msOverflowStyle: 'none' }}>
-              <button onClick={() => setActiveCategory(null)} style={{ padding: '7px 16px', borderRadius: 100, flexShrink: 0, border: `1.5px solid ${!activeCategory ? '#111111' : '#D5D0C8'}`, background: !activeCategory ? '#111111' : 'transparent', color: !activeCategory ? '#FFFFFF' : '#666666', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: "'Inter', sans-serif", whiteSpace: 'nowrap' }}>Hamısı</button>
-              {categories.map(cat => (
-                <button key={cat} onClick={() => setActiveCategory(cat)} style={{ padding: '7px 16px', borderRadius: 100, flexShrink: 0, border: `1.5px solid ${activeCategory === cat ? '#111111' : '#D5D0C8'}`, background: activeCategory === cat ? '#111111' : 'transparent', color: activeCategory === cat ? '#FFFFFF' : '#666666', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: "'Inter', sans-serif", whiteSpace: 'nowrap' }}>{cat}</button>
-              ))}
-            </div>
-          )}
-
-          {loading ? (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 16 }}>
-              {[1,2,3,4,5,6].map(i => (
-                <div key={i} style={{ background: '#FFFFFF', borderRadius: 12, overflow: 'hidden', border: '1px solid #EDEBE7' }}>
-                  <div style={{ aspectRatio: '1/1', background: '#F5F2EC', animation: 'pulse 1.5s ease-in-out infinite' }} />
-                  <div style={{ padding: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    <div style={{ height: 10, background: '#F5F2EC', borderRadius: 4, width: '45%', animation: 'pulse 1.5s ease-in-out infinite' }} />
-                    <div style={{ height: 14, background: '#F5F2EC', borderRadius: 4, width: '75%', animation: 'pulse 1.5s ease-in-out infinite' }} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <ProductGrid products={filteredProducts.slice(0, 8)} onAddToCart={openProduct} onViewProduct={openProduct} />
-          )}
-
-          {!loading && filteredProducts.length > 8 && (
-            <div style={{ textAlign: 'center', marginTop: 32 }}>
-              <button onClick={() => goToProducts(null)} style={{ padding: '14px 40px', background: '#FF6A00', color: '#FFFFFF', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: "'Inter', sans-serif", boxShadow: '0 4px 16px rgba(255,106,0,0.3)' }}>
-                Daha çox məhsul gör ({filteredProducts.length - 8}+)
-              </button>
-            </div>
-          )}
-        </section>
-
-        <section style={{ background: '#111111', padding: 'clamp(48px,7vw,96px) clamp(16px,3vw,32px)' }}>
-          <div style={{ maxWidth: 1280, margin: '0 auto' }}>
-            <div style={{ textAlign: 'center', marginBottom: 40 }}>
-              <p style={{ fontSize: 11, fontWeight: 700, color: '#FF6A00', letterSpacing: 1.5, textTransform: 'uppercase', margin: '0 0 12px' }}>Necə işləyir</p>
-              <h2 style={{ fontSize: 'clamp(24px,4vw,40px)', fontWeight: 800, color: '#FFFFFF', margin: 0, letterSpacing: '-0.5px' }}>3 addımda sifariş</h2>
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 2 }}>
-              {[
-                { n: '01', icon: '🛍️', title: 'Məhsul seç',     desc: 'Kataloqdan bəyəndiyini seç, variantı müəyyən et' },
-                { n: '02', icon: '✍️', title: 'Ad / mesaj yaz',  desc: 'Lazer yazısı üçün istədiyini əlavə et' },
-                { n: '03', icon: '⚡', title: 'Ödənişsiz çatır', desc: '1–3 iş günündə hazır. Metro görüşü ödənişsizdir.' },
-              ].map((s, i) => (
-                <div key={s.n} style={{ background: '#1A1A1A', padding: 'clamp(24px,4vw,40px) clamp(20px,3vw,32px)', borderLeft: i > 0 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}>
-                  <div style={{ width: 48, height: 48, borderRadius: 12, background: 'rgba(255,106,0,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, marginBottom: 16 }}>{s.icon}</div>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: '#FF6A00', letterSpacing: 2, marginBottom: 8 }}>{s.n}</div>
-                  <h3 style={{ fontSize: 'clamp(15px,2vw,18px)', fontWeight: 700, color: '#FFFFFF', margin: '0 0 8px' }}>{s.title}</h3>
-                  <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', lineHeight: 1.7, margin: 0 }}>{s.desc}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section style={{ background: '#F5F2EC' }}>
-          <CustomerReviews />
-        </section>
-      </div>
-    );
-  }
-
-  function ProductsPage() {
-    return (
-      <div style={{ maxWidth: 1280, margin: '0 auto', padding: 'clamp(20px,3vw,32px) clamp(16px,3vw,32px) 64px' }}>
-        <Helmet>
-          <title>{activeCategory ? `${activeCategory} | Ravio` : 'Bütün Məhsullar | Ravio'}</title>
-          <meta name="description" content={activeCategory ? `${activeCategory} məhsulları — Ravio-da fərdi hazırlanmış hədiyyələr. Bakı daxili pulsuz çatdırılma, 1–3 iş günü.` : 'Lazer yazılı qolbaq, fərdi təsbeh, domino, giftbox — bütün məhsullarımız. Bakı daxili pulsuz çatdırılma.'} />
-          <link rel="canonical" href="https://ravioaz.vercel.app/mehsullar" />
-        </Helmet>
-        <div style={{ display: 'flex', gap: 32, alignItems: 'flex-start' }}>
-          <aside className="r-desktop-nav r-catalog-aside" style={{ flexShrink: 0, width: 200, position: 'sticky', top: 110, maxHeight: 'calc(100vh - 130px)', overflowY: 'auto', paddingRight: 8, scrollbarWidth: 'none' }}>
-            <p style={{ fontSize: 10, fontWeight: 700, color: '#FF6A00', letterSpacing: 1.5, textTransform: 'uppercase', margin: '0 0 12px' }}>Kateqoriyalar</p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <button onClick={() => setActiveCategory(null)} style={{ padding: '10px 12px', borderRadius: 8, border: 'none', background: !activeCategory ? '#111111' : 'transparent', color: !activeCategory ? '#FFFFFF' : '#555555', fontSize: 13, fontWeight: !activeCategory ? 600 : 400, cursor: 'pointer', textAlign: 'left', fontFamily: "'Inter', sans-serif", transition: 'all 0.15s', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span>Hamısı</span><span style={{ fontSize: 11, opacity: 0.55 }}>{products.length}</span>
-              </button>
-              {categories.map(cat => {
-                const count = products.filter(p => p.category === cat).length;
-                const sel   = activeCategory === cat;
-                return (
-                  <button key={cat} onClick={() => setActiveCategory(cat)} style={{ padding: '10px 12px', borderRadius: 8, border: 'none', background: sel ? '#111111' : 'transparent', color: sel ? '#FFFFFF' : '#555555', fontSize: 13, fontWeight: sel ? 600 : 400, cursor: 'pointer', textAlign: 'left', fontFamily: "'Inter', sans-serif", transition: 'all 0.15s', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span>{cat}</span><span style={{ fontSize: 11, opacity: 0.55 }}>{count}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </aside>
-
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ marginBottom: 20 }}>
-              <h1 style={{ fontSize: 'clamp(20px,3vw,30px)', fontWeight: 800, color: '#111111', margin: '0 0 4px', letterSpacing: '-0.3px' }}>
-                {activeCategory || 'Bütün məhsullar'}
-              </h1>
-              <p style={{ fontSize: 13, color: '#AAAAAA', margin: 0 }}>{filteredProducts.length} məhsul · Ödənişsiz çatdırılma</p>
-            </div>
-
-            {categories.length > 0 && (
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'nowrap', marginBottom: 20, overflowX: 'auto', paddingBottom: 8, scrollbarWidth: 'none' }} className="r-mobile-nav">
-                <button onClick={() => setActiveCategory(null)} style={{ padding: '7px 16px', borderRadius: 100, flexShrink: 0, border: `1.5px solid ${!activeCategory ? '#111111' : '#D5D0C8'}`, background: !activeCategory ? '#111111' : 'transparent', color: !activeCategory ? '#FFFFFF' : '#666666', fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: "'Inter', sans-serif" }}>Hamısı</button>
-                {categories.map(cat => (
-                  <button key={cat} onClick={() => setActiveCategory(cat)} style={{ padding: '7px 16px', borderRadius: 100, flexShrink: 0, border: `1.5px solid ${activeCategory === cat ? '#111111' : '#D5D0C8'}`, background: activeCategory === cat ? '#111111' : 'transparent', color: activeCategory === cat ? '#FFFFFF' : '#666666', fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: "'Inter', sans-serif" }}>{cat}</button>
-                ))}
-              </div>
-            )}
-
-            {loading ? (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 16 }}>
-                {[1,2,3,4,5,6].map(i => (
-                  <div key={i} style={{ background: '#FFFFFF', borderRadius: 12, overflow: 'hidden', border: '1px solid #EDEBE7' }}>
-                    <div style={{ aspectRatio: '1/1', background: '#F5F2EC', animation: 'pulse 1.5s ease-in-out infinite' }} />
-                    <div style={{ padding: '14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-                      <div style={{ height: 10, background: '#F5F2EC', borderRadius: 4, width: '45%', animation: 'pulse 1.5s ease-in-out infinite' }} />
-                      <div style={{ height: 14, background: '#F5F2EC', borderRadius: 4, width: '75%', animation: 'pulse 1.5s ease-in-out infinite' }} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <ProductGrid products={filteredProducts} onAddToCart={openProduct} onViewProduct={openProduct} />
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div style={{ minHeight: '100vh', background: '#F5F2EC', fontFamily: "'Inter', sans-serif", color: '#111111' }}>
       <Navbar
@@ -865,9 +922,9 @@ useEffect(() => {
 
       <main>
         <Routes>
-          <Route path="/"                element={<HomePage />} />
-          <Route path="/mehsullar"       element={<ProductsPage />} />
-          <Route path="/mehsullar/:slug" element={<ProductPageHandler />} />
+          <Route path="/"                element={<HomePage visible={visible} reelPosts={reelPosts} categories={categories} filteredProducts={filteredProducts} loading={loading} activeCategory={activeCategory} setActiveCategory={setActiveCategory} goToProducts={goToProducts} openProduct={openProduct} />} />
+          <Route path="/mehsullar"       element={<ProductsPage activeCategory={activeCategory} setActiveCategory={setActiveCategory} categories={categories} products={products} filteredProducts={filteredProducts} loading={loading} openProduct={openProduct} />} />
+          <Route path="/mehsullar/:slug" element={<ProductPageHandler selectedProduct={selectedProduct} products={products} loading={loading} setSelectedProduct={setSelectedProduct} setEditingItem={setEditingItem} />} />
           <Route path="/haqqimizda"      element={<AboutUs />} />
           <Route path="/elaqe"           element={<Contact />} />
           <Route path="/catdirilma"      element={<DeliveryInfo />} />
