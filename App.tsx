@@ -474,23 +474,23 @@ function AppShell() {
   const cartCount = cart.reduce((s, c) => s + c.quantity, 0);
 
   const openProduct = (p: Product) => {
-    isClosingModal.current = false;
-    setSelectedProduct(p);
-    setEditingItem(undefined);
-    if (p.slug) {
-      navigate(`/mehsullar/${p.slug}`);
-    }
-  };
+  isClosingModal.current = false;
+  setSelectedProduct(p);
+  setEditingItem(undefined);
+  if (p.slug) {
+    window.history.pushState(null, '', `/mehsullar/${p.slug}`);
+  }
+  document.body.style.overflow = 'hidden';
+};
 
   const closeModal = () => {
-    isClosingModal.current = true;
-    setSelectedProduct(null);
-    setEditingItem(undefined);
-    if (location.pathname.startsWith('/mehsullar/')) {
-      navigate('/mehsullar');
-    }
-    setTimeout(() => { isClosingModal.current = false; }, 500);
-  };
+  isClosingModal.current = true;
+  setSelectedProduct(null);
+  setEditingItem(undefined);
+  document.body.style.overflow = '';
+  window.history.pushState(null, '', '/mehsullar');
+  setTimeout(() => { isClosingModal.current = false; }, 500);
+};
 
   const goToProducts = (cat?: string | null) => {
     if (cat !== undefined) setActiveCategory(cat);
@@ -817,13 +817,14 @@ function AppShell() {
           onClose={closeModal}
           onAddToCart={handleAddToCart}
           onOpenCategory={(cat: string) => {
-            isClosingModal.current = true;
-            setSelectedProduct(null);
-            setEditingItem(undefined);
-            setActiveCategory(cat);
-            navigate('/mehsullar');
-            setTimeout(() => { isClosingModal.current = false; }, 500);
-          }}
+  isClosingModal.current = true;
+  setSelectedProduct(null);
+  setEditingItem(undefined);
+  document.body.style.overflow = '';
+  setActiveCategory(cat);
+  window.history.pushState(null, '', '/mehsullar');
+  setTimeout(() => { isClosingModal.current = false; }, 500);
+}}
         />
       )}
 
