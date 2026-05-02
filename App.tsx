@@ -158,13 +158,14 @@ function RealWorksBanner({ posts, onShopClick }: { posts: import('./types').Reel
         </div>
       </div>
 
-      <div style={{ maxWidth: 1280, margin: '0 auto', display: 'flex', gap: 16, overflow: 'hidden' }}>
+      <div className="ravio-reelworks-inner" style={{ maxWidth: 1280, margin: '0 auto', display: 'flex', gap: 16, overflow: 'hidden' }}>
         <div
           key={post.imageUrl + current}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
+          className="ravio-reel-main-img"
           style={{
-            flex: '0 0 clamp(260px, 45%, 420px)',
+            flex: '0 0 clamp(200px, 45%, 420px)',
             borderRadius: 16,
             overflow: 'hidden',
             position: 'relative',
@@ -217,7 +218,7 @@ function RealWorksBanner({ posts, onShopClick }: { posts: import('./types').Reel
           </div>
         </div>
 
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column' as const, gap: 12, overflow: 'hidden' }}>
+        <div className="ravio-reel-thumbs" style={{ flex: 1, display: 'flex', flexDirection: 'column' as const, gap: 12, overflow: 'hidden' }}>
           {posts
             .map((p, i) => ({ p, i }))
             .filter(({ i }) => i !== current)
@@ -986,15 +987,28 @@ useEffect(() => {
           .r-catalog-aside { display: none !important; }
           .r-catalog-main { margin-left: 0 !important; }
         }
+        /* ── RealWorksBanner mobile layout ── */
         @media (max-width: 640px) {
-          body { font-size: 15px; }
-          input, select, textarea { font-size: 16px !important; }
-          .r-section { padding-left: 16px !important; padding-right: 16px !important; }
+          .ravio-reelworks-inner { flex-direction: column !important; overflow: visible !important; }
+          .ravio-reel-main-img   { flex: none !important; width: 100% !important; aspect-ratio: 16/9 !important; }
+          .ravio-reel-thumbs     { display: none !important; }
+        }
+        @media (min-width: 641px) and (max-width: 900px) {
+          .ravio-reel-main-img { flex: 0 0 52% !important; }
+          .ravio-reel-thumbs   { flex: 1 !important; }
+        }
+        /* ── Tablet: InfoStrips 2 sütuna keçir (768–1024px) ── */
+        @media (max-width: 1024px) {
           .ravio-info-strips { grid-template-columns: repeat(2, 1fr) !important; }
           .ravio-strip-0 { border-left: none !important; border-bottom: 1px solid var(--clr-border); }
           .ravio-strip-1 { border-left: 1px solid var(--clr-border) !important; border-bottom: 1px solid var(--clr-border); }
           .ravio-strip-2 { border-left: none !important; }
           .ravio-strip-3 { border-left: 1px solid var(--clr-border) !important; }
+        }
+        @media (max-width: 640px) {
+          body { font-size: 15px; }
+          input, select, textarea { font-size: 16px !important; }
+          .r-section { padding-left: 16px !important; padding-right: 16px !important; }
           .ravio-footer-grid { grid-template-columns: 1fr !important; gap: 32px !important; }
         }
       `}</style>

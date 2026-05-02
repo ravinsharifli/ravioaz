@@ -95,14 +95,14 @@ const PromoBanners: React.FC = () => {
         </div>
 
         <style>{`
-          @media (max-width: 560px) {
+          @media (max-width: 768px) {
             .promo-stats { display: none !important; }
           }
         `}</style>
       </div>
 
       {/* TWO SMALL BANNERS */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+      <div className="ravio-promo-two" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
 
         {/* Gift boxes banner */}
         <div style={{
@@ -168,6 +168,11 @@ const PromoBanners: React.FC = () => {
           </a>
         </div>
       </div>
+      <style>{`
+        @media (max-width: 480px) {
+          .ravio-promo-two { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
     </div>
   );
 };
