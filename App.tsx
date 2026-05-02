@@ -499,8 +499,9 @@ function AppShell() {
 
   // ── Hər məhsul üçün ayrı SEO səhifəsi ────────────────────────────────────
   function ProductPageHandler() {
-    const { slug } = useParams<{ slug: string }>();
-    const currentProduct = slug ? products.find(p => p.slug === slug) : null;
+  if (selectedProduct) return null;   // ← BUNU ƏLAVƏ ET
+  const { slug } = useParams<{ slug: string }>();
+         const currentProduct = slug ? products.find(p => p.slug === slug) : null;
     const primaryImage = currentProduct?.variants?.[0]?.images?.[0] || '';
     const { min, max } = currentProduct ? getProductPriceRange(currentProduct) : { min: 0, max: 0 };
     const totalStock = currentProduct
