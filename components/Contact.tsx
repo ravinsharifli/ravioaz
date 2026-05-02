@@ -36,6 +36,12 @@ const Contact: React.FC = () => {
       <Helmet>
         <title>Əlaqə | Ravio</title>
         <meta name="description" content="Ravio ilə əlaqə saxlayın. WhatsApp, Instagram və ya telefon ilə sifariş verin. Bakı daxili pulsuz çatdırılma, 1–3 iş günündə hazır." />
+        <meta property="og:type"        content="website" />
+        <meta property="og:title"       content="Əlaqə | Ravio" />
+        <meta property="og:description" content="WhatsApp, Instagram və ya telefon ilə sifariş verin. Bakı daxili pulsuz çatdırılma." />
+        <meta property="og:url"         content="https://ravioaz.vercel.app/elaqe" />
+        <meta property="og:image"       content="https://ravioaz.vercel.app/og-cover.jpg" />
+        <meta name="twitter:card"       content="summary_large_image" />
         <link rel="canonical" href="https://ravioaz.vercel.app/elaqe" />
       </Helmet>
 

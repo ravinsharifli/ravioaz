@@ -536,28 +536,65 @@ function AppShell() {
           <meta property="og:type" content="product" />
           <meta property="og:title" content={currentProduct ? `${currentProduct.name} | Ravio` : 'Məhsul | Ravio'} />
           <meta property="og:description" content={currentProduct ? (currentProduct.description || `${currentProduct.name} — Ravio`) : 'Məhsul'} />
+          <meta property="og:url" content={productUrl} />
+          <meta property="og:locale" content="az_AZ" />
           {primaryImage && <meta property="og:image" content={primaryImage} />}
+          <meta name="twitter:card" content="summary_large_image" />
+          {primaryImage && <meta name="twitter:image" content={primaryImage} />}
           <link rel="canonical" href={productUrl} />
-          {currentProduct && (
-            <script type="application/ld+json">
-              {JSON.stringify({
-                '@context': 'https://schema.org',
-                '@type': 'Product',
-                name: currentProduct.name,
-                image: currentProduct.variants.flatMap(v => v.images || []).slice(0, 5),
-                description: currentProduct.description || `${currentProduct.name} - Ravio`,
-                sku: currentProduct.id,
-                brand: { '@type': 'Brand', name: 'Ravio' },
-                offers: {
-                  '@type': 'Offer',
-                  url: productUrl,
-                  priceCurrency: 'AZN',
-                  price: String(min),
-                  availability: totalStock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
-                },
-              })}
-            </script>
-          )}
+          {currentProduct && (() => {
+            const allPrices = currentProduct.variants.map(v => v.discountPrice ?? v.price).filter(Boolean);
+            const priceMin  = allPrices.length ? Math.min(...allPrices) : min;
+            const priceMax  = allPrices.length ? Math.max(...allPrices) : max;
+            const allImages = currentProduct.variants.flatMap(v => v.images || []).slice(0, 5);
+            const avail     = totalStock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock';
+
+            const productSchema = {
+              '@context': 'https://schema.org',
+              '@type': 'Product',
+              name: currentProduct.name,
+              image: allImages,
+              description: currentProduct.description || `${currentProduct.name} - Ravio`,
+              sku: currentProduct.id,
+              brand: { '@type': 'Brand', name: 'Ravio' },
+              offers: priceMin === priceMax
+                ? {
+                    '@type': 'Offer',
+                    url: productUrl,
+                    priceCurrency: 'AZN',
+                    price: String(priceMin),
+                    availability: avail,
+                    seller: { '@type': 'Organization', name: 'Ravio' },
+                  }
+                : {
+                    '@type': 'AggregateOffer',
+                    url: productUrl,
+                    priceCurrency: 'AZN',
+                    lowPrice: String(priceMin),
+                    highPrice: String(priceMax),
+                    offerCount: currentProduct.variants.length,
+                    availability: avail,
+                    seller: { '@type': 'Organization', name: 'Ravio' },
+                  },
+            };
+
+            const breadcrumbSchema = {
+              '@context': 'https://schema.org',
+              '@type': 'BreadcrumbList',
+              itemListElement: [
+                { '@type': 'ListItem', position: 1, name: 'Ana Səhifə', item: 'https://ravioaz.vercel.app/' },
+                { '@type': 'ListItem', position: 2, name: 'Məhsullar',  item: 'https://ravioaz.vercel.app/mehsullar' },
+                { '@type': 'ListItem', position: 3, name: currentProduct.name, item: productUrl },
+              ],
+            };
+
+            return (
+              <>
+                <script type="application/ld+json">{JSON.stringify(productSchema)}</script>
+                <script type="application/ld+json">{JSON.stringify(breadcrumbSchema)}</script>
+              </>
+            );
+          })()}
         </Helmet>
 
         <div style={{ maxWidth: 1120, margin: '0 auto', padding: '28px 16px 56px' }}>
@@ -619,9 +656,27 @@ function AppShell() {
         <Helmet>
           <title>Ravio — Sizə Özəl Hədiyyələr | Bakı</title>
           <meta name="description" content="Lazer yazılı qolbaq, fərdi təsbeh, domino və giftbox. Hər məhsul sizin üçün özəl hazırlanır. 17₼-dən başlayan qiymətlə, 1–3 iş günündə çatdırılma." />
-          <meta property="og:title" content="Ravio — Sizə Özəl Hədiyyələr" />
+          <meta property="og:type"        content="website" />
+          <meta property="og:title"       content="Ravio — Sizə Özəl Hədiyyələr | Bakı" />
           <meta property="og:description" content="Lazer yazılı qolbaq, fərdi təsbeh, domino və giftbox. 17₼-dən başlayan qiymətlə." />
+          <meta property="og:url"         content="https://ravioaz.vercel.app/" />
+          <meta property="og:image"       content="https://ravioaz.vercel.app/og-cover.jpg" />
+          <meta property="og:locale"      content="az_AZ" />
+          <meta name="twitter:card"        content="summary_large_image" />
+          <meta name="twitter:title"       content="Ravio — Sizə Özəl Hədiyyələr | Bakı" />
+          <meta name="twitter:description" content="Lazer yazılı qolbaq, fərdi təsbeh, domino və giftbox. 17₼-dən başlayan qiymətlə." />
+          <meta name="twitter:image"       content="https://ravioaz.vercel.app/og-cover.jpg" />
           <link rel="canonical" href="https://ravioaz.vercel.app/" />
+          <script type="application/ld+json">{JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'Organization',
+            name: 'Ravio',
+            url: 'https://ravioaz.vercel.app',
+            logo: 'https://ravioaz.vercel.app/og-cover.jpg',
+            description: 'Bakıda fərdi hədiyyələr — lazer yazılı qolbaq, təsbeh, domino, giftbox.',
+            contactPoint: { '@type': 'ContactPoint', contactType: 'customer service', availableLanguage: 'Azerbaijani' },
+            areaServed: { '@type': 'Country', name: 'Azerbaijan' },
+          })}</script>
         </Helmet>
         <HeroBanner onShopClick={() => goToProducts(null)} />
         {reelPosts.length > 0 && (

@@ -13,6 +13,12 @@ const AboutUs: React.FC = () => {
       <Helmet>
         <title>Haqqımızda | Ravio</title>
         <meta name="description" content="Ravio — Bakıda fərdi hədiyyələr hazırlayan onlayn mağaza. Lazer yazısı, özəl qablaşdırma, sürətli çatdırılma. Hər məhsul sizin üçün xüsusi hazırlanır." />
+        <meta property="og:type"        content="website" />
+        <meta property="og:title"       content="Haqqımızda | Ravio" />
+        <meta property="og:description" content="Ravio — Bakıda fərdi hədiyyələr hazırlayan onlayn mağaza. Hər məhsul sizin üçün xüsusi hazırlanır." />
+        <meta property="og:url"         content="https://ravioaz.vercel.app/haqqimizda" />
+        <meta property="og:image"       content="https://ravioaz.vercel.app/og-cover.jpg" />
+        <meta name="twitter:card"       content="summary_large_image" />
         <link rel="canonical" href="https://ravioaz.vercel.app/haqqimizda" />
       </Helmet>
 
