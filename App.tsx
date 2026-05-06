@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { C, F, R } from './tokens';
 import { Helmet } from 'react-helmet-async';
 import { BrowserRouter, Routes, Route, useNavigate, useParams, useLocation } from 'react-router-dom';
@@ -48,6 +48,49 @@ const SETTINGS_QUERY = `*[_type == "siteSettings"][0]{
     "imageUrl": image.asset->url
   }
 }`;
+
+// ── Kateqoriya URL köməkçiləri ────────────────────────────────────────────────
+
+/** Azərbaycan mətni → URL slug. Məs: "Qolbaqlar" → "qolbaqlar", "Təsbehlər" → "tesbehler" */
+function toCategorySlug(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/ə/g, 'e').replace(/ö/g, 'o').replace(/ü/g, 'u')
+    .replace(/ı/g, 'i').replace(/ğ/g, 'g').replace(/ş/g, 's')
+    .replace(/ç/g, 'c').replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-]/g, '');
+}
+
+/** URL slug → orijinal kateqoriya adı */
+function fromCategorySlug(slug: string, categories: string[]): string | null {
+  return categories.find(cat => toCategorySlug(cat) === slug) ?? null;
+}
+
+/** Hər kateqoriya üçün SEO məlumatı */
+const CATEGORY_SEO: Record<string, { title: string; description: string; h1: string }> = {
+  qolbaqlar: {
+    title: 'Lazer Yazılı Qolbaqlar — Fərdi Hədiyyə | Ravio Bakı',
+    description: 'Bakıda fərdi lazer yazılı qolbaqlar. Ad, tarix, mesaj yazılır. Pulsuz metro çatdırılma, 1–3 iş günündə hazır.',
+    h1: 'Lazer Yazılı Qolbaqlar',
+  },
+  tesbehler: {
+    title: 'Fərdi Qravürlü Təsbehlər | Ravio Bakı',
+    description: 'Ağac və digər materiallardan lazer qravürlü fərdi təsbehlər. Bakıda özəl hədiyyə mağazası. Pulsuz metro çatdırılma.',
+    h1: 'Fərdi Qravürlü Təsbehlər',
+  },
+  domino: {
+    title: 'Hədiyyəlik Domino Dəsti — Lazer Yazılı | Ravio Bakı',
+    description: 'Fərdi lazer yazılı domino dəstləri. Korporativ hədiyyə, ad günü üçün ideal. Bakı daxili pulsuz çatdırılma.',
+    h1: 'Hədiyyəlik Domino',
+  },
+  hediyelik_qutular: {
+    title: 'Hədiyyəlik Qutular — Premium Qablaşdırma | Ravio Bakı',
+    description: 'Ravio premium hədiyyəlik qutular. Lent, köpük yastıq, bağlama + qeyd kartı. Hər hədiyyəni özəl edir.',
+    h1: 'Hədiyyəlik Qutular',
+  },
+};
+
+// ── Sanity data mapper ────────────────────────────────────────────────────────
 
 function mapSanityProduct(raw: any): Product {
   const variants = (raw.variants || []).map((v: any) => ({
@@ -423,36 +466,258 @@ function getProductPriceRange(product: Product) {
   return { min: Math.min(...prices), max: Math.max(...prices) };
 }
 
-// ── Page Components ───────────────────────────────────────────────────────────
-// DÜZƏLTMƏ: Əvvəl bu komponentlər AppShell içində define edilmişdi.
-// Bu, hər render-də onları yenidən yaradırdı → React unmount/remount edirdi.
-// İndi AppShell-dən XARICƏ çıxarılıb, lazımi state props vasitəsilə ötürülür.
+// ── Skeleton yükləmə grid ─────────────────────────────────────────────────────
+function LoadingGrid() {
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 16 }}>
+      {[1,2,3,4,5,6].map(i => (
+        <div key={i} style={{ background: C.white, borderRadius: 12, overflow: 'hidden', border: '1px solid #EDEBE7' }}>
+          <div style={{ aspectRatio: '1/1', background: C.bg, animation: 'pulse 1.5s ease-in-out infinite' }} />
+          <div style={{ padding: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ height: 10, background: C.bg, borderRadius: 4, width: '45%', animation: 'pulse 1.5s ease-in-out infinite' }} />
+            <div style={{ height: 14, background: C.bg, borderRadius: 4, width: '75%', animation: 'pulse 1.5s ease-in-out infinite' }} />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
-interface ProductPageHandlerProps {
+// ── Page Components ───────────────────────────────────────────────────────────
+
+// Kateqoriya sidebar + məhsul grid (həm CategoryPage həm ProductsPage istifadə edir)
+function CatalogLayout({
+  activeSlug,      // seçili kateqoriya URL slug-u (null = hamısı)
+  activeCategory,  // seçili kateqoriya adı
+  categories,
+  products,
+  filteredProducts,
+  loading,
+  openProduct,
+}: {
+  activeSlug: string | null;
+  activeCategory: string | null;
+  categories: string[];
+  products: Product[];
+  filteredProducts: Product[];
+  loading: boolean;
+  openProduct: (p: Product) => void;
+}) {
+  const navigate = useNavigate();
+
+  return (
+    <div style={{ display: 'flex', gap: 32, alignItems: 'flex-start' }}>
+      {/* Desktop Sidebar */}
+      <aside className="r-desktop-nav r-catalog-aside" style={{ flexShrink: 0, width: 200, position: 'sticky', top: 110, maxHeight: 'calc(100vh - 130px)', overflowY: 'auto', paddingRight: 8, scrollbarWidth: 'none' }}>
+        <p style={{ fontSize: 10, fontWeight: 700, color: C.primary, letterSpacing: 1.5, textTransform: 'uppercase', margin: '0 0 12px' }}>Kateqoriyalar</p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <button
+            onClick={() => navigate('/mehsullar')}
+            style={{ padding: '10px 12px', borderRadius: 8, border: 'none', background: !activeSlug ? C.black : 'transparent', color: !activeSlug ? C.white : '#555555', fontSize: 13, fontWeight: !activeSlug ? 600 : 400, cursor: 'pointer', textAlign: 'left', fontFamily: F.sans, transition: 'all 0.15s', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+          >
+            <span>Hamısı</span><span style={{ fontSize: 11, opacity: 0.55 }}>{products.length}</span>
+          </button>
+          {categories.map(cat => {
+            const count = products.filter(p => p.category === cat).length;
+            const slug  = toCategorySlug(cat);
+            const sel   = activeSlug === slug;
+            return (
+              <button
+                key={cat}
+                onClick={() => navigate(`/mehsullar/${slug}`)}
+                style={{ padding: '10px 12px', borderRadius: 8, border: 'none', background: sel ? C.black : 'transparent', color: sel ? C.white : '#555555', fontSize: 13, fontWeight: sel ? 600 : 400, cursor: 'pointer', textAlign: 'left', fontFamily: F.sans, transition: 'all 0.15s', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+              >
+                <span>{cat}</span><span style={{ fontSize: 11, opacity: 0.55 }}>{count}</span>
+              </button>
+            );
+          })}
+        </div>
+      </aside>
+
+      {/* Main content */}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        {/* Mobile pills */}
+        {categories.length > 0 && (
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'nowrap', marginBottom: 20, overflowX: 'auto', paddingBottom: 8, scrollbarWidth: 'none' }} className="r-mobile-nav">
+            <button
+              onClick={() => navigate('/mehsullar')}
+              style={{ padding: '7px 16px', borderRadius: 100, flexShrink: 0, border: `1.5px solid ${!activeSlug ? C.black : C.borderMid}`, background: !activeSlug ? C.black : 'transparent', color: !activeSlug ? C.white : C.textSec, fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: F.sans }}
+            >Hamısı</button>
+            {categories.map(cat => {
+              const slug = toCategorySlug(cat);
+              const sel  = activeSlug === slug;
+              return (
+                <button
+                  key={cat}
+                  onClick={() => navigate(`/mehsullar/${slug}`)}
+                  style={{ padding: '7px 16px', borderRadius: 100, flexShrink: 0, border: `1.5px solid ${sel ? C.black : C.borderMid}`, background: sel ? C.black : 'transparent', color: sel ? C.white : C.textSec, fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: F.sans }}
+                >{cat}</button>
+              );
+            })}
+          </div>
+        )}
+
+        {loading ? <LoadingGrid /> : (
+          <ProductGrid products={filteredProducts} onAddToCart={openProduct} onViewProduct={openProduct} />
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── /mehsullar — bütün məhsullar ──────────────────────────────────────────────
+interface ProductsPageProps {
+  categories: string[];
+  products: Product[];
+  loading: boolean;
+  openProduct: (p: Product) => void;
+}
+
+function ProductsPage({ categories, products, loading, openProduct }: ProductsPageProps) {
+  return (
+    <div style={{ maxWidth: 1280, margin: '0 auto', padding: 'clamp(20px,3vw,32px) clamp(16px,3vw,32px) 64px' }}>
+      <Helmet>
+        <title>Bütün Məhsullar | Ravio</title>
+        <meta name="description" content="Lazer yazılı qolbaq, fərdi təsbeh, domino, giftbox — bütün məhsullarımız. Bakı daxili pulsuz çatdırılma." />
+        <link rel="canonical" href="https://ravioaz.vercel.app/mehsullar" />
+        <meta property="og:title" content="Bütün Məhsullar | Ravio" />
+        <meta property="og:description" content="Lazer yazılı qolbaq, fərdi təsbeh, domino, giftbox — bütün məhsullarımız. Bakı daxili pulsuz çatdırılma." />
+        <meta property="og:url" content="https://ravioaz.vercel.app/mehsullar" />
+        <meta property="og:type" content="website" />
+      </Helmet>
+
+      <div style={{ marginBottom: 20 }}>
+        <h1 style={{ fontSize: 'clamp(20px,3vw,30px)', fontWeight: 800, color: C.black, margin: '0 0 4px', letterSpacing: '-0.3px' }}>
+          Bütün məhsullar
+        </h1>
+        <p style={{ fontSize: 13, color: C.textMuted, margin: 0 }}>{products.length} məhsul · Ödənişsiz çatdırılma</p>
+      </div>
+
+      <CatalogLayout
+        activeSlug={null}
+        activeCategory={null}
+        categories={categories}
+        products={products}
+        filteredProducts={products}
+        loading={loading}
+        openProduct={openProduct}
+      />
+    </div>
+  );
+}
+
+// ── /mehsullar/:slug — məhsul səhifəsi VƏ ya kateqoriya səhifəsi ─────────────
+// Bu komponent URL slug-un məhsula yoxsa kateqoriyaya aid olduğunu müəyyən edir.
+interface SlugPageProps {
   selectedProduct: Product | null;
   products: Product[];
   loading: boolean;
+  categories: string[];
+  setActiveCategory: React.Dispatch<React.SetStateAction<string | null>>;
   setSelectedProduct: React.Dispatch<React.SetStateAction<Product | null>>;
   setEditingItem: React.Dispatch<React.SetStateAction<CartItem | undefined>>;
+  openProduct: (p: Product) => void;
 }
 
-function ProductPageHandler({
+function SlugPage({
   selectedProduct,
   products,
   loading,
+  categories,
+  setActiveCategory,
   setSelectedProduct,
   setEditingItem,
-}: ProductPageHandlerProps) {
+  openProduct,
+}: SlugPageProps) {
+  const { slug = '' } = useParams<{ slug: string }>();
   const navigate = useNavigate();
+
+  // Slug kateqoriyadırmı? (CATEGORY_SEO-da varsa dərhal müəyyənləşir, əks halda məhsullar yüklənəndə)
+  const isKnownCategory = Boolean(CATEGORY_SEO[slug]);
+  const matchedCategory = useMemo(
+    () => fromCategorySlug(slug, categories),
+    [slug, categories]
+  );
+  const isCategory = isKnownCategory || (categories.length > 0 && matchedCategory !== null);
+
+  // Kateqoriya state-ini sinxronlaşdır
+  useEffect(() => {
+    if (isCategory) {
+      setActiveCategory(matchedCategory);
+    }
+  }, [isCategory, matchedCategory]);
+
+  // ── Kateqoriya Səhifəsi ────────────────────────────────────────────────────
+  if (isCategory) {
+    const filteredProducts = matchedCategory
+      ? products.filter(p => p.category === matchedCategory)
+      : [];
+    const seo   = CATEGORY_SEO[slug];
+    const title = seo?.title || (matchedCategory ? `${matchedCategory} | Ravio` : 'Məhsullar | Ravio');
+    const desc  = seo?.description || `${matchedCategory || 'Məhsullar'} — Ravio-da fərdi hazırlanmış hədiyyələr. Bakı daxili pulsuz çatdırılma.`;
+    const h1    = seo?.h1 || matchedCategory || slug;
+    const canonicalUrl = `https://ravioaz.vercel.app/mehsullar/${slug}`;
+
+    return (
+      <div style={{ maxWidth: 1280, margin: '0 auto', padding: 'clamp(20px,3vw,32px) clamp(16px,3vw,32px) 64px' }}>
+        <Helmet>
+          <title>{title}</title>
+          <meta name="description" content={desc} />
+          <link rel="canonical" href={canonicalUrl} />
+          <meta property="og:title"       content={title} />
+          <meta property="og:description" content={desc} />
+          <meta property="og:url"         content={canonicalUrl} />
+          <meta property="og:type"        content="website" />
+          <meta property="og:locale"      content="az_AZ" />
+          <script type="application/ld+json">{JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'CollectionPage',
+            name: h1,
+            description: desc,
+            url: canonicalUrl,
+            breadcrumb: {
+              '@type': 'BreadcrumbList',
+              itemListElement: [
+                { '@type': 'ListItem', position: 1, name: 'Ana Səhifə',     item: 'https://ravioaz.vercel.app/' },
+                { '@type': 'ListItem', position: 2, name: 'Məhsullar',      item: 'https://ravioaz.vercel.app/mehsullar' },
+                { '@type': 'ListItem', position: 3, name: h1,               item: canonicalUrl },
+              ],
+            },
+          })}</script>
+        </Helmet>
+
+        <div style={{ marginBottom: 20 }}>
+          <h1 style={{ fontSize: 'clamp(20px,3vw,30px)', fontWeight: 800, color: C.black, margin: '0 0 4px', letterSpacing: '-0.3px' }}>
+            {h1}
+          </h1>
+          <p style={{ fontSize: 13, color: C.textMuted, margin: 0 }}>
+            {loading ? 'Yüklənir...' : `${filteredProducts.length} məhsul · Ödənişsiz çatdırılma`}
+          </p>
+        </div>
+
+        <CatalogLayout
+          activeSlug={slug}
+          activeCategory={matchedCategory}
+          categories={categories}
+          products={products}
+          filteredProducts={filteredProducts}
+          loading={loading}
+          openProduct={openProduct}
+        />
+      </div>
+    );
+  }
+
+  // ── Məhsul Səhifəsi ────────────────────────────────────────────────────────
   if (selectedProduct) return null;
-  const { slug } = useParams<{ slug: string }>();
+
   const currentProduct = slug ? products.find(p => p.slug === slug) : null;
-  const primaryImage = currentProduct?.variants?.[0]?.images?.[0] || '';
-  const { min, max } = currentProduct ? getProductPriceRange(currentProduct) : { min: 0, max: 0 };
-  const totalStock = currentProduct
+  const primaryImage   = currentProduct?.variants?.[0]?.images?.[0] || '';
+  const { min, max }   = currentProduct ? getProductPriceRange(currentProduct) : { min: 0, max: 0 };
+  const totalStock     = currentProduct
     ? (currentProduct.variants || []).reduce((sum, v) => sum + (v.stock || 0), 0)
     : 0;
-  const productUrl = `https://ravioaz.vercel.app/mehsullar/${slug ?? ''}`;
+  const productUrl = `https://ravioaz.vercel.app/mehsullar/${slug}`;
 
   if (!loading && !currentProduct) {
     return (
@@ -477,21 +742,21 @@ function ProductPageHandler({
             ? `${currentProduct.name} — fərdi hazırlanmış hədiyyə. Qiymət ${min === max ? `${min} ₼` : `${min}–${max} ₼`}.`
             : 'Fərdi hazırlanmış hədiyyə — Ravio'}
         />
-        <meta property="og:type" content="product" />
-        <meta property="og:title" content={currentProduct ? `${currentProduct.name} | Ravio` : 'Məhsul | Ravio'} />
+        <meta property="og:type"        content="product" />
+        <meta property="og:title"       content={currentProduct ? `${currentProduct.name} | Ravio` : 'Məhsul | Ravio'} />
         <meta property="og:description" content={currentProduct ? (currentProduct.description || `${currentProduct.name} — Ravio`) : 'Məhsul'} />
-        <meta property="og:url" content={productUrl} />
-        <meta property="og:locale" content="az_AZ" />
+        <meta property="og:url"         content={productUrl} />
+        <meta property="og:locale"      content="az_AZ" />
         {primaryImage && <meta property="og:image" content={primaryImage} />}
         <meta name="twitter:card" content="summary_large_image" />
         {primaryImage && <meta name="twitter:image" content={primaryImage} />}
         <link rel="canonical" href={productUrl} />
         {currentProduct && (() => {
-          const allPrices = currentProduct.variants.map(v => v.discountPrice ?? v.price).filter(Boolean);
-          const priceMin  = allPrices.length ? Math.min(...allPrices) : min;
-          const priceMax  = allPrices.length ? Math.max(...allPrices) : max;
-          const allImages = currentProduct.variants.flatMap(v => v.images || []).slice(0, 5);
-          const avail     = totalStock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock';
+          const allPrices  = currentProduct.variants.map(v => v.discountPrice ?? v.price).filter(Boolean);
+          const priceMin   = allPrices.length ? Math.min(...allPrices) : min;
+          const priceMax   = allPrices.length ? Math.max(...allPrices) : max;
+          const allImages  = currentProduct.variants.flatMap(v => v.images || []).slice(0, 5);
+          const avail      = totalStock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock';
 
           const productSchema = {
             '@context': 'https://schema.org',
@@ -642,6 +907,7 @@ function ProductPageHandler({
   );
 }
 
+// ── Ana Səhifə ────────────────────────────────────────────────────────────────
 interface HomePageProps {
   visible: boolean;
   reelPosts: import('./types').ReelPost[];
@@ -665,6 +931,7 @@ function HomePage({
   goToProducts,
   openProduct,
 }: HomePageProps) {
+  const navigate = useNavigate();
   return (
     <div style={{ opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(16px)', transition: 'opacity 0.7s ease, transform 0.7s ease' }}>
       <Helmet>
@@ -778,89 +1045,6 @@ function HomePage({
   );
 }
 
-interface ProductsPageProps {
-  activeCategory: string | null;
-  setActiveCategory: React.Dispatch<React.SetStateAction<string | null>>;
-  categories: string[];
-  products: Product[];
-  filteredProducts: Product[];
-  loading: boolean;
-  openProduct: (p: Product) => void;
-}
-
-function ProductsPage({
-  activeCategory,
-  setActiveCategory,
-  categories,
-  products,
-  filteredProducts,
-  loading,
-  openProduct,
-}: ProductsPageProps) {
-  return (
-    <div style={{ maxWidth: 1280, margin: '0 auto', padding: 'clamp(20px,3vw,32px) clamp(16px,3vw,32px) 64px' }}>
-      <Helmet>
-        <title>{activeCategory ? `${activeCategory} | Ravio` : 'Bütün Məhsullar | Ravio'}</title>
-        <meta name="description" content={activeCategory ? `${activeCategory} məhsulları — Ravio-da fərdi hazırlanmış hədiyyələr. Bakı daxili pulsuz çatdırılma, 1–3 iş günü.` : 'Lazer yazılı qolbaq, fərdi təsbeh, domino, giftbox — bütün məhsullarımız. Bakı daxili pulsuz çatdırılma.'} />
-        <link rel="canonical" href="https://ravioaz.vercel.app/mehsullar" />
-      </Helmet>
-      <div style={{ display: 'flex', gap: 32, alignItems: 'flex-start' }}>
-        <aside className="r-desktop-nav r-catalog-aside" style={{ flexShrink: 0, width: 200, position: 'sticky', top: 110, maxHeight: 'calc(100vh - 130px)', overflowY: 'auto', paddingRight: 8, scrollbarWidth: 'none' }}>
-          <p style={{ fontSize: 10, fontWeight: 700, color: C.primary, letterSpacing: 1.5, textTransform: 'uppercase', margin: '0 0 12px' }}>Kateqoriyalar</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <button onClick={() => setActiveCategory(null)} style={{ padding: '10px 12px', borderRadius: 8, border: 'none', background: !activeCategory ? C.black : 'transparent', color: !activeCategory ? C.white : '#555555', fontSize: 13, fontWeight: !activeCategory ? 600 : 400, cursor: 'pointer', textAlign: 'left', fontFamily: F.sans, transition: 'all 0.15s', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span>Hamısı</span><span style={{ fontSize: 11, opacity: 0.55 }}>{products.length}</span>
-            </button>
-            {categories.map(cat => {
-              const count = products.filter(p => p.category === cat).length;
-              const sel   = activeCategory === cat;
-              return (
-                <button key={cat} onClick={() => setActiveCategory(cat)} style={{ padding: '10px 12px', borderRadius: 8, border: 'none', background: sel ? C.black : 'transparent', color: sel ? C.white : '#555555', fontSize: 13, fontWeight: sel ? 600 : 400, cursor: 'pointer', textAlign: 'left', fontFamily: F.sans, transition: 'all 0.15s', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span>{cat}</span><span style={{ fontSize: 11, opacity: 0.55 }}>{count}</span>
-                </button>
-              );
-            })}
-          </div>
-        </aside>
-
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ marginBottom: 20 }}>
-            <h1 style={{ fontSize: 'clamp(20px,3vw,30px)', fontWeight: 800, color: C.black, margin: '0 0 4px', letterSpacing: '-0.3px' }}>
-              {activeCategory || 'Bütün məhsullar'}
-            </h1>
-            <p style={{ fontSize: 13, color: C.textMuted, margin: 0 }}>{filteredProducts.length} məhsul · Ödənişsiz çatdırılma</p>
-          </div>
-
-          {categories.length > 0 && (
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'nowrap', marginBottom: 20, overflowX: 'auto', paddingBottom: 8, scrollbarWidth: 'none' }} className="r-mobile-nav">
-              <button onClick={() => setActiveCategory(null)} style={{ padding: '7px 16px', borderRadius: 100, flexShrink: 0, border: `1.5px solid ${!activeCategory ? C.black : C.borderMid}`, background: !activeCategory ? C.black : 'transparent', color: !activeCategory ? C.white : C.textSec, fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: F.sans }}>Hamısı</button>
-              {categories.map(cat => (
-                <button key={cat} onClick={() => setActiveCategory(cat)} style={{ padding: '7px 16px', borderRadius: 100, flexShrink: 0, border: `1.5px solid ${activeCategory === cat ? C.black : C.borderMid}`, background: activeCategory === cat ? C.black : 'transparent', color: activeCategory === cat ? C.white : C.textSec, fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: F.sans }}>{cat}</button>
-              ))}
-            </div>
-          )}
-
-          {loading ? (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 16 }}>
-              {[1,2,3,4,5,6].map(i => (
-                <div key={i} style={{ background: C.white, borderRadius: 12, overflow: 'hidden', border: '1px solid #EDEBE7' }}>
-                  <div style={{ aspectRatio: '1/1', background: C.bg, animation: 'pulse 1.5s ease-in-out infinite' }} />
-                  <div style={{ padding: '14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    <div style={{ height: 10, background: C.bg, borderRadius: 4, width: '45%', animation: 'pulse 1.5s ease-in-out infinite' }} />
-                    <div style={{ height: 14, background: C.bg, borderRadius: 4, width: '75%', animation: 'pulse 1.5s ease-in-out infinite' }} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <ProductGrid products={filteredProducts} onAddToCart={openProduct} onViewProduct={openProduct} />
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // ── Main App Shell ─────────────────────────────────────────────────────────────
 function AppShell() {
   const navigate  = useNavigate();
@@ -870,30 +1054,32 @@ function AppShell() {
   const [loading, setLoading]                 = useState(true);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [editingItem, setEditingItem]         = useState<CartItem | undefined>(undefined);
-  // YENİ
-const [cart, setCart] = useState<CartItem[]>(() => {
-  try {
-    const saved = localStorage.getItem('ravio_cart');
-    return saved ? JSON.parse(saved) : [];
-  } catch {
-    return [];
-  }
-});
+  const [cart, setCart] = useState<CartItem[]>(() => {
+    try {
+      const saved = localStorage.getItem('ravio_cart');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
   const [cartOpen, setCartOpen]               = useState(false);
   const [activeCategory, setActiveCategory]   = useState<string | null>(null);
   const [visible, setVisible]                 = useState(false);
   const [settings, setSettings]               = useState<any>(null);
 
   const isClosingModal = useRef(false);
+  // Modal açılmadan əvvəlki path-i yadda saxla — bağlayanda geri qayıt
+  const modalReturnPath = useRef('/mehsullar');
 
   // Cart dəyişəndə avtomatik yadda saxla
-useEffect(() => {
-  try {
-    localStorage.setItem('ravio_cart', JSON.stringify(cart));
-  } catch {
-    console.warn('Cart localStorage-a yazıla bilmədi');
-  }
-}, [cart]);
+  useEffect(() => {
+    try {
+      localStorage.setItem('ravio_cart', JSON.stringify(cart));
+    } catch {
+      console.warn('Cart localStorage-a yazıla bilmədi');
+    }
+  }, [cart]);
+
   useEffect(() => {
     client.fetch(PRODUCTS_QUERY)
       .then((raw: any[]) => { setProducts(raw.map(mapSanityProduct)); setLoading(false); })
@@ -922,39 +1108,47 @@ useEffect(() => {
       return idx >= 0 ? prev.map((c, i) => i === idx ? item : c) : [...prev, item];
     });
   };
-  const handleRemove = (cartId: string) => setCart(prev => prev.filter(c => c.cartId !== cartId));
-  const handleEdit   = (item: CartItem) => {
+  const handleRemove  = (cartId: string) => setCart(prev => prev.filter(c => c.cartId !== cartId));
+  const handleEdit    = (item: CartItem) => {
     const p = products.find(p => p.id === item.productId);
     if (p) { setSelectedProduct(p); setEditingItem(item); }
   };
   const handleClearCart = () => {
-  setCart([]);
-  localStorage.removeItem('ravio_cart');
-};
+    setCart([]);
+    localStorage.removeItem('ravio_cart');
+  };
   const cartCount = cart.reduce((s, c) => s + c.quantity, 0);
 
   const openProduct = (p: Product) => {
-  isClosingModal.current = false;
-  setSelectedProduct(p);
-  setEditingItem(undefined);
-  if (p.slug) {
-    window.history.pushState(null, '', `/mehsullar/${p.slug}`);
-  }
-  document.body.style.overflow = 'hidden';
-};
+    isClosingModal.current = false;
+    // Cari path-i yadda saxla (kateqoriya səhifəsindən gəlibsə oraya qayıt)
+    modalReturnPath.current = location.pathname;
+    setSelectedProduct(p);
+    setEditingItem(undefined);
+    if (p.slug) {
+      window.history.pushState(null, '', `/mehsullar/${p.slug}`);
+    }
+    document.body.style.overflow = 'hidden';
+  };
 
   const closeModal = () => {
-  isClosingModal.current = true;
-  setSelectedProduct(null);
-  setEditingItem(undefined);
-  document.body.style.overflow = '';
-  window.history.pushState(null, '', '/mehsullar');
-  setTimeout(() => { isClosingModal.current = false; }, 500);
-};
+    isClosingModal.current = true;
+    setSelectedProduct(null);
+    setEditingItem(undefined);
+    document.body.style.overflow = '';
+    // Modal açılmadan əvvəlki səhifəyə qayıt (kateqoriya və ya ümumi məhsullar)
+    window.history.pushState(null, '', modalReturnPath.current || '/mehsullar');
+    setTimeout(() => { isClosingModal.current = false; }, 500);
+  };
 
+  // Kateqoriya URL-ə navigate et (string), yoxsa /mehsullar-a qayıt (null/undefined)
   const goToProducts = (cat?: string | null) => {
-    if (cat !== undefined) setActiveCategory(cat);
-    navigate('/mehsullar');
+    if (cat) {
+      navigate(`/mehsullar/${toCategorySlug(cat)}`);
+    } else {
+      setActiveCategory(null);
+      navigate('/mehsullar');
+    }
   };
 
   return (
@@ -973,13 +1167,24 @@ useEffect(() => {
 
       <main>
         <Routes>
-          <Route path="/"                element={<HomePage visible={visible} reelPosts={reelPosts} categories={categories} filteredProducts={filteredProducts} loading={loading} activeCategory={activeCategory} setActiveCategory={setActiveCategory} goToProducts={goToProducts} openProduct={openProduct} />} />
-          <Route path="/mehsullar"       element={<ProductsPage activeCategory={activeCategory} setActiveCategory={setActiveCategory} categories={categories} products={products} filteredProducts={filteredProducts} loading={loading} openProduct={openProduct} />} />
-          <Route path="/mehsullar/:slug" element={<ProductPageHandler selectedProduct={selectedProduct} products={products} loading={loading} setSelectedProduct={setSelectedProduct} setEditingItem={setEditingItem} />} />
-          <Route path="/haqqimizda"      element={<AboutUs />} />
-          <Route path="/elaqe"           element={<Contact />} />
-          <Route path="/catdirilma"      element={<DeliveryInfo />} />
-          <Route path="*"                element={<NotFound onHome={() => navigate('/')} />} />
+          <Route path="/"           element={<HomePage visible={visible} reelPosts={reelPosts} categories={categories} filteredProducts={filteredProducts} loading={loading} activeCategory={activeCategory} setActiveCategory={setActiveCategory} goToProducts={goToProducts} openProduct={openProduct} />} />
+          <Route path="/mehsullar"  element={<ProductsPage categories={categories} products={products} loading={loading} openProduct={openProduct} />} />
+          <Route path="/mehsullar/:slug" element={
+            <SlugPage
+              selectedProduct={selectedProduct}
+              products={products}
+              loading={loading}
+              categories={categories}
+              setActiveCategory={setActiveCategory}
+              setSelectedProduct={setSelectedProduct}
+              setEditingItem={setEditingItem}
+              openProduct={openProduct}
+            />
+          } />
+          <Route path="/haqqimizda" element={<AboutUs />} />
+          <Route path="/elaqe"      element={<Contact />} />
+          <Route path="/catdirilma" element={<DeliveryInfo />} />
+          <Route path="*"           element={<NotFound onHome={() => navigate('/')} />} />
         </Routes>
       </main>
 
@@ -1000,14 +1205,14 @@ useEffect(() => {
           onClose={closeModal}
           onAddToCart={handleAddToCart}
           onOpenCategory={(cat: string) => {
-  isClosingModal.current = true;
-  setSelectedProduct(null);
-  setEditingItem(undefined);
-  document.body.style.overflow = '';
-  setActiveCategory(cat);
-  window.history.pushState(null, '', '/mehsullar');
-  setTimeout(() => { isClosingModal.current = false; }, 500);
-}}
+            isClosingModal.current = true;
+            setSelectedProduct(null);
+            setEditingItem(undefined);
+            document.body.style.overflow = '';
+            // Kateqoriya URL-inə navigate et
+            navigate(`/mehsullar/${toCategorySlug(cat)}`);
+            setTimeout(() => { isClosingModal.current = false; }, 500);
+          }}
         />
       )}
 
