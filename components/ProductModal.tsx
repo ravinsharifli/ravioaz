@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { F } from '../tokens';
 import { X, ChevronLeft, ChevronRight, Upload, Minus, Plus, Check } from 'lucide-react';
 import { Product, CartItem, BulkTier } from '../types';
@@ -79,6 +79,35 @@ interface ProductModalProps {
 const ProductModal: React.FC<ProductModalProps> = ({
   product, initialData, boxes, onClose, onAddToCart,
 }) => {
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  // ESC ilə bağla + focus trap
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { onClose(); return; }
+      if (e.key !== 'Tab') return;
+      const el = modalRef.current;
+      if (!el) return;
+      const focusable = Array.from(
+        el.querySelectorAll<HTMLElement>('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')
+      ).filter(n => !n.hasAttribute('disabled'));
+      if (!focusable.length) return;
+      const first = focusable[0], last = focusable[focusable.length - 1];
+      if (e.shiftKey) {
+        if (document.activeElement === first) { e.preventDefault(); last.focus(); }
+      } else {
+        if (document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    const el = modalRef.current;
+    if (el) {
+      const firstFocusable = el.querySelector<HTMLElement>('button, [href], input, select, textarea');
+      firstFocusable?.focus();
+    }
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
   const variants = product.variants || [];
 
   const allImages = variants.flatMap((v, vIdx) =>
@@ -242,6 +271,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
   return (
     <div
       className="ravio-modal-wrapper"
+      role="presentation"
       style={{
         position: 'fixed', inset: 0, zIndex: 2000,
         background: 'rgba(0,0,0,0.5)',
@@ -292,7 +322,13 @@ const ProductModal: React.FC<ProductModalProps> = ({
           .ravio-modal-inner { max-width: 640px; }
         }
       `}</style>
-      <div className="ravio-modal-inner">
+      <div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={product.name}
+        className="ravio-modal-inner"
+      >
 
         {/* Drag handle — mobil üçün */}
         <div className="ravio-modal-drag-handle" />
@@ -304,7 +340,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
               <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: C.black, lineHeight: 1.3 }}>{product.name}</h2>
               {product.category && <span style={{ fontSize: 11, color: C.grayLt, fontWeight: 500, marginTop: 3, display: 'block' }}>{product.category}</span>}
             </div>
-            <button onClick={onClose} style={{
+            <button onClick={onClose} aria-label="Modalı bağla" style={{
               width: 32, height: 32, borderRadius: '50%', background: C.bg, border: 'none',
               cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
               color: C.gray, flexShrink: 0,
@@ -352,7 +388,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
 
               {totalImgs > 1 && (
                 <>
-                  <button onClick={prevImg} style={{
+                  <button onClick={prevImg} aria-label="Əvvəlki şəkil" style={{
                     position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)',
                     background: 'rgba(255,255,255,0.95)', border: `1px solid ${C.border}`,
                     borderRadius: '50%', width: 36, height: 36, cursor: 'pointer',
@@ -360,7 +396,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
                     boxShadow: '0 2px 8px rgba(0,0,0,0.1)', zIndex: 2,
                   }}><ChevronLeft size={18} color={C.black} /></button>
 
-                  <button onClick={nextImg} style={{
+                  <button onClick={nextImg} aria-label="Növbəti şəkil" style={{
                     position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
                     background: 'rgba(255,255,255,0.95)', border: `1px solid ${C.border}`,
                     borderRadius: '50%', width: 36, height: 36, cursor: 'pointer',
@@ -374,12 +410,18 @@ const ProductModal: React.FC<ProductModalProps> = ({
                     display: 'flex', gap: 5,
                   }}>
                     {allImages.map((img, i) => (
-                      <button key={i} onClick={() => { setImgIdx(i); setVariantIdx(img.vIdx); }} style={{
-                        width: i === imgIdx ? 20 : 6, height: 6,
-                        borderRadius: 3, border: 'none', padding: 0, cursor: 'pointer',
-                        background: i === imgIdx ? C.orange : img.vIdx === variantIdx ? 'rgba(0,0,0,0.35)' : 'rgba(0,0,0,0.15)',
-                        transition: 'all 0.2s',
-                      }} />
+                      <button
+                        key={i}
+                        onClick={() => { setImgIdx(i); setVariantIdx(img.vIdx); }}
+                        aria-label={`${i + 1}-ci şəkil: ${img.label}`}
+                        aria-current={i === imgIdx ? ('true' as const) : undefined}
+                        style={{
+                          width: i === imgIdx ? 20 : 6, height: 6,
+                          borderRadius: 3, border: 'none', padding: 0, cursor: 'pointer',
+                          background: i === imgIdx ? C.orange : img.vIdx === variantIdx ? 'rgba(0,0,0,0.35)' : 'rgba(0,0,0,0.15)',
+                          transition: 'all 0.2s',
+                        }}
+                      />
                     ))}
                   </div>
 

@@ -155,9 +155,10 @@ export const DEFAULT_BOXES = [
 function RealWorksBanner({ posts, onShopClick }: { posts: import('./types').ReelPost[]; onShopClick: () => void }) {
   const [current, setCurrent] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
 
   useEffect(() => {
-    if (posts.length <= 1 || isHovered) return;
+    if (posts.length <= 1 || isHovered || isPaused) return;
     const t = setInterval(() => setCurrent(c => (c + 1) % posts.length), 3500);
     return () => clearInterval(t);
   }, [posts.length, isHovered]);
@@ -182,9 +183,10 @@ function RealWorksBanner({ posts, onShopClick }: { posts: import('./types').Reel
             Hazırladığımız işlər
           </h2>
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <button
             onClick={() => setCurrent(c => (c - 1 + posts.length) % posts.length)}
+            aria-label="Əvvəlki iş"
             style={{
               width: 36, height: 36, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.2)',
               background: 'rgba(255,255,255,0.08)', color: C.white, cursor: 'pointer',
@@ -193,12 +195,20 @@ function RealWorksBanner({ posts, onShopClick }: { posts: import('./types').Reel
           >‹</button>
           <button
             onClick={() => setCurrent(c => (c + 1) % posts.length)}
+            aria-label="Növbəti iş"
             style={{
               width: 36, height: 36, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.2)',
               background: 'rgba(255,255,255,0.08)', color: C.white, cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16,
             }}
           >›</button>
+          <button
+            onClick={() => setIsPaused((p: boolean) => !p)}
+            aria-label={isPaused ? 'Slaydşounu başlat' : 'Slaydşounu dayandır'}
+            style={{ width: 36, height: 36, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.08)', color: C.white, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11 }}
+          >
+            {isPaused ? '▶' : '⏸'}
+          </button>
         </div>
       </div>
 
@@ -339,6 +349,7 @@ function RealWorksBanner({ posts, onShopClick }: { posts: import('./types').Reel
 
 function HeroBanner({ onShopClick }: { onShopClick: () => void }) {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
 
   const slides = [
     {
@@ -368,9 +379,10 @@ function HeroBanner({ onShopClick }: { onShopClick: () => void }) {
   ];
 
   useEffect(() => {
+    if (isPaused) return;
     const t = setInterval(() => setCurrentSlide(s => (s + 1) % slides.length), 4500);
     return () => clearInterval(t);
-  }, []);
+  }, [isPaused]);
 
   const slide = slides[currentSlide];
 
@@ -409,9 +421,22 @@ function HeroBanner({ onShopClick }: { onShopClick: () => void }) {
           >{slide.cta}</button>
         </div>
         <div style={{ display: 'flex', gap: 8, marginTop: 24, alignItems: 'center' }}>
-          {slides.map((_, i) => (
-            <button key={i} onClick={() => setCurrentSlide(i)} style={{ width: i === currentSlide ? 24 : 8, height: 8, borderRadius: 4, background: i === currentSlide ? C.white : 'rgba(255,255,255,0.35)', border: 'none', cursor: 'pointer', transition: 'all 0.3s ease', padding: 0 }} />
+          {slides.map((s, i) => (
+            <button
+              key={i}
+              onClick={() => setCurrentSlide(i)}
+              aria-label={`${i + 1}-ci slayd: ${s.badge}`}
+              aria-current={i === currentSlide ? ('true' as const) : undefined}
+              style={{ width: i === currentSlide ? 24 : 8, height: 8, borderRadius: 4, background: i === currentSlide ? C.white : 'rgba(255,255,255,0.35)', border: 'none', cursor: 'pointer', transition: 'all 0.3s ease', padding: 0 }}
+            />
           ))}
+          <button
+            onClick={() => setIsPaused((p: boolean) => !p)}
+            aria-label={isPaused ? 'Slaydşounu başlat' : 'Slaydşounu dayandır'}
+            style={{ marginLeft: 6, width: 28, height: 28, borderRadius: '50%', background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.white, fontSize: 11, flexShrink: 0 }}
+          >
+            {isPaused ? '▶' : '⏸'}
+          </button>
         </div>
       </div>
     </div>
@@ -1154,6 +1179,21 @@ function AppShell() {
 
   return (
     <div style={{ minHeight: '100vh', background: C.bg, fontFamily: F.sans, color: C.black }}>
+      {/* Skip navigation — klaviatura istifadəçiləri üçün */}
+      <a
+        href="#main-content"
+        style={{
+          position: 'absolute', top: -999, left: 0, zIndex: 9999,
+          background: C.black, color: C.white,
+          padding: '10px 20px', fontWeight: 700, fontSize: 14,
+          borderRadius: '0 0 8px 0', textDecoration: 'none',
+          fontFamily: F.sans,
+        }}
+        onFocus={e => { e.currentTarget.style.top = '0'; }}
+        onBlur={e => { e.currentTarget.style.top = '-999px'; }}
+      >
+        Əsas məzmuna keç
+      </a>
       <Navbar
         cartCount={cartCount}
         onLogoClick={() => navigate('/')}
@@ -1166,7 +1206,7 @@ function AppShell() {
         onViewProduct={openProduct}
       />
 
-      <main>
+      <main id="main-content">
         <Routes>
           <Route path="/"           element={<HomePage visible={visible} reelPosts={reelPosts} categories={categories} filteredProducts={filteredProducts} loading={loading} activeCategory={activeCategory} setActiveCategory={setActiveCategory} goToProducts={goToProducts} openProduct={openProduct} />} />
           <Route path="/mehsullar"  element={<ProductsPage categories={categories} products={products} loading={loading} openProduct={openProduct} />} />

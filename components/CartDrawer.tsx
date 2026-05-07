@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { F } from '../tokens';
 import { X, Trash2, ShoppingBag, ArrowRight, Edit3, ChevronLeft, ChevronRight, Tag, CheckCircle, AlertCircle } from 'lucide-react';
 import { CartItem, MetroSchedule, Coupon } from '../types';
@@ -651,6 +651,7 @@ function getItemSubtotal(item: CartItem): number {
 const CartDrawer: React.FC<CartDrawerProps> = ({
   isOpen, onClose, items, onRemove, onEdit, onGoToProducts,onClearCart, metroSchedule, coupons = [],
 }) => {
+  const drawerRef = useRef<HTMLDivElement>(null);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [custName,     setCustName]     = useState('');
   const [phone,        setPhone]        = useState('');
@@ -688,6 +689,35 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
         ? TIME_SLOTS
         : (selectedDaySchedule.timeSlots ?? []))
     : [];
+
+  // ESC ilə bağla + focus trap
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { onClose(); setIsCheckingOut(false); return; }
+      if (e.key !== 'Tab') return;
+      const el = drawerRef.current;
+      if (!el) return;
+      const focusable = Array.from(
+        el.querySelectorAll<HTMLElement>('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')
+      ).filter(n => !n.hasAttribute('disabled'));
+      if (!focusable.length) return;
+      const first = focusable[0], last = focusable[focusable.length - 1];
+      if (e.shiftKey) {
+        if (document.activeElement === first) { e.preventDefault(); last.focus(); }
+      } else {
+        if (document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    // Açıldıqda ilk elementi fokusla
+    const el = drawerRef.current;
+    if (el) {
+      const firstFocusable = el.querySelector<HTMLElement>('button, [href], input, select, textarea');
+      firstFocusable?.focus();
+    }
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -827,6 +857,7 @@ setIsCheckingOut(false);
   // ── Render ─────────────────────────────────────────────────────
   return (
     <div
+      role="presentation"
       style={{ position: 'fixed', inset: 0, zIndex: 1500, background: 'rgba(0,0,0,0.5)', fontFamily: FONT }}
       onClick={e => { if (e.target === e.currentTarget) { onClose(); setIsCheckingOut(false); } }}
     >
@@ -850,14 +881,20 @@ setIsCheckingOut(false);
           .ravio-cart-drawer { max-width: 560px; }
         }
       `}</style>
-      <div className="ravio-cart-drawer">
+      <div
+        ref={drawerRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Alış-veriş səbəti"
+        className="ravio-cart-drawer"
+      >
 
         {/* Header */}
         <div style={{ background: C.white, borderBottom: `1px solid ${C.border}`, padding: '18px 20px', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               {isCheckingOut && (
-                <button onClick={() => setIsCheckingOut(false)} style={{
+                <button onClick={() => setIsCheckingOut(false)} aria-label="Geri qayıt" style={{
                   background: 'none', border: 'none', cursor: 'pointer', padding: 4,
                   display: 'flex', alignItems: 'center', color: C.gray,
                 }}>
@@ -869,6 +906,7 @@ setIsCheckingOut(false);
               </h2>
             </div>
             <button
+              aria-label="Səbəti bağla"
               onClick={() => { onClose(); setIsCheckingOut(false); }}
               style={{
                 width: 32, height: 32, borderRadius: '50%', background: C.bg, border: 'none',
@@ -1031,6 +1069,8 @@ setIsCheckingOut(false);
                     value={address}
                     onChange={e => setAddress(e.target.value)}
                     placeholder={delivery === 'post' ? 'Şəhər, poçt indeksi, ünvan' : 'Məhəllə, küçə, bina nömrəsi'}
+                    aria-label="Çatdırılma ünvanı"
+                    autoComplete="street-address"
                     style={{ marginBottom: 12 }}
                   />
                   <p style={{ margin: '0 0 14px', fontSize: 11, color: C.grayLt }}>
@@ -1056,8 +1096,8 @@ setIsCheckingOut(false);
               <Sec highlight>
                 <Label>Əlaqə məlumatları</Label>
                 <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 10 }}>
-                  <Inp value={custName} onChange={e => setCustName(e.target.value)} placeholder="Adınız" />
-                  <Inp value={phone} onChange={e => setPhone(e.target.value)} placeholder="Telefon (+994 50 xxx xx xx)" type="tel" />
+                  <Inp value={custName} onChange={e => setCustName(e.target.value)} placeholder="Adınız" aria-label="Adınız" autoComplete="name" />
+                  <Inp value={phone} onChange={e => setPhone(e.target.value)} placeholder="Telefon (+994 50 xxx xx xx)" type="tel" aria-label="Telefon nömrəsi" autoComplete="tel" />
                   <div>
                     <p style={{ fontSize: 12, color: C.gray, margin: '0 0 6px', fontFamily: FONT }}>Doğum tarixi (isteğe bağlı)</p>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1fr', gap: 8 }}>
