@@ -337,15 +337,8 @@ function RealWorksBanner({ posts, onShopClick }: { posts: import('./types').Reel
   );
 }
 
-function HeroBanner({ onShopClick, reelPosts = [] }: { onShopClick: () => void; reelPosts?: import('./types').ReelPost[] }) {
+function HeroBanner({ onShopClick }: { onShopClick: () => void }) {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [currentReel, setCurrentReel] = useState(0);
-
-  useEffect(() => {
-    if (reelPosts.length <= 1) return;
-    const t = setInterval(() => setCurrentReel(r => (r + 1) % reelPosts.length), 3200);
-    return () => clearInterval(t);
-  }, [reelPosts.length]);
 
   const slides = [
     {
@@ -385,19 +378,18 @@ function HeroBanner({ onShopClick, reelPosts = [] }: { onShopClick: () => void; 
     <div style={{
       background: slide.bg,
       transition: 'background 0.8s ease',
-      padding: 'clamp(16px, 3vw, 32px) clamp(20px, 5vw, 48px)',
+      padding: 'clamp(18px, 3vw, 32px) clamp(20px, 5vw, 48px)',
       position: 'relative',
       overflow: 'hidden',
-      minHeight: 'clamp(110px, 17vw, 170px)',
+      minHeight: 0,
       display: 'flex',
       alignItems: 'center',
     }}>
       <div style={{ position: 'absolute', right: '-60px', top: '-60px', width: 260, height: 260, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', pointerEvents: 'none' }} />
       <div style={{ position: 'absolute', right: '40px', bottom: '-80px', width: 180, height: 180, borderRadius: '50%', background: 'rgba(255,255,255,0.04)', pointerEvents: 'none' }} />
 
-      <div style={{ maxWidth: 1280, width: '100%', margin: '0 auto', position: 'relative', zIndex: 1, display: 'grid', gridTemplateColumns: reelPosts.length > 0 ? '1fr auto' : '1fr', gap: 32, alignItems: 'center' }} className="ravio-hero-grid">
-        {/* Left: slide content */}
-        <div>
+      <div style={{ maxWidth: 1280, width: '100%', margin: '0 auto', position: 'relative', zIndex: 1 }}>
+        <div style={{ maxWidth: 620 }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.25)', borderRadius: 100, padding: '6px 16px', marginBottom: 20, backdropFilter: 'blur(4px)' }}>
             <span style={{ fontSize: 12, fontWeight: 600, color: C.white, letterSpacing: 0.3 }}>{slide.badge}</span>
           </div>
@@ -415,67 +407,13 @@ function HeroBanner({ onShopClick, reelPosts = [] }: { onShopClick: () => void; 
             onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 28px rgba(0,0,0,0.25)'; }}
             onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.2)'; }}
           >{slide.cta}</button>
-          <div style={{ display: 'flex', gap: 8, marginTop: 32, alignItems: 'center' }}>
-            {slides.map((_, i) => (
-              <button key={i} onClick={() => setCurrentSlide(i)} style={{ width: i === currentSlide ? 24 : 8, height: 8, borderRadius: 4, background: i === currentSlide ? C.white : 'rgba(255,255,255,0.35)', border: 'none', cursor: 'pointer', transition: 'all 0.3s ease', padding: 0 }} />
-            ))}
-          </div>
         </div>
-
-        {/* Right: real works gallery — masaüstündə görünür */}
-        {reelPosts.length > 0 && (
-          <div className="ravio-hero-gallery" style={{ width: 'clamp(200px, 26vw, 340px)', display: 'flex', flexDirection: 'column' as const, gap: 8 }}>
-            <p style={{ margin: '0 0 4px', fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase' as const, color: 'rgba(255,255,255,0.5)', fontFamily: F.sans }}>
-              📸 Real işlər
-            </p>
-            <div
-              key={currentReel}
-              onClick={onShopClick}
-              style={{
-                borderRadius: 14, overflow: 'hidden', position: 'relative',
-                aspectRatio: '4/5', background: 'rgba(255,255,255,0.06)',
-                cursor: 'pointer', boxShadow: '0 8px 32px rgba(0,0,0,0.35)',
-                animation: 'ravio-hero-fadein 0.4s ease',
-                border: '1px solid rgba(255,255,255,0.12)',
-              }}
-            >
-              {reelPosts[currentReel]?.imageUrl && (
-                <img src={reelPosts[currentReel].imageUrl} alt={reelPosts[currentReel].title}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-              )}
-              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.72) 0%, transparent 55%)' }} />
-              {reelPosts[currentReel]?.label && (
-                <div style={{ position: 'absolute', top: 10, left: 10, background: C.primary, borderRadius: 100, padding: '4px 10px', fontSize: 10, fontWeight: 700, color: C.white, fontFamily: F.sans }}>
-                  {reelPosts[currentReel].label}
-                </div>
-              )}
-              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '14px' }}>
-                <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: C.white, fontFamily: F.sans, lineHeight: 1.3 }}>
-                  {reelPosts[currentReel]?.title}
-                </p>
-                {reelPosts[currentReel]?.subtitle && (
-                  <p style={{ margin: '3px 0 0', fontSize: 11, color: 'rgba(255,255,255,0.65)', fontFamily: F.sans }}>{reelPosts[currentReel].subtitle}</p>
-                )}
-              </div>
-            </div>
-            {reelPosts.length > 1 && (
-              <div style={{ display: 'flex', gap: 5, justifyContent: 'center', marginTop: 2 }}>
-                {reelPosts.map((_, i) => (
-                  <button key={i} onClick={() => setCurrentReel(i)}
-                    style={{ width: i === currentReel ? 16 : 5, height: 5, borderRadius: 3, background: i === currentReel ? C.white : 'rgba(255,255,255,0.3)', border: 'none', cursor: 'pointer', padding: 0, transition: 'all 0.3s' }} />
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+        <div style={{ display: 'flex', gap: 8, marginTop: 24, alignItems: 'center' }}>
+          {slides.map((_, i) => (
+            <button key={i} onClick={() => setCurrentSlide(i)} style={{ width: i === currentSlide ? 24 : 8, height: 8, borderRadius: 4, background: i === currentSlide ? C.white : 'rgba(255,255,255,0.35)', border: 'none', cursor: 'pointer', transition: 'all 0.3s ease', padding: 0 }} />
+          ))}
+        </div>
       </div>
-      <style>{`
-        @keyframes ravio-hero-fadein { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: scale(1); } }
-        @media (max-width: 768px) {
-          .ravio-hero-gallery { display: none !important; }
-          .ravio-hero-grid { grid-template-columns: 1fr !important; }
-        }
-      `}</style>
     </div>
   );
 }
@@ -1022,7 +960,7 @@ function HomePage({
           areaServed: { '@type': 'Country', name: 'Azerbaijan' },
         })}</script>
       </Helmet>
-      <HeroBanner onShopClick={() => goToProducts(null)} reelPosts={reelPosts} />
+      <HeroBanner onShopClick={() => goToProducts(null)} />
       {reelPosts.length > 0 && (
         <RealWorksBanner posts={reelPosts} onShopClick={() => goToProducts(null)} />
       )}
