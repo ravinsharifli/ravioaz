@@ -385,10 +385,10 @@ function HeroBanner({ onShopClick, reelPosts = [] }: { onShopClick: () => void; 
     <div style={{
       background: slide.bg,
       transition: 'background 0.8s ease',
-      padding: 'clamp(32px, 6vw, 64px) clamp(20px, 5vw, 48px)',
+      padding: 'clamp(16px, 3vw, 32px) clamp(20px, 5vw, 48px)',
       position: 'relative',
       overflow: 'hidden',
-      minHeight: 'clamp(220px, 35vw, 340px)',
+      minHeight: 'clamp(110px, 17vw, 170px)',
       display: 'flex',
       alignItems: 'center',
     }}>
