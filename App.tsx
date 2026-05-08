@@ -398,15 +398,6 @@ function HeroBanner({ onShopClick }: { onShopClick: () => void }) {
       <div style={{ position: 'absolute', right: '-60px', top: '-60px', width: 260, height: 260, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', pointerEvents: 'none' }} />
       <div style={{ position: 'absolute', left: '40px', bottom: '-80px', width: 180, height: 180, borderRadius: '50%', background: 'rgba(255,255,255,0.04)', pointerEvents: 'none' }} />
 
-      {/* Ox düymələri — sağ yuxarı künc (masaüstü) */}
-      <div className="ravio-hero-arrows" style={{
-        position: 'absolute', top: 'clamp(14px,2vw,20px)', right: 'clamp(20px,5vw,48px)',
-        zIndex: 10, display: 'flex', gap: 8,
-      }}>
-        <button onClick={prev} aria-label="Əvvəlki slayd" style={arrowStyle}>‹</button>
-        <button onClick={next} aria-label="Növbəti slayd" style={arrowStyle}>›</button>
-      </div>
-
       <style>{`
         .ravio-hero-inner {
           max-width: 1280px;
@@ -425,6 +416,9 @@ function HeroBanner({ onShopClick }: { onShopClick: () => void }) {
           align-items: flex-end;
           gap: 14px;
         }
+        .ravio-hero-arrows-mobile {
+          display: none;
+        }
         @media (max-width: 767px) {
           .ravio-hero-inner {
             grid-template-columns: 1fr !important;
@@ -436,9 +430,8 @@ function HeroBanner({ onShopClick }: { onShopClick: () => void }) {
           .ravio-hero-mobile-cta {
             display: flex !important;
           }
-          .ravio-hero-arrows {
-            top: 14px !important;
-            right: 16px !important;
+          .ravio-hero-arrows-mobile {
+            display: flex !important;
           }
         }
         @media (min-width: 768px) {
@@ -474,22 +467,29 @@ function HeroBanner({ onShopClick }: { onShopClick: () => void }) {
             {slide.title}
           </h2>
 
-          {/* Dot naviqasiya — solda başlığın altında */}
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 14 }}>
-            {slides.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setCurrentSlide(i)}
-                aria-label={`${i + 1}-ci slayd`}
-                style={{
-                  width: i === currentSlide ? 28 : 8, height: 8,
-                  borderRadius: 4,
-                  background: i === currentSlide ? '#ffffff' : 'rgba(255,255,255,0.35)',
-                  border: 'none', cursor: 'pointer',
-                  transition: 'all 0.3s ease', padding: 0, flexShrink: 0,
-                }}
-              />
-            ))}
+          {/* Dot naviqasiya + mobil oxlar — solda başlığın altında */}
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', justifyContent: 'space-between', marginTop: 14 }}>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              {slides.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setCurrentSlide(i)}
+                  aria-label={`${i + 1}-ci slayd`}
+                  style={{
+                    width: i === currentSlide ? 28 : 8, height: 8,
+                    borderRadius: 4,
+                    background: i === currentSlide ? '#ffffff' : 'rgba(255,255,255,0.35)',
+                    border: 'none', cursor: 'pointer',
+                    transition: 'all 0.3s ease', padding: 0, flexShrink: 0,
+                  }}
+                />
+              ))}
+            </div>
+            {/* Mobil ox düymələri — yalnız kiçik ekranlarda */}
+            <div className="ravio-hero-arrows-mobile" style={{ gap: 8 }}>
+              <button onClick={prev} aria-label="Əvvəlki slayd" style={{ ...arrowStyle, width: 30, height: 30, fontSize: 18 }}>‹</button>
+              <button onClick={next} aria-label="Növbəti slayd" style={{ ...arrowStyle, width: 30, height: 30, fontSize: 18 }}>›</button>
+            </div>
           </div>
 
           {/* Mobil: açıqlama + CTA + ox düymələri */}
@@ -509,9 +509,15 @@ function HeroBanner({ onShopClick }: { onShopClick: () => void }) {
           </div>
         </div>
 
-        {/* Sağ — açıqlama + CTA düyməsi (yalnız masaüstü) */}
+        {/* Sağ — ox düymələri yuxarıda + açıqlama + CTA (yalnız masaüstü) */}
         <div className="ravio-hero-right">
-          <p style={{ fontSize: 'clamp(13px, 1.3vw, 16px)', color: 'rgba(255,255,255,0.85)', lineHeight: 1.65, margin: 0, maxWidth: 360, textAlign: 'right' }}>
+          {/* Ox düymələri — sağ kolonun yuxarısında, layout içinde */}
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button onClick={prev} aria-label="Əvvəlki slayd" style={arrowStyle}>‹</button>
+            <button onClick={next} aria-label="Növbəti slayd" style={arrowStyle}>›</button>
+          </div>
+
+          <p style={{ fontSize: 'clamp(13px, 1.3vw, 16px)', color: 'rgba(255,255,255,0.85)', lineHeight: 1.65, margin: 0, maxWidth: 340, textAlign: 'right' }}>
             {slide.desc}
           </p>
 
