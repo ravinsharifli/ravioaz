@@ -232,30 +232,30 @@ function RealWorksBanner({ posts, onShopClick }: { posts: import('./types').Reel
           )}
           <div style={{
             position: 'absolute', inset: 0,
-            background: 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.1) 50%, transparent 100%)',
+            background: 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.35) 45%, rgba(0,0,0,0.1) 100%)',
           }} />
           {post.label && (
             <div style={{
               position: 'absolute', top: 14, left: 14,
-              background: C.primary, borderRadius: 100,
-              padding: '5px 12px', fontSize: 11, fontWeight: 700, color: C.white,
+              background: '#111111', borderRadius: 100,
+              padding: '5px 12px', fontSize: 11, fontWeight: 700, color: '#ffffff',
               fontFamily: F.sans, letterSpacing: 0.3,
             }}>
               {post.label}
             </div>
           )}
           <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '20px 18px' }}>
-            <p style={{ margin: '0 0 4px', fontSize: 16, fontWeight: 700, color: C.white, fontFamily: F.sans, lineHeight: 1.3 }}>
+            <p style={{ margin: '0 0 4px', fontSize: 16, fontWeight: 700, color: '#ffffff', fontFamily: F.sans, lineHeight: 1.3, textShadow: '0 1px 4px rgba(0,0,0,0.5)' }}>
               {post.title}
             </p>
             {post.subtitle && (
-              <p style={{ margin: '0 0 12px', fontSize: 12, color: 'rgba(255,255,255,0.7)', fontFamily: F.sans }}>
+              <p style={{ margin: '0 0 12px', fontSize: 12, color: 'rgba(255,255,255,0.85)', fontFamily: F.sans, textShadow: '0 1px 3px rgba(0,0,0,0.5)' }}>
                 {post.subtitle}
               </p>
             )}
             <div style={{
               display: 'inline-block',
-              background: C.primary, color: C.white,
+              background: '#FF6A00', color: '#ffffff',
               borderRadius: 8, padding: '8px 18px',
               fontSize: 12, fontWeight: 700, fontFamily: F.sans,
             }}>
@@ -345,29 +345,29 @@ function HeroBanner({ onShopClick }: { onShopClick: () => void }) {
   const slides = [
     {
       badge: '✨ Sizə özəl hazırlanır',
-      title: 'Hər hədiyyə,\nsənin adınla.',
-      titleAccent: 'sənin adınla.',
+      title: 'Hər hədiyyə, sənin adınla.',
       desc: 'Lazer yazılı qolbaq, fərdi təsbeh, domino və daha çoxu. Sizə özəl hazırlanır.',
-      bg: 'linear-gradient(135deg, var(--clr-primary) 0%, #FF8C42 100%)',
+      bg: 'linear-gradient(135deg, #FF6A00 0%, #FF8C42 100%)',
       cta: 'Kataloqa bax →',
     },
     {
       badge: '🚀 Ödənişsiz çatdırılma',
-      title: '1–3 iş günündə\nkapınıza gəlir.',
-      titleAccent: 'kapınıza gəlir.',
+      title: '1–3 iş günündə kapınıza gəlir.',
       desc: 'Metrodaxili çatdırılma ödənişsizdir. Kuryer xidməti - Bakı, Sumqayıt, Abşeron daxil.',
-      bg: 'linear-gradient(135deg, var(--clr-dark) 0%, #2a2a2a 100%)',
+      bg: 'linear-gradient(135deg, #111111 0%, #2a2a2a 100%)',
       cta: 'Sifarişə başla →',
     },
     {
       badge: '✨ Toplu endirim',
-      title: '10+ ədəddə\nxüsusi qiymət.',
-      titleAccent: 'xüsusi qiymət.',
+      title: '10+ ədəddə xüsusi qiymət.',
       desc: 'Məzun lentləri, korporativ hədiyyə, sinif sifarişi — xüsusi endirimlə.',
       bg: 'linear-gradient(135deg, #1a3a2a 0%, #2d6a4f 100%)',
       cta: 'Toplu sifariş →',
     },
   ];
+
+  const prev = () => setCurrentSlide(s => (s - 1 + slides.length) % slides.length);
+  const next = () => setCurrentSlide(s => (s + 1) % slides.length);
 
   useEffect(() => {
     const t = setInterval(() => setCurrentSlide(s => (s + 1) % slides.length), 4500);
@@ -376,17 +376,36 @@ function HeroBanner({ onShopClick }: { onShopClick: () => void }) {
 
   const slide = slides[currentSlide];
 
+  const arrowStyle: React.CSSProperties = {
+    width: 36, height: 36, borderRadius: '50%',
+    background: 'rgba(255,255,255,0.2)',
+    border: '1px solid rgba(255,255,255,0.35)',
+    color: '#ffffff', cursor: 'pointer',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    fontSize: 20, lineHeight: 1, backdropFilter: 'blur(4px)',
+    flexShrink: 0,
+  };
+
   return (
     <div style={{
       background: slide.bg,
       transition: 'background 0.8s ease',
-      padding: 'clamp(28px, 5vw, 56px) clamp(20px, 5vw, 48px)',
+      padding: 'clamp(20px, 3vw, 32px) clamp(20px, 5vw, 48px)',
       position: 'relative',
       overflow: 'hidden',
     }}>
       {/* Dekorativ dairələr */}
       <div style={{ position: 'absolute', right: '-60px', top: '-60px', width: 260, height: 260, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', pointerEvents: 'none' }} />
-      <div style={{ position: 'absolute', right: '40px', bottom: '-80px', width: 180, height: 180, borderRadius: '50%', background: 'rgba(255,255,255,0.04)', pointerEvents: 'none' }} />
+      <div style={{ position: 'absolute', left: '40px', bottom: '-80px', width: 180, height: 180, borderRadius: '50%', background: 'rgba(255,255,255,0.04)', pointerEvents: 'none' }} />
+
+      {/* Ox düymələri — sağ yuxarı künc (masaüstü) */}
+      <div className="ravio-hero-arrows" style={{
+        position: 'absolute', top: 'clamp(14px,2vw,20px)', right: 'clamp(20px,5vw,48px)',
+        zIndex: 10, display: 'flex', gap: 8,
+      }}>
+        <button onClick={prev} aria-label="Əvvəlki slayd" style={arrowStyle}>‹</button>
+        <button onClick={next} aria-label="Növbəti slayd" style={arrowStyle}>›</button>
+      </div>
 
       <style>{`
         .ravio-hero-inner {
@@ -403,14 +422,8 @@ function HeroBanner({ onShopClick }: { onShopClick: () => void }) {
         .ravio-hero-right {
           display: flex;
           flex-direction: column;
-          align-items: flex-start;
-          gap: 16px;
-        }
-        .ravio-hero-dots {
-          display: flex;
-          gap: 8px;
-          align-items: center;
-          margin-top: 8px;
+          align-items: flex-end;
+          gap: 14px;
         }
         @media (max-width: 767px) {
           .ravio-hero-inner {
@@ -420,11 +433,12 @@ function HeroBanner({ onShopClick }: { onShopClick: () => void }) {
           .ravio-hero-right {
             display: none !important;
           }
-          .ravio-hero-dots {
-            display: none !important;
-          }
           .ravio-hero-mobile-cta {
             display: flex !important;
+          }
+          .ravio-hero-arrows {
+            top: 14px !important;
+            right: 16px !important;
           }
         }
         @media (min-width: 768px) {
@@ -435,47 +449,69 @@ function HeroBanner({ onShopClick }: { onShopClick: () => void }) {
       `}</style>
 
       <div className="ravio-hero-inner">
-        {/* Sol — böyük başlıq */}
+        {/* Sol — badge + tək sıra başlıq + dots */}
         <div>
-          <h2 style={{
-            fontSize: 'clamp(32px, 5.5vw, 64px)',
-            fontWeight: 800,
-            color: C.white,
-            lineHeight: 1.1,
-            letterSpacing: '-1.5px',
-            margin: 0,
-            whiteSpace: 'pre-line',
-          }}>
-            {slide.title.replace(slide.titleAccent, '')}
-            <span style={{ opacity: 0.7 }}>{slide.titleAccent}</span>
-          </h2>
-
-          {/* Mobil üçün CTA — yalnız telefonda görünür */}
-          <div className="ravio-hero-mobile-cta" style={{ flexDirection: 'column', gap: 14, marginTop: 20 }}>
-            <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.82)', lineHeight: 1.6, margin: 0 }}>
-              {slide.desc}
-            </p>
-            <button
-              onClick={() => {
-                onShopClick();
-                try { if (typeof (window as any).trackEvent === 'function') (window as any).trackEvent('hero_cta_clicked', { slide: currentSlide, cta: slide.cta }); } catch(_) {}
-              }}
-              style={{ alignSelf: 'flex-start', padding: '13px 28px', background: C.white, color: C.black, border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: F.sans, boxShadow: '0 4px 20px rgba(0,0,0,0.2)' }}
-            >{slide.cta}</button>
-          </div>
-        </div>
-
-        {/* Sağ — badge + açıqlama + CTA (yalnız masaüstü) */}
-        <div className="ravio-hero-right">
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: 8,
             background: 'rgba(255,255,255,0.18)', border: '1px solid rgba(255,255,255,0.3)',
-            borderRadius: 100, padding: '8px 18px', backdropFilter: 'blur(6px)',
+            borderRadius: 100, padding: '6px 16px', backdropFilter: 'blur(6px)',
+            marginBottom: 12,
           }}>
-            <span style={{ fontSize: 13, fontWeight: 600, color: C.white, letterSpacing: 0.2 }}>{slide.badge}</span>
+            <span style={{ fontSize: 12, fontWeight: 600, color: '#ffffff', letterSpacing: 0.2 }}>{slide.badge}</span>
           </div>
 
-          <p style={{ fontSize: 'clamp(14px, 1.4vw, 17px)', color: 'rgba(255,255,255,0.85)', lineHeight: 1.65, margin: 0, maxWidth: 400 }}>
+          <h2 style={{
+            fontSize: 'clamp(22px, 3.8vw, 52px)',
+            fontWeight: 800,
+            color: '#ffffff',
+            lineHeight: 1.1,
+            letterSpacing: '-1px',
+            margin: 0,
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+          }}>
+            {slide.title}
+          </h2>
+
+          {/* Dot naviqasiya — solda başlığın altında */}
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 14 }}>
+            {slides.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setCurrentSlide(i)}
+                aria-label={`${i + 1}-ci slayd`}
+                style={{
+                  width: i === currentSlide ? 28 : 8, height: 8,
+                  borderRadius: 4,
+                  background: i === currentSlide ? '#ffffff' : 'rgba(255,255,255,0.35)',
+                  border: 'none', cursor: 'pointer',
+                  transition: 'all 0.3s ease', padding: 0, flexShrink: 0,
+                }}
+              />
+            ))}
+          </div>
+
+          {/* Mobil: açıqlama + CTA + ox düymələri */}
+          <div className="ravio-hero-mobile-cta" style={{ flexDirection: 'column', gap: 12, marginTop: 16 }}>
+            <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.82)', lineHeight: 1.6, margin: 0 }}>
+              {slide.desc}
+            </p>
+            <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+              <button
+                onClick={() => {
+                  onShopClick();
+                  try { if (typeof (window as any).trackEvent === 'function') (window as any).trackEvent('hero_cta_clicked', { slide: currentSlide, cta: slide.cta }); } catch(_) {}
+                }}
+                style={{ padding: '12px 24px', background: '#ffffff', color: '#111111', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: F.sans, boxShadow: '0 4px 20px rgba(0,0,0,0.2)' }}
+              >{slide.cta}</button>
+            </div>
+          </div>
+        </div>
+
+        {/* Sağ — açıqlama + CTA düyməsi (yalnız masaüstü) */}
+        <div className="ravio-hero-right">
+          <p style={{ fontSize: 'clamp(13px, 1.3vw, 16px)', color: 'rgba(255,255,255,0.85)', lineHeight: 1.65, margin: 0, maxWidth: 360, textAlign: 'right' }}>
             {slide.desc}
           </p>
 
@@ -484,30 +520,10 @@ function HeroBanner({ onShopClick }: { onShopClick: () => void }) {
               onShopClick();
               try { if (typeof (window as any).trackEvent === 'function') (window as any).trackEvent('hero_cta_clicked', { slide: currentSlide, cta: slide.cta }); } catch(_) {}
             }}
-            style={{ padding: '14px 36px', background: C.white, color: C.black, border: 'none', borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: F.sans, boxShadow: '0 4px 20px rgba(0,0,0,0.2)', transition: 'transform 0.15s, box-shadow 0.15s' }}
+            style={{ padding: '13px 32px', background: '#ffffff', color: '#111111', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: F.sans, boxShadow: '0 4px 20px rgba(0,0,0,0.2)', transition: 'transform 0.15s, box-shadow 0.15s' }}
             onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 28px rgba(0,0,0,0.28)'; }}
             onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.2)'; }}
           >{slide.cta}</button>
-
-          {/* Dots naviqasiya */}
-          <div className="ravio-hero-dots" role="tablist" aria-label="Slayd naviqasiyası">
-            {slides.map((s, i) => (
-              <button
-                key={i}
-                role="tab"
-                onClick={() => setCurrentSlide(i)}
-                aria-label={`${i + 1}-ci slayd: ${s.badge}`}
-                aria-selected={i === currentSlide}
-                style={{
-                  width: i === currentSlide ? 28 : 8, height: 8,
-                  borderRadius: 4,
-                  background: i === currentSlide ? C.white : 'rgba(255,255,255,0.35)',
-                  border: 'none', cursor: 'pointer',
-                  transition: 'all 0.3s ease', padding: 0,
-                }}
-              />
-            ))}
-          </div>
         </div>
       </div>
     </div>
@@ -1062,10 +1078,17 @@ function HomePage({
       )}
       <InfoStrips />
 
-      <section style={{ maxWidth: 1280, margin: '0 auto', padding: 'clamp(32px,5vw,56px) clamp(16px,3vw,32px)' }}>
+      <section id="mehsullar" style={{ maxWidth: 1280, margin: '0 auto', padding: 'clamp(32px,5vw,56px) clamp(16px,3vw,32px)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 28 }}>
           <div>
-            <p style={{ fontSize: 11, fontWeight: 700, color: C.primary, letterSpacing: 1.5, textTransform: 'uppercase', margin: '0 0 6px' }}>Kataloq</p>
+            <span style={{
+              display: 'inline-block',
+              background: '#111111', color: '#ffffff',
+              fontSize: 10, fontWeight: 700, letterSpacing: 1.8,
+              textTransform: 'uppercase' as const,
+              padding: '4px 10px', borderRadius: 6,
+              marginBottom: 8,
+            }}>Seçilmiş məhsullar</span>
             <h2 style={{ fontSize: 'clamp(22px,3.5vw,32px)', fontWeight: 800, color: C.black, margin: 0, letterSpacing: '-0.3px' }}>Məhsullarımız</h2>
           </div>
           <button
