@@ -1,12 +1,12 @@
 {
   "name": "ravio---minimalist-premium-e-shop",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "node generate-sitemap.mjs && vite build",
-        "preview": "vite preview"
+    "preview": "vite preview"
   },
   "reactSnap": {
     "source": "dist",
@@ -25,8 +25,7 @@
     "react-dom": "^19.2.4",
     "react-helmet-async": "^3.0.0",
     "react-router-dom": "^7.14.2",
-    "sanity": "^5.9.0",
-    "styled-components": "^6.4.1"
+    "sanity": "^5.9.0"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",

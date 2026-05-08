@@ -146,10 +146,18 @@
     }
     </script>
 
-    <!-- Fonts -->
+    <!-- Fonts — preload critical Inter weights to reduce FCP delay -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <!-- Preload the stylesheet so it is fetched at high priority -->
+    <link rel="preload" as="style"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap"
+          onload="this.onload=null;this.rel='stylesheet'" />
+    <!-- Fallback for no-JS / older browsers -->
+    <noscript>
+      <link rel="stylesheet"
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" />
+    </noscript>
 
     <!-- Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-4YEWCWGVTD"></script>

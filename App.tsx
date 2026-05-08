@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, Suspense } from 'react';
 import { C, F, R } from './tokens';
 import { Helmet } from 'react-helmet-async';
 import { BrowserRouter, Routes, Route, useNavigate, useParams, useLocation } from 'react-router-dom';
@@ -8,13 +8,34 @@ import { Product, CartItem } from './types';
 
 import Navbar from './components/Navbar';
 import ProductGrid from './components/ProductGrid';
-import ProductModal from './components/ProductModal';
-import CartDrawer from './components/CartDrawer';
 import CustomerReviews from './components/CustomerReviews';
 import AboutUs from './components/AboutUs';
 import Contact from './components/Contact';
 import DeliveryInfo from './components/DeliveryInfo';
 import Footer from './components/Footer';
+
+// ── Ağır komponentlər lazy load edilir (bundle splitting) ──────────────────────
+// CartDrawer + ProductModal birlikdə ~50–80 KB gzip — ilk render-ə lazım deyil.
+const ProductModal = React.lazy(() => import('./components/ProductModal'));
+const CartDrawer   = React.lazy(() => import('./components/CartDrawer'));
+
+// ── Sanity CDN Image Optimizer ─────────────────────────────────────────────────
+// Bütün Sanity URL-lərini WebP-yə çevirir, responsive ölçü + keyfiyyət tətbiq edir.
+// Mobil cihazlar 4K şəkil yükləməsin deyə w parametri mütləqdir.
+function toWebP(url: string, width: number = 600): string {
+  if (!url || !url.includes('cdn.sanity.io')) return url;
+  try {
+    const u = new URL(url);
+    u.searchParams.set('w',    String(width));
+    u.searchParams.set('fm',   'webp');
+    u.searchParams.set('q',    '80');
+    u.searchParams.set('fit',  'max');
+    u.searchParams.set('auto', 'format');
+    return u.toString();
+  } catch {
+    return url;
+  }
+}
 
 const PRODUCTS_QUERY = `*[_type == "product"] | order(bestSellerOrder asc) {
   _id, name, "slug": slug.current, description,
@@ -225,9 +246,10 @@ function RealWorksBanner({ posts, onShopClick }: { posts: import('./types').Reel
         >
           {post.imageUrl && (
             <img
-              src={post.imageUrl}
+              src={toWebP(post.imageUrl, 640)}
               alt={post.title}
               style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+              loading="lazy"
             />
           )}
           <div style={{
@@ -286,9 +308,10 @@ function RealWorksBanner({ posts, onShopClick }: { posts: import('./types').Reel
               >
                 {p.imageUrl && (
                   <img
-                    src={p.imageUrl}
+                    src={toWebP(p.imageUrl, 160)}
                     alt={p.title}
                     style={{ width: 80, height: '100%', objectFit: 'cover', flexShrink: 0 }}
+                    loading="lazy"
                   />
                 )}
                 <div style={{ padding: '10px 14px', display: 'flex', flexDirection: 'column' as const, justifyContent: 'center', overflow: 'hidden' }}>
@@ -727,6 +750,12 @@ function ProductsPage({ categories, products, loading, openProduct }: ProductsPa
 
 // ── /mehsullar/:slug — məhsul səhifəsi VƏ ya kateqoriya səhifəsi ─────────────
 // Bu komponent URL slug-un məhsula yoxsa kateqoriyaya aid olduğunu müəyyən edir.
+//
+// ⚠️  HOOKS ORDER — Rules of Hooks:
+//   Bütün hook-lar (useParams, useNavigate, useMemo, useEffect) şərtsiz olaraq
+//   komponent funksiyasının ƏN ƏVVƏLINDƏ çağrılır.
+//   if (isCategory) { return } VƏ if (selectedProduct) return null; HƏR İKİSİ
+//   hook-lardan SONRA gəlir — bu düzgündür, React qaydalarını pozmur.
 interface SlugPageProps {
   selectedProduct: Product | null;
   products: Product[];
@@ -991,7 +1020,13 @@ function SlugPage({
             <article className="ravio-product-article">
               <div>
                 {primaryImage ? (
-                  <img src={primaryImage} alt={currentProduct.name} className="ravio-product-img" />
+                  <img
+                    src={toWebP(primaryImage, 480)}
+                    srcSet={`${toWebP(primaryImage, 480)} 480w, ${toWebP(primaryImage, 800)} 800w`}
+                    sizes="(max-width: 680px) 100vw, 480px"
+                    alt={currentProduct.name}
+                    className="ravio-product-img"
+                  />
                 ) : (
                   <div style={{ width: '100%', aspectRatio: '1 / 1', borderRadius: 10, background: C.bg }} />
                 )}
@@ -1338,36 +1373,40 @@ function AppShell() {
       />
 
       {selectedProduct && (
-        <ProductModal
-          product={selectedProduct}
-          initialData={editingItem}
-          metroSchedule={metroSchedule}
-          boxes={boxes}
-          onClose={closeModal}
-          onAddToCart={handleAddToCart}
-          onOpenCategory={(cat: string) => {
-            isClosingModal.current = true;
-            setSelectedProduct(null);
-            setEditingItem(undefined);
-            document.body.style.overflow = '';
-            // Kateqoriya URL-inə navigate et
-            navigate(`/mehsullar/${toCategorySlug(cat)}`);
-            setTimeout(() => { isClosingModal.current = false; }, 500);
-          }}
-        />
+        <Suspense fallback={null}>
+          <ProductModal
+            product={selectedProduct}
+            initialData={editingItem}
+            metroSchedule={metroSchedule}
+            boxes={boxes}
+            onClose={closeModal}
+            onAddToCart={handleAddToCart}
+            onOpenCategory={(cat: string) => {
+              isClosingModal.current = true;
+              setSelectedProduct(null);
+              setEditingItem(undefined);
+              document.body.style.overflow = '';
+              // Kateqoriya URL-inə navigate et
+              navigate(`/mehsullar/${toCategorySlug(cat)}`);
+              setTimeout(() => { isClosingModal.current = false; }, 500);
+            }}
+          />
+        </Suspense>
       )}
 
-      <CartDrawer
-        isOpen={cartOpen}
-        onClose={() => setCartOpen(false)}
-        items={cart}
-        onRemove={handleRemove}
-        onEdit={handleEdit}
-        onClearCart={handleClearCart}
-        onGoToProducts={() => { setCartOpen(false); navigate('/mehsullar'); }}
-        metroSchedule={metroSchedule}
-        coupons={coupons}
-      />
+      <Suspense fallback={null}>
+        <CartDrawer
+          isOpen={cartOpen}
+          onClose={() => setCartOpen(false)}
+          items={cart}
+          onRemove={handleRemove}
+          onEdit={handleEdit}
+          onClearCart={handleClearCart}
+          onGoToProducts={() => { setCartOpen(false); navigate('/mehsullar'); }}
+          metroSchedule={metroSchedule}
+          coupons={coupons}
+        />
+      </Suspense>
 
       <style>{`
         *, *::before, *::after { box-sizing: border-box; }
