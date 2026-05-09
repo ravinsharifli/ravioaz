@@ -81,8 +81,8 @@ function getNext30Days(): Date[] {
 }
 
 // ── UI komponentləri ───────────────────────────────────────────
-const Label: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.8, textTransform: 'uppercase' as const, color: C.gray, margin: '0 0 10px', fontFamily: FONT }}>
+const Label: React.FC<{ children: React.ReactNode; style?: React.CSSProperties }> = ({ children, style }) => (
+  <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.8, textTransform: 'uppercase' as const, color: C.gray, margin: '0 0 10px', fontFamily: FONT, ...style }}>
     {children}
   </p>
 );
@@ -670,6 +670,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
   const [kurMonth,     setKurMonth]     = useState('');
   const [kurYear,      setKurYear]      = useState('2026');
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
+  const [showCoupon,    setShowCoupon]    = useState(false);
 
   // ── Metro məlumatları ──────────────────────────────────────────
   const stations = (metroSchedule?.stations ?? []).filter(s => s.isActive !== false);
@@ -759,7 +760,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
   const checkoutValid =
     custName.trim().length > 0 &&
     phone.trim().length > 0 &&
-    customerType !== null &&
+    (showCoupon || customerType !== null) &&
     (
       delivery === 'metro'
         ? metro !== '' && selDateKey !== '' && delTime !== ''
@@ -1112,51 +1113,85 @@ setIsCheckingOut(false);
               {/* Müştəri növü */}
               <Sec>
                 <Label>Müştəri növü</Label>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  {[
-                    { id: 'new'   as const, label: 'Yeni müştəri',  sub: 'İlk sifarişim'  },
-                    { id: 'loyal' as const, label: 'Daimi müştəri', sub: 'Əvvəl vermişəm' },
-                  ].map(opt => {
-                    const sel = customerType === opt.id;
-                    return (
-                      <div key={opt.id} onClick={() => setCustomerType(opt.id)} style={{
-                        flex: 1, display: 'flex', alignItems: 'center', gap: 8,
-                        padding: '10px 12px', borderRadius: 10, cursor: 'pointer',
-                        background: sel ? C.bg : C.white,
-                        border: `1.5px solid ${sel ? C.blue : C.border}`,
-                        transition: 'all 0.15s',
-                      }}>
-                        <div style={{
-                          width: 14, height: 14, borderRadius: '50%', flexShrink: 0,
-                          border: `2px solid ${sel ? C.blue : C.border}`,
-                          background: sel ? C.blue : 'transparent',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                {showCoupon ? (
+                  <div style={{
+                    padding: '12px 14px', borderRadius: 10,
+                    background: '#FFF8F0', border: `1.5px dashed ${C.orange}`,
+                    display: 'flex', alignItems: 'center', gap: 8,
+                  }}>
+                    <span style={{ fontSize: 16 }}>🎟</span>
+                    <span style={{ fontSize: 12, color: C.orange, fontWeight: 600 }}>
+                      Endirim kodundan istifadə edin
+                    </span>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    {[
+                      { id: 'new'   as const, label: 'Yeni müştəri',  sub: 'İlk sifarişim'  },
+                      { id: 'loyal' as const, label: 'Daimi müştəri', sub: 'Əvvəl vermişəm' },
+                    ].map(opt => {
+                      const sel = customerType === opt.id;
+                      return (
+                        <div key={opt.id} onClick={() => setCustomerType(opt.id)} style={{
+                          flex: 1, display: 'flex', alignItems: 'center', gap: 8,
+                          padding: '10px 12px', borderRadius: 10, cursor: 'pointer',
+                          background: sel ? C.bg : C.white,
+                          border: `1.5px solid ${sel ? C.blue : C.border}`,
+                          transition: 'all 0.15s',
                         }}>
-                          {sel && <div style={{ width: 5, height: 5, borderRadius: '50%', background: C.white }} />}
+                          <div style={{
+                            width: 14, height: 14, borderRadius: '50%', flexShrink: 0,
+                            border: `2px solid ${sel ? C.blue : C.border}`,
+                            background: sel ? C.blue : 'transparent',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          }}>
+                            {sel && <div style={{ width: 5, height: 5, borderRadius: '50%', background: C.white }} />}
+                          </div>
+                          <div>
+                            <div style={{ fontSize: 12, fontWeight: sel ? 600 : 400, color: C.black, lineHeight: 1.2 }}>{opt.label}</div>
+                            <div style={{ fontSize: 10, color: C.grayLt, marginTop: 1 }}>{opt.sub}</div>
+                          </div>
                         </div>
-                        <div>
-                          <div style={{ fontSize: 12, fontWeight: sel ? 600 : 400, color: C.black, lineHeight: 1.2 }}>{opt.label}</div>
-                          <div style={{ fontSize: 10, color: C.grayLt, marginTop: 1 }}>{opt.sub}</div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                      );
+                    })}
+                  </div>
+                )}
               </Sec>
 
               {/* ── ENDİRİM KODU ─────────────────────────────────────── */}
               <div style={{ marginBottom: 12 }}>
-                <Label>🎟 Endirim kodu</Label>
-                <CouponSection
-                  coupons={coupons}
-                  subtotalBeforeCoupon={afterCustDisc}
-                  appliedCoupon={appliedCoupon}
-                  onApply={coupon => {
-                    setAppliedCoupon(coupon);
-                    trackEvent('coupon_applied', { coupon_code: coupon.code });
-                  }}
-                  onRemove={() => setAppliedCoupon(null)}
-                />
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: showCoupon ? 10 : 0 }}>
+                  <Label style={{ margin: 0 }}>🎟 Endirim kodu</Label>
+                  <button
+                    onClick={() => {
+                      const next = !showCoupon;
+                      setShowCoupon(next);
+                      if (!next) { setAppliedCoupon(null); }
+                      if (next) { setCustomerType(null); }
+                    }}
+                    style={{
+                      fontSize: 11, fontWeight: 600, cursor: 'pointer',
+                      padding: '4px 12px', borderRadius: 20, border: 'none',
+                      background: showCoupon ? C.orange : C.bg,
+                      color: showCoupon ? C.white : C.gray,
+                      transition: 'all 0.2s',
+                    }}
+                  >
+                    {showCoupon ? 'Söndür' : 'Yandır'}
+                  </button>
+                </div>
+                {showCoupon && (
+                  <CouponSection
+                    coupons={coupons}
+                    subtotalBeforeCoupon={afterCustDisc}
+                    appliedCoupon={appliedCoupon}
+                    onApply={coupon => {
+                      setAppliedCoupon(coupon);
+                      trackEvent('coupon_applied', { coupon_code: coupon.code });
+                    }}
+                    onRemove={() => setAppliedCoupon(null)}
+                  />
+                )}
               </div>
 
               {/* Sifariş xülasəsi */}

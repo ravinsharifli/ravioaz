@@ -10,11 +10,22 @@
   },
   "reactSnap": {
     "source": "dist",
-    "minifyHtml": { "collapseWhitespace": false },
-    "puppeteerArgs": ["--no-sandbox", "--disable-setuid-sandbox"],
+    "minifyHtml": {
+      "collapseWhitespace": false
+    },
+    "puppeteerArgs": [
+      "--no-sandbox",
+      "--disable-setuid-sandbox"
+    ],
     "skipThirdPartyRequests": true,
     "crawl": true,
-    "include": ["/", "/mehsullar", "/haqqimizda", "/elaqe", "/catdirilma"]
+    "include": [
+      "/",
+      "/mehsullar",
+      "/haqqimizda",
+      "/elaqe",
+      "/catdirilma"
+    ]
   },
   "dependencies": {
     "@sanity/client": "^7.14.1",
@@ -25,7 +36,8 @@
     "react-dom": "^19.2.4",
     "react-helmet-async": "^3.0.0",
     "react-router-dom": "^7.14.2",
-    "sanity": "^5.9.0"
+    "sanity": "^5.9.0",
+    "styled-components": "^6.4.1"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
