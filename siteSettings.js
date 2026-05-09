@@ -34,7 +34,16 @@ export default {
       type: 'image',
       options: { hotspot: true },
     },
+    // ── HERO BANNER ŞƏKLİ ────────────────────────────────────────
+    {
+      name: 'heroImage',
+      title: '🖼 Hero Banner Şəkli',
+      type: 'image',
+      description: 'Ana səhifə hero bölməsinin sağ tərəfində görünəcək şəkil. Məhsul şəkli, hədiyyə fotosu — nə istəsən.',
+      options: { hotspot: true },
+    },
 
+    
     // ── METRO QRAFİKİ ─────────────────────────────────────────────
     {
       name: 'metroSchedule',

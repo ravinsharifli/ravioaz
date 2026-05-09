@@ -68,7 +68,8 @@ const SETTINGS_QUERY = `*[_type == "siteSettings"][0]{
   "reelPosts": reelPosts[isActive != false]{
     label, title, subtitle, ctaText,
     "imageUrl": image.asset->url
-  }
+  },
+  "heroImageUrl": heroImage.asset->url
 }`;
 
 // ── Kateqoriya URL köməkçiləri ────────────────────────────────────────────────
@@ -362,7 +363,7 @@ function RealWorksBanner({ posts, onShopClick }: { posts: import('./types').Reel
   );
 }
 
-function HeroBanner({ onShopClick }: { onShopClick: () => void }) {
+function HeroBanner({ onShopClick, heroImageUrl }: { onShopClick: () => void; heroImageUrl?: string }) {
   const [currentSlide, setCurrentSlide] = useState(0);
 
   const slides = [
@@ -532,27 +533,58 @@ function HeroBanner({ onShopClick }: { onShopClick: () => void }) {
           </div>
         </div>
 
-        {/* Sağ — ox düymələri yuxarıda + açıqlama + CTA (yalnız masaüstü) */}
+        {/* Sağ — hero şəkli (Sanity-dən) yoxdursa köhnə layout */}
         <div className="ravio-hero-right">
-          {/* Ox düymələri — sağ kolonun yuxarısında, layout içinde */}
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button onClick={prev} aria-label="Əvvəlki slayd" style={arrowStyle}>‹</button>
-            <button onClick={next} aria-label="Növbəti slayd" style={arrowStyle}>›</button>
-          </div>
-
-          <p style={{ fontSize: 'clamp(13px, 1.3vw, 16px)', color: 'rgba(255,255,255,0.85)', lineHeight: 1.65, margin: 0, maxWidth: 340, textAlign: 'right' }}>
-            {slide.desc}
-          </p>
-
-          <button
-            onClick={() => {
-              onShopClick();
-              try { if (typeof (window as any).trackEvent === 'function') (window as any).trackEvent('hero_cta_clicked', { slide: currentSlide, cta: slide.cta }); } catch(_) {}
-            }}
-            style={{ padding: '13px 32px', background: '#ffffff', color: '#111111', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: F.sans, boxShadow: '0 4px 20px rgba(0,0,0,0.2)', transition: 'transform 0.15s, box-shadow 0.15s' }}
-            onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 28px rgba(0,0,0,0.28)'; }}
-            onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.2)'; }}
-          >{slide.cta}</button>
+          {heroImageUrl ? (
+            <div style={{ position: 'relative', width: '100%', maxWidth: 420 }}>
+              <img
+                src={toWebP(heroImageUrl, 640)}
+                alt="Ravio hədiyyələr"
+                style={{
+                  width: '100%',
+                  aspectRatio: '4/5',
+                  objectFit: 'cover',
+                  borderRadius: 20,
+                  boxShadow: '0 12px 48px rgba(0,0,0,0.35)',
+                  display: 'block',
+                }}
+              />
+              {/* CTA düyməsi şəklin üzərində */}
+              <button
+                onClick={() => {
+                  onShopClick();
+                  try { if (typeof (window as any).trackEvent === 'function') (window as any).trackEvent('hero_cta_clicked', { slide: currentSlide, cta: slide.cta }); } catch(_) {}
+                }}
+                style={{
+                  position: 'absolute', bottom: 20, left: '50%', transform: 'translateX(-50%)',
+                  padding: '13px 32px', background: '#ffffff', color: '#111111',
+                  border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 700,
+                  cursor: 'pointer', fontFamily: F.sans,
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+                  whiteSpace: 'nowrap' as const,
+                }}
+              >{slide.cta}</button>
+            </div>
+          ) : (
+            <>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button onClick={prev} aria-label="Əvvəlki slayd" style={arrowStyle}>‹</button>
+                <button onClick={next} aria-label="Növbəti slayd" style={arrowStyle}>›</button>
+              </div>
+              <p style={{ fontSize: 'clamp(13px, 1.3vw, 16px)', color: 'rgba(255,255,255,0.85)', lineHeight: 1.65, margin: 0, maxWidth: 340, textAlign: 'right' }}>
+                {slide.desc}
+              </p>
+              <button
+                onClick={() => {
+                  onShopClick();
+                  try { if (typeof (window as any).trackEvent === 'function') (window as any).trackEvent('hero_cta_clicked', { slide: currentSlide, cta: slide.cta }); } catch(_) {}
+                }}
+                style={{ padding: '13px 32px', background: '#ffffff', color: '#111111', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: F.sans, boxShadow: '0 4px 20px rgba(0,0,0,0.2)', transition: 'transform 0.15s, box-shadow 0.15s' }}
+                onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 28px rgba(0,0,0,0.28)'; }}
+                onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.2)'; }}
+              >{slide.cta}</button>
+            </>
+          )}
         </div>
       </div>
     </div>
@@ -1064,6 +1096,7 @@ function SlugPage({
 // ── Ana Səhifə ────────────────────────────────────────────────────────────────
 interface HomePageProps {
   visible: boolean;
+  heroImageUrl?: string;
   reelPosts: import('./types').ReelPost[];
   categories: string[];
   filteredProducts: Product[];
@@ -1076,6 +1109,7 @@ interface HomePageProps {
 
 function HomePage({
   visible,
+  heroImageUrl,
   reelPosts,
   categories,
   filteredProducts,
@@ -1113,7 +1147,7 @@ function HomePage({
           areaServed: { '@type': 'Country', name: 'Azerbaijan' },
         })}</script>
       </Helmet>
-      <HeroBanner onShopClick={() => goToProducts(null)} />
+      <HeroBanner onShopClick={() => goToProducts(null)} heroImageUrl={heroImageUrl} />
       {reelPosts.length > 0 && (
         <RealWorksBanner posts={reelPosts} onShopClick={() => goToProducts(null)} />
       )}
@@ -1247,7 +1281,7 @@ function AppShell() {
       .catch(() => setLoading(false));
     client.fetch(SETTINGS_QUERY)
       .then((s: any) => setSettings(s))
-      .catch(() => {});
+      .catch((err) => { console.error('[Sanity] siteSettings yüklənmədi:', err); });
     setTimeout(() => setVisible(true), 60);
   }, []);
 
@@ -1259,6 +1293,7 @@ function AppShell() {
   const boxes = ((settings?.boxes || DEFAULT_BOXES) as any[]).filter((b: any) => b.isActive !== false);
   const coupons = (settings?.coupons || []) as import('./types').Coupon[];
   const reelPosts: import('./types').ReelPost[] = settings?.reelPosts || [];
+  const heroImageUrl: string | undefined = settings?.heroImageUrl || undefined;
 
   const categories       = Array.from(new Set(products.map(p => p.category).filter(Boolean))) as string[];
   const filteredProducts = activeCategory ? products.filter(p => p.category === activeCategory) : products;
@@ -1343,7 +1378,7 @@ function AppShell() {
 
       <main id="main-content">
         <Routes>
-          <Route path="/"           element={<HomePage visible={visible} reelPosts={reelPosts} categories={categories} filteredProducts={filteredProducts} loading={loading} activeCategory={activeCategory} setActiveCategory={setActiveCategory} goToProducts={goToProducts} openProduct={openProduct} />} />
+          <Route path="/"           element={<HomePage visible={visible} heroImageUrl={heroImageUrl} reelPosts={reelPosts} categories={categories} filteredProducts={filteredProducts} loading={loading} activeCategory={activeCategory} setActiveCategory={setActiveCategory} goToProducts={goToProducts} openProduct={openProduct} />} />
           <Route path="/mehsullar"  element={<ProductsPage categories={categories} products={products} loading={loading} openProduct={openProduct} />} />
           <Route path="/mehsullar/:slug" element={
             <SlugPage
