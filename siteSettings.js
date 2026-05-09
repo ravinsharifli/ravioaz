@@ -181,7 +181,7 @@ export default {
       ],
     },
 
-    
+
     // ── REAL İŞLƏR KARUSELİ ──────────────────────────────────────────────────
     // Hər gün/həftə hazırladığın məhsulun şəklini buraya yüklə.
     // Saytda hero karusel kimi görünür. Sanity-dən idarə olunur.

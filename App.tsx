@@ -64,7 +64,7 @@ const SETTINGS_QUERY = `*[_type == "siteSettings"][0]{
       }
     }
   },
-    coupons[]{ code, discountType, discountValue, minOrderAmount, isActive, description },
+  coupons[]{ code, discountType, discountValue, minOrderAmount, isActive, description },
   "reelPosts": reelPosts[isActive != false]{
     label, title, subtitle, ctaText,
     "imageUrl": image.asset->url
@@ -146,13 +146,13 @@ function mapSanityProduct(raw: any): Product {
     customBoxOptions: (raw.customBoxOptions || [])
       .filter((b: any) => b.isActive !== false)
       .map((b: any) => ({
-        id: b.id || b.name,
+        id: b.id && b.id.trim() ? b.id.trim() : b.name,
         name: b.name,
         desc: b.desc || '',
         price: b.price ?? 0,
         imageUrl: b.imageUrl || null,
       })),
-      };
+  };
 }
 
 export const DEFAULT_METRO: import('./types').MetroSchedule = {

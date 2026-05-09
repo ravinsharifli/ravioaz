@@ -135,12 +135,13 @@ const ProductModal: React.FC<ProductModalProps> = ({
   const [uploadLoading,      setUploadLoading]      = useState(false);
   const [uploadError,        setUploadError]        = useState('');
 
-  const [boxId, setBoxId] = useState<string>(() => {
-    const eff = (product as any).customBoxOptions?.length > 0
-      ? (product as any).customBoxOptions
-      : boxes;
-    return initialData?.boxType ?? eff[0]?.id ?? 'simple';
-  });
+  // effectiveBoxes: məhsulun öz qutuları varsa onları, yoxsa DEFAULT qutulardan istifadə et
+  const effectiveBoxes: BoxOption[] = (product as any).customBoxOptions?.length > 0
+    ? (product as any).customBoxOptions
+    : boxes;
+  const [boxId, setBoxId] = useState<string>(
+    initialData?.boxType ?? effectiveBoxes[0]?.id ?? 'simple'
+  );
 
   const variant  = variants[variantIdx] || variants[0];
   if (!variant) return null;
@@ -158,9 +159,6 @@ const ProductModal: React.FC<ProductModalProps> = ({
   const bulkDiscTotal = bulkOff * qty;
 
   const showBox = product.allowBoxSelection !== false;
-  const effectiveBoxes = (product as any).customBoxOptions?.length > 0
-    ? (product as any).customBoxOptions
-    : boxes;
   const box    = showBox ? (effectiveBoxes.find((b: BoxOption) => b.id === boxId) ?? effectiveBoxes[0]) : null;
   const boxFee = showBox ? (box?.price ?? 0) : 0;
 

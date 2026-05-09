@@ -14,6 +14,16 @@ export interface Variant {
   stock: number;
 }
 
+// ── Qutu seçimi ────────────────────────────────────────────────
+export interface BoxOption {
+  id: string;
+  name: string;
+  desc?: string;
+  price: number;
+  imageUrl?: string | null;
+  isActive?: boolean;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -32,14 +42,6 @@ export interface Product {
   bulkTiers?: BulkTier[];
   allowBoxSelection?: boolean;
   customBoxOptions?: BoxOption[];
-}
-export interface BoxOption {
-  id: string;
-  name: string;
-  desc?: string;
-  price: number;
-  imageUrl?: string | null;
-  isActive?: boolean;
 }
 
 // ── Metro cədvəli — hər günün öz saatları ──────────────────────
