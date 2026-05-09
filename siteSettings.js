@@ -181,36 +181,7 @@ export default {
       ],
     },
 
-    // ── QUTU NÖVLƏRİ ─────────────────────────────────────────────
-    {
-      name: 'boxes',
-      title: '📦 Qutu Növləri',
-      type: 'array',
-      of: [
-        {
-          type: 'object',
-          fields: [
-            { name: 'id',       title: 'ID (unikal)',              type: 'string',  validation: (Rule) => Rule.required() },
-            { name: 'name',     title: 'Ad (müştəriyə görünür)',   type: 'string',  validation: (Rule) => Rule.required() },
-            { name: 'desc',     title: 'Qısa açıqlama',            type: 'string'  },
-            { name: 'price',    title: 'Qiymət (₼) — 0 = pulsuz', type: 'number',  initialValue: 0, validation: (Rule) => Rule.required().min(0) },
-            { name: 'image',    title: '📸 Qutu şəkli',            type: 'image',   options: { hotspot: true } },
-            { name: 'isActive', title: 'Aktiv?',                   type: 'boolean', initialValue: true },
-          ],
-          preview: {
-            select: { title: 'name', subtitle: 'price', isActive: 'isActive', media: 'image' },
-            prepare({ title, subtitle, isActive, media }) {
-              return {
-                title:    `${isActive ? '✅' : '❌'} ${title || 'Qutu'}`,
-                subtitle: subtitle === 0 ? 'Pulsuz' : `+${subtitle} ₼`,
-                media,
-              };
-            },
-          },
-        },
-      ],
-    },
-
+    
     // ── REAL İŞLƏR KARUSELİ ──────────────────────────────────────────────────
     // Hər gün/həftə hazırladığın məhsulun şəklini buraya yüklə.
     // Saytda hero karusel kimi görünür. Sanity-dən idarə olunur.

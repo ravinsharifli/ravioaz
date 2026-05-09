@@ -48,7 +48,8 @@ const PRODUCTS_QUERY = `*[_type == "product"] | order(bestSellerOrder asc) {
   isBestSeller, bestSellerOrder, orderCount,
   hasBulkDiscount, bulkDiscountNote,
   bulkTiers[]{ minQty, maxQty, discountAmount, label },
-  allowBoxSelection
+  allowBoxSelection,
+  customBoxOptions[]{ id, name, desc, price, isActive, "imageUrl": image.asset->url }
 }`;
 
 const SETTINGS_QUERY = `*[_type == "siteSettings"][0]{
@@ -63,8 +64,7 @@ const SETTINGS_QUERY = `*[_type == "siteSettings"][0]{
       }
     }
   },
-  boxes[]{ id, name, desc, price, isActive, "imageUrl": image.asset->url },
-  coupons[]{ code, discountType, discountValue, minOrderAmount, isActive, description },
+    coupons[]{ code, discountType, discountValue, minOrderAmount, isActive, description },
   "reelPosts": reelPosts[isActive != false]{
     label, title, subtitle, ctaText,
     "imageUrl": image.asset->url
@@ -143,7 +143,16 @@ function mapSanityProduct(raw: any): Product {
     bulkDiscountNote: raw.bulkDiscountNote || '',
     bulkTiers: raw.bulkTiers || [],
     allowBoxSelection: raw.allowBoxSelection !== false,
-  };
+    customBoxOptions: (raw.customBoxOptions || [])
+      .filter((b: any) => b.isActive !== false)
+      .map((b: any) => ({
+        id: b.id || b.name,
+        name: b.name,
+        desc: b.desc || '',
+        price: b.price ?? 0,
+        imageUrl: b.imageUrl || null,
+      })),
+      };
 }
 
 export const DEFAULT_METRO: import('./types').MetroSchedule = {
@@ -1290,7 +1299,7 @@ function AppShell() {
   }, [location.pathname]);
 
   const metroSchedule = settings?.metroSchedule || DEFAULT_METRO;
-  const boxes = ((settings?.boxes || DEFAULT_BOXES) as any[]).filter((b: any) => b.isActive !== false);
+  const boxes = DEFAULT_BOXES;
   const coupons = (settings?.coupons || []) as import('./types').Coupon[];
   const reelPosts: import('./types').ReelPost[] = settings?.reelPosts || [];
   const heroImageUrl: string | undefined = settings?.heroImageUrl || undefined;

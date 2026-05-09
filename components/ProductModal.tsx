@@ -64,7 +64,7 @@ const Sec: React.FC<{ children: React.ReactNode; highlight?: boolean; last?: boo
   }}>{children}</div>
 );
 
-interface BoxOption { id: string; name: string; desc: string; price: number; imageUrl?: string | null; }
+interface BoxOption { id: string; name: string; desc?: string; price: number; imageUrl?: string | null; isActive?: boolean; }
 
 interface ProductModalProps {
   product: Product;
@@ -135,7 +135,12 @@ const ProductModal: React.FC<ProductModalProps> = ({
   const [uploadLoading,      setUploadLoading]      = useState(false);
   const [uploadError,        setUploadError]        = useState('');
 
-  const [boxId, setBoxId] = useState(initialData?.boxType ?? boxes[0]?.id ?? 'simple');
+  const [boxId, setBoxId] = useState<string>(() => {
+    const eff = (product as any).customBoxOptions?.length > 0
+      ? (product as any).customBoxOptions
+      : boxes;
+    return initialData?.boxType ?? eff[0]?.id ?? 'simple';
+  });
 
   const variant  = variants[variantIdx] || variants[0];
   if (!variant) return null;
@@ -153,7 +158,10 @@ const ProductModal: React.FC<ProductModalProps> = ({
   const bulkDiscTotal = bulkOff * qty;
 
   const showBox = product.allowBoxSelection !== false;
-  const box    = showBox ? (boxes.find(b => b.id === boxId) ?? boxes[0]) : null;
+  const effectiveBoxes = (product as any).customBoxOptions?.length > 0
+    ? (product as any).customBoxOptions
+    : boxes;
+  const box    = showBox ? (effectiveBoxes.find((b: BoxOption) => b.id === boxId) ?? effectiveBoxes[0]) : null;
   const boxFee = showBox ? (box?.price ?? 0) : 0;
 
   // ── ImgBB-yə yüklə ──────────────────────────────────────────────────────────
@@ -685,11 +693,11 @@ const ProductModal: React.FC<ProductModalProps> = ({
           </Sec>
 
           {/* Qablaşdırma */}
-          {(boxes.length > 0 && product.allowBoxSelection !== false) && (
+          {(effectiveBoxes.length > 0 && product.allowBoxSelection !== false) && (
             <Sec last>
               <Label>Qablaşdırma</Label>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))', gap: 10 }}>
-                {boxes.map(b => {
+                {effectiveBoxes.map((b: BoxOption) => {
                   const sel = boxId === b.id;
                   return (
                     <div key={b.id} onClick={() => setBoxId(b.id)} style={{

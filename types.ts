@@ -31,6 +31,15 @@ export interface Product {
   bulkDiscountNote?: string;
   bulkTiers?: BulkTier[];
   allowBoxSelection?: boolean;
+  customBoxOptions?: BoxOption[];
+}
+export interface BoxOption {
+  id: string;
+  name: string;
+  desc?: string;
+  price: number;
+  imageUrl?: string | null;
+  isActive?: boolean;
 }
 
 // ── Metro cədvəli — hər günün öz saatları ──────────────────────
