@@ -49,7 +49,8 @@ const PRODUCTS_QUERY = `*[_type == "product"] | order(bestSellerOrder asc) {
   hasBulkDiscount, bulkDiscountNote,
   bulkTiers[]{ minQty, maxQty, discountAmount, label },
   allowBoxSelection,
-  customBoxOptions[]{ id, name, desc, price, isActive, "imageUrl": image.asset->url }
+  customBoxOptions[]{ id, name, desc, price, isActive, "imageUrl": image.asset->url },
+  coupons[]{ code, discountType, discountValue, minOrderAmount, isActive, description }
 }`;
 
 const SETTINGS_QUERY = `*[_type == "siteSettings"][0]{
@@ -64,12 +65,10 @@ const SETTINGS_QUERY = `*[_type == "siteSettings"][0]{
       }
     }
   },
-  coupons[]{ code, discountType, discountValue, minOrderAmount, isActive, description },
   "reelPosts": reelPosts[isActive != false]{
     label, title, subtitle, ctaText,
     "imageUrl": image.asset->url
-  },
-  "heroImageUrl": heroImage.asset->url
+  }
 }`;
 
 // ── Kateqoriya URL köməkçiləri ────────────────────────────────────────────────
@@ -152,6 +151,7 @@ function mapSanityProduct(raw: any): Product {
         price: b.price ?? 0,
         imageUrl: b.imageUrl || null,
       })),
+    coupons: (raw.coupons || []).filter((c: any) => c.isActive !== false),
   };
 }
 
@@ -898,9 +898,10 @@ function SlugPage({
   }
 
   // ── Məhsul Səhifəsi ────────────────────────────────────────────────────────
-  if (selectedProduct) return null;
-
-  const currentProduct = slug ? products.find(p => p.slug === slug) : null;
+  // selectedProduct varsa artıq openProduct çağrılıb, lakin biz tam səhifə göstəririk
+  const currentProduct = slug
+    ? (products.find(p => p.slug === slug) || selectedProduct || null)
+    : selectedProduct;
   const primaryImage   = currentProduct?.variants?.[0]?.images?.[0] || '';
   const { min, max }   = currentProduct ? getProductPriceRange(currentProduct) : { min: 0, max: 0 };
   const totalStock     = currentProduct
@@ -1300,9 +1301,8 @@ function AppShell() {
 
   const metroSchedule = settings?.metroSchedule || DEFAULT_METRO;
   const boxes = DEFAULT_BOXES;
-  const coupons = (settings?.coupons || []) as import('./types').Coupon[];
   const reelPosts: import('./types').ReelPost[] = settings?.reelPosts || [];
-  const heroImageUrl: string | undefined = settings?.heroImageUrl || undefined;
+  const heroImageUrl: string | undefined = undefined;
 
   const categories       = Array.from(new Set(products.map(p => p.category).filter(Boolean))) as string[];
   const filteredProducts = activeCategory ? products.filter(p => p.category === activeCategory) : products;
@@ -1325,25 +1325,17 @@ function AppShell() {
   const cartCount = cart.reduce((s, c) => s + c.quantity, 0);
 
   const openProduct = (p: Product) => {
-    isClosingModal.current = false;
-    // Cari path-i yadda saxla (kateqoriya səhifəsindən gəlibsə oraya qayıt)
-    modalReturnPath.current = location.pathname;
-    setSelectedProduct(p);
-    setEditingItem(undefined);
     if (p.slug) {
-      window.history.pushState(null, '', `/mehsullar/${p.slug}`);
+      navigate(`/mehsullar/${p.slug}`);
     }
-    document.body.style.overflow = 'hidden';
   };
 
   const closeModal = () => {
-    isClosingModal.current = true;
     setSelectedProduct(null);
     setEditingItem(undefined);
     document.body.style.overflow = '';
-    // Modal açılmadan əvvəlki səhifəyə qayıt (kateqoriya və ya ümumi məhsullar)
-    window.history.pushState(null, '', modalReturnPath.current || '/mehsullar');
-    setTimeout(() => { isClosingModal.current = false; }, 500);
+    // Geri get — məhsul səhifəsinə gəlmişiksə orada qal (URL dəyişmir)
+    navigate(-1);
   };
 
   // Kateqoriya URL-ə navigate et (string), yoxsa /mehsullar-a qayıt (null/undefined)
@@ -1423,16 +1415,14 @@ function AppShell() {
             initialData={editingItem}
             metroSchedule={metroSchedule}
             boxes={boxes}
+            coupons={(selectedProduct.coupons || []) as import('./types').Coupon[]}
             onClose={closeModal}
             onAddToCart={handleAddToCart}
             onOpenCategory={(cat: string) => {
-              isClosingModal.current = true;
               setSelectedProduct(null);
               setEditingItem(undefined);
               document.body.style.overflow = '';
-              // Kateqoriya URL-inə navigate et
               navigate(`/mehsullar/${toCategorySlug(cat)}`);
-              setTimeout(() => { isClosingModal.current = false; }, 500);
             }}
           />
         </Suspense>
@@ -1448,7 +1438,7 @@ function AppShell() {
           onClearCart={handleClearCart}
           onGoToProducts={() => { setCartOpen(false); navigate('/mehsullar'); }}
           metroSchedule={metroSchedule}
-          coupons={coupons}
+          coupons={products.flatMap(p => p.coupons || [])}
         />
       </Suspense>
 

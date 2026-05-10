@@ -288,6 +288,95 @@ export default {
       ],
     },
 
+    // 🎟 MƏHSULA ÖZƏL ENDİRİM KODLARI
+    {
+      name: 'coupons',
+      title: '🎟 Bu məhsula özəl endirim kodları',
+      type: 'array',
+      description:
+        'Bu məhsul üçün xüsusi endirim kodları. Hər kod yalnız bu məhsulda işləyəcək. ' +
+        'Kodu müştəriyə WhatsApp/İnstagram ilə yolla.',
+      of: [
+        {
+          type: 'object',
+          name: 'coupon',
+          title: 'Kupon',
+          fields: [
+            {
+              name: 'code',
+              title: '🔑 Kupon kodu',
+              type: 'string',
+              description: 'Məs: RAVIO10, HEDIYYE5 — böyük hərflər tövsiyə edilir',
+              validation: Rule => Rule.required(),
+            },
+            {
+              name: 'discountType',
+              title: '📐 Endirim növü',
+              type: 'string',
+              options: {
+                list: [
+                  { title: '💰 Sabit məbləğ (₼)', value: 'fixed' },
+                  { title: '📊 Faiz (%)',           value: 'percent' },
+                ],
+                layout: 'radio',
+              },
+              initialValue: 'fixed',
+              validation: Rule => Rule.required(),
+            },
+            {
+              name: 'discountValue',
+              title: '💵 Endirim miqdarı',
+              type: 'number',
+              description:
+                'Sabit növ seçilsə: neçə manat (məs: 5 → 5₼ endirim). ' +
+                'Faiz növü seçilsə: neçə faiz (məs: 10 → 10% endirim).',
+              validation: Rule => Rule.required().min(1),
+            },
+            {
+              name: 'minOrderAmount',
+              title: '🛒 Minimum sifariş məbləği (₼)',
+              type: 'number',
+              description: '0 qoysan — məbləğ limiti olmur.',
+              initialValue: 0,
+            },
+            {
+              name: 'isActive',
+              title: '✅ Aktiv?',
+              type: 'boolean',
+              initialValue: true,
+              description: 'Söndürsən — müştəri bu kodu istifadə edə bilməz',
+            },
+            {
+              name: 'description',
+              title: '📝 Qeyd (yalnız sənin üçün)',
+              type: 'string',
+              description: 'Məs: 5 manat endirim kodu, Dostuna göndərildi',
+            },
+          ],
+          preview: {
+            select: {
+              code:          'code',
+              discountType:  'discountType',
+              discountValue: 'discountValue',
+              isActive:      'isActive',
+              minOrder:      'minOrderAmount',
+            },
+            prepare({ code, discountType, discountValue, isActive, minOrder }) {
+              const amount =
+                discountType === 'percent'
+                  ? `${discountValue}% endirim`
+                  : `${discountValue}₼ endirim`;
+              const minStr = minOrder > 0 ? ` · Min: ${minOrder}₼` : '';
+              return {
+                title:    `${isActive ? '✅' : '❌'} ${code || 'Kod'}`,
+                subtitle: `${amount}${minStr}`,
+              };
+            },
+          },
+        },
+      ],
+    },
+
     // PREMIUM
     {
       name: 'isPremium',

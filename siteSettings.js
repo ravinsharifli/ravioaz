@@ -34,16 +34,6 @@ export default {
       type: 'image',
       options: { hotspot: true },
     },
-    // ── HERO BANNER ŞƏKLİ ────────────────────────────────────────
-    {
-      name: 'heroImage',
-      title: '🖼 Hero Banner Şəkli',
-      type: 'image',
-      description: 'Ana səhifə hero bölməsinin sağ tərəfində görünəcək şəkil. Məhsul şəkli, hədiyyə fotosu — nə istəsən.',
-      options: { hotspot: true },
-    },
-
-    
     // ── METRO QRAFİKİ ─────────────────────────────────────────────
     {
       name: 'metroSchedule',
@@ -260,98 +250,6 @@ export default {
       ],
     },
 
-
-    // Admin paneldən istənilən kodu əlavə et, növünü və məbləğini təyin et.
-    {
-      name: 'coupons',
-      title: '🎟 Endirim Kodları',
-      type: 'array',
-      description:
-        'Hər endirim kodu üçün BİR sətir əlavə et. ' +
-        'Kodu müştəriyə WhatsApp/İnstagram ilə yolla. ' +
-        'İstifadə limitini sıfırlamaq üçün kodu sil və yenidən əlavə et.',
-      of: [
-        {
-          type: 'object',
-          name: 'coupon',
-          title: 'Kupon',
-          fields: [
-            {
-              name: 'code',
-              title: '🔑 Kupon kodu',
-              type: 'string',
-              description: 'Məs: TOPLU50, YENI10, RAVIO2025 — böyük hərflər tövsiyə edilir',
-              validation: Rule => Rule.required(),
-            },
-            {
-              name: 'discountType',
-              title: '📐 Endirim növü',
-              type: 'string',
-              options: {
-                list: [
-                  { title: '💰 Sabit məbləğ (₼)', value: 'fixed' },
-                  { title: '📊 Faiz (%)',           value: 'percent' },
-                ],
-                layout: 'radio',
-              },
-              initialValue: 'fixed',
-              validation: Rule => Rule.required(),
-            },
-            {
-              name: 'discountValue',
-              title: '💵 Endirim miqdarı',
-              type: 'number',
-              description:
-                'Sabit növ seçilsə: neçə manat (məs: 10 → 10₼ endirim). ' +
-                'Faiz növü seçilsə: neçə faiz (məs: 15 → 15% endirim).',
-              validation: Rule => Rule.required().min(1),
-            },
-            {
-              name: 'minOrderAmount',
-              title: '🛒 Minimum sifariş məbləği (₼)',
-              type: 'number',
-              description:
-                'Bu kupon yalnız neçə manatdan yuxarı sifarişlərə tətbiq edilsin? ' +
-                '0 qoysan — məbləğ limiti olmur.',
-              initialValue: 0,
-            },
-            {
-              name: 'isActive',
-              title: '✅ Aktiv?',
-              type: 'boolean',
-              initialValue: true,
-              description: 'Söndürsən — müştəri bu kodu istifadə edə bilməz',
-            },
-            {
-              name: 'description',
-              title: '📝 Qeyd (yalnız sənin üçün)',
-              type: 'string',
-              description: 'Məs: Toplu sifariş üçün, Dostuna göndərildi, Kampaniya kodu',
-            },
-          ],
-          preview: {
-            select: {
-              code:          'code',
-              discountType:  'discountType',
-              discountValue: 'discountValue',
-              isActive:      'isActive',
-              minOrder:      'minOrderAmount',
-            },
-            prepare({ code, discountType, discountValue, isActive, minOrder }) {
-              const amount =
-                discountType === 'percent'
-                  ? `${discountValue}% endirim`
-                  : `${discountValue}₼ endirim`;
-              const minStr = minOrder > 0 ? ` · Min: ${minOrder}₼` : '';
-              return {
-                title:    `${isActive ? '✅' : '❌'} ${code || 'Kod'}`,
-                subtitle: `${amount}${minStr}`,
-              };
-            },
-          },
-        },
-      ],
-    },
 
   ],
 };

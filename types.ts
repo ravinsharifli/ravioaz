@@ -42,6 +42,7 @@ export interface Product {
   bulkTiers?: BulkTier[];
   allowBoxSelection?: boolean;
   customBoxOptions?: BoxOption[];
+  coupons?: Coupon[];
 }
 
 // ── Metro cədvəli — hər günün öz saatları ──────────────────────

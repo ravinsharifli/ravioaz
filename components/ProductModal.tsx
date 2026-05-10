@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { F } from '../tokens';
-import { X, ChevronLeft, ChevronRight, Upload, Minus, Plus, Check } from 'lucide-react';
-import { Product, CartItem, BulkTier } from '../types';
+import { X, ChevronLeft, ChevronRight, Upload, Minus, Plus, Check, Tag } from 'lucide-react';
+import { Product, CartItem, BulkTier, Coupon } from '../types';
 
 function toWebP(url: string, width: number = 800): string {
   if (!url || !url.includes('cdn.sanity.io')) return url;
@@ -71,13 +71,14 @@ interface ProductModalProps {
   initialData?: CartItem;
   metroSchedule: { stations: string[]; days: string[]; times: string[] };
   boxes: BoxOption[];
+  coupons?: Coupon[];
   onClose: () => void;
   onAddToCart: (item: CartItem) => void;
   onOpenCategory: (category: string) => void;
 }
 
 const ProductModal: React.FC<ProductModalProps> = ({
-  product, initialData, boxes, onClose, onAddToCart,
+  product, initialData, boxes, coupons = [], onClose, onAddToCart,
 }) => {
   const modalRef = useRef<HTMLDivElement>(null);
 
@@ -290,42 +291,34 @@ const ProductModal: React.FC<ProductModalProps> = ({
         .ravio-modal-inner {
           background: ${C.bg};
           width: 100%;
-          /* svh = small viewport height, iOS browser chrome-u nəzərə alır */
-          height: 92svh;
-          height: 92dvh; /* fallback: dvh dinamik viewport */
-          max-height: 92svh;
-          max-height: 92dvh;
-          border-radius: 20px 20px 0 0;
+          height: 100dvh;
+          height: 100svh;
+          max-height: 100dvh;
+          max-height: 100svh;
+          border-radius: 0;
           display: flex;
           flex-direction: column;
           overflow: hidden;
-          box-shadow: 0 -16px 48px rgba(0,0,0,0.18);
+          box-shadow: none;
           margin: 0 auto;
         }
         .ravio-modal-drag-handle {
-          width: 36px; height: 4px;
-          background: rgba(0,0,0,0.18);
-          border-radius: 2px;
-          margin: 10px auto 0;
-          flex-shrink: 0;
-        }
-        @media (min-width: 600px) {
-          .ravio-modal-inner { max-width: 560px; }
+          display: none;
         }
         @media (min-width: 768px) {
           .ravio-modal-wrapper {
             align-items: center !important;
           }
           .ravio-modal-inner {
-            max-width: 600px;
+            max-width: 720px;
             height: auto;
-            max-height: min(90dvh, 90vh);
+            max-height: min(92dvh, 92vh);
             border-radius: 16px;
+            box-shadow: 0 -16px 48px rgba(0,0,0,0.22);
           }
-          .ravio-modal-drag-handle { display: none; }
         }
         @media (min-width: 1024px) {
-          .ravio-modal-inner { max-width: 640px; }
+          .ravio-modal-inner { max-width: 780px; }
         }
       `}</style>
       <div
@@ -458,6 +451,45 @@ const ProductModal: React.FC<ProductModalProps> = ({
                   <p style={{ margin: '6px 0 0', fontSize: 13, color: C.gray, lineHeight: 1.6 }}>{product.description}</p>
                 )}
               </div>
+            </div>
+
+            {/* Endirim bildirişləri */}
+            <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column' as const, gap: 6 }}>
+              {/* Yeni müştəri endirimi */}
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: 8,
+                background: '#EFF6FF', border: '1px solid #BFDBFE',
+                borderRadius: 8, padding: '8px 12px',
+              }}>
+                <Tag size={14} color="#2563EB" strokeWidth={2.5} />
+                <span style={{ fontSize: 12, color: '#1D4ED8', fontWeight: 600 }}>
+                  Yeni müştəri? Səbəti təsdiq edərkən <strong>10% endirim</strong> əldə et
+                </span>
+              </div>
+              {/* Daimi müştəri endirimi */}
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: 8,
+                background: '#F0FDF4', border: '1px solid #BBF7D0',
+                borderRadius: 8, padding: '8px 12px',
+              }}>
+                <Tag size={14} color="#16A34A" strokeWidth={2.5} />
+                <span style={{ fontSize: 12, color: '#15803D', fontWeight: 600 }}>
+                  Daimi müştəri? Səbəti təsdiq edərkən <strong>20% endirim</strong> əldə et
+                </span>
+              </div>
+              {/* Kupon kodu varsa */}
+              {coupons.length > 0 && (
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: 8,
+                  background: '#FFF7ED', border: '1px solid #FED7AA',
+                  borderRadius: 8, padding: '8px 12px',
+                }}>
+                  <Tag size={14} color="#EA580C" strokeWidth={2.5} />
+                  <span style={{ fontSize: 12, color: '#C2410C', fontWeight: 600 }}>
+                    Bu məhsul üçün <strong>endirim kodu</strong> mövcuddur — səbəti təsdiq edərkən tətbiq edin
+                  </span>
+                </div>
+              )}
             </div>
           </Sec>
 
