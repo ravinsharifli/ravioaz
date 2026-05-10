@@ -15,8 +15,8 @@ import DeliveryInfo from './components/DeliveryInfo';
 import Footer from './components/Footer';
 
 // ── Ağır komponentlər lazy load edilir (bundle splitting) ──────────────────────
-// CartDrawer + ProductModal birlikdə ~50–80 KB gzip — ilk render-ə lazım deyil.
 const ProductModal = React.lazy(() => import('./components/ProductModal'));
+const ProductPage  = React.lazy(() => import('./components/ProductPage'));
 const CartDrawer   = React.lazy(() => import('./components/CartDrawer'));
 
 // ── Sanity CDN Image Optimizer ─────────────────────────────────────────────────
@@ -836,18 +836,7 @@ function SlugPage({
     }
   }, [isCategory, matchedCategory]);
 
-  // Məhsul URL-inə birbaşa giriləndə modal açılsın
-  useEffect(() => {
-    if (isCategory || !slug) return;
-    if (products.length === 0) return; // hələ yüklənir
-    const found = products.find(p => p.slug === slug);
-    if (found && !selectedProduct) {
-      // Modal açılsın, amma URL dəyişməsin
-      setSelectedProduct(found);
-      setEditingItem(undefined);
-      document.body.style.overflow = 'hidden';
-    }
-  }, [slug, products, isCategory, selectedProduct]);
+  // (Məhsul artıq tam səhifə kimi göstərilir — modal yoxdur)
 
   // ── Kateqoriya Səhifəsi ────────────────────────────────────────────────────
   if (isCategory) {
@@ -910,8 +899,7 @@ function SlugPage({
     );
   }
 
-  // ── Məhsul Səhifəsi ────────────────────────────────────────────────────────
-  // Modal açılacaq (useEffect ilə) — bu səhifə yalnız yükləmə/tapılmama halı üçündür
+  // ── Məhsul Tam Səhifəsi ────────────────────────────────────────────────────
   const currentProduct = slug ? products.find(p => p.slug === slug) : null;
   const primaryImage   = currentProduct?.variants?.[0]?.images?.[0] || '';
   const { min, max }   = currentProduct ? getProductPriceRange(currentProduct) : { min: 0, max: 0 };
@@ -929,6 +917,14 @@ function SlugPage({
           <link rel="canonical" href={`https://ravioaz.vercel.app/mehsullar/${slug}`} />
         </Helmet>
         <NotFound onHome={() => navigate('/mehsullar')} />
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 16px 56px' }}>
+        <LoadingGrid />
       </div>
     );
   }
@@ -984,11 +980,23 @@ function SlugPage({
         })()}
       </Helmet>
 
-      {/* Modal useEffect ilə açılır — bu div yalnız yüklənmə anında görünür */}
-      {loading && (
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }}>
-          <LoadingGrid />
-        </div>
+      {currentProduct && (
+        <Suspense fallback={<div style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 16px' }}><LoadingGrid /></div>}>
+          <ProductPage
+            product={currentProduct}
+            boxes={DEFAULT_BOXES}
+            coupons={(currentProduct.coupons || []) as import('./types').Coupon[]}
+            onBack={() => navigate('/mehsullar')}
+            onAddToCart={(item) => {
+              setSelectedProduct(null);
+              setEditingItem(undefined);
+              // Cart-a əlavə et (AppShell-dəki handleAddToCart-ı çağır)
+              // setCart vasitəsilə deyil, openProduct-dan gəlmə deyil,
+              // buna görə prop kimi ötürürük
+              (window as any).__ravioAddToCart?.(item);
+            }}
+          />
+        </Suspense>
       )}
     </>
   );
@@ -1201,6 +1209,15 @@ function AppShell() {
       return idx >= 0 ? prev.map((c, i) => i === idx ? item : c) : [...prev, item];
     });
   };
+
+  // ProductPage-dən cart-a əlavə etmək üçün global bridge
+  useEffect(() => {
+    (window as any).__ravioAddToCart = (item: CartItem) => {
+      handleAddToCart(item);
+      setCartOpen(true);
+    };
+    return () => { delete (window as any).__ravioAddToCart; };
+  }, []);
   const handleRemove  = (cartId: string) => setCart(prev => prev.filter(c => c.cartId !== cartId));
   const handleEdit    = (item: CartItem) => {
     const p = products.find(p => p.id === item.productId);
@@ -1213,12 +1230,8 @@ function AppShell() {
   const cartCount = cart.reduce((s, c) => s + c.quantity, 0);
 
   const openProduct = (p: Product) => {
-    setSelectedProduct(p);
-    setEditingItem(undefined);
-    document.body.style.overflow = 'hidden';
-    // URL-i yenilə amma navigate etmə (history-ə əlavə olunmur, geri düyməsi çalışır)
     if (p.slug) {
-      window.history.pushState(null, '', `/mehsullar/${p.slug}`);
+      navigate(`/mehsullar/${p.slug}`);
     }
   };
 
@@ -1226,8 +1239,6 @@ function AppShell() {
     setSelectedProduct(null);
     setEditingItem(undefined);
     document.body.style.overflow = '';
-    // URL-i /mehsullar-a qayıt (history-ə toxunmadan)
-    window.history.replaceState(null, '', '/mehsullar');
   };
 
   // Kateqoriya URL-ə navigate et (string), yoxsa /mehsullar-a qayıt (null/undefined)
