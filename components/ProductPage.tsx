@@ -104,6 +104,13 @@ const ProductPage: React.FC<ProductPageProps> = ({
   const [uploadError,        setUploadError]        = useState('');
   const [addedToCart,        setAddedToCart]        = useState(false);
 
+  // ── Endirim seçimləri ──────────────────────────────────────────
+  const [customerType,  setCustomerType]  = useState<'new' | 'loyal' | null>(null);
+  const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
+  const [couponInput,   setCouponInput]   = useState('');
+  const [couponError,   setCouponError]   = useState('');
+  const [couponFocused, setCouponFocused] = useState(false);
+
   const effectiveBoxes: BoxOption[] = (product as any).customBoxOptions?.length > 0
     ? (product as any).customBoxOptions
     : boxes;
@@ -129,6 +136,29 @@ const ProductPage: React.FC<ProductPageProps> = ({
   const showBox = product.allowBoxSelection !== false;
   const box    = showBox ? (effectiveBoxes.find((b: BoxOption) => b.id === boxId) ?? effectiveBoxes[0]) : null;
   const boxFee = showBox ? (box?.price ?? 0) : 0;
+
+  // ── Endirim hesablamaları ──────────────────────────────────────
+  const hasCouponAvailable = coupons.some(c => c.isActive);
+  const discRate     = customerType === 'loyal' ? 20 : customerType === 'new' ? 10 : 0;
+  const productSub   = effectiveUnit * qty + boxFee;
+  const customerDisc = customerType ? Math.round(productSub * discRate / 100 * 100) / 100 : 0;
+  const couponBase   = productSub - customerDisc;
+  const couponDiscount = appliedCoupon
+    ? appliedCoupon.discountType === 'percent'
+      ? Math.round(couponBase * appliedCoupon.discountValue / 100 * 100) / 100
+      : Math.min(appliedCoupon.discountValue, couponBase)
+    : 0;
+  const finalPrice = Math.max(0, couponBase - couponDiscount);
+
+  const handleApplyCoupon = () => {
+    const trimmed = couponInput.trim().toUpperCase();
+    if (!trimmed) { setCouponError('Kupon kodu daxil edin'); return; }
+    const found = coupons.find(c => c.code.toUpperCase() === trimmed && c.isActive);
+    if (!found) { setCouponError('Bu kupon kodu tapılmadı və ya deaktivdir'); return; }
+    setCouponError('');
+    setAppliedCoupon(found);
+    setCouponInput('');
+  };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -163,7 +193,6 @@ const ProductPage: React.FC<ProductPageProps> = ({
 
   const handleAddToCart = () => {
     if (uploadLoading) return;
-    const subtotal = effectiveUnit * qty + boxFee;
     const item: CartItem = {
       cartId:               initialData?.cartId || Math.random().toString(36).substr(2, 9),
       productId:            product.id,
@@ -182,17 +211,19 @@ const ProductPage: React.FC<ProductPageProps> = ({
       birthDate:            '',
       isGift: showBox && boxId !== 'simple',
       isFirstOrSecondOrder: false,
-      customerType:         'new',
+      customerType:         customerType,
       deliveryType:         'standard',
       deliveryDetails:      '',
       bulkDiscountAmount:   bulkDiscTotal,
       boxType:              boxId,
       boxPrice:             boxFee,
+      couponCode:           appliedCoupon?.code,
+      couponDiscount:       couponDiscount > 0 ? couponDiscount : undefined,
       hasQrCode:            !!uploadedImgUrl,
       lazerPrice:           0,
       deliveryMethod:       'metro' as any,
-      finalTotal:           subtotal,
-      behAmount:            Math.ceil(subtotal * 0.5),
+      finalTotal:           finalPrice,
+      behAmount:            Math.ceil(finalPrice * 0.5),
     };
     onAddToCart(item);
     setAddedToCart(true);
@@ -382,30 +413,110 @@ const ProductPage: React.FC<ProductPageProps> = ({
                   <p style={{ margin: '8px 0 0', fontSize: 13, color: C.gray, lineHeight: 1.65 }}>{product.description}</p>
                 )}
               </div>
-
-              <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column' as const, gap: 6 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: 8, padding: '8px 12px' }}>
-                  <Tag size={14} color="#2563EB" strokeWidth={2.5} />
-                  <span style={{ fontSize: 12, color: '#1D4ED8', fontWeight: 600 }}>
-                    Yeni müştəri? Səbəti təsdiq edərkən <strong>10% endirim</strong> əldə et
-                  </span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: 8, padding: '8px 12px' }}>
-                  <Tag size={14} color="#16A34A" strokeWidth={2.5} />
-                  <span style={{ fontSize: 12, color: '#15803D', fontWeight: 600 }}>
-                    Daimi müştəri? Səbəti təsdiq edərkən <strong>20% endirim</strong> əldə et
-                  </span>
-                </div>
-                {coupons.length > 0 && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#FFF7ED', border: '1px solid #FED7AA', borderRadius: 8, padding: '8px 12px' }}>
-                    <Tag size={14} color="#EA580C" strokeWidth={2.5} />
-                    <span style={{ fontSize: 12, color: '#C2410C', fontWeight: 600 }}>
-                      Bu məhsul üçün <strong>endirim kodu</strong> mövcuddur
-                    </span>
-                  </div>
-                )}
-              </div>
             </Sec>
+
+            {/* Müştəri növü */}
+            <Sec>
+              <Label>Müştəri növü</Label>
+              <div style={{ display: 'flex', gap: 8 }}>
+                {([
+                  { id: 'new'   as const, label: 'Yeni müştəri',  sub: 'İlk sifarişim — 10%' },
+                  { id: 'loyal' as const, label: 'Daimi müştəri', sub: 'Əvvəl vermişəm — 20%' },
+                ] as const).map(opt => {
+                  const sel = customerType === opt.id;
+                  return (
+                    <div key={opt.id} onClick={() => setCustomerType(sel ? null : opt.id)} style={{
+                      flex: 1, display: 'flex', alignItems: 'center', gap: 8,
+                      padding: '10px 12px', borderRadius: 10, cursor: 'pointer',
+                      background: sel ? C.bg : C.white,
+                      border: `1.5px solid ${sel ? C.blue : C.border}`,
+                      transition: 'all 0.15s',
+                    }}>
+                      <div style={{
+                        width: 14, height: 14, borderRadius: '50%', flexShrink: 0,
+                        border: `2px solid ${sel ? C.blue : C.border}`,
+                        background: sel ? C.blue : 'transparent',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}>
+                        {sel && <div style={{ width: 5, height: 5, borderRadius: '50%', background: C.white }} />}
+                      </div>
+                      <div>
+                        <div style={{ fontSize: 12, fontWeight: sel ? 600 : 400, color: C.black, lineHeight: 1.2 }}>{opt.label}</div>
+                        <div style={{ fontSize: 10, color: sel ? C.blue : C.grayLt, marginTop: 1 }}>{opt.sub}</div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              {customerType && (
+                <div style={{ marginTop: 8, padding: '8px 12px', background: C.blueBg, border: `1px solid ${C.blueBd}`, borderRadius: 8, fontSize: 12, color: C.blue, fontWeight: 600 }}>
+                  ✓ {discRate}% endirim tətbiq ediləcək — {customerDisc.toFixed(2)} ₼ qənaət
+                </div>
+              )}
+            </Sec>
+
+            {/* Endirim kodu — yalnız Sanity-dən aktiv kupon varsa göstər */}
+            {hasCouponAvailable && (
+              <Sec>
+                <Label>🎟 Endirim kodu</Label>
+                {appliedCoupon ? (
+                  <div style={{
+                    background: C.greenBg, border: `1.5px solid #BBF7D0`,
+                    borderRadius: 10, padding: '12px 14px',
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <Check size={16} color={C.green} />
+                      <div>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: C.green }}>{appliedCoupon.code}</div>
+                        <div style={{ fontSize: 11, color: '#166534', marginTop: 1 }}>
+                          −{couponDiscount.toFixed(2)} ₼ endirim tətbiq edildi
+                        </div>
+                      </div>
+                    </div>
+                    <button onClick={() => setAppliedCoupon(null)} style={{
+                      background: 'none', border: 'none', cursor: 'pointer',
+                      color: C.gray, padding: 4, display: 'flex', alignItems: 'center',
+                    }}><X size={16} /></button>
+                  </div>
+                ) : (
+                  <>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <div style={{ flex: 1, position: 'relative' as const }}>
+                        <Tag size={14} style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)', color: C.grayLt, pointerEvents: 'none' }} />
+                        <input
+                          value={couponInput}
+                          onChange={e => { setCouponInput(e.target.value.toUpperCase()); setCouponError(''); }}
+                          onKeyDown={e => e.key === 'Enter' && handleApplyCoupon()}
+                          placeholder="Kupon kodunu daxil edin"
+                          onFocus={() => setCouponFocused(true)}
+                          onBlur={() => setCouponFocused(false)}
+                          style={{
+                            width: '100%', background: C.white,
+                            border: `1px solid ${couponError ? C.red : couponFocused ? C.blue : C.border}`,
+                            borderRadius: 8, padding: '11px 12px 11px 34px',
+                            color: C.black, fontSize: 13, fontFamily: FONT,
+                            outline: 'none', boxSizing: 'border-box' as const,
+                            letterSpacing: 1, transition: 'border-color 0.15s',
+                          }}
+                        />
+                      </div>
+                      <button
+                        onClick={handleApplyCoupon}
+                        style={{
+                          padding: '0 16px', background: C.black, color: C.white,
+                          border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600,
+                          cursor: 'pointer', fontFamily: FONT, whiteSpace: 'nowrap' as const, flexShrink: 0,
+                        }}
+                      >Tətbiq et</button>
+                    </div>
+                    {couponError && (
+                      <p style={{ margin: '6px 0 0', fontSize: 12, color: C.red }}>{couponError}</p>
+                    )}
+                  </>
+                )}
+              </Sec>
+            )}
 
             {/* Variantlar */}
             {variants.length > 1 && (
@@ -629,14 +740,32 @@ const ProductPage: React.FC<ProductPageProps> = ({
               padding: '12px 0 max(16px, env(safe-area-inset-bottom, 16px))',
               borderTop: `1px solid ${C.border}`,
             }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
                 <span style={{ fontSize: 13, color: C.gray }}>
                   {qty} ədəd{boxFee > 0 ? ` + ${box?.name}` : ''}
                 </span>
-                <span style={{ fontSize: 18, fontWeight: 800, color: C.black }}>
-                  {(effectiveUnit * qty + boxFee).toFixed(2)} ₼
-                </span>
+                {(customerDisc > 0 || couponDiscount > 0) ? (
+                  <div style={{ textAlign: 'right' as const }}>
+                    <span style={{ fontSize: 13, color: C.grayLt, textDecoration: 'line-through', display: 'block' }}>
+                      {productSub.toFixed(2)} ₼
+                    </span>
+                    <span style={{ fontSize: 18, fontWeight: 800, color: C.green }}>
+                      {finalPrice.toFixed(2)} ₼
+                    </span>
+                  </div>
+                ) : (
+                  <span style={{ fontSize: 18, fontWeight: 800, color: C.black }}>
+                    {productSub.toFixed(2)} ₼
+                  </span>
+                )}
               </div>
+              {(customerDisc > 0 || couponDiscount > 0) && (
+                <div style={{ fontSize: 11, color: C.green, fontWeight: 600, textAlign: 'right' as const, marginBottom: 8 }}>
+                  {customerDisc > 0 && `−${customerDisc.toFixed(2)} ₼ müştəri endirimi`}
+                  {customerDisc > 0 && couponDiscount > 0 && ' · '}
+                  {couponDiscount > 0 && `−${couponDiscount.toFixed(2)} ₼ kupon`}
+                </div>
+              )}
               <button
                 onClick={handleAddToCart}
                 disabled={uploadLoading}

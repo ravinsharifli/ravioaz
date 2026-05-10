@@ -658,7 +658,6 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
   const [bdDay,        setBdDay]        = useState('');
   const [bdMonth,      setBdMonth]      = useState('');
   const [bdYear,       setBdYear]       = useState('');
-  const [customerType, setCustomerType] = useState<'new' | 'loyal' | null>(null);
   const [delivery,     setDelivery]     = useState<'metro' | 'kuryer' | 'post'>('metro');
   const [metro,        setMetro]        = useState('');
   const [selDateKey,     setSelDateKey]     = useState('');
@@ -670,10 +669,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
   const [kurMonth,     setKurMonth]     = useState('');
   const [kurYear,      setKurYear]      = useState('2026');
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
-
-  // Sanity-dən ən az bir aktiv kupon varsa kupon bölməsi avtomatik açılır.
-  // Siz Sanity-də kuponu söndürdükdə bu bölmə müştəriyə görünmür.
-  const hasCouponAvailable = coupons.some(c => c.isActive);
+  const hasCouponAvailable = false; // endirim seçimi artıq məhsul səhifəsindədir
 
   // ── Metro məlumatları ──────────────────────────────────────────
   const stations = (metroSchedule?.stations ?? []).filter(s => s.isActive !== false);
@@ -743,27 +739,12 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
   // ── Hesablamalar ───────────────────────────────────────────────
   const baseTotal   = items.reduce((s, item) => s + getItemSubtotal(item), 0);
   const deliveryFee = delivery === 'metro' ? 0 : 4.99;
-  const subtotal    = baseTotal + deliveryFee;
-
-  // Müştəri endirimi
-  const discRate = customerType === 'loyal' ? 20 : customerType === 'new' ? 10 : 0;
-  const custDisc = customerType ? Math.round(subtotal * discRate / 100 * 100) / 100 : 0;
-  const afterCustDisc = subtotal - custDisc;
-
-  // Kupon endirimi (müştəri endirimindən sonra tətbiq edilir)
-  const couponDiscount = appliedCoupon
-    ? appliedCoupon.discountType === 'percent'
-      ? Math.round(afterCustDisc * appliedCoupon.discountValue / 100 * 100) / 100
-      : Math.min(appliedCoupon.discountValue, afterCustDisc)
-    : 0;
-
-  const grandTotal = Math.max(0, afterCustDisc - couponDiscount);
-  const grandBeh   = Math.ceil(grandTotal * 0.5);
+  const grandTotal  = baseTotal + deliveryFee;
+  const grandBeh    = Math.ceil(grandTotal * 0.5);
 
   const checkoutValid =
     custName.trim().length > 0 &&
     phone.trim().length > 0 &&
-    (hasCouponAvailable || customerType !== null) &&
     (
       delivery === 'metro'
         ? metro !== '' && selDateKey !== '' && delTime !== ''
@@ -797,9 +778,12 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
 
     const itemsText = items.map((item, idx) => {
       const imgUrl = item.images?.[0] ?? '';
+      const custTypeLabel = item.customerType === 'loyal' ? 'Daimi müştəri (−20%)' : item.customerType === 'new' ? 'Yeni müştəri (−10%)' : '';
       let lines = `- Vahid qiyməti: ${(item.discountPrice ?? item.price).toFixed(2)} ₼\n`;
       lines += `- Say: ${item.quantity} ədəd\n`;
       if ((item.boxPrice ?? 0) > 0) lines += `  Qablaşdırma: +${item.boxPrice!.toFixed(2)} ₼\n`;
+      if (custTypeLabel) lines += `  ${custTypeLabel}\n`;
+      if ((item.couponCode) && (item.couponDiscount ?? 0) > 0) lines += `  Kupon (${item.couponCode}): −${item.couponDiscount!.toFixed(2)} ₼\n`;
       lines += `  Məhsul cəmi: ${getItemSubtotal(item).toFixed(2)} ₼\n`;
       return (
         `━━━━━━━━━━━━━━━\n*MƏHSUL ${idx + 1}:*\n` +
@@ -817,15 +801,10 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
       `*🛍 YENİ SİFARİŞ — RAVIO.AZ*\n\n` +
       itemsText +
       `\n━━━━━━━━━━━━━━━\n*ÇATDIRILMA:* ${delStr}\n\n` +
-      `*ƏLAQƏ:*\n- Ad: ${custName}\n- Telefon: ${phone}\n- Doğum tarixi: ${birthStr}\n` +
-      `- Müştəri növü: ${customerType === 'loyal' ? 'Daimi müştəri' : customerType === 'new' ? 'Yeni müştəri' : 'Kupon istifadəçisi'}\n\n` +
+      `*ƏLAQƏ:*\n- Ad: ${custName}\n- Telefon: ${phone}\n- Doğum tarixi: ${birthStr}\n\n` +
       `━━━━━━━━━━━━━━━\n` +
       `Məhsullar cəmi: ${baseTotal.toFixed(2)} ₼\n` +
       (deliveryFee > 0 ? `${delivery === 'post' ? 'Poçt' : 'Çatdırılma'}: +${deliveryFee.toFixed(2)} ₼\n` : `Çatdırılma: Pulsuz\n`) +
-      (custDisc > 0 ? `Müştəri endirimi (${discRate}%): -${custDisc.toFixed(2)} ₼\n` : '') +
-      (appliedCoupon && couponDiscount > 0
-        ? `Kupon endirimi (${appliedCoupon.code}): -${couponDiscount.toFixed(2)} ₼\n`
-        : '') +
       `*ÜMUMİ: ${grandTotal.toFixed(2)} ₼*\n` +
       `*💳 ÖN ÖDƏNİŞ (50% beh): ${grandBeh.toFixed(2)} ₼*\n` +
       `Qalan ${(grandTotal - grandBeh).toFixed(2)} ₼ məhsul alınarkən`;
@@ -1113,95 +1092,14 @@ setIsCheckingOut(false);
                 </div>
               </Sec>
 
-              {/* Müştəri növü */}
-              <Sec>
-                <Label>Müştəri növü</Label>
-                {hasCouponAvailable ? (
-                  <div style={{
-                    padding: '12px 14px', borderRadius: 10,
-                    background: '#FFF8F0', border: `1.5px dashed ${C.orange}`,
-                    display: 'flex', alignItems: 'center', gap: 8,
-                  }}>
-                    <span style={{ fontSize: 16 }}>🎟</span>
-                    <span style={{ fontSize: 12, color: C.orange, fontWeight: 600 }}>
-                      Endirim kodundan istifadə edin
-                    </span>
-                  </div>
-                ) : (
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    {[
-                      { id: 'new'   as const, label: 'Yeni müştəri',  sub: 'İlk sifarişim'  },
-                      { id: 'loyal' as const, label: 'Daimi müştəri', sub: 'Əvvəl vermişəm' },
-                    ].map(opt => {
-                      const sel = customerType === opt.id;
-                      return (
-                        <div key={opt.id} onClick={() => setCustomerType(opt.id)} style={{
-                          flex: 1, display: 'flex', alignItems: 'center', gap: 8,
-                          padding: '10px 12px', borderRadius: 10, cursor: 'pointer',
-                          background: sel ? C.bg : C.white,
-                          border: `1.5px solid ${sel ? C.blue : C.border}`,
-                          transition: 'all 0.15s',
-                        }}>
-                          <div style={{
-                            width: 14, height: 14, borderRadius: '50%', flexShrink: 0,
-                            border: `2px solid ${sel ? C.blue : C.border}`,
-                            background: sel ? C.blue : 'transparent',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          }}>
-                            {sel && <div style={{ width: 5, height: 5, borderRadius: '50%', background: C.white }} />}
-                          </div>
-                          <div>
-                            <div style={{ fontSize: 12, fontWeight: sel ? 600 : 400, color: C.black, lineHeight: 1.2 }}>{opt.label}</div>
-                            <div style={{ fontSize: 10, color: C.grayLt, marginTop: 1 }}>{opt.sub}</div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </Sec>
-
-              {/* ── ENDİRİM KODU — yalnız Sanity-dən aktiv kupon varsa göstər ── */}
-              {hasCouponAvailable && (
-                <div style={{ marginBottom: 12 }}>
-                  <div style={{ marginBottom: 10 }}>
-                    <Label style={{ margin: 0 }}>🎟 Endirim kodu</Label>
-                  </div>
-                  <CouponSection
-                    coupons={coupons}
-                    subtotalBeforeCoupon={afterCustDisc}
-                    appliedCoupon={appliedCoupon}
-                    onApply={coupon => {
-                      setAppliedCoupon(coupon);
-                      trackEvent('coupon_applied', { coupon_code: coupon.code });
-                    }}
-                    onRemove={() => setAppliedCoupon(null)}
-                  />
-                </div>
-              )}
-
               {/* Sifariş xülasəsi */}
-              <Sec success={!!appliedCoupon}>
+              <Sec success={false}>
                 <Label>Sifariş xülasəsi</Label>
                 {items.map(item => (
                   <SRow key={item.cartId} l={`${item.productName} ×${item.quantity}`} r={`${getItemSubtotal(item).toFixed(2)} ₼`} />
                 ))}
                 {deliveryFee > 0 && (
                   <SRow l={delivery === 'kuryer' ? 'Kuryer çatdırılması' : 'Poçt göndərişi'} r={`+${deliveryFee.toFixed(2)} ₼`} />
-                )}
-                {custDisc > 0 && (
-                  <SRow
-                    l={customerType === 'loyal' ? `Daimi müştəri (${discRate}%)` : `Yeni müştəri (${discRate}%)`}
-                    r={`−${custDisc.toFixed(2)} ₼`}
-                    accent
-                  />
-                )}
-                {appliedCoupon && couponDiscount > 0 && (
-                  <SRow
-                    l={`Kupon: ${appliedCoupon.code}`}
-                    r={`−${couponDiscount.toFixed(2)} ₼`}
-                    accent
-                  />
                 )}
                 <div style={{ borderTop: `1px solid ${C.border}`, margin: '10px 0 12px' }} />
                 <SRow l="Ümumi məbləğ" r={`${grandTotal.toFixed(2)} ₼`} bold />
