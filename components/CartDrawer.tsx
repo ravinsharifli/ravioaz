@@ -670,7 +670,10 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
   const [kurMonth,     setKurMonth]     = useState('');
   const [kurYear,      setKurYear]      = useState('2026');
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
-  const [showCoupon,    setShowCoupon]    = useState(false);
+
+  // Sanity-dən ən az bir aktiv kupon varsa kupon bölməsi avtomatik açılır.
+  // Siz Sanity-də kuponu söndürdükdə bu bölmə müştəriyə görünmür.
+  const hasCouponAvailable = coupons.some(c => c.isActive);
 
   // ── Metro məlumatları ──────────────────────────────────────────
   const stations = (metroSchedule?.stations ?? []).filter(s => s.isActive !== false);
@@ -760,7 +763,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
   const checkoutValid =
     custName.trim().length > 0 &&
     phone.trim().length > 0 &&
-    (showCoupon || customerType !== null) &&
+    (hasCouponAvailable || customerType !== null) &&
     (
       delivery === 'metro'
         ? metro !== '' && selDateKey !== '' && delTime !== ''
@@ -815,7 +818,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
       itemsText +
       `\n━━━━━━━━━━━━━━━\n*ÇATDIRILMA:* ${delStr}\n\n` +
       `*ƏLAQƏ:*\n- Ad: ${custName}\n- Telefon: ${phone}\n- Doğum tarixi: ${birthStr}\n` +
-      `- Müştəri növü: ${customerType === 'loyal' ? 'Daimi müştəri' : 'Yeni müştəri'}\n\n` +
+      `- Müştəri növü: ${customerType === 'loyal' ? 'Daimi müştəri' : customerType === 'new' ? 'Yeni müştəri' : 'Kupon istifadəçisi'}\n\n` +
       `━━━━━━━━━━━━━━━\n` +
       `Məhsullar cəmi: ${baseTotal.toFixed(2)} ₼\n` +
       (deliveryFee > 0 ? `${delivery === 'post' ? 'Poçt' : 'Çatdırılma'}: +${deliveryFee.toFixed(2)} ₼\n` : `Çatdırılma: Pulsuz\n`) +
@@ -1113,7 +1116,7 @@ setIsCheckingOut(false);
               {/* Müştəri növü */}
               <Sec>
                 <Label>Müştəri növü</Label>
-                {showCoupon ? (
+                {hasCouponAvailable ? (
                   <div style={{
                     padding: '12px 14px', borderRadius: 10,
                     background: '#FFF8F0', border: `1.5px dashed ${C.orange}`,
@@ -1158,29 +1161,12 @@ setIsCheckingOut(false);
                 )}
               </Sec>
 
-              {/* ── ENDİRİM KODU ─────────────────────────────────────── */}
-              <div style={{ marginBottom: 12 }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: showCoupon ? 10 : 0 }}>
-                  <Label style={{ margin: 0 }}>🎟 Endirim kodu</Label>
-                  <button
-                    onClick={() => {
-                      const next = !showCoupon;
-                      setShowCoupon(next);
-                      if (!next) { setAppliedCoupon(null); }
-                      if (next) { setCustomerType(null); }
-                    }}
-                    style={{
-                      fontSize: 11, fontWeight: 600, cursor: 'pointer',
-                      padding: '4px 12px', borderRadius: 20, border: 'none',
-                      background: showCoupon ? C.orange : C.bg,
-                      color: showCoupon ? C.white : C.gray,
-                      transition: 'all 0.2s',
-                    }}
-                  >
-                    {showCoupon ? 'Söndür' : 'Yandır'}
-                  </button>
-                </div>
-                {showCoupon && (
+              {/* ── ENDİRİM KODU — yalnız Sanity-dən aktiv kupon varsa göstər ── */}
+              {hasCouponAvailable && (
+                <div style={{ marginBottom: 12 }}>
+                  <div style={{ marginBottom: 10 }}>
+                    <Label style={{ margin: 0 }}>🎟 Endirim kodu</Label>
+                  </div>
                   <CouponSection
                     coupons={coupons}
                     subtotalBeforeCoupon={afterCustDisc}
@@ -1191,8 +1177,8 @@ setIsCheckingOut(false);
                     }}
                     onRemove={() => setAppliedCoupon(null)}
                   />
-                )}
-              </div>
+                </div>
+              )}
 
               {/* Sifariş xülasəsi */}
               <Sec success={!!appliedCoupon}>
