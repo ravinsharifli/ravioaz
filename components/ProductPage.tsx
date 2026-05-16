@@ -221,7 +221,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
       couponDiscount:       couponDiscount > 0 ? couponDiscount : undefined,
       hasQrCode:            !!uploadedImgUrl,
       lazerPrice:           0,
-      deliveryMethod:       'metro' as any,
+      deliveryMethod:       'kuryer' as any,
       finalTotal:           finalPrice,
       behAmount:            Math.ceil(finalPrice * 0.5),
     };

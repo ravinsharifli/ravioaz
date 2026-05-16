@@ -263,7 +263,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
       boxPrice:             boxFee,
       hasQrCode:            !!uploadedImgUrl,
       lazerPrice:           0,
-      deliveryMethod:       'metro' as any,
+      deliveryMethod:       'kuryer' as any,
       finalTotal:           subtotal,
       behAmount:            Math.ceil(subtotal * 0.5),
     };
