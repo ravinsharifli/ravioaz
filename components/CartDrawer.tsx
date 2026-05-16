@@ -658,7 +658,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
   const [bdDay,        setBdDay]        = useState('');
   const [bdMonth,      setBdMonth]      = useState('');
   const [bdYear,       setBdYear]       = useState('');
-  const [delivery,     setDelivery]     = useState<'metro' | 'kuryer' | 'post'>('metro');
+  const [delivery,     setDelivery]     = useState<'kuryer' | 'metro' | 'post'>('kuryer');
   const [metro,        setMetro]        = useState('');
   const [selDateKey,     setSelDateKey]     = useState('');
   const [selDateDisplay, setSelDateDisplay] = useState('');
@@ -738,7 +738,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
 
   // ── Hesablamalar ───────────────────────────────────────────────
   const baseTotal   = items.reduce((s, item) => s + getItemSubtotal(item), 0);
-  const deliveryFee = delivery === 'metro' ? 0 : 4.99;
+  const deliveryFee = delivery === 'kuryer' ? 0 : delivery === 'metro' ? 2.99 : 4.99;
   const grandTotal  = baseTotal + deliveryFee;
   const grandBeh    = Math.ceil(grandTotal * 0.5);
 
@@ -773,8 +773,8 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
       : 'Bildirilməyib';
 
     const delStr = delivery === 'metro'
-      ? `Metro: ${metro} · Tarix: ${selDateDisplay} (${selWeekday}) · Saat: ${delTime}`
-      : `${kurDay} ${kurMonth} ${kurYear} · ${delivery === 'post' ? 'Poçt' : 'Kuryer'} · Ünvan: ${address}`;
+      ? `Özəl Metro: ${metro} · Tarix: ${selDateDisplay} (${selWeekday}) · Saat: ${delTime}`
+      : `${kurDay} ${kurMonth} ${kurYear} · ${delivery === 'post' ? 'Poçt' : 'Kuryer (gün ərzində)'} · Ünvan: ${address}`;
 
     const itemsText = items.map((item, idx) => {
       const imgUrl = item.images?.[0] ?? '';
@@ -804,7 +804,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
       `*ƏLAQƏ:*\n- Ad: ${custName}\n- Telefon: ${phone}\n- Doğum tarixi: ${birthStr}\n\n` +
       `━━━━━━━━━━━━━━━\n` +
       `Məhsullar cəmi: ${baseTotal.toFixed(2)} ₼\n` +
-      (deliveryFee > 0 ? `${delivery === 'post' ? 'Poçt' : 'Çatdırılma'}: +${deliveryFee.toFixed(2)} ₼\n` : `Çatdırılma: Pulsuz\n`) +
+      (deliveryFee > 0 ? `${delivery === 'post' ? 'Poçt' : 'Özəl Metro'}: +${deliveryFee.toFixed(2)} ₼\n` : `Kuryer: Pulsuz\n`) +
       `*ÜMUMİ: ${grandTotal.toFixed(2)} ₼*\n` +
       `*💳 ÖN ÖDƏNİŞ (50% beh): ${grandBeh.toFixed(2)} ₼*\n` +
       `Qalan ${(grandTotal - grandBeh).toFixed(2)} ₼ məhsul alınarkən`;
@@ -1004,14 +1004,14 @@ setIsCheckingOut(false);
           <>
             <div style={{ flex: 1, overflowY: 'auto' as const, padding: '16px 20px 20px' }}>
 
-              {/* Çatdırılma üsulu — POÇT ÇIXARILDI */}
+              {/* Çatdırılma üsulu */}
               <div style={{ marginBottom: 12 }}>
                 <Label>Çatdırılma üsulu</Label>
                 <div style={{ display: 'flex', gap: 8 }}>
                   {[
-                    { id: 'metro'  as const, icon: '🚇', label: 'Metro',  sub: 'Ödənişsiz' },
-                    { id: 'kuryer' as const, icon: '🛵', label: 'Kuryer', sub: '+4.99 ₼'   },
-                    { id: 'post'   as const, icon: '📮', label: 'Poçt',   sub: '+4.99 ₼'   },
+                    { id: 'kuryer' as const, icon: '🛵', label: 'Kuryer',      sub: 'Ödənişsiz' },
+                    { id: 'metro'  as const, icon: '🚇', label: 'Özəl Metro',  sub: '+2.99 ₼'   },
+                    { id: 'post'   as const, icon: '📮', label: 'Poçt',        sub: '+4.99 ₼'   },
                   ].map(d => (
                     <div key={d.id} onClick={() => setDelivery(d.id)} style={{
                       flex: 1, background: delivery === d.id ? C.black : C.white,
@@ -1021,30 +1021,13 @@ setIsCheckingOut(false);
                     }}>
                       <div style={{ fontSize: 20, marginBottom: 4 }}>{d.icon}</div>
                       <div style={{ fontSize: 13, fontWeight: 600, color: delivery === d.id ? C.white : C.black }}>{d.label}</div>
-                      <div style={{ fontSize: 10, marginTop: 2, color: delivery === d.id ? 'rgba(255,255,255,0.55)' : C.grayLt }}>{d.sub}</div>
+                      <div style={{ fontSize: 10, marginTop: 2, color: delivery === d.id ? 'rgba(255,255,255,0.55)' : d.id === 'kuryer' ? C.green : C.grayLt, fontWeight: d.id === 'kuryer' ? 700 : 400 }}>{d.sub}</div>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* METRO SEÇİMİ — Wizard */}
-              {delivery === 'metro' && (
-                <MetroWizard
-                  stations={stations}
-                  metro={metro}
-                  selDateKey={selDateKey}
-                  selDateDisplay={selDateDisplay}
-                  selWeekday={selWeekday}
-                  delTime={delTime}
-                  availableWeekdays={availableWeekdays}
-                  allTimeSlots={allTimeSlots}
-                  onStationChange={handleStationChange}
-                  onDateChange={handleDateChange}
-                  onTimeChange={setDelTime}
-                />
-              )}
-
-              {/* KURYER / POÇT */}
+              {/* KURYER (PULSUZ) */}
               {(delivery === 'kuryer' || delivery === 'post') && (
                 <Sec>
                   <Label>Çatdırılma ünvanı</Label>
@@ -1061,7 +1044,7 @@ setIsCheckingOut(false);
                       ? 'Nümunə: Gəncə, AZ2000, Nizami küç. 45'
                       : 'Nümunə: Qaraçuxur, Maşallah market yanı'}
                   </p>
-                  <Label>Çatdırılma tarixi</Label>
+                  <Label>İstədiyiniz çatdırılma günü</Label>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1fr', gap: 8 }}>
                     <Sel value={kurDay}   onChange={setKurDay}   opts={DAYS_LIST}   placeholder="Gün" />
                     <Sel value={kurMonth} onChange={setKurMonth} opts={MONTHS_AZ}   placeholder="Ay"  />
@@ -1070,9 +1053,26 @@ setIsCheckingOut(false);
                   <p style={{ margin: '8px 0 0', fontSize: 11, color: C.grayLt }}>
                     {delivery === 'post'
                       ? 'Poçt göndərişi 3–7 iş günü çəkir'
-                      : 'Çatdırılma üçün kuryer əlaqə saxlayacaq'}
+                      : '⚡ Seçilən gün ərzində çatdırılır. Dəqiq vaxt kuryer tərəfindən təyin edilir.'}
                   </p>
                 </Sec>
+              )}
+
+              {/* ÖZƏL METRO — Wizard */}
+              {delivery === 'metro' && (
+                <MetroWizard
+                  stations={stations}
+                  metro={metro}
+                  selDateKey={selDateKey}
+                  selDateDisplay={selDateDisplay}
+                  selWeekday={selWeekday}
+                  delTime={delTime}
+                  availableWeekdays={availableWeekdays}
+                  allTimeSlots={allTimeSlots}
+                  onStationChange={handleStationChange}
+                  onDateChange={handleDateChange}
+                  onTimeChange={setDelTime}
+                />
               )}
 
               {/* Əlaqə məlumatları */}
@@ -1099,7 +1099,7 @@ setIsCheckingOut(false);
                   <SRow key={item.cartId} l={`${item.productName} ×${item.quantity}`} r={`${getItemSubtotal(item).toFixed(2)} ₼`} />
                 ))}
                 {deliveryFee > 0 && (
-                  <SRow l={delivery === 'kuryer' ? 'Kuryer çatdırılması' : 'Poçt göndərişi'} r={`+${deliveryFee.toFixed(2)} ₼`} />
+                  <SRow l={delivery === 'metro' ? 'Özəl metro görüşü' : 'Poçt göndərişi'} r={`+${deliveryFee.toFixed(2)} ₼`} />
                 )}
                 <div style={{ borderTop: `1px solid ${C.border}`, margin: '10px 0 12px' }} />
                 <SRow l="Ümumi məbləğ" r={`${grandTotal.toFixed(2)} ₼`} bold />
