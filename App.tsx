@@ -13,7 +13,6 @@ import AboutUs from './components/AboutUs';
 import Contact from './components/Contact';
 import DeliveryInfo from './components/DeliveryInfo';
 import Footer from './components/Footer';
-import AdSidebarLayout from './components/AdSidebarLayout';
 
 // ── Ağır komponentlər lazy load edilir (bundle splitting) ──────────────────────
 const ProductModal = React.lazy(() => import('./components/ProductModal'));
@@ -983,19 +982,17 @@ function SlugPage({
 
       {currentProduct && (
         <Suspense fallback={<div style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 16px' }}><LoadingGrid /></div>}>
-          <AdSidebarLayout>
-            <ProductPage
-              product={currentProduct}
-              boxes={DEFAULT_BOXES}
-              coupons={(currentProduct.coupons || []) as import('./types').Coupon[]}
-              onBack={() => navigate('/mehsullar')}
-              onAddToCart={(item) => {
-                setSelectedProduct(null);
-                setEditingItem(undefined);
-                (window as any).__ravioAddToCart?.(item);
-              }}
-            />
-          </AdSidebarLayout>
+          <ProductPage
+            product={currentProduct}
+            boxes={DEFAULT_BOXES}
+            coupons={(currentProduct.coupons || []) as import('./types').Coupon[]}
+            onBack={() => navigate('/mehsullar')}
+            onAddToCart={(item) => {
+              setSelectedProduct(null);
+              setEditingItem(undefined);
+              (window as any).__ravioAddToCart?.(item);
+            }}
+          />
         </Suspense>
       )}
     </>
