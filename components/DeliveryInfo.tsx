@@ -24,10 +24,10 @@ const DeliveryInfo: React.FC<DeliveryInfoProps> = () => {
     },
     {
       icon: '🚇',
-      title: 'Özəl metro görüşü',
+      title: 'Özəl kuryer metrodaxili',
       badge: '+2.99 ₼',
       badgeColor: C.orange,
-      desc: 'Sizin üçün xüsusi kuryer ayrılır. Bakı metrosunun istənilən stansiyasında, istədiyiniz gün və saatda görüşülür.',
+      desc: 'Sizin üçün xüsusi kuryer ayrılır. Bakı metrosunun istənilən stansiyasında, içəridə, istədiyiniz gün və saatda görüşülür.',
     },
     {
       icon: '📮',
@@ -52,11 +52,11 @@ const DeliveryInfo: React.FC<DeliveryInfoProps> = () => {
     },
     {
       q: 'Kuryer nə vaxt çatdırır?',
-      a: 'Kuryer sifarişinizi seçilən gün ərzində çatdırır. Dəqiq vaxt kuryer tərəfindən sifariş günü müəyyənləşdirilir. Misal üçün, 12 avqust seçsəniz, həmin gün daxilində çatdırılır.',
+      a: 'Kuryer sifarişinizi seçilən gün ərzində çatdırır. Dəqiq vaxt növbə əsasında sifariş vaxtına görə müəyyənləşdirilir. Misal üçün, 12 avqust seçsəniz, həmin gün daxilində çatdırılır.',
     },
     {
-      q: 'Özəl metro görüşü nədir?',
-      a: 'Özəl metro görüşündə sizin üçün xüsusi kuryer ayrılır. Bakı metrosunun istənilən stansiyasında, istədiyiniz gün və saatda görüşürsünüz. Bu seçim +2.99 ₼ əlavə ödənişlə mövcuddur.',
+      q: 'Özəl kuryer metrodaxili nədir?',
+      a: 'Bakı metrodaxilində sizin üçün xüsusi kuryer ayrılır. Bakı metrosunun istənilən stansiyasında, içəridə, istədiyiniz gün və saatda görüşürsünüz. Bu seçim +2.99 ₼ əlavə ödənişlə mövcuddur.',
     },
     {
       q: 'Sifariş nə qədər müddətdə hazır olur?',
@@ -72,10 +72,10 @@ const DeliveryInfo: React.FC<DeliveryInfoProps> = () => {
     <div style={{ maxWidth: 1280, margin: '0 auto', padding: 'clamp(48px,6vw,80px) clamp(16px,3vw,32px)', fontFamily: FONT }}>
       <Helmet>
         <title>Çatdırılma | Ravio</title>
-        <meta name="description" content="Ravio çatdırılma şərtləri: kuryer ödənişsiz (Bakı, Sumqayıt, Abşeron), özəl metro görüşü +2.99₼, Azərpoçt ilə bütün Azərbaycana. 1–3 iş günü." />
+        <meta name="description" content="Ravio çatdırılma şərtləri: kuryer ödənişsiz (Bakı, Sumqayıt, Abşeron), özəl kuryer metrodaxili +2.99₼, Azərpoçt ilə bütün Azərbaycana. 1–3 iş günü." />
         <meta property="og:type"        content="website" />
         <meta property="og:title"       content="Çatdırılma | Ravio" />
-        <meta property="og:description" content="Kuryer pulsuz, özəl metro görüşü +2.99₼, Azərpoçt ilə bütün Azərbaycana. 1–3 iş günü." />
+        <meta property="og:description" content="Kuryer pulsuz, özəl kuryer metrodaxili +2.99₼, Azərpoçt ilə bütün Azərbaycana. 1–3 iş günü." />
         <meta property="og:url"         content="https://ravioaz.vercel.app/catdirilma" />
         <meta property="og:image"       content="https://ravioaz.vercel.app/og-cover.jpg" />
         <meta name="twitter:card"       content="summary_large_image" />
@@ -89,7 +89,7 @@ const DeliveryInfo: React.FC<DeliveryInfoProps> = () => {
         Çatdırılma məlumatları
       </h1>
       <p style={{ fontSize: 16, color: C.gray, lineHeight: 1.75, margin: '0 0 48px', maxWidth: 580 }}>
-        Kuryer çatdırılması ödənişsizdir. Özəl metro görüşü (öz seçdiyiniz stansiya, gün və saat) +2.99 ₼ ilə mövcuddur.
+        Kuryer çatdırılması ödənişsizdir. Özəl metrodaxili çatdırılma (seçdiyiniz stansiya, gün və saat) +2.99 ₼ ilə mövcuddur.
       </p>
 
       <div style={{

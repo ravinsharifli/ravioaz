@@ -1058,7 +1058,7 @@ setIsCheckingOut(false);
                 </Sec>
               )}
 
-              {/* ÖZƏL METRO — Wizard */}
+              {/* ÖZƏL KURYER METRODAXİLİ — Wizard */}
               {delivery === 'metro' && (
                 <MetroWizard
                   stations={stations}
@@ -1099,7 +1099,7 @@ setIsCheckingOut(false);
                   <SRow key={item.cartId} l={`${item.productName} ×${item.quantity}`} r={`${getItemSubtotal(item).toFixed(2)} ₼`} />
                 ))}
                 {deliveryFee > 0 && (
-                  <SRow l={delivery === 'metro' ? 'Özəl metro görüşü' : 'Poçt göndərişi'} r={`+${deliveryFee.toFixed(2)} ₼`} />
+                  <SRow l={delivery === 'metro' ? 'Özəl kuryer metrodaxili' : 'Poçt göndərişi'} r={`+${deliveryFee.toFixed(2)} ₼`} />
                 )}
                 <div style={{ borderTop: `1px solid ${C.border}`, margin: '10px 0 12px' }} />
                 <SRow l="Ümumi məbləğ" r={`${grandTotal.toFixed(2)} ₼`} bold />
