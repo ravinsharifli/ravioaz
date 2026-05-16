@@ -1053,7 +1053,7 @@ setIsCheckingOut(false);
                   <p style={{ margin: '8px 0 0', fontSize: 11, color: C.grayLt }}>
                     {delivery === 'post'
                       ? 'Poçt göndərişi 3–7 iş günü çəkir'
-                      : '⚡ Seçilən gün ərzində çatdırılır. Dəqiq vaxt kuryer tərəfindən təyin edilir.'}
+                      : '⚡ Seçilən gün ərzində çatdırılır. Dəqiq vaxt növbə əsasında təyin edilir.'}
                   </p>
                 </Sec>
               )}

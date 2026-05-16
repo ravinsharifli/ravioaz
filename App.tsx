@@ -386,7 +386,7 @@ function HeroBanner({ onShopClick, heroImageUrl }: { onShopClick: () => void; he
     {
       badge: '🚀 Ödənişsiz çatdırılma',
       title: '1–3 iş günündə kapınıza gəlir.',
-      desc: 'Metrodaxili çatdırılma ödənişsizdir. Kuryer xidməti - Bakı, Sumqayıt, Abşeron daxil.',
+      desc: 'Metrodaxili çatdırılma - 2.99 ₼. Ödənişsiz Kuryer xidməti - Bakı, Sumqayıt, Abşeron daxil.',
       bg: 'linear-gradient(135deg, #111111 0%, #2a2a2a 100%)',
       cta: 'Sifarişə başla →',
     },
@@ -603,7 +603,7 @@ function HeroBanner({ onShopClick, heroImageUrl }: { onShopClick: () => void; he
 // ── Info Strips ────────────────────────────────────────────────────────────────
 function InfoStrips() {
   const strips = [
-    { icon: '🚚', title: 'Ödənişsiz çatdırılma', desc: 'Bakı daxilindəki bütün sifarişlər' },
+    { icon: '🚚', title: 'Ödənişsiz çatdırılma', desc: 'Bütün sifarişlər' },
     { icon: '⚡', title: '1–3 iş günü', desc: 'Sürətli hazırlıq və çatdırılma' },
     { icon: '✍️', title: 'Lazer yazısı', desc: 'İstədiyin ad, tarix, mesaj' },
     { icon: '🎁', title: 'Hədiyyəlik qablaşdırma', desc: 'Fərqli qutu seçimi və hədiyyəlik bağlama.' },
@@ -1126,7 +1126,7 @@ function HomePage({
             {[
               { n: '01', icon: '🛍️', title: 'Məhsul seç',     desc: 'Kataloqdan bəyəndiyini seç, variantı müəyyən et' },
               { n: '02', icon: '✍️', title: 'Ad / mesaj yaz',  desc: 'Lazer yazısı üçün istədiyini əlavə et' },
-              { n: '03', icon: '⚡', title: 'Ödənişsiz çatır', desc: '1–3 iş günündə hazır. Metro görüşü ödənişsizdir.' },
+              { n: '03', icon: '⚡', title: 'Ödənişsiz çatır', desc: '1–3 günə hazırlanır və çatdırılır' },
             ].map((s, i) => (
               <div key={s.n} style={{ background: C.darkCard, padding: 'clamp(24px,4vw,40px) clamp(20px,3vw,32px)', borderLeft: i > 0 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}>
                 <div style={{ width: 48, height: 48, borderRadius: 12, background: 'rgba(255,106,0,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, marginBottom: 16 }}>{s.icon}</div>

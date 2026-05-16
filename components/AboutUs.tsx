@@ -39,7 +39,7 @@ const AboutUs: React.FC = () => {
           { icon: '⚡', title: 'Lazer texnologiyası', desc: 'Mikron dəqiqliyi ilə lazer yazı — hər simvol mükəmməl.' },
           { icon: '🎁', title: 'Tam fərdiləşdirmə',   desc: 'Ad, tarix, mesaj — istəyinizə görə hər şey.' },
           { icon: '✓', title: 'Keyfiyyət zəmanəti',   desc: 'Hər məhsul göndərilməzdən əvvəl yoxlanılır.' },
-          { icon: '🚀', title: 'Sürətli hazırlıq',    desc: '1–3 iş günündə hazır, ödənişsiz çatdırılma.' },
+          { icon: '🚀', title: 'Sürətli hazırlıq',    desc: '1–3 günə hazır, ödənişsiz çatdırılma.' },
         ].map(card => (
           <div key={card.title} style={{
             background: C.white, borderRadius: 12,
