@@ -798,7 +798,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
     }).join('\n');
 
     const msg =
-      `*🛍 YENİ SİFARİŞ — RAVIO.AZ*\n\n` +
+      `*🛍 YENİ SİFARİŞ — RAVIOAZ.VERCEL.APP*\n\n` +
       itemsText +
       `\n━━━━━━━━━━━━━━━\n*ÇATDIRILMA:* ${delStr}\n\n` +
       `*ƏLAQƏ:*\n- Ad: ${custName}\n- Telefon: ${phone}\n- Doğum tarixi: ${birthStr}\n\n` +
