@@ -27,6 +27,7 @@ const Navbar: React.FC<NavbarProps> = ({
   const [announcementH, setAnnouncementH] = useState(38);
   const announcementRef = useRef<HTMLDivElement>(null);
   const searchRef       = useRef<HTMLDivElement>(null);
+  const inputRef        = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const measure = () => {
@@ -60,6 +61,13 @@ const Navbar: React.FC<NavbarProps> = ({
     return () => { document.body.style.overflow = ''; };
   }, [menuOpen]);
 
+  // Search panel açılanda input-a focus ver
+  useEffect(() => {
+    if (searchOpen) {
+      setTimeout(() => inputRef.current?.focus(), 50);
+    }
+  }, [searchOpen]);
+
   const results = query.trim().length > 1
     ? products.filter(p => p.name.toLowerCase().includes(query.toLowerCase())).slice(0, 6)
     : [];
@@ -72,10 +80,12 @@ const Navbar: React.FC<NavbarProps> = ({
   ];
 
   const NAV_H = 60;
+  // Mobil panel üçün top dəyəri: elan barı + nav hündürlüyü + 8px boşluq
+  const panelTop = announcementH + NAV_H + 8;
 
   return (
     <>
-      {/* Announcement bar — position fixed, measured dynamically */}
+      {/* Announcement bar */}
       <div
         ref={announcementRef}
         style={{
@@ -109,7 +119,7 @@ const Navbar: React.FC<NavbarProps> = ({
           height: NAV_H, display: 'flex', alignItems: 'center',
           justifyContent: 'space-between', gap: 16,
         }}>
-          {/* Logo — real şəkil */}
+          {/* Logo */}
           <button onClick={onLogoClick} style={{
             background: 'none', border: 'none', cursor: 'pointer',
             padding: 0, flexShrink: 0,
@@ -117,17 +127,14 @@ const Navbar: React.FC<NavbarProps> = ({
           }}>
             <img
               src="/og-ravio.png"
-              alt="og-ravio.png"
+              alt="Ravio logo"
               style={{
-                width: 38,
-                height: 38,
-                borderRadius: 8,
-                objectFit: 'cover',
-                display: 'block',
+                width: 38, height: 38, borderRadius: 8,
+                objectFit: 'cover', display: 'block',
               }}
             />
             <span className="ravio-nav-brand-text" style={{ fontFamily: F.sans, fontSize: 18, fontWeight: 800, color: C.black, letterSpacing: '-0.5px' }}>
-              Sizə Özəl Hədiyyələr 
+              Sizə Özəl Hədiyyələr
             </span>
           </button>
 
@@ -147,87 +154,116 @@ const Navbar: React.FC<NavbarProps> = ({
           </div>
 
           {/* Right icons */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
-            {/* Search */}
-            <div ref={searchRef} style={{ position: 'relative' }}>
-              <button onClick={() => { setSearchOpen(v => !v); setQuery(''); }} style={{
-                background: 'none', border: 'none', cursor: 'pointer',
-                width: 40, height: 40, borderRadius: 8,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: '#444444',
-              }}>
-                {searchOpen ? <X size={17} /> : <Search size={17} />}
-              </button>
+          <div ref={searchRef} style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, position: 'relative' }}>
+            {/* Search button */}
+            <button onClick={() => { setSearchOpen(v => !v); setQuery(''); }} style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              width: 40, height: 40, borderRadius: 8,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: searchOpen ? C.primary : '#444444',
+              transition: 'color 0.15s',
+            }}>
+              {searchOpen ? <X size={17} /> : <Search size={17} />}
+            </button>
 
-              {searchOpen && (
-                <div style={{
+            {/* ──────────────────────────────────────────────────────────────
+                AXTARIŞ PANELİ
+                Desktop: position absolute, right: 0 (düyməyə bağlı)
+                Mobil:   position fixed, left/right 12px (tam ekran eni)
+                         top: announcementH + NAV_H + 8px (CSS variable ilə)
+            ────────────────────────────────────────────────────────────── */}
+            {searchOpen && (
+              <div
+                className="ravio-search-panel"
+                style={{
                   position: 'absolute', right: 0, top: 46,
                   width: 'min(340px, calc(100vw - 32px))',
                   background: C.white,
                   border: '1px solid #E5E1DB', borderRadius: 12,
                   boxShadow: '0 16px 48px rgba(0,0,0,0.12)',
                   overflow: 'hidden', zIndex: 500,
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', borderBottom: '1px solid #F0EBE2' }}>
-                    <Search size={14} color={C.primary} />
-                    <input
-                      autoFocus
-                      value={query}
-                      onChange={e => setQuery(e.target.value)}
-                      placeholder="Məhsul axtar..."
-                      style={{
-                        flex: 1, border: 'none', outline: 'none',
-                        fontSize: 14, color: C.black,
-                        fontFamily: F.sans,
-                        background: 'transparent',
-                      }}
-                    />
-                    {query && (
-                      <button onClick={() => setQuery('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#999', padding: 0 }}>
-                        <X size={13} />
-                      </button>
-                    )}
-                  </div>
-
-                  {results.length > 0 ? (
-                    <ul style={{ listStyle: 'none', margin: 0, padding: '6px 0', maxHeight: 320, overflowY: 'auto' as const }}>
-                      {results.map(p => (
-                        <li key={p.id}>
-                          <button
-                            onClick={() => { onViewProduct?.(p); setSearchOpen(false); setQuery(''); }}
-                            style={{
-                              width: '100%', display: 'flex', alignItems: 'center', gap: 12,
-                              padding: '10px 16px', background: 'none', border: 'none',
-                              cursor: 'pointer', textAlign: 'left' as const,
-                            }}
-                            onMouseEnter={e => e.currentTarget.style.background = C.bg}
-                            onMouseLeave={e => e.currentTarget.style.background = 'none'}
-                          >
-                            {p.variants?.[0]?.images?.[0] && (
-                              <div style={{ width: 44, height: 44, borderRadius: 8, overflow: 'hidden', background: C.bg, flexShrink: 0 }}>
-                                <img src={p.variants[0].images[0]} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
-                              </div>
-                            )}
-                            <div style={{ flex: 1, minWidth: 0 }}>
-                              <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: C.black, fontFamily: F.sans, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>
-                                {p.name}
-                              </p>
-                              <p style={{ margin: '2px 0 0', fontSize: 13, color: C.primary, fontWeight: 700 }}>
-                                {(p.variants[0]?.discountPrice ?? p.variants[0]?.price ?? 0).toFixed(2)} ₼
-                              </p>
-                            </div>
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : query.trim().length > 1 ? (
-                    <div style={{ padding: '24px', textAlign: 'center' as const, color: '#999', fontSize: 13 }}>
-                      Nəticə tapılmadı
-                    </div>
-                  ) : null}
+                  // CSS variable — mobil @media qaydası üçün
+                  ['--panel-top' as string]: `${panelTop}px`,
+                }}
+              >
+                {/* Axtarış inputu */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', borderBottom: '1px solid #F0EBE2' }}>
+                  <Search size={14} color={C.primary} />
+                  <input
+                    ref={inputRef}
+                    value={query}
+                    onChange={e => setQuery(e.target.value)}
+                    placeholder="Məhsul axtar..."
+                    style={{
+                      flex: 1, border: 'none', outline: 'none',
+                      fontSize: 15, color: C.black,
+                      fontFamily: F.sans,
+                      background: 'transparent',
+                      minWidth: 0,
+                    }}
+                  />
+                  {query && (
+                    <button onClick={() => setQuery('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#999', padding: 0, flexShrink: 0 }}>
+                      <X size={13} />
+                    </button>
+                  )}
                 </div>
-              )}
-            </div>
+
+                {/* Nəticələr */}
+                {results.length > 0 ? (
+                  <ul style={{ listStyle: 'none', margin: 0, padding: '6px 0', maxHeight: 320, overflowY: 'auto' as const }}>
+                    {results.map(p => (
+                      <li key={p.id}>
+                        <button
+                          onClick={() => { onViewProduct?.(p); setSearchOpen(false); setQuery(''); }}
+                          style={{
+                            width: '100%', display: 'flex', alignItems: 'center', gap: 12,
+                            padding: '10px 16px', background: 'none', border: 'none',
+                            cursor: 'pointer', textAlign: 'left' as const,
+                          }}
+                          onMouseEnter={e => (e.currentTarget.style.background = C.bg)}
+                          onMouseLeave={e => (e.currentTarget.style.background = 'none')}
+                        >
+                          {/* Məhsul şəkli */}
+                          {p.variants?.[0]?.images?.[0] && (
+                            <div style={{ width: 44, height: 44, borderRadius: 8, overflow: 'hidden', background: C.bg, flexShrink: 0 }}>
+                              <img
+                                src={p.variants[0].images[0]}
+                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                alt=""
+                              />
+                            </div>
+                          )}
+                          {/* Ad + qiymət */}
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <p style={{
+                              margin: 0, fontSize: 13, fontWeight: 600, color: C.black,
+                              fontFamily: F.sans,
+                              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const,
+                            }}>
+                              {p.name}
+                            </p>
+                            <p style={{ margin: '2px 0 0', fontSize: 13, color: C.primary, fontWeight: 700 }}>
+                              {(p.variants[0]?.discountPrice ?? p.variants[0]?.price ?? 0).toFixed(2)} ₼
+                            </p>
+                          </div>
+                          {/* Ox */}
+                          <span style={{ color: '#CCCCCC', fontSize: 16, flexShrink: 0 }}>›</span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                ) : query.trim().length > 1 ? (
+                  <div style={{ padding: '24px', textAlign: 'center' as const, color: '#999', fontSize: 13 }}>
+                    🔍 Nəticə tapılmadı
+                  </div>
+                ) : (
+                  <div style={{ padding: '16px', textAlign: 'center' as const, color: '#BBBBBB', fontSize: 12 }}>
+                    Axtar...
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Cart */}
             <button onClick={onCartClick} style={{
@@ -265,7 +301,7 @@ const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
 
-        {/* Mobile dropdown */}
+        {/* Mobile dropdown menu */}
         {menuOpen && (
           <div style={{
             background: C.white,
@@ -299,7 +335,7 @@ const Navbar: React.FC<NavbarProps> = ({
         )}
       </nav>
 
-      {/* Spacer — dynamic height so content never hides under fixed navbar */}
+      {/* Spacer */}
       <div style={{ height: announcementH + NAV_H }} />
 
       <style>{`
@@ -312,6 +348,21 @@ const Navbar: React.FC<NavbarProps> = ({
         }
         @media (max-width: 420px) {
           .ravio-nav-brand-text { display: none !important; }
+        }
+
+        /* ── MOBİL AXTARIŞ PANELİ DÜZƏLİŞİ ─────────────────────────────
+           Mobil ekranda panel position:fixed olur + sol/sağ kənarlardan
+           12px boşluq qalır. Beləliklə panel heç vaxt ekrandan çıxmır.
+           "var(--panel-top)" inline style ilə JavaScript-dən doldurulur.
+        ──────────────────────────────────────────────────────────────── */
+        @media (max-width: 640px) {
+          .ravio-search-panel {
+            position: fixed !important;
+            left: 12px !important;
+            right: 12px !important;
+            width: auto !important;
+            top: var(--panel-top, 108px) !important;
+          }
         }
       `}</style>
     </>
