@@ -40,10 +40,10 @@ const Contact: React.FC = () => {
         <meta property="og:type"        content="website" />
         <meta property="og:title"       content="Əlaqə | Ravio" />
         <meta property="og:description" content="WhatsApp, Instagram və ya telefon ilə sifariş verin. Bakı daxili pulsuz çatdırılma." />
-        <meta property="og:url"         content="https://ravioaz.vercel.app/elaqe" />
-        <meta property="og:image"       content="https://ravioaz.vercel.app/og-cover.jpg" />
+        <meta property="og:url"         content="https://ravio.az/elaqe" />
+        <meta property="og:image"       content="https://ravio.az/og-cover.jpg" />
         <meta name="twitter:card"       content="summary_large_image" />
-        <link rel="canonical" href="https://ravioaz.vercel.app/elaqe" />
+        <link rel="canonical" href="https://ravio.az/elaqe" />
       </Helmet>
 
       <p style={{ fontSize: 11, fontWeight: 700, color: C.orange, letterSpacing: 1.5, textTransform: 'uppercase' as const, margin: '0 0 8px' }}>

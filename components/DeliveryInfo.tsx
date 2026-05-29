@@ -76,10 +76,10 @@ const DeliveryInfo: React.FC<DeliveryInfoProps> = () => {
         <meta property="og:type"        content="website" />
         <meta property="og:title"       content="Çatdırılma | Ravio" />
         <meta property="og:description" content="Kuryer pulsuz, özəl kuryer metrodaxili +2.99₼, Azərpoçt ilə bütün Azərbaycana. 1–3 iş günü." />
-        <meta property="og:url"         content="https://ravioaz.vercel.app/catdirilma" />
-        <meta property="og:image"       content="https://ravioaz.vercel.app/og-cover.jpg" />
+        <meta property="og:url"         content="https://ravio.az/catdirilma" />
+        <meta property="og:image"       content="https://ravio.az/og-cover.jpg" />
         <meta name="twitter:card"       content="summary_large_image" />
-        <link rel="canonical" href="https://ravioaz.vercel.app/catdirilma" />
+        <link rel="canonical" href="https://ravio.az/catdirilma" />
       </Helmet>
 
       <p style={{ fontSize: 11, fontWeight: 700, color: C.orange, letterSpacing: 1.5, textTransform: 'uppercase' as const, margin: '0 0 8px' }}>

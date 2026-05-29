@@ -10,7 +10,7 @@ const client = createClient({
   apiVersion: '2026-02-09',
 });
 
-const BASE_URL = 'https://ravioaz.vercel.app';
+const BASE_URL = 'https://ravio.az';
 
 const STATIC_PAGES = [
   { url: '',             priority: '1.0', changefreq: 'weekly'  },

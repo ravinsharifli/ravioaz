@@ -762,10 +762,10 @@ function ProductsPage({ categories, products, loading, openProduct }: ProductsPa
       <Helmet>
         <title>Bütün Məhsullar | Ravio</title>
         <meta name="description" content="Lazer yazılı qolbaq, fərdi təsbeh, domino, giftbox — bütün məhsullarımız. Bakı daxili pulsuz çatdırılma." />
-        <link rel="canonical" href="https://ravioaz.vercel.app/mehsullar" />
+        <link rel="canonical" href="https://ravio.az/mehsullar" />
         <meta property="og:title" content="Bütün Məhsullar | Ravio" />
         <meta property="og:description" content="Lazer yazılı qolbaq, fərdi təsbeh, domino, giftbox — bütün məhsullarımız. Bakı daxili pulsuz çatdırılma." />
-        <meta property="og:url" content="https://ravioaz.vercel.app/mehsullar" />
+        <meta property="og:url" content="https://ravio.az/mehsullar" />
         <meta property="og:type" content="website" />
       </Helmet>
 
@@ -847,7 +847,7 @@ function SlugPage({
     const title = seo?.title || (matchedCategory ? `${matchedCategory} | Ravio` : 'Məhsullar | Ravio');
     const desc  = seo?.description || `${matchedCategory || 'Məhsullar'} — Ravio-da fərdi hazırlanmış hədiyyələr. Bakı daxili pulsuz çatdırılma.`;
     const h1    = seo?.h1 || matchedCategory || slug;
-    const canonicalUrl = `https://ravioaz.vercel.app/mehsullar/${slug}`;
+    const canonicalUrl = `https://ravio.az/mehsullar/${slug}`;
 
     return (
       <div style={{ maxWidth: 1280, margin: '0 auto', padding: 'clamp(20px,3vw,32px) clamp(16px,3vw,32px) 64px' }}>
@@ -869,8 +869,8 @@ function SlugPage({
             breadcrumb: {
               '@type': 'BreadcrumbList',
               itemListElement: [
-                { '@type': 'ListItem', position: 1, name: 'Ana Səhifə',     item: 'https://ravioaz.vercel.app/' },
-                { '@type': 'ListItem', position: 2, name: 'Məhsullar',      item: 'https://ravioaz.vercel.app/mehsullar' },
+                { '@type': 'ListItem', position: 1, name: 'Ana Səhifə',     item: 'https://ravio.az/' },
+                { '@type': 'ListItem', position: 2, name: 'Məhsullar',      item: 'https://ravio.az/mehsullar' },
                 { '@type': 'ListItem', position: 3, name: h1,               item: canonicalUrl },
               ],
             },
@@ -906,7 +906,7 @@ function SlugPage({
   const totalStock     = currentProduct
     ? (currentProduct.variants || []).reduce((sum, v) => sum + (v.stock || 0), 0)
     : 0;
-  const productUrl = `https://ravioaz.vercel.app/mehsullar/${slug}`;
+  const productUrl = `https://ravio.az/mehsullar/${slug}`;
 
   if (!loading && !currentProduct) {
     return (
@@ -914,7 +914,7 @@ function SlugPage({
         <Helmet>
           <title>Məhsul tapılmadı | Ravio</title>
           <meta name="robots" content="noindex,follow" />
-          <link rel="canonical" href={`https://ravioaz.vercel.app/mehsullar/${slug}`} />
+          <link rel="canonical" href={`https://ravio.az/mehsullar/${slug}`} />
         </Helmet>
         <NotFound onHome={() => navigate('/mehsullar')} />
       </div>
@@ -966,8 +966,8 @@ function SlugPage({
           const breadcrumbSchema = {
             '@context': 'https://schema.org', '@type': 'BreadcrumbList',
             itemListElement: [
-              { '@type': 'ListItem', position: 1, name: 'Ana Səhifə', item: 'https://ravioaz.vercel.app/' },
-              { '@type': 'ListItem', position: 2, name: 'Məhsullar',  item: 'https://ravioaz.vercel.app/mehsullar' },
+              { '@type': 'ListItem', position: 1, name: 'Ana Səhifə', item: 'https://ravio.az/' },
+              { '@type': 'ListItem', position: 2, name: 'Məhsullar',  item: 'https://ravio.az/mehsullar' },
               { '@type': 'ListItem', position: 3, name: currentProduct.name, item: productUrl },
             ],
           };
@@ -1034,20 +1034,20 @@ function HomePage({
         <meta property="og:type"        content="website" />
         <meta property="og:title"       content="Ravio — Sizə Özəl Hədiyyələr | Bakı" />
         <meta property="og:description" content="Lazer yazılı qolbaq, fərdi təsbeh, domino və giftbox. 17₼-dən başlayan qiymətlə." />
-        <meta property="og:url"         content="https://ravioaz.vercel.app/" />
-        <meta property="og:image"       content="https://ravioaz.vercel.app/og-cover.jpg" />
+        <meta property="og:url"         content="https://ravio.az/" />
+        <meta property="og:image"       content="https://ravio.az/og-cover.jpg" />
         <meta property="og:locale"      content="az_AZ" />
         <meta name="twitter:card"        content="summary_large_image" />
         <meta name="twitter:title"       content="Ravio — Sizə Özəl Hədiyyələr | Bakı" />
         <meta name="twitter:description" content="Lazer yazılı qolbaq, fərdi təsbeh, domino və giftbox. 17₼-dən başlayan qiymətlə." />
-        <meta name="twitter:image"       content="https://ravioaz.vercel.app/og-cover.jpg" />
-        <link rel="canonical" href="https://ravioaz.vercel.app/" />
+        <meta name="twitter:image"       content="https://ravio.az/og-cover.jpg" />
+        <link rel="canonical" href="https://ravio.az/" />
         <script type="application/ld+json">{JSON.stringify({
           '@context': 'https://schema.org',
           '@type': 'Organization',
           name: 'Ravio',
-          url: 'https://ravioaz.vercel.app',
-          logo: 'https://ravioaz.vercel.app/og-cover.jpg',
+          url: 'https://ravio.az',
+          logo: 'https://ravio.az/og-cover.jpg',
           description: 'Bakıda fərdi hədiyyələr — lazer yazılı qolbaq, təsbeh, domino, giftbox.',
           contactPoint: { '@type': 'ContactPoint', contactType: 'customer service', availableLanguage: 'Azerbaijani' },
           areaServed: { '@type': 'Country', name: 'Azerbaijan' },
