@@ -9,7 +9,7 @@ const client = createClient({
   apiVersion: '2026-02-09',
 });
 
-const BASE_URL = 'https://ravioaz.vercel.app';
+const BASE_URL = 'https://ravio.az';
 const TODAY    = new Date().toISOString().split('T')[0];
 
 async function generateSitemap() {
