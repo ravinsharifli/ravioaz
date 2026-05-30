@@ -1,6 +1,15 @@
-// generate-sitemap.mjs
+/**
+ * generate-snap-urls.mjs
+ * 
+ * Bu script build zamanı Sanity-dən bütün məhsul slug-larını çəkir
+ * və package.json-dakı reactSnap.include siyahısını yeniləyir.
+ * 
+ * İstifadə: node generate-snap-urls.mjs
+ * (build skriptinə əlavə et: "node generate-snap-urls.mjs && node generate-sitemap.mjs && vite build")
+ */
+
 import { createClient } from '@sanity/client';
-import { writeFileSync } from 'fs';
+import { readFileSync, writeFileSync } from 'fs';
 
 const client = createClient({
   projectId: 'w7scii42',
@@ -9,49 +18,39 @@ const client = createClient({
   apiVersion: '2026-02-09',
 });
 
-const BASE_URL = 'https://ravio.az';
-const TODAY    = new Date().toISOString().split('T')[0];
-
-async function generateSitemap() {
-  console.log('Sitemap generasiya edilir...');
+async function updateSnapUrls() {
+  console.log('📦 Sanity-dən məhsul URL-ləri çəkilir...');
 
   const products = await client.fetch(
     `*[_type == "product" && defined(slug.current)]{ "slug": slug.current }`
   );
 
-  console.log(`${products.length} mehsul tapildi`);
+  console.log(`✅ ${products.length} məhsul tapıldı`);
 
-  const staticPages = [
-    { url: '',             priority: '1.0', changefreq: 'weekly'  },
-    { url: '/mehsullar',   priority: '0.9', changefreq: 'weekly'  },
-    { url: '/catdirilma',  priority: '0.8', changefreq: 'monthly' },
-    { url: '/haqqimizda',  priority: '0.7', changefreq: 'monthly' },
-    { url: '/elaqe',       priority: '0.6', changefreq: 'monthly' },
+  const staticUrls = [
+    '/',
+    '/mehsullar',
+    '/haqqimizda',
+    '/elaqe',
+    '/catdirilma',
   ];
 
-  const productPages = products.map(p => ({
-    url:        `/mehsullar/${p.slug}`,
-    priority:   '0.85',
-    changefreq: 'weekly',
-  }));
+  const productUrls = products.map(p => `/mehsullar/${p.slug}`);
+  const allUrls = [...staticUrls, ...productUrls];
 
-  const allPages = [...staticPages, ...productPages];
+  // package.json-u oxu
+  const pkgPath = './package.json';
+  const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'));
 
-  const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${allPages.map(p => `  <url>
-    <loc>${BASE_URL}${p.url}</loc>
-    <lastmod>${TODAY}</lastmod>
-    <changefreq>${p.changefreq}</changefreq>
-    <priority>${p.priority}</priority>
-  </url>`).join('\n')}
-</urlset>`;
+  // reactSnap.include-u yenilə
+  pkg.reactSnap.include = allUrls;
 
-  writeFileSync('public/sitemap.xml', xml, 'utf-8');
-  console.log(`Sitemap yazildi: ${allPages.length} URL`);
+  writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n', 'utf-8');
+  console.log(`✅ package.json yeniləndi — ${allUrls.length} URL react-snap-a əlavə edildi`);
+  console.log('   Məhsul URL-ləri:', productUrls.slice(0, 5), productUrls.length > 5 ? `... +${productUrls.length - 5} daha` : '');
 }
 
-generateSitemap().catch(err => {
-  console.error('Sitemap xetasi:', err);
+updateSnapUrls().catch(err => {
+  console.error('❌ URL generasiya xətası:', err);
   process.exit(1);
 });

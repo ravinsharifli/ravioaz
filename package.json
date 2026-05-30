@@ -5,20 +5,30 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "node generate-sitemap.mjs && vite build",
+    "build": "node generate-snap-urls.mjs && node generate-sitemap.mjs && vite build",
+    "postbuild": "react-snap",
     "preview": "vite preview"
   },
   "reactSnap": {
     "source": "dist",
+    "destination": "dist",
     "minifyHtml": {
-      "collapseWhitespace": false
+      "collapseWhitespace": false,
+      "removeComments": false
     },
     "puppeteerArgs": [
       "--no-sandbox",
-      "--disable-setuid-sandbox"
+      "--disable-setuid-sandbox",
+      "--disable-dev-shm-usage",
+      "--disable-gpu",
+      "--no-first-run",
+      "--no-zygote",
+      "--single-process"
     ],
+    "puppeteerExecutablePath": "/usr/bin/google-chrome-stable",
     "skipThirdPartyRequests": true,
     "crawl": true,
+    "waitForElement": "#root > *",
     "include": [
       "/",
       "/mehsullar",
