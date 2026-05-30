@@ -73,6 +73,12 @@ const SETTINGS_QUERY = `*[_type == "siteSettings"][0]{
   "heroSlides": heroSlides[isActive != false]{
     label, title, subtitle, ctaText,
     "imageUrl": image.asset->url
+  },
+  "reviews": reviews[isActive != false]{
+    name, rating, text, date,
+    "photoUrl": photo.asset->url,
+    productUrl,
+    isActive
   }
 }`;
 
@@ -985,6 +991,7 @@ interface HomePageProps {
   setActiveCategory: React.Dispatch<React.SetStateAction<string | null>>;
   goToProducts: (cat?: string | null) => void;
   openProduct: (p: Product) => void;
+  reviews: any[];
 }
 
 function HomePage({
@@ -998,6 +1005,7 @@ function HomePage({
   setActiveCategory,
   goToProducts,
   openProduct,
+  reviews,
 }: HomePageProps) {
   const navigate = useNavigate();
   return (
@@ -1119,7 +1127,7 @@ function HomePage({
       </section>
 
       <section style={{ background: C.bg }}>
-        <CustomerReviews />
+        <CustomerReviews reviews={reviews} />
       </section>
     </div>
   );
@@ -1174,6 +1182,7 @@ function AppShell() {
   const boxes         = DEFAULT_BOXES;
   const reelPosts: ReelPost[]  = settings?.reelPosts  || [];
   const heroSlides: any[]      = settings?.heroSlides  || [];
+  const reviews: any[]         = settings?.reviews     || [];
 
   const categories       = Array.from(new Set(products.map(p => p.category).filter(Boolean))) as string[];
   const filteredProducts = activeCategory ? products.filter(p => p.category === activeCategory) : products;
@@ -1269,6 +1278,7 @@ function AppShell() {
               setActiveCategory={setActiveCategory}
               goToProducts={goToProducts}
               openProduct={openProduct}
+              reviews={reviews}
             />
           } />
           <Route path="/mehsullar"  element={<ProductsPage categories={categories} products={products} loading={loading} openProduct={openProduct} />} />

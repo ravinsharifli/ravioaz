@@ -257,6 +257,93 @@ export default {
       ],
     },
 
+    {
+      name: 'reviews',
+      title: '⭐ Müştəri Rəyləri',
+      type: 'array',
+      description: 'Saytda göstəriləcək müştəri rəyləri. Şəkil + məhsul linki əlavə edə bilərsiniz.',
+      of: [
+        {
+          type: 'object',
+          name: 'review',
+          title: 'Rəy',
+          fields: [
+            {
+              name: 'name',
+              title: '👤 Müştəri adı',
+              type: 'string',
+              description: 'Məsələn: Aytən M.',
+              validation: Rule => Rule.required(),
+            },
+            {
+              name: 'rating',
+              title: '⭐ Reytinq',
+              type: 'number',
+              initialValue: 5,
+              options: {
+                list: [
+                  { title: '⭐⭐⭐⭐⭐ Əla', value: 5 },
+                  { title: '⭐⭐⭐⭐ Yaxşı', value: 4 },
+                  { title: '⭐⭐⭐ Orta', value: 3 },
+                ],
+                layout: 'radio',
+              },
+              validation: Rule => Rule.required(),
+            },
+            {
+              name: 'text',
+              title: '💬 Rəy mətni',
+              type: 'text',
+              rows: 3,
+              validation: Rule => Rule.required().min(10).max(400),
+            },
+            {
+              name: 'date',
+              title: '📅 Tarix',
+              type: 'string',
+              description: 'Məsələn: May 2026',
+              validation: Rule => Rule.required(),
+            },
+            {
+              name: 'photo',
+              title: '📷 Aldığı məhsulun şəkli (real foto)',
+              type: 'image',
+              description: 'Müştərinin aldığı məhsulun şəkli. Kiçik görünəcək amma vacibdir.',
+              options: { hotspot: true },
+            },
+            {
+              name: 'productUrl',
+              title: '🔗 Məhsul slug-u',
+              type: 'string',
+              description: 'Məsələn: polad-qolbaq — klik etdikdə həmin məhsul açılır.',
+            },
+            {
+              name: 'isActive',
+              title: '✅ Saytda göstərilsin?',
+              type: 'boolean',
+              initialValue: true,
+            },
+          ],
+          preview: {
+            select: {
+              title: 'name',
+              subtitle: 'text',
+              media: 'photo',
+              rating: 'rating',
+              isActive: 'isActive',
+            },
+            prepare({ title, subtitle, media, rating, isActive }) {
+              const stars = '⭐'.repeat(rating || 5);
+              return {
+                title: `${isActive ? '✅' : '❌'} ${title} ${stars}`,
+                subtitle: (subtitle || '').slice(0, 60),
+                media,
+              };
+            },
+          },
+        },
+      ],
+    },
 
   ],
 };

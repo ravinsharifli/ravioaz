@@ -1,7 +1,5 @@
 import product from './product'
 import siteSettings from './siteSettings'
-import customerReview from './customerReview'
-import order from './order'
 
 const category = {
   name: 'category',
@@ -147,4 +145,4 @@ const promoBanner = {
   },
 }
 
-export const schemaTypes = [category, product, promoBanner, siteSettings, customerReview, order]
+export const schemaTypes = [category, product, siteSettings]
