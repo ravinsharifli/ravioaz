@@ -299,16 +299,16 @@ function UnifiedHeroCarousel({
     <div
       style={{
         background: '#111111',
-        padding: '48px clamp(16px, 5vw, 48px)',
+        padding: 'clamp(16px, 4vw, 48px) clamp(16px, 5vw, 48px)',
         position: 'relative',
         overflow: 'hidden',
       }}
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
+      onMouseEnter={() => {}}
+      onMouseLeave={() => {}}
     >
       {/* ── Ox düymələri — sağ üst ────────────────────────────────────────── */}
       <div style={{
-        maxWidth: 1280, margin: '0 auto 28px',
+        maxWidth: 1280, margin: '0 auto 16px',
         display: 'flex', justifyContent: 'flex-end', gap: 8,
       }}>
         {slides.length > 10 && (
@@ -439,7 +439,7 @@ function UnifiedHeroCarousel({
           {slides
             .map((p, i) => ({ p, i }))
             .filter(({ i }) => i !== safeIdx)
-            .slice(0, 3)
+            .slice(0, 4)
             .map(({ p, i }) => (
               <div
                 key={i}
@@ -451,7 +451,7 @@ function UnifiedHeroCarousel({
                   border: '2px solid rgba(255,255,255,0.08)',
                   display: 'flex', alignItems: 'stretch',
                   transition: 'border-color 0.2s',
-                  maxHeight: 120,
+                  maxHeight: 90,
                 }}
                 onMouseEnter={(e: React.MouseEvent<HTMLDivElement>) => (e.currentTarget.style.borderColor = 'rgba(255,106,0,0.5)')}
                 onMouseLeave={(e: React.MouseEvent<HTMLDivElement>) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)')}
@@ -543,23 +543,69 @@ function UnifiedHeroCarousel({
 function InfoStrips() {
   const strips = [
     { icon: '🚚', title: 'Ödənişsiz çatdırılma', desc: 'Bütün sifarişlər' },
-    { icon: '⚡', title: '1–3 iş günü', desc: 'Sürətli hazırlıq və çatdırılma' },
-    { icon: '✍️', title: 'Lazer yazısı', desc: 'İstədiyin ad, tarix, mesaj' },
-    { icon: '🎁', title: 'Hədiyyəlik qablaşdırma', desc: 'Fərqli qutu seçimi və hədiyyəlik bağlama.' },
+    { icon: '⚡', title: '1–3 iş günü', desc: 'Sürətli hazırlıq' },
+    { icon: '✍️', title: 'Lazer yazısı', desc: 'Ad, tarix, mesaj' },
+    { icon: '🎁', title: 'Hədiyyəlik qutu', desc: 'Fərqli qutu seçimi' },
   ];
   return (
-    <div style={{ background: C.white, borderBottom: '1px solid #EDEBE7', padding: '0 clamp(16px, 4vw, 32px)' }}>
-      <div style={{ maxWidth: 1280, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 0 }} className="ravio-info-strips">
+    <div style={{ background: C.white, borderBottom: '1px solid #EDEBE7' }}>
+      {/* Desktop: grid, Mobil: horizontal scroll */}
+      <div className="ravio-info-strips-wrap">
         {strips.map((s, i) => (
-          <div key={s.title} className={`ravio-strip-item ravio-strip-${i}`} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 'clamp(14px, 2vw, 20px) 16px', borderLeft: i > 0 ? '1px solid #EDEBE7' : 'none' }}>
-            <span style={{ fontSize: 'clamp(20px, 3vw, 26px)', flexShrink: 0 }}>{s.icon}</span>
+          <div key={s.title} className={`ravio-strip-item ravio-strip-${i}`}>
+            <span className="ravio-strip-icon">{s.icon}</span>
             <div>
-              <div style={{ fontSize: 'clamp(11px, 1.2vw, 13px)', fontWeight: 700, color: C.black, marginBottom: 2 }}>{s.title}</div>
-              <div style={{ fontSize: 'clamp(10px, 1vw, 12px)', color: '#888888', fontWeight: 400 }}>{s.desc}</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: C.black, marginBottom: 1, whiteSpace: 'nowrap' }}>{s.title}</div>
+              <div style={{ fontSize: 11, color: '#888888', fontWeight: 400, whiteSpace: 'nowrap' }}>{s.desc}</div>
             </div>
           </div>
         ))}
       </div>
+      <style>{`
+        .ravio-info-strips-wrap {
+          max-width: 1280px;
+          margin: 0 auto;
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+        }
+        .ravio-strip-item {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 16px;
+          border-left: 1px solid #EDEBE7;
+        }
+        .ravio-strip-item:first-child { border-left: none; }
+        .ravio-strip-icon { font-size: 22px; flex-shrink: 0; }
+
+        @media (max-width: 640px) {
+          .ravio-info-strips-wrap {
+            display: flex;
+            overflow-x: auto;
+            scrollbar-width: none;
+            padding: 0 16px;
+            gap: 0;
+          }
+          .ravio-info-strips-wrap::-webkit-scrollbar { display: none; }
+          .ravio-strip-item {
+            flex-shrink: 0;
+            border-left: none;
+            border-right: 1px solid #EDEBE7;
+            padding: 10px 14px;
+            gap: 8px;
+          }
+          .ravio-strip-item:last-child { border-right: none; }
+          .ravio-strip-icon { font-size: 18px; }
+        }
+        @media (max-width: 1024px) and (min-width: 641px) {
+          .ravio-info-strips-wrap {
+            grid-template-columns: repeat(2, 1fr);
+          }
+          .ravio-strip-0 { border-left: none; border-bottom: 1px solid #EDEBE7; }
+          .ravio-strip-1 { border-bottom: 1px solid #EDEBE7; }
+          .ravio-strip-2 { border-left: none; }
+        }
+      `}</style>
     </div>
   );
 }
@@ -1303,7 +1349,7 @@ function AppShell() {
         /* ── UnifiedHeroCarousel responsive layout ── */
         @media (max-width: 640px) {
           .ravio-reelworks-inner { flex-direction: column !important; overflow: visible !important; }
-          .ravio-reel-main-img   { flex: none !important; width: 100% !important; aspect-ratio: 16/9 !important; }
+          .ravio-reel-main-img   { flex: none !important; width: 100% !important; aspect-ratio: 4/3 !important; }
           .ravio-reel-thumbs     { display: none !important; }
         }
         @media (min-width: 641px) and (max-width: 900px) {
