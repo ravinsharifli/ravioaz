@@ -195,7 +195,79 @@ async function run() {
     console.error(`  ❌ /mehsullar — ${err.message}`);
   }
 
-  console.log(`\n🎉 Tamamlandı: ${ok}/${products.length} məhsul HTML-i yaradıldı`);
+  // ── C işi: Kateqoriya səhifələrini prerender et ───────────────
+  const CATEGORIES = [
+    {
+      slug: 'qolbaqlar',
+      title: 'Lazer Yazılı Qolbaqlar — Fərdi Hədiyyə | Ravio Bakı',
+      desc:  'Bakıda fərdi lazer yazılı qolbaqlar. Ad, tarix, mesaj yazılır. Pulsuz metro çatdırılma, 1–3 iş günündə hazır.',
+      h1:   'Lazer Yazılı Qolbaqlar Bakıda',
+    },
+    {
+      slug: 'tesbehler',
+      title: 'Fərdi Qravürlü Təsbehlər | Ravio Bakı',
+      desc:  'Ağac və daş materiallardan lazer qravürlü fərdi təsbehlər. Bakıda özəl hədiyyə. Pulsuz metro çatdırılma.',
+      h1:   'Fərdi Qravürlü Təsbehlər',
+    },
+    {
+      slug: 'domino',
+      title: 'Hədiyyəlik Domino Dəsti — Lazer Yazılı | Ravio Bakı',
+      desc:  'Fərdi lazer yazılı domino dəstləri. Korporativ hədiyyə, ad günü üçün ideal. Bakı daxili pulsuz çatdırılma.',
+      h1:   'Hədiyyəlik Domino Dəsti',
+    },
+    {
+      slug: 'hediyelik_qutular',
+      title: 'Hədiyyəlik Qutular — Premium Qablaşdırma | Ravio Bakı',
+      desc:  'Ravio premium hədiyyəlik qutular. Lent, köpük yastıq, bağlama + qeyd kartı. Hər hədiyyəni özəl edir.',
+      h1:   'Hədiyyəlik Qutular',
+    },
+  ];
+
+  let catOk = 0;
+  for (const cat of CATEGORIES) {
+    try {
+      const catUrl = `https://ravio.az/mehsullar/${cat.slug}`;
+
+      let html = injectMeta(template, {
+        title: cat.title,
+        desc:  cat.desc,
+        url:   catUrl,
+        image: 'https://ravio.az/og-ravio.png',
+      });
+
+      // Kateqoriya üçün BreadcrumbList schema
+      const breadcrumb = {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Ravio',      item: 'https://ravio.az' },
+          { '@type': 'ListItem', position: 2, name: 'Məhsullar',  item: 'https://ravio.az/mehsullar' },
+          { '@type': 'ListItem', position: 3, name: cat.h1,       item: catUrl },
+        ],
+      };
+      const schemaTag = `\n  <script type="application/ld+json">${JSON.stringify(breadcrumb)}</script>`;
+      html = html.replace('</head>', `${schemaTag}\n</head>`);
+
+      // Google botu üçün görünən H1 + açıqlama bloku
+      const bodyBlock = `
+  <!-- SEO: Kateqoriya statik məlumatı -->
+  <div style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap" aria-hidden="true">
+    <h1>${esc(cat.h1)}</h1>
+    <p>${esc(cat.desc)}</p>
+    <p>Ravio — Bakıda fərdi hədiyyə mağazası. Lazer qravirə xidməti. Pulsuz çatdırılma.</p>
+  </div>`;
+      html = html.replace('<div id="root"></div>', `${bodyBlock}\n    <div id="root"></div>`);
+
+      mkdirSync(`dist/mehsullar/${cat.slug}`, { recursive: true });
+      writeFileSync(`dist/mehsullar/${cat.slug}/index.html`, html, 'utf-8');
+      catOk++;
+      console.log(`  ✅ /mehsullar/${cat.slug}`);
+    } catch (err) {
+      console.error(`  ❌ /mehsullar/${cat.slug} — ${err.message}`);
+    }
+  }
+
+  console.log(`\n🎉 Tamamlandı: ${ok}/${products.length} məhsul + ${catOk}/${CATEGORIES.length} kateqoriya HTML-i yaradıldı`);
   if (fail > 0) console.warn(`⚠️  ${fail} məhsul zamanı xəta baş verdi`);
   console.log('');
 }
