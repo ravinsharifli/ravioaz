@@ -96,6 +96,25 @@ function injectProductSchema(html, product) {
   return html.replace('</head>', `${tag}\n</head>`);
 }
 
+/** Məhsul üçün Google botu oxuya biləcəyi statik body mətn bloku əlavə et */
+function injectVisibleProductContent(html, product) {
+  const priceText = product.price
+    ? `<span itemprop="price" content="${product.price}">${product.price} ₼</span>`
+    : '';
+
+  const contentBlock = `
+  <!-- SEO: Google botu üçün statik məhsul məlumatı -->
+  <div style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap" aria-hidden="true" itemscope itemtype="https://schema.org/Product">
+    <h1 itemprop="name">${esc(product.name)} — Ravio Bakı</h1>
+    <p itemprop="description">${esc(product.desc)}</p>
+    ${priceText ? `<div itemprop="offers" itemscope itemtype="https://schema.org/Offer">
+      Qiymət: ${priceText} AZN — Bakıda pulsuz çatdırılma ilə
+    </div>` : ''}
+    <p>Ravio fərdi hədiyyə mağazası. Lazer qravirə. Bakıda istehsal.</p>
+  </div>`;
+
+  return html.replace('<div id="root"></div>', `${contentBlock}\n    <div id="root"></div>`);
+}
 // ── Əsas funksiya ─────────────────────────────────────────────
 async function run() {
   console.log('\n🚀 inject-seo: başladı...\n');
@@ -141,6 +160,12 @@ async function run() {
         desc: rawDesc,
         url: pageUrl,
         image,
+        price: p.price,
+      });
+
+      html = injectVisibleProductContent(html, {
+        name: p.name,
+        desc: rawDesc,
         price: p.price,
       });
 

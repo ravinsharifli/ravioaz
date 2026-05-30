@@ -1038,6 +1038,18 @@ function HomePage({
 
       {/* ── Vahid Hero Karusel — real işlər + tanıtım + kampaniyalar ────────── */}
       <InfoStrips />
+      {/* SEO H1 — Google botu üçün, vizual olaraq gizlidir */}
+      <h1 style={{
+        position: 'absolute',
+        width: 1,
+        height: 1,
+        overflow: 'hidden',
+        clip: 'rect(0,0,0,0)',
+        whiteSpace: 'nowrap',
+        border: 0,
+      }}>
+        Lazer Yazılı Qolbaq və Fərdi Hədiyyələr Bakıda — Ravio
+      </h1>
 
       <UnifiedHeroCarousel
         reelPosts={reelPosts}

@@ -13,11 +13,15 @@ const client = createClient({
 const BASE_URL = 'https://ravio.az';
 
 const STATIC_PAGES = [
-  { url: '',             priority: '1.0', changefreq: 'weekly'  },
-  { url: '/mehsullar',   priority: '0.9', changefreq: 'weekly'  },
-  { url: '/catdirilma',  priority: '0.8', changefreq: 'monthly' },
-  { url: '/haqqimizda',  priority: '0.7', changefreq: 'monthly' },
-  { url: '/elaqe',       priority: '0.6', changefreq: 'monthly' },
+  { url: '',                              priority: '1.0', changefreq: 'weekly'  },
+  { url: '/mehsullar',                    priority: '0.9', changefreq: 'weekly'  },
+  { url: '/mehsullar/qolbaqlar',          priority: '0.9', changefreq: 'weekly'  },
+  { url: '/mehsullar/tesbehler',          priority: '0.8', changefreq: 'weekly'  },
+  { url: '/mehsullar/domino',             priority: '0.8', changefreq: 'weekly'  },
+  { url: '/mehsullar/hediyelik_qutular',  priority: '0.7', changefreq: 'monthly' },
+  { url: '/catdirilma',                   priority: '0.7', changefreq: 'monthly' },
+  { url: '/haqqimizda',                   priority: '0.6', changefreq: 'monthly' },
+  { url: '/elaqe',                        priority: '0.6', changefreq: 'monthly' },
 ];
 
 export default async function handler(req, res) {
