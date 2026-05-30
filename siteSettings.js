@@ -34,6 +34,7 @@ export default {
       type: 'image',
       options: { hotspot: true },
     },
+
     // ── METRO QRAFİKİ ─────────────────────────────────────────────
     {
       name: 'metroSchedule',
@@ -46,7 +47,6 @@ export default {
           name: 'station',
           title: 'Stansiya',
           fields: [
-
             {
               name: 'name',
               title: '🚇 Stansiya adı',
@@ -54,7 +54,6 @@ export default {
               description: 'Məs: Neftçilər, 28 May, Nərimanov',
               validation: Rule => Rule.required(),
             },
-
             {
               name: 'isActive',
               title: '✅ Stansiya aktiv?',
@@ -62,8 +61,6 @@ export default {
               initialValue: true,
               description: 'Söndür = bu stansiyaya heç bir çatdırılma olmaz',
             },
-
-            // ── GÜNLƏR + SAATLAR ──────────────────────────────────
             {
               name: 'daySchedules',
               title: '📅 Günlər və saatlar',
@@ -78,8 +75,6 @@ export default {
                   name: 'daySchedule',
                   title: 'Gün',
                   fields: [
-
-                    // Günü seç
                     {
                       name: 'day',
                       title: '📆 Gün',
@@ -91,8 +86,6 @@ export default {
                       },
                       validation: Rule => Rule.required(),
                     },
-
-                    // Bütün gün boşdur toggle
                     {
                       name: 'allDayOpen',
                       title: '🟢 Bütün gün boşdur (bütün saatlar avtomatik açıq)',
@@ -102,8 +95,6 @@ export default {
                         'ON = bütün saatlar boşdur, müştəri istənilən saatı seçə bilər. ' +
                         'OFF = aşağıda yalnız boş saatları işarələ.',
                     },
-
-                    // Seçilmiş boş saatlar (yalnız allDayOpen = false olduqda)
                     {
                       name: 'timeSlots',
                       title: '🕐 Boş saatlar (yalnız bəzi saatlar boşdursa işarələ)',
@@ -118,9 +109,7 @@ export default {
                         layout: 'grid',
                       },
                     },
-
                   ],
-
                   preview: {
                     select: {
                       day:        'day',
@@ -148,9 +137,7 @@ export default {
                 },
               ],
             },
-
           ],
-
           preview: {
             select: {
               title:    'name',
@@ -171,10 +158,90 @@ export default {
       ],
     },
 
+    // ── 🎉 KAMPANIYA / BAYRAM HERO SLAYDları ──────────────────────────────────
+    // Novruz, Qurban, Analar günü, Valentinaday — istənilən bayram üçün
+    // özəl dizayn edilmiş şəkli bura yüklə. Karuseldə ƏN ÖNƏ çıxır.
+    {
+      name: 'heroSlides',
+      title: '🎉 Kampaniya / Bayram Hero Slaydları',
+      type: 'array',
+      description:
+        'Bayram, endirim və ya kampaniya üçün özəl hazırladığın şəkilləri bura yüklə. ' +
+        'Saytdakı böyük karuseldə ƏN ƏVVƏL göstərilir. ' +
+        'Kampaniya bitəndə deaktiv et — silməyə ehtiyac yoxdur.',
+      of: [
+        {
+          type: 'object',
+          name: 'heroSlide',
+          title: 'Kampaniya slaydı',
+          fields: [
+            {
+              name: 'image',
+              title: '🖼 Şəkil (Canva və ya başqa dizayn)',
+              type: 'image',
+              options: { hotspot: true },
+              description:
+                'Tövsiyə olunan ölçü: 800×1000 px (4:5 nisbəti). ' +
+                'Canva-da hazırladığın bayram/kampaniya şəklini bura yüklə.',
+              validation: Rule => Rule.required(),
+            },
+            {
+              name: 'label',
+              title: '🏷 Etiket (sol üst künc — qısa)',
+              type: 'string',
+              description: 'Məs: 🎉 Novruz · ❤️ Valentin · 🌹 Analar Günü · 🔥 Endirim',
+              initialValue: '🎉 Kampaniya',
+            },
+            {
+              name: 'title',
+              title: '📝 Əsas başlıq',
+              type: 'string',
+              description: 'Məs: Novruz hədiyyələri hazırdır!',
+              validation: Rule => Rule.required(),
+            },
+            {
+              name: 'subtitle',
+              title: '💬 Alt başlıq / açıqlama',
+              type: 'string',
+              description: 'Məs: Fərdi lazer yazılı hədiyyələr — ödənişsiz çatdırılma ilə.',
+            },
+            {
+              name: 'ctaText',
+              title: '🔘 Düymə mətni',
+              type: 'string',
+              description: 'Məs: İndi sifariş et → · Kataloqa bax →',
+              initialValue: 'Kataloqa bax →',
+            },
+            {
+              name: 'isActive',
+              title: '✅ Aktiv (saytda görünsün)?',
+              type: 'boolean',
+              initialValue: true,
+              description: 'Kampaniya bitəndə söndür. Slayd yenə qalacaq, sadəcə gizlənəcək.',
+            },
+          ],
+          preview: {
+            select: {
+              title:    'title',
+              subtitle: 'subtitle',
+              media:    'image',
+              isActive: 'isActive',
+            },
+            prepare({ title, subtitle, media, isActive }) {
+              return {
+                title:    `${isActive ? '🎉' : '❌'} ${title || 'Başlıq yoxdur'}`,
+                subtitle: subtitle || 'Alt başlıq yoxdur',
+                media,
+              };
+            },
+          },
+        },
+      ],
+    },
 
-    // ── REAL İŞLƏR KARUSELİ ──────────────────────────────────────────────────
+    // ── 📸 REAL İŞLƏR KARUSELİ ────────────────────────────────────────────────
     // Hər gün/həftə hazırladığın məhsulun şəklini buraya yüklə.
-    // Saytda hero karusel kimi görünür. Sanity-dən idarə olunur.
+    // Saytda karuselin sonuna əlavə olunur (kampaniyadan sonra).
     {
       name: 'reelPosts',
       title: '📸 Real İşlər — Hazır Məhsul Karuselı',
@@ -249,7 +316,6 @@ export default {
         },
       ],
     },
-
 
   ],
 };

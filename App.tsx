@@ -4,7 +4,7 @@ import { Helmet } from 'react-helmet-async';
 import { BrowserRouter, Routes, Route, useNavigate, useParams, useLocation } from 'react-router-dom';
 import { client } from './sanityclient';
 import { Analytics } from '@vercel/analytics/react';
-import { Product, CartItem } from './types';
+import { Product, CartItem, ReelPost } from './types';
 
 import Navbar from './components/Navbar';
 import ProductGrid from './components/ProductGrid';
@@ -21,7 +21,6 @@ const CartDrawer   = React.lazy(() => import('./components/CartDrawer'));
 
 // ── Sanity CDN Image Optimizer ─────────────────────────────────────────────────
 // Bütün Sanity URL-lərini WebP-yə çevirir, responsive ölçü + keyfiyyət tətbiq edir.
-// Mobil cihazlar 4K şəkil yükləməsin deyə w parametri mütləqdir.
 function toWebP(url: string, width: number = 600): string {
   if (!url || !url.includes('cdn.sanity.io')) return url;
   try {
@@ -53,6 +52,7 @@ const PRODUCTS_QUERY = `*[_type == "product"] | order(bestSellerOrder asc) {
   coupons[]{ code, discountType, discountValue, minOrderAmount, isActive, description }
 }`;
 
+// ── heroSlides ── yeni kampaniya/bayram banner slaydları da buradan çəkilir ───
 const SETTINGS_QUERY = `*[_type == "siteSettings"][0]{
   "metroSchedule": {
     "stations": metroSchedule[]{
@@ -66,6 +66,10 @@ const SETTINGS_QUERY = `*[_type == "siteSettings"][0]{
     }
   },
   "reelPosts": reelPosts[isActive != false]{
+    label, title, subtitle, ctaText,
+    "imageUrl": image.asset->url
+  },
+  "heroSlides": heroSlides[isActive != false]{
     label, title, subtitle, ctaText,
     "imageUrl": image.asset->url
   }
@@ -182,64 +186,178 @@ export const DEFAULT_BOXES = [
   { id: 'gift',    name: 'Premium qutu', price: 17, desc: 'Bağlama + qeyd kartı', isActive: true, imageUrl: null },
 ];
 
-// ── Real İşlər Karusel Banner ──────────────────────────────────────────────────
-function RealWorksBanner({ posts, onShopClick }: { posts: import('./types').ReelPost[]; onShopClick: () => void }) {
+// ── Unified Hero Carousel ──────────────────────────────────────────────────────
+// Real işlər (Sanity reelPosts), kampaniya (Sanity heroSlides)
+// və statik tanıtım slaydlarını BİR karuseldə birləşdirir.
+// Slayd sayı 10-20+ ola bilər. ≤10 slaydda nöqtə, >10-da sayğac göstərilir.
+
+type HeroSlide = {
+  type: 'promo' | 'work' | 'campaign';
+  imageUrl?: string;
+  label?: string;
+  title: string;
+  subtitle?: string;
+  ctaText: string;
+  bg?: string; // yalnız promo slaydlar üçün
+};
+
+/** Sabit tanıtım slaydları — hardcoded, həmişə var */
+const PROMO_SLIDES: HeroSlide[] = [
+  {
+    type: 'promo',
+    label: '✨ Sizə özəl hazırlanır',
+    title: 'Hər hədiyyə, sənin adınla.',
+    subtitle: 'Lazer yazılı qolbaq, fərdi təsbeh, domino. Bakıda ödənişsiz çatdırılma.',
+    ctaText: 'Kataloqa bax →',
+    bg: 'linear-gradient(135deg, #FF6A00 0%, #FF8C42 100%)',
+  },
+  {
+    type: 'promo',
+    label: '🚀 Ödənişsiz çatdırılma',
+    title: '1–3 iş günündə kapınıza gəlir.',
+    subtitle: 'Kuryer pulsuz · Metro görüşü 2.99 ₼ · Azərpoçt 4.99 ₼',
+    ctaText: 'Sifarişə başla →',
+    bg: 'linear-gradient(135deg, #111111 0%, #2a2a2a 100%)',
+  },
+  {
+    type: 'promo',
+    label: '✨ Toplu endirim',
+    title: '10+ ədəddə xüsusi qiymət.',
+    subtitle: 'Məzun lentləri, korporativ hədiyyə — xüsusi endirimlə.',
+    ctaText: 'Toplu sifariş →',
+    bg: 'linear-gradient(135deg, #1a3a2a 0%, #2d6a4f 100%)',
+  },
+];
+
+/** Bütün mənbələri birləşdirir: kampaniya → tanıtım → real işlər */
+function buildHeroSlides(reelPosts: ReelPost[], heroSlides: any[]): HeroSlide[] {
+  const campaigns: HeroSlide[] = (heroSlides || []).map(s => ({
+    type: 'campaign' as const,
+    imageUrl: s.imageUrl,
+    label: s.label,
+    title: s.title,
+    subtitle: s.subtitle,
+    ctaText: s.ctaText || 'Kataloqa bax →',
+  }));
+  const works: HeroSlide[] = (reelPosts || []).map(p => ({
+    type: 'work' as const,
+    imageUrl: p.imageUrl,
+    label: p.label || '📸 Real iş',
+    title: p.title,
+    subtitle: p.subtitle,
+    ctaText: p.ctaText || 'Sifariş et →',
+  }));
+  // Kampaniyalar ən önə gəlir (aktual), sonra tanıtım, sonra portfolio
+  return [...campaigns, ...PROMO_SLIDES, ...works];
+}
+
+function UnifiedHeroCarousel({
+  reelPosts,
+  heroSlides: sanityHeroSlides,
+  onShopClick,
+}: {
+  reelPosts: ReelPost[];
+  heroSlides: any[];
+  onShopClick: () => void;
+}) {
+  const slides = useMemo(
+    () => buildHeroSlides(reelPosts, sanityHeroSlides),
+    [reelPosts, sanityHeroSlides],
+  );
   const [current, setCurrent] = useState(0);
-  const [isHovered, setIsHovered] = useState(false);
+  const [paused,  setPaused]  = useState(false);
 
+  // Auto-advance: hər 4.5 saniyədə bir növbəti slayd
   useEffect(() => {
-    if (posts.length <= 1 || isHovered) return;
-    const t = setInterval(() => setCurrent(c => (c + 1) % posts.length), 3500);
+    if (slides.length <= 1 || paused) return;
+    const t = setInterval(() => setCurrent(c => (c + 1) % slides.length), 4500);
     return () => clearInterval(t);
-  }, [posts.length, isHovered]);
+  }, [slides.length, paused]);
 
-  if (!posts.length) return null;
+  // Slayd yükləndikdə cari indeks diapazonu yoxlayırıq
+  const safeIdx = slides.length > 0 ? Math.min(current, slides.length - 1) : 0;
+  const slide   = slides[safeIdx];
 
-  const post = posts[current];
+  if (!slides.length || !slide) return null;
+
+  const arrowBtn: React.CSSProperties = {
+    width: 36, height: 36, borderRadius: '50%',
+    border: '1px solid rgba(255,255,255,0.2)',
+    background: 'rgba(255,255,255,0.08)',
+    color: '#ffffff', cursor: 'pointer',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    fontSize: 16, flexShrink: 0,
+  };
+
+  // Header mətnləri slayd tipinə görə dəyişir
+  const sectionLabel =
+    slide.type === 'campaign' ? '🎉 Kampaniya'      :
+    slide.type === 'work'     ? '📸 Real İşlər'     :
+                                '✨ Ravio';
+  const sectionTitle =
+    slide.type === 'campaign' ? 'Xüsusi təklif'         :
+    slide.type === 'work'     ? 'Hazırladığımız işlər'   :
+                                'Fərdi hədiyyələr';
 
   return (
-    <div style={{
-      background: C.black,
-      padding: '48px clamp(16px, 5vw, 48px)',
-      position: 'relative',
-      overflow: 'hidden',
-    }}>
-      <div style={{ maxWidth: 1280, margin: '0 auto 28px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+    <div
+      style={{
+        background: '#111111',
+        padding: '48px clamp(16px, 5vw, 48px)',
+        position: 'relative',
+        overflow: 'hidden',
+      }}
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+    >
+      {/* ── Header sətiri ─────────────────────────────────────────────────── */}
+      <div style={{
+        maxWidth: 1280, margin: '0 auto 28px',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
+      }}>
         <div>
-          <p style={{ margin: 0, fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase' as const, color: C.primary, fontFamily: F.sans, marginBottom: 6 }}>
-            📸 Real İşlər
+          <p style={{
+            margin: 0, fontSize: 11, fontWeight: 700, letterSpacing: 1.5,
+            textTransform: 'uppercase' as const, color: '#FF6A00', fontFamily: F.sans, marginBottom: 6,
+          }}>
+            {sectionLabel}
           </p>
-          <h2 style={{ margin: 0, fontSize: 'clamp(18px, 3vw, 26px)', fontWeight: 800, color: C.white, fontFamily: F.sans, letterSpacing: '-0.5px' }}>
-            Hazırladığımız işlər
+          <h2 style={{
+            margin: 0, fontSize: 'clamp(18px, 3vw, 26px)', fontWeight: 800,
+            color: '#ffffff', fontFamily: F.sans, letterSpacing: '-0.5px',
+          }}>
+            {sectionTitle}
           </h2>
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          {/* >10 slaydda sayğac header-də görünür */}
+          {slides.length > 10 && (
+            <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', fontFamily: F.sans, marginRight: 4 }}>
+              {safeIdx + 1} / {slides.length}
+            </span>
+          )}
           <button
-            onClick={() => setCurrent(c => (c - 1 + posts.length) % posts.length)}
-            aria-label="Əvvəlki iş"
-            style={{
-              width: 36, height: 36, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.2)',
-              background: 'rgba(255,255,255,0.08)', color: C.white, cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16,
-            }}
+            onClick={() => setCurrent(c => (c - 1 + slides.length) % slides.length)}
+            aria-label="Əvvəlki slayd"
+            style={arrowBtn}
           >‹</button>
           <button
-            onClick={() => setCurrent(c => (c + 1) % posts.length)}
-            aria-label="Növbəti iş"
-            style={{
-              width: 36, height: 36, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.2)',
-              background: 'rgba(255,255,255,0.08)', color: C.white, cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16,
-            }}
+            onClick={() => setCurrent(c => (c + 1) % slides.length)}
+            aria-label="Növbəti slayd"
+            style={arrowBtn}
           >›</button>
         </div>
       </div>
 
-      <div className="ravio-reelworks-inner" style={{ maxWidth: 1280, margin: '0 auto', display: 'flex', gap: 16, overflow: 'hidden' }}>
+      {/* ── Əsas karusel ──────────────────────────────────────────────────── */}
+      <div
+        className="ravio-reelworks-inner"
+        style={{ maxWidth: 1280, margin: '0 auto', display: 'flex', gap: 16, overflow: 'hidden' }}
+      >
+        {/* Əsas kart — şəkil VƏ ya gradient text kart */}
         <div
-          key={post.imageUrl + current}
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
+          key={safeIdx}
+          onClick={onShopClick}
           className="ravio-reel-main-img"
           style={{
             flex: '0 0 clamp(200px, 45%, 420px)',
@@ -247,59 +365,95 @@ function RealWorksBanner({ posts, onShopClick }: { posts: import('./types').Reel
             overflow: 'hidden',
             position: 'relative',
             aspectRatio: '4/5',
-            background: '#1a1a1a',
+            background: slide.imageUrl ? '#1a1a1a' : (slide.bg || '#FF6A00'),
             cursor: 'pointer',
             boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
             animation: 'ravio-fadein 0.4s ease',
           }}
-          onClick={onShopClick}
         >
-          {post.imageUrl && (
+          {/* ── Arxa plan ── */}
+          {slide.imageUrl ? (
             <img
-              src={toWebP(post.imageUrl, 640)}
-              alt={post.title}
+              src={toWebP(slide.imageUrl, 640)}
+              alt={slide.title}
               style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
               loading="lazy"
             />
+          ) : (
+            /* Promo / text slayd — dekorativ dairələr */
+            <>
+              <div style={{ position: 'absolute', right: '-40px', top: '-40px', width: 200, height: 200, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', pointerEvents: 'none' }} />
+              <div style={{ position: 'absolute', left: '20px', bottom: '-60px', width: 150, height: 150, borderRadius: '50%', background: 'rgba(255,255,255,0.04)', pointerEvents: 'none' }} />
+              <div style={{ position: 'absolute', right: '30px', bottom: '80px', width: 80, height: 80, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', pointerEvents: 'none' }} />
+            </>
           )}
-          <div style={{
-            position: 'absolute', inset: 0,
-            background: 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.35) 45%, rgba(0,0,0,0.1) 100%)',
-          }} />
-          {post.label && (
+
+          {/* Şəkil üzərindəki qaranlıq gradient overlay */}
+          {slide.imageUrl && (
+            <div style={{
+              position: 'absolute', inset: 0,
+              background: 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.35) 45%, rgba(0,0,0,0.1) 100%)',
+            }} />
+          )}
+
+          {/* Sol üst künc etiket (badge) */}
+          {slide.label && (
             <div style={{
               position: 'absolute', top: 14, left: 14,
-              background: '#111111', borderRadius: 100,
-              padding: '5px 12px', fontSize: 11, fontWeight: 700, color: '#ffffff',
+              background: slide.imageUrl ? '#111111' : 'rgba(255,255,255,0.2)',
+              borderRadius: 100, padding: '5px 12px',
+              fontSize: 11, fontWeight: 700, color: '#ffffff',
               fontFamily: F.sans, letterSpacing: 0.3,
             }}>
-              {post.label}
+              {slide.label}
             </div>
           )}
-          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '20px 18px' }}>
-            <p style={{ margin: '0 0 4px', fontSize: 16, fontWeight: 700, color: '#ffffff', fontFamily: F.sans, lineHeight: 1.3, textShadow: '0 1px 4px rgba(0,0,0,0.5)' }}>
-              {post.title}
+
+          {/* Alt mətn bloku */}
+          <div style={{
+            position: 'absolute', bottom: 0, left: 0, right: 0,
+            padding: slide.imageUrl ? '20px 18px' : '28px 24px',
+          }}>
+            <p style={{
+              margin: '0 0 6px',
+              fontSize: slide.imageUrl ? 16 : 'clamp(20px, 2.5vw, 28px)',
+              fontWeight: 800, color: '#ffffff', fontFamily: F.sans,
+              lineHeight: 1.15, letterSpacing: '-0.3px',
+              textShadow: slide.imageUrl ? '0 1px 4px rgba(0,0,0,0.5)' : 'none',
+            }}>
+              {slide.title}
             </p>
-            {post.subtitle && (
-              <p style={{ margin: '0 0 12px', fontSize: 12, color: 'rgba(255,255,255,0.85)', fontFamily: F.sans, textShadow: '0 1px 3px rgba(0,0,0,0.5)' }}>
-                {post.subtitle}
+            {slide.subtitle && (
+              <p style={{
+                margin: '0 0 14px',
+                fontSize: slide.imageUrl ? 12 : 13,
+                color: 'rgba(255,255,255,0.85)',
+                fontFamily: F.sans, lineHeight: 1.5,
+                textShadow: slide.imageUrl ? '0 1px 3px rgba(0,0,0,0.5)' : 'none',
+              }}>
+                {slide.subtitle}
               </p>
             )}
             <div style={{
               display: 'inline-block',
-              background: '#FF6A00', color: '#ffffff',
+              background: slide.imageUrl ? '#FF6A00' : 'rgba(255,255,255,0.95)',
+              color: slide.imageUrl ? '#ffffff' : '#111111',
               borderRadius: 8, padding: '8px 18px',
               fontSize: 12, fontWeight: 700, fontFamily: F.sans,
             }}>
-              {post.ctaText || 'Sifariş et →'}
+              {slide.ctaText}
             </div>
           </div>
         </div>
 
-        <div className="ravio-reel-thumbs" style={{ flex: 1, display: 'flex', flexDirection: 'column' as const, gap: 12, overflow: 'hidden' }}>
-          {posts
+        {/* ── Kiçik önizləmə kartları (desktop sağ panel) ── */}
+        <div
+          className="ravio-reel-thumbs"
+          style={{ flex: 1, display: 'flex', flexDirection: 'column' as const, gap: 12, overflow: 'hidden' }}
+        >
+          {slides
             .map((p, i) => ({ p, i }))
-            .filter(({ i }) => i !== current)
+            .filter(({ i }) => i !== safeIdx)
             .slice(0, 3)
             .map(({ p, i }) => (
               <div
@@ -307,7 +461,8 @@ function RealWorksBanner({ posts, onShopClick }: { posts: import('./types').Reel
                 onClick={() => setCurrent(i)}
                 style={{
                   flex: 1, borderRadius: 12, overflow: 'hidden',
-                  position: 'relative', cursor: 'pointer', background: '#1a1a1a',
+                  position: 'relative', cursor: 'pointer',
+                  background: p.imageUrl ? '#1a1a1a' : (p.bg || '#FF6A00'),
                   border: '2px solid rgba(255,255,255,0.08)',
                   display: 'flex', alignItems: 'stretch',
                   transition: 'border-color 0.2s',
@@ -316,27 +471,51 @@ function RealWorksBanner({ posts, onShopClick }: { posts: import('./types').Reel
                 onMouseEnter={(e: React.MouseEvent<HTMLDivElement>) => (e.currentTarget.style.borderColor = 'rgba(255,106,0,0.5)')}
                 onMouseLeave={(e: React.MouseEvent<HTMLDivElement>) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)')}
               >
-                {p.imageUrl && (
+                {/* Önizləmə miniatür */}
+                {p.imageUrl ? (
                   <img
                     src={toWebP(p.imageUrl, 160)}
                     alt={p.title}
                     style={{ width: 80, height: '100%', objectFit: 'cover', flexShrink: 0 }}
                     loading="lazy"
                   />
+                ) : (
+                  <div style={{
+                    width: 80, flexShrink: 0,
+                    background: p.bg || '#FF6A00',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 22,
+                  }}>
+                    {p.type === 'campaign' ? '🎉' : '✨'}
+                  </div>
                 )}
-                <div style={{ padding: '10px 14px', display: 'flex', flexDirection: 'column' as const, justifyContent: 'center', overflow: 'hidden' }}>
+                <div style={{
+                  padding: '10px 14px',
+                  display: 'flex', flexDirection: 'column' as const,
+                  justifyContent: 'center', overflow: 'hidden',
+                }}>
                   {p.label && (
-                    <span style={{ fontSize: 10, color: C.primary, fontWeight: 700, marginBottom: 4, fontFamily: F.sans }}>
+                    <span style={{
+                      fontSize: 10, fontWeight: 700, marginBottom: 4, fontFamily: F.sans,
+                      color: p.imageUrl ? '#FF6A00' : 'rgba(255,255,255,0.75)',
+                    }}>
                       {p.label}
                     </span>
                   )}
-                  <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: C.white, fontFamily: F.sans, lineHeight: 1.35,
-                    overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as any }}>
+                  <p style={{
+                    margin: 0, fontSize: 13, fontWeight: 600, color: '#ffffff',
+                    fontFamily: F.sans, lineHeight: 1.35,
+                    overflow: 'hidden', display: '-webkit-box',
+                    WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as any,
+                  }}>
                     {p.title}
                   </p>
                   {p.subtitle && (
-                    <p style={{ margin: '4px 0 0', fontSize: 11, color: 'rgba(255,255,255,0.5)', fontFamily: F.sans,
-                      overflow: 'hidden', whiteSpace: 'nowrap' as const, textOverflow: 'ellipsis' }}>
+                    <p style={{
+                      margin: '4px 0 0', fontSize: 11, color: 'rgba(255,255,255,0.5)',
+                      fontFamily: F.sans,
+                      overflow: 'hidden', whiteSpace: 'nowrap' as const, textOverflow: 'ellipsis',
+                    }}>
                       {p.subtitle}
                     </p>
                   )}
@@ -346,16 +525,19 @@ function RealWorksBanner({ posts, onShopClick }: { posts: import('./types').Reel
         </div>
       </div>
 
-      {posts.length > 1 && (
+      {/* ── Naviqasiya nöqtələri (≤10 slayd) ─────────────────────────────── */}
+      {slides.length > 1 && slides.length <= 10 && (
         <div style={{ display: 'flex', justifyContent: 'center', gap: 6, marginTop: 24 }}>
-          {posts.map((_, i) => (
+          {slides.map((_, i) => (
             <button
               key={i}
               onClick={() => setCurrent(i)}
+              aria-label={`${i + 1}-ci slayd`}
               style={{
-                width: i === current ? 20 : 6, height: 6, borderRadius: 3,
-                background: i === current ? C.primary : 'rgba(255,255,255,0.25)',
-                border: 'none', cursor: 'pointer', padding: 0, transition: 'all 0.3s',
+                width: i === safeIdx ? 20 : 6, height: 6, borderRadius: 3,
+                background: i === safeIdx ? '#FF6A00' : 'rgba(255,255,255,0.25)',
+                border: 'none', cursor: 'pointer', padding: 0,
+                transition: 'all 0.3s',
               }}
             />
           ))}
@@ -368,234 +550,6 @@ function RealWorksBanner({ posts, onShopClick }: { posts: import('./types').Reel
           to   { opacity: 1; transform: scale(1); }
         }
       `}</style>
-    </div>
-  );
-}
-
-function HeroBanner({ onShopClick, heroImageUrl }: { onShopClick: () => void; heroImageUrl?: string }) {
-  const [currentSlide, setCurrentSlide] = useState(0);
-
-  const slides = [
-    {
-      badge: '✨ Sizə özəl hazırlanır',
-      title: 'Hər hədiyyə, sənin adınla.',
-      desc: 'Lazer yazılı qolbaq, fərdi təsbeh, domino və daha çoxu. Sizə özəl hazırlanır.',
-      bg: 'linear-gradient(135deg, #FF6A00 0%, #FF8C42 100%)',
-      cta: 'Kataloqa bax →',
-    },
-    {
-      badge: '🚀 Ödənişsiz çatdırılma',
-      title: '1–3 iş günündə kapınıza gəlir.',
-      desc: 'Metrodaxili çatdırılma - 2.99 ₼. Ödənişsiz Kuryer xidməti - Bakı, Sumqayıt, Abşeron daxil.',
-      bg: 'linear-gradient(135deg, #111111 0%, #2a2a2a 100%)',
-      cta: 'Sifarişə başla →',
-    },
-    {
-      badge: '✨ Toplu endirim',
-      title: '10+ ədəddə xüsusi qiymət.',
-      desc: 'Məzun lentləri, korporativ hədiyyə, sinif sifarişi — xüsusi endirimlə.',
-      bg: 'linear-gradient(135deg, #1a3a2a 0%, #2d6a4f 100%)',
-      cta: 'Toplu sifariş →',
-    },
-  ];
-
-  const prev = () => setCurrentSlide(s => (s - 1 + slides.length) % slides.length);
-  const next = () => setCurrentSlide(s => (s + 1) % slides.length);
-
-  useEffect(() => {
-    const t = setInterval(() => setCurrentSlide(s => (s + 1) % slides.length), 4500);
-    return () => clearInterval(t);
-  }, []);
-
-  const slide = slides[currentSlide];
-
-  const arrowStyle: React.CSSProperties = {
-    width: 36, height: 36, borderRadius: '50%',
-    background: 'rgba(255,255,255,0.2)',
-    border: '1px solid rgba(255,255,255,0.35)',
-    color: '#ffffff', cursor: 'pointer',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    fontSize: 20, lineHeight: 1, backdropFilter: 'blur(4px)',
-    flexShrink: 0,
-  };
-
-  return (
-    <div style={{
-      background: slide.bg,
-      transition: 'background 0.8s ease',
-      padding: 'clamp(20px, 3vw, 32px) clamp(20px, 5vw, 48px)',
-      position: 'relative',
-      overflow: 'hidden',
-    }}>
-      {/* Dekorativ dairələr */}
-      <div style={{ position: 'absolute', right: '-60px', top: '-60px', width: 260, height: 260, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', pointerEvents: 'none' }} />
-      <div style={{ position: 'absolute', left: '40px', bottom: '-80px', width: 180, height: 180, borderRadius: '50%', background: 'rgba(255,255,255,0.04)', pointerEvents: 'none' }} />
-
-      <style>{`
-        .ravio-hero-inner {
-          max-width: 1280px;
-          width: 100%;
-          margin: 0 auto;
-          position: relative;
-          z-index: 1;
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 32px;
-          align-items: center;
-        }
-        .ravio-hero-right {
-          display: flex;
-          flex-direction: column;
-          align-items: flex-end;
-          gap: 14px;
-        }
-        .ravio-hero-arrows-mobile {
-          display: none;
-        }
-        @media (max-width: 767px) {
-          .ravio-hero-inner {
-            grid-template-columns: 1fr !important;
-            gap: 0 !important;
-          }
-          .ravio-hero-right {
-            display: none !important;
-          }
-          .ravio-hero-mobile-cta {
-            display: flex !important;
-          }
-          .ravio-hero-arrows-mobile {
-            display: flex !important;
-          }
-        }
-        @media (min-width: 768px) {
-          .ravio-hero-mobile-cta {
-            display: none !important;
-          }
-        }
-      `}</style>
-
-      <div className="ravio-hero-inner">
-        {/* Sol — badge + tək sıra başlıq + dots */}
-        <div>
-          <div style={{
-            display: 'inline-flex', alignItems: 'center', gap: 8,
-            background: 'rgba(255,255,255,0.18)', border: '1px solid rgba(255,255,255,0.3)',
-            borderRadius: 100, padding: '6px 16px', backdropFilter: 'blur(6px)',
-            marginBottom: 12,
-          }}>
-            <span style={{ fontSize: 12, fontWeight: 600, color: '#ffffff', letterSpacing: 0.2 }}>{slide.badge}</span>
-          </div>
-
-          <h2 style={{
-            fontSize: 'clamp(22px, 3.8vw, 52px)',
-            fontWeight: 800,
-            color: '#ffffff',
-            lineHeight: 1.1,
-            letterSpacing: '-1px',
-            margin: 0,
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-          }}>
-            {slide.title}
-          </h2>
-
-          {/* Dot naviqasiya + mobil oxlar — solda başlığın altında */}
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center', justifyContent: 'space-between', marginTop: 14 }}>
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-              {slides.map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setCurrentSlide(i)}
-                  aria-label={`${i + 1}-ci slayd`}
-                  style={{
-                    width: i === currentSlide ? 28 : 8, height: 8,
-                    borderRadius: 4,
-                    background: i === currentSlide ? '#ffffff' : 'rgba(255,255,255,0.35)',
-                    border: 'none', cursor: 'pointer',
-                    transition: 'all 0.3s ease', padding: 0, flexShrink: 0,
-                  }}
-                />
-              ))}
-            </div>
-            {/* Mobil ox düymələri — yalnız kiçik ekranlarda */}
-            <div className="ravio-hero-arrows-mobile" style={{ gap: 8 }}>
-              <button onClick={prev} aria-label="Əvvəlki slayd" style={{ ...arrowStyle, width: 30, height: 30, fontSize: 18 }}>‹</button>
-              <button onClick={next} aria-label="Növbəti slayd" style={{ ...arrowStyle, width: 30, height: 30, fontSize: 18 }}>›</button>
-            </div>
-          </div>
-
-          {/* Mobil: açıqlama + CTA + ox düymələri */}
-          <div className="ravio-hero-mobile-cta" style={{ flexDirection: 'column', gap: 12, marginTop: 16 }}>
-            <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.82)', lineHeight: 1.6, margin: 0 }}>
-              {slide.desc}
-            </p>
-            <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-              <button
-                onClick={() => {
-                  onShopClick();
-                  try { if (typeof (window as any).trackEvent === 'function') (window as any).trackEvent('hero_cta_clicked', { slide: currentSlide, cta: slide.cta }); } catch(_) {}
-                }}
-                style={{ padding: '12px 24px', background: '#ffffff', color: '#111111', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: F.sans, boxShadow: '0 4px 20px rgba(0,0,0,0.2)' }}
-              >{slide.cta}</button>
-            </div>
-          </div>
-        </div>
-
-        {/* Sağ — hero şəkli (Sanity-dən) yoxdursa köhnə layout */}
-        <div className="ravio-hero-right">
-          {heroImageUrl ? (
-            <div style={{ position: 'relative', width: '100%', maxWidth: 420 }}>
-              <img
-                src={toWebP(heroImageUrl, 640)}
-                alt="Ravio hədiyyələr"
-                style={{
-                  width: '100%',
-                  aspectRatio: '4/5',
-                  objectFit: 'cover',
-                  borderRadius: 20,
-                  boxShadow: '0 12px 48px rgba(0,0,0,0.35)',
-                  display: 'block',
-                }}
-              />
-              {/* CTA düyməsi şəklin üzərində */}
-              <button
-                onClick={() => {
-                  onShopClick();
-                  try { if (typeof (window as any).trackEvent === 'function') (window as any).trackEvent('hero_cta_clicked', { slide: currentSlide, cta: slide.cta }); } catch(_) {}
-                }}
-                style={{
-                  position: 'absolute', bottom: 20, left: '50%', transform: 'translateX(-50%)',
-                  padding: '13px 32px', background: '#ffffff', color: '#111111',
-                  border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 700,
-                  cursor: 'pointer', fontFamily: F.sans,
-                  boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
-                  whiteSpace: 'nowrap' as const,
-                }}
-              >{slide.cta}</button>
-            </div>
-          ) : (
-            <>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button onClick={prev} aria-label="Əvvəlki slayd" style={arrowStyle}>‹</button>
-                <button onClick={next} aria-label="Növbəti slayd" style={arrowStyle}>›</button>
-              </div>
-              <p style={{ fontSize: 'clamp(13px, 1.3vw, 16px)', color: 'rgba(255,255,255,0.85)', lineHeight: 1.65, margin: 0, maxWidth: 340, textAlign: 'right' }}>
-                {slide.desc}
-              </p>
-              <button
-                onClick={() => {
-                  onShopClick();
-                  try { if (typeof (window as any).trackEvent === 'function') (window as any).trackEvent('hero_cta_clicked', { slide: currentSlide, cta: slide.cta }); } catch(_) {}
-                }}
-                style={{ padding: '13px 32px', background: '#ffffff', color: '#111111', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: F.sans, boxShadow: '0 4px 20px rgba(0,0,0,0.2)', transition: 'transform 0.15s, box-shadow 0.15s' }}
-                onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 28px rgba(0,0,0,0.28)'; }}
-                onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.2)'; }}
-              >{slide.cta}</button>
-            </>
-          )}
-        </div>
-      </div>
     </div>
   );
 }
@@ -670,8 +624,8 @@ function LoadingGrid() {
 
 // Kateqoriya sidebar + məhsul grid (həm CategoryPage həm ProductsPage istifadə edir)
 function CatalogLayout({
-  activeSlug,      // seçili kateqoriya URL slug-u (null = hamısı)
-  activeCategory,  // seçili kateqoriya adı
+  activeSlug,
+  activeCategory,
   categories,
   products,
   filteredProducts,
@@ -790,13 +744,6 @@ function ProductsPage({ categories, products, loading, openProduct }: ProductsPa
 }
 
 // ── /mehsullar/:slug — məhsul səhifəsi VƏ ya kateqoriya səhifəsi ─────────────
-// Bu komponent URL slug-un məhsula yoxsa kateqoriyaya aid olduğunu müəyyən edir.
-//
-// ⚠️  HOOKS ORDER — Rules of Hooks:
-//   Bütün hook-lar (useParams, useNavigate, useMemo, useEffect) şərtsiz olaraq
-//   komponent funksiyasının ƏN ƏVVƏLINDƏ çağrılır.
-//   if (isCategory) { return } VƏ if (selectedProduct) return null; HƏR İKİSİ
-//   hook-lardan SONRA gəlir — bu düzgündür, React qaydalarını pozmur.
 interface SlugPageProps {
   selectedProduct: Product | null;
   products: Product[];
@@ -821,7 +768,6 @@ function SlugPage({
   const { slug = '' } = useParams<{ slug: string }>();
   const navigate = useNavigate();
 
-  // Slug kateqoriyadırmı? (CATEGORY_SEO-da varsa dərhal müəyyənləşir, əks halda məhsullar yüklənəndə)
   const isKnownCategory = Boolean(CATEGORY_SEO[slug]);
   const matchedCategory = useMemo(
     () => fromCategorySlug(slug, categories),
@@ -829,14 +775,11 @@ function SlugPage({
   );
   const isCategory = isKnownCategory || (categories.length > 0 && matchedCategory !== null);
 
-  // Kateqoriya state-ini sinxronlaşdır
   useEffect(() => {
     if (isCategory) {
       setActiveCategory(matchedCategory);
     }
   }, [isCategory, matchedCategory]);
-
-  // (Məhsul artıq tam səhifə kimi göstərilir — modal yoxdur)
 
   // ── Kateqoriya Səhifəsi ────────────────────────────────────────────────────
   if (isCategory) {
@@ -1002,8 +945,8 @@ function SlugPage({
 // ── Ana Səhifə ────────────────────────────────────────────────────────────────
 interface HomePageProps {
   visible: boolean;
-  heroImageUrl?: string;
-  reelPosts: import('./types').ReelPost[];
+  reelPosts: ReelPost[];
+  heroSlides: any[];          // Sanity heroSlides (bayram/kampaniya)
   categories: string[];
   filteredProducts: Product[];
   loading: boolean;
@@ -1015,8 +958,8 @@ interface HomePageProps {
 
 function HomePage({
   visible,
-  heroImageUrl,
   reelPosts,
+  heroSlides,
   categories,
   filteredProducts,
   loading,
@@ -1053,10 +996,14 @@ function HomePage({
           areaServed: { '@type': 'Country', name: 'Azerbaijan' },
         })}</script>
       </Helmet>
-      <HeroBanner onShopClick={() => goToProducts(null)} heroImageUrl={heroImageUrl} />
-      {reelPosts.length > 0 && (
-        <RealWorksBanner posts={reelPosts} onShopClick={() => goToProducts(null)} />
-      )}
+
+      {/* ── Vahid Hero Karusel — real işlər + tanıtım + kampaniyalar ────────── */}
+      <UnifiedHeroCarousel
+        reelPosts={reelPosts}
+        heroSlides={heroSlides}
+        onShopClick={() => goToProducts(null)}
+      />
+
       <InfoStrips />
 
       <section id="mehsullar" style={{ maxWidth: 1280, margin: '0 auto', padding: 'clamp(32px,5vw,56px) clamp(16px,3vw,32px)' }}>
@@ -1168,7 +1115,6 @@ function AppShell() {
   const [visible, setVisible]                 = useState(false);
   const [settings, setSettings]               = useState<any>(null);
 
-
   // Cart dəyişəndə avtomatik yadda saxla
   useEffect(() => {
     try {
@@ -1193,9 +1139,9 @@ function AppShell() {
   }, [location.pathname]);
 
   const metroSchedule = settings?.metroSchedule || DEFAULT_METRO;
-  const boxes = DEFAULT_BOXES;
-  const reelPosts: import('./types').ReelPost[] = settings?.reelPosts || [];
-  const heroImageUrl: string | undefined = undefined;
+  const boxes         = DEFAULT_BOXES;
+  const reelPosts: ReelPost[]  = settings?.reelPosts  || [];
+  const heroSlides: any[]      = settings?.heroSlides  || [];
 
   const categories       = Array.from(new Set(products.map(p => p.category).filter(Boolean))) as string[];
   const filteredProducts = activeCategory ? products.filter(p => p.category === activeCategory) : products;
@@ -1215,6 +1161,7 @@ function AppShell() {
     };
     return () => { delete (window as any).__ravioAddToCart; };
   }, []);
+
   const handleRemove  = (cartId: string) => setCart(prev => prev.filter(c => c.cartId !== cartId));
   const handleEdit    = (item: CartItem) => {
     const p = products.find(p => p.id === item.productId);
@@ -1238,7 +1185,6 @@ function AppShell() {
     document.body.style.overflow = '';
   };
 
-  // Kateqoriya URL-ə navigate et (string), yoxsa /mehsullar-a qayıt (null/undefined)
   const goToProducts = (cat?: string | null) => {
     if (cat) {
       navigate(`/mehsullar/${toCategorySlug(cat)}`);
@@ -1279,7 +1225,20 @@ function AppShell() {
 
       <main id="main-content">
         <Routes>
-          <Route path="/"           element={<HomePage visible={visible} heroImageUrl={heroImageUrl} reelPosts={reelPosts} categories={categories} filteredProducts={filteredProducts} loading={loading} activeCategory={activeCategory} setActiveCategory={setActiveCategory} goToProducts={goToProducts} openProduct={openProduct} />} />
+          <Route path="/" element={
+            <HomePage
+              visible={visible}
+              reelPosts={reelPosts}
+              heroSlides={heroSlides}
+              categories={categories}
+              filteredProducts={filteredProducts}
+              loading={loading}
+              activeCategory={activeCategory}
+              setActiveCategory={setActiveCategory}
+              goToProducts={goToProducts}
+              openProduct={openProduct}
+            />
+          } />
           <Route path="/mehsullar"  element={<ProductsPage categories={categories} products={products} loading={loading} openProduct={openProduct} />} />
           <Route path="/mehsullar/:slug" element={
             <SlugPage
@@ -1355,7 +1314,7 @@ function AppShell() {
           .r-catalog-aside { display: none !important; }
           .r-catalog-main { margin-left: 0 !important; }
         }
-        /* ── RealWorksBanner mobile layout ── */
+        /* ── UnifiedHeroCarousel responsive layout ── */
         @media (max-width: 640px) {
           .ravio-reelworks-inner { flex-direction: column !important; overflow: visible !important; }
           .ravio-reel-main-img   { flex: none !important; width: 100% !important; aspect-ratio: 16/9 !important; }
