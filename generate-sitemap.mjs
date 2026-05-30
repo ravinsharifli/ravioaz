@@ -1,6 +1,7 @@
 // generate-sitemap.mjs
 import { createClient } from '@sanity/client';
 import { writeFileSync } from 'fs';
+import { CATEGORY_PAGES } from './seo-categories.mjs';
 
 const client = createClient({
   projectId: 'w7scii42',
@@ -29,13 +30,19 @@ async function generateSitemap() {
     { url: '/elaqe',       priority: '0.6', changefreq: 'monthly' },
   ];
 
+  const categoryPages = CATEGORY_PAGES.map(cat => ({
+    url:        `/mehsullar/${cat.slug}`,
+    priority:   '0.9',
+    changefreq: 'weekly',
+  }));
+
   const productPages = products.map(p => ({
     url:        `/mehsullar/${p.slug}`,
     priority:   '0.85',
     changefreq: 'weekly',
   }));
 
-  const allPages = [...staticPages, ...productPages];
+  const allPages = [...staticPages, ...categoryPages, ...productPages];
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
