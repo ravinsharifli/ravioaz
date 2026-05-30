@@ -20,25 +20,12 @@ const Navbar: React.FC<NavbarProps> = ({
   onAboutClick, onContactClick, onDeliveryClick, onProductsClick,
   products = [], onViewProduct,
 }) => {
-  const [scrolled, setScrolled]           = useState(false);
-  const [menuOpen, setMenuOpen]           = useState(false);
-  const [searchOpen, setSearchOpen]       = useState(false);
-  const [query, setQuery]                 = useState('');
-  const [announcementH, setAnnouncementH] = useState(38);
-  const announcementRef = useRef<HTMLDivElement>(null);
-  const searchRef       = useRef<HTMLDivElement>(null);
-  const inputRef        = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    const measure = () => {
-      if (announcementRef.current) {
-        setAnnouncementH(announcementRef.current.offsetHeight);
-      }
-    };
-    measure();
-    window.addEventListener('resize', measure);
-    return () => window.removeEventListener('resize', measure);
-  }, []);
+  const [scrolled, setScrolled]     = useState(false);
+  const [menuOpen, setMenuOpen]     = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [query, setQuery]           = useState('');
+  const searchRef = useRef<HTMLDivElement>(null);
+  const inputRef  = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 10);
@@ -61,7 +48,6 @@ const Navbar: React.FC<NavbarProps> = ({
     return () => { document.body.style.overflow = ''; };
   }, [menuOpen]);
 
-  // Search panel açılanda input-a focus ver
   useEffect(() => {
     if (searchOpen) {
       setTimeout(() => inputRef.current?.focus(), 50);
@@ -80,35 +66,12 @@ const Navbar: React.FC<NavbarProps> = ({
   ];
 
   const NAV_H = 60;
-  // Mobil panel üçün top dəyəri: elan barı + nav hündürlüyü + 8px boşluq
-  const panelTop = announcementH + NAV_H + 8;
 
   return (
     <>
-      {/* Announcement bar */}
-      <div
-        ref={announcementRef}
-        style={{
-          background: C.black, color: C.white,
-          textAlign: 'center' as const,
-          fontSize: 12, fontWeight: 500,
-          padding: '9px 16px',
-          fontFamily: F.sans,
-          letterSpacing: 0.2,
-          lineHeight: 1.5,
-          position: 'fixed',
-          top: 0, left: 0, right: 0,
-          zIndex: 1001,
-        }}
-      >
-        ✨ Sizə özəl hazırlanır &nbsp;·&nbsp;
-        <strong style={{ color: C.primary }}>Ödənişsiz çatdırılma</strong>
-        &nbsp;·&nbsp; Hər məhsul fərdidir
-      </div>
-
       {/* Main nav */}
       <nav style={{
-        position: 'fixed', top: announcementH, left: 0, right: 0, zIndex: 1000,
+        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000,
         background: C.white,
         borderBottom: scrolled ? '1px solid #E5E1DB' : '1px solid #EDEBE7',
         boxShadow: scrolled ? '0 2px 16px rgba(0,0,0,0.07)' : 'none',
@@ -166,12 +129,6 @@ const Navbar: React.FC<NavbarProps> = ({
               {searchOpen ? <X size={17} /> : <Search size={17} />}
             </button>
 
-            {/* ──────────────────────────────────────────────────────────────
-                AXTARIŞ PANELİ
-                Desktop: position absolute, right: 0 (düyməyə bağlı)
-                Mobil:   position fixed, left/right 12px (tam ekran eni)
-                         top: announcementH + NAV_H + 8px (CSS variable ilə)
-            ────────────────────────────────────────────────────────────── */}
             {searchOpen && (
               <div
                 className="ravio-search-panel"
@@ -182,11 +139,9 @@ const Navbar: React.FC<NavbarProps> = ({
                   border: '1px solid #E5E1DB', borderRadius: 12,
                   boxShadow: '0 16px 48px rgba(0,0,0,0.12)',
                   overflow: 'hidden', zIndex: 500,
-                  // CSS variable — mobil @media qaydası üçün
-                  ['--panel-top' as string]: `${panelTop}px`,
+                  ['--panel-top' as string]: `${NAV_H + 8}px`,
                 }}
               >
-                {/* Axtarış inputu */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', borderBottom: '1px solid #F0EBE2' }}>
                   <Search size={14} color={C.primary} />
                   <input
@@ -209,7 +164,6 @@ const Navbar: React.FC<NavbarProps> = ({
                   )}
                 </div>
 
-                {/* Nəticələr */}
                 {results.length > 0 ? (
                   <ul style={{ listStyle: 'none', margin: 0, padding: '6px 0', maxHeight: 320, overflowY: 'auto' as const }}>
                     {results.map(p => (
@@ -224,7 +178,6 @@ const Navbar: React.FC<NavbarProps> = ({
                           onMouseEnter={e => (e.currentTarget.style.background = C.bg)}
                           onMouseLeave={e => (e.currentTarget.style.background = 'none')}
                         >
-                          {/* Məhsul şəkli */}
                           {p.variants?.[0]?.images?.[0] && (
                             <div style={{ width: 44, height: 44, borderRadius: 8, overflow: 'hidden', background: C.bg, flexShrink: 0 }}>
                               <img
@@ -234,7 +187,6 @@ const Navbar: React.FC<NavbarProps> = ({
                               />
                             </div>
                           )}
-                          {/* Ad + qiymət */}
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <p style={{
                               margin: 0, fontSize: 13, fontWeight: 600, color: C.black,
@@ -247,7 +199,6 @@ const Navbar: React.FC<NavbarProps> = ({
                               {(p.variants[0]?.discountPrice ?? p.variants[0]?.price ?? 0).toFixed(2)} ₼
                             </p>
                           </div>
-                          {/* Ox */}
                           <span style={{ color: '#CCCCCC', fontSize: 16, flexShrink: 0 }}>›</span>
                         </button>
                       </li>
@@ -335,8 +286,8 @@ const Navbar: React.FC<NavbarProps> = ({
         )}
       </nav>
 
-      {/* Spacer */}
-      <div style={{ height: announcementH + NAV_H }} />
+      {/* Spacer — yalnız nav hündürlüyü qədər */}
+      <div style={{ height: NAV_H }} />
 
       <style>{`
         @media (max-width: 768px) {
@@ -349,19 +300,13 @@ const Navbar: React.FC<NavbarProps> = ({
         @media (max-width: 420px) {
           .ravio-nav-brand-text { display: none !important; }
         }
-
-        /* ── MOBİL AXTARIŞ PANELİ DÜZƏLİŞİ ─────────────────────────────
-           Mobil ekranda panel position:fixed olur + sol/sağ kənarlardan
-           12px boşluq qalır. Beləliklə panel heç vaxt ekrandan çıxmır.
-           "var(--panel-top)" inline style ilə JavaScript-dən doldurulur.
-        ──────────────────────────────────────────────────────────────── */
         @media (max-width: 640px) {
           .ravio-search-panel {
             position: fixed !important;
             left: 12px !important;
             right: 12px !important;
             width: auto !important;
-            top: var(--panel-top, 108px) !important;
+            top: var(--panel-top, 68px) !important;
           }
         }
       `}</style>

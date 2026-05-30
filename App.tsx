@@ -67,7 +67,8 @@ const SETTINGS_QUERY = `*[_type == "siteSettings"][0]{
   },
   "reelPosts": reelPosts[isActive != false]{
     label, title, subtitle, ctaText,
-    "imageUrl": image.asset->url
+    "imageUrl": image.asset->url,
+    "slug": product->slug.current
   },
   "heroSlides": heroSlides[isActive != false]{
     label, title, subtitle, ctaText,
@@ -199,6 +200,7 @@ type HeroSlide = {
   subtitle?: string;
   ctaText: string;
   bg?: string; // yalnız promo slaydlar üçün
+  slug?: string; // real işlər üçün məhsul slug-u
 };
 
 /** Sabit tanıtım slaydları — hardcoded, həmişə var */
@@ -245,7 +247,8 @@ function buildHeroSlides(reelPosts: ReelPost[], heroSlides: any[]): HeroSlide[] 
     label: p.label || '📸 Real iş',
     title: p.title,
     subtitle: p.subtitle,
-    ctaText: p.ctaText || 'Sifariş et →',
+    ctaText: p.ctaText || 'Məhsula bax →',
+    slug: (p as any).slug || '',
   }));
   // Kampaniyalar ən önə gəlir (aktual), sonra tanıtım, sonra portfolio
   return [...campaigns, ...PROMO_SLIDES, ...works];
@@ -255,10 +258,12 @@ function UnifiedHeroCarousel({
   reelPosts,
   heroSlides: sanityHeroSlides,
   onShopClick,
+  onProductClick,
 }: {
   reelPosts: ReelPost[];
   heroSlides: any[];
   onShopClick: () => void;
+  onProductClick: (slug: string) => void;
 }) {
   const slides = useMemo(
     () => buildHeroSlides(reelPosts, sanityHeroSlides),
@@ -270,7 +275,7 @@ function UnifiedHeroCarousel({
   // Auto-advance: hər 4.5 saniyədə bir növbəti slayd
   useEffect(() => {
     if (slides.length <= 1 || paused) return;
-    const t = setInterval(() => setCurrent(c => (c + 1) % slides.length), 4500);
+    const t = setInterval(() => setCurrent(c => (c + 1) % slides.length), 3000);
     return () => clearInterval(t);
   }, [slides.length, paused]);
 
@@ -289,16 +294,7 @@ function UnifiedHeroCarousel({
     fontSize: 16, flexShrink: 0,
   };
 
-  // Header mətnləri slayd tipinə görə dəyişir
-  const sectionLabel =
-    slide.type === 'campaign' ? '🎉 Kampaniya'      :
-    slide.type === 'work'     ? '📸 Real İşlər'     :
-                                '✨ Ravio';
-  const sectionTitle =
-    slide.type === 'campaign' ? 'Xüsusi təklif'         :
-    slide.type === 'work'     ? 'Hazırladığımız işlər'   :
-                                'Fərdi hədiyyələr';
-
+  
   return (
     <div
       style={{
@@ -310,43 +306,26 @@ function UnifiedHeroCarousel({
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
-      {/* ── Header sətiri ─────────────────────────────────────────────────── */}
+      {/* ── Ox düymələri — sağ üst ────────────────────────────────────────── */}
       <div style={{
         maxWidth: 1280, margin: '0 auto 28px',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
+        display: 'flex', justifyContent: 'flex-end', gap: 8,
       }}>
-        <div>
-          <p style={{
-            margin: 0, fontSize: 11, fontWeight: 700, letterSpacing: 1.5,
-            textTransform: 'uppercase' as const, color: '#FF6A00', fontFamily: F.sans, marginBottom: 6,
-          }}>
-            {sectionLabel}
-          </p>
-          <h2 style={{
-            margin: 0, fontSize: 'clamp(18px, 3vw, 26px)', fontWeight: 800,
-            color: '#ffffff', fontFamily: F.sans, letterSpacing: '-0.5px',
-          }}>
-            {sectionTitle}
-          </h2>
-        </div>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          {/* >10 slaydda sayğac header-də görünür */}
-          {slides.length > 10 && (
-            <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', fontFamily: F.sans, marginRight: 4 }}>
-              {safeIdx + 1} / {slides.length}
-            </span>
-          )}
-          <button
-            onClick={() => setCurrent(c => (c - 1 + slides.length) % slides.length)}
-            aria-label="Əvvəlki slayd"
-            style={arrowBtn}
-          >‹</button>
-          <button
-            onClick={() => setCurrent(c => (c + 1) % slides.length)}
-            aria-label="Növbəti slayd"
-            style={arrowBtn}
-          >›</button>
-        </div>
+        {slides.length > 10 && (
+          <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', fontFamily: F.sans, marginRight: 4, alignSelf: 'center' }}>
+            {safeIdx + 1} / {slides.length}
+          </span>
+        )}
+        <button
+          onClick={() => setCurrent(c => (c - 1 + slides.length) % slides.length)}
+          aria-label="Əvvəlki slayd"
+          style={arrowBtn}
+        >‹</button>
+        <button
+          onClick={() => setCurrent(c => (c + 1) % slides.length)}
+          aria-label="Növbəti slayd"
+          style={arrowBtn}
+        >›</button>
       </div>
 
       {/* ── Əsas karusel ──────────────────────────────────────────────────── */}
@@ -357,7 +336,13 @@ function UnifiedHeroCarousel({
         {/* Əsas kart — şəkil VƏ ya gradient text kart */}
         <div
           key={safeIdx}
-          onClick={onShopClick}
+          onClick={() => {
+            if (slide.type === 'work' && (slide as any).slug) {
+              onProductClick((slide as any).slug);
+            } else {
+              onShopClick();
+            }
+          }}
           className="ravio-reel-main-img"
           style={{
             flex: '0 0 clamp(200px, 45%, 420px)',
@@ -998,13 +983,14 @@ function HomePage({
       </Helmet>
 
       {/* ── Vahid Hero Karusel — real işlər + tanıtım + kampaniyalar ────────── */}
+      <InfoStrips />
+
       <UnifiedHeroCarousel
         reelPosts={reelPosts}
         heroSlides={heroSlides}
         onShopClick={() => goToProducts(null)}
+        onProductClick={(slug) => navigate(`/mehsullar/${slug}`)}
       />
-
-      <InfoStrips />
 
       <section id="mehsullar" style={{ maxWidth: 1280, margin: '0 auto', padding: 'clamp(32px,5vw,56px) clamp(16px,3vw,32px)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 28 }}>

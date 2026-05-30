@@ -69,6 +69,7 @@ export interface ReelPost {
   title: string;
   subtitle?: string;
   ctaText?: string;
+  slug?: string;
 }
 
 export interface Coupon {
