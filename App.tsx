@@ -445,7 +445,7 @@ function UnifiedHeroCarousel({
           {slides
             .map((p, i) => ({ p, i }))
             .filter(({ i }) => i !== safeIdx)
-            .slice(0, 4)
+            .slice(0, 5)
             .map(({ p, i }) => (
               <div
                 key={i}
