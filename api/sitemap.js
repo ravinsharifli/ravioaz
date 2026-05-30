@@ -13,22 +13,21 @@ const client = createClient({
 const BASE_URL = 'https://ravio.az';
 
 const STATIC_PAGES = [
-  { url: '',                              priority: '1.0', changefreq: 'weekly'  },
-  { url: '/mehsullar',                    priority: '0.9', changefreq: 'weekly'  },
-  { url: '/mehsullar/qolbaqlar',          priority: '0.9', changefreq: 'weekly'  },
-  { url: '/mehsullar/tesbehler',          priority: '0.8', changefreq: 'weekly'  },
-  { url: '/mehsullar/domino',             priority: '0.8', changefreq: 'weekly'  },
-  { url: '/mehsullar/hediyelik_qutular',  priority: '0.7', changefreq: 'monthly' },
-  { url: '/catdirilma',                   priority: '0.7', changefreq: 'monthly' },
-  { url: '/haqqimizda',                   priority: '0.6', changefreq: 'monthly' },
-  { url: '/elaqe',                        priority: '0.6', changefreq: 'monthly' },
+  { url: '',                             priority: '1.0', changefreq: 'weekly'  },
+  { url: '/mehsullar',                   priority: '0.9', changefreq: 'weekly'  },
+  { url: '/mehsullar/qolbaqlar',         priority: '0.9', changefreq: 'weekly'  },
+  { url: '/mehsullar/tesbehler',         priority: '0.8', changefreq: 'weekly'  },
+  { url: '/mehsullar/domino',            priority: '0.8', changefreq: 'weekly'  },
+  { url: '/mehsullar/hediyelik_qutular', priority: '0.7', changefreq: 'monthly' },
+  { url: '/catdirilma',                  priority: '0.7', changefreq: 'monthly' },
+  { url: '/haqqimizda',                  priority: '0.6', changefreq: 'monthly' },
+  { url: '/elaqe',                       priority: '0.6', changefreq: 'monthly' },
 ];
 
 export default async function handler(req, res) {
   try {
     const today = new Date().toISOString().split('T')[0];
 
-    // Sanity-dən bütün aktiv məhsulları gətirir
     const products = await client.fetch(
       `*[_type == "product" && defined(slug.current)]{ "slug": slug.current, _updatedAt }`
     );
@@ -56,7 +55,6 @@ ${allPages.map(p => `  <url>
 </urlset>`;
 
     res.setHeader('Content-Type', 'application/xml; charset=utf-8');
-    // 1 saatlıq cache — məhsullar tez-tez dəyişirsə azaldın
     res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate');
     res.status(200).send(xml);
 
