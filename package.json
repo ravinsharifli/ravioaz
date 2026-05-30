@@ -5,37 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "node generate-snap-urls.mjs && node generate-sitemap.mjs && vite build",
-    "postbuild": "react-snap",
+    "build": "node generate-sitemap.mjs && vite build && node inject-seo.mjs",
     "preview": "vite preview"
-  },
-  "reactSnap": {
-    "source": "dist",
-    "destination": "dist",
-    "minifyHtml": {
-      "collapseWhitespace": false,
-      "removeComments": false
-    },
-    "puppeteerArgs": [
-      "--no-sandbox",
-      "--disable-setuid-sandbox",
-      "--disable-dev-shm-usage",
-      "--disable-gpu",
-      "--no-first-run",
-      "--no-zygote",
-      "--single-process"
-    ],
-    "puppeteerExecutablePath": "/usr/bin/google-chrome-stable",
-    "skipThirdPartyRequests": true,
-    "crawl": true,
-    "waitForElement": "#root > *",
-    "include": [
-      "/",
-      "/mehsullar",
-      "/haqqimizda",
-      "/elaqe",
-      "/catdirilma"
-    ]
   },
   "dependencies": {
     "@sanity/client": "^7.14.1",
@@ -55,7 +26,6 @@
     "@types/react-dom": "^19.2.3",
     "@types/react-router-dom": "^5.3.3",
     "@vitejs/plugin-react": "^5.0.0",
-    "react-snap": "^1.23.0",
     "typescript": "~5.8.2",
     "vite": "^6.2.0"
   }
