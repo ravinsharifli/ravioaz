@@ -1,65 +1,54 @@
-// api/sitemap.js — Vercel Serverless Function
-// Sanity-dən canlı məlumat alaraq sitemap yaradır
+const { createClient } = require('@sanity/client');
 
-import { createClient } from '@sanity/client';
-
+// Mövcud Sanity Client konfiqurasiyası bura daxil edilməlidir
 const client = createClient({
-  projectId: 'w7scii42',
-  dataset: 'production',
-  useCdn: true,
-  apiVersion: '2026-02-09',
+  projectId: process.env.SANITY_PROJECT_ID || 'LAYİHƏ_ID_DAXİL_EDİN',
+  dataset: process.env.SANITY_DATASET || 'production',
+  useCdn: false,
+  apiVersion: '2023-01-01',
 });
 
-const BASE_URL = 'https://ravio.az';
-
-const STATIC_PAGES = [
-  { url: '',                             priority: '1.0', changefreq: 'weekly'  },
-  { url: '/mehsullar',                   priority: '0.9', changefreq: 'weekly'  },
-  { url: '/mehsullar/qolbaqlar',         priority: '0.9', changefreq: 'weekly'  },
-  { url: '/mehsullar/tesbehler',         priority: '0.8', changefreq: 'weekly'  },
-  { url: '/mehsullar/domino',            priority: '0.8', changefreq: 'weekly'  },
-  { url: '/mehsullar/hediyelik_qutular', priority: '0.7', changefreq: 'monthly' },
-  { url: '/catdirilma',                  priority: '0.7', changefreq: 'monthly' },
-  { url: '/haqqimizda',                  priority: '0.6', changefreq: 'monthly' },
-  { url: '/elaqe',                       priority: '0.6', changefreq: 'monthly' },
-];
-
-export default async function handler(req, res) {
+module.exports = async (req, res) => {
   try {
-    const today = new Date().toISOString().split('T')[0];
+    // Sanity-dən aktiv kateqoriya və məhsul slug-larını çəkirik
+    const categories = await client.fetch(`*[_type == "category" && defined(slug.current)].slug.current`);
+    const products = await client.fetch(`*[_type == "product" && defined(slug.current)].slug.current`);
 
-    const products = await client.fetch(
-      `*[_type == "product" && defined(slug.current)]{ "slug": slug.current, _updatedAt }`
-    );
+    const baseUrl = 'https://ravio.az';
+    const currentDate = new Date().toISOString().split('T')[0];
 
-    const productPages = products.map(p => ({
-      url:        `/mehsullar/${p.slug}`,
-      priority:   '0.85',
-      changefreq: 'weekly',
-      lastmod:    p._updatedAt ? p._updatedAt.split('T')[0] : today,
-    }));
-
-    const allPages = [
-      ...STATIC_PAGES.map(p => ({ ...p, lastmod: today })),
-      ...productPages,
+    // 1. Statik Səhifələr
+    let xmlItems = [
+      `<url><loc>${baseUrl}</loc><lastmod>${currentDate}</lastmod><changefreq>weekly</changefreq><priority>1.0</priority></url>`,
+      `<url><loc>${baseUrl}/mehsullar</loc><lastmod>${currentDate}</lastmod><changefreq>weekly</changefreq><priority>0.9</priority></url>`,
+      `<url><loc>${baseUrl}/catdirilma</loc><lastmod>${currentDate}</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>`,
+      `<url><loc>${baseUrl}/haqqimizda</loc><lastmod>${currentDate}</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>`,
+      `<url><loc>${baseUrl}/elaqe</loc><lastmod>${currentDate}</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>`
     ];
 
-    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+    // 2. Sanity-dən gələn Dinamik Kateqoriyalar (/mehsullar/qolbaqlar və s.)
+    categories.forEach(slug => {
+      xmlItems.push(`<url><loc>${baseUrl}/mehsullar/${slug}</loc><lastmod>${currentDate}</lastmod><changefreq>weekly</changefreq><priority>0.9</priority></url>`);
+    });
+
+    // 3. Sanity-dən gələn Dinamik Məhsullar (/mehsullar/sac-ile-tesbeh-8 və s.)
+    products.forEach(slug => {
+      xmlItems.push(`<url><loc>${baseUrl}/mehsullar/${slug}</loc><lastmod>${currentDate}</lastmod><changefreq>weekly</changefreq><priority>0.85</priority></url>`);
+    });
+
+    // XML strukturunun birləşdirilməsi
+    const sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${allPages.map(p => `  <url>
-    <loc>${BASE_URL}${p.url}</loc>
-    <lastmod>${p.lastmod}</lastmod>
-    <changefreq>${p.changefreq}</changefreq>
-    <priority>${p.priority}</priority>
-  </url>`).join('\n')}
+  ${xmlItems.join('\n  ')}
 </urlset>`;
 
-    res.setHeader('Content-Type', 'application/xml; charset=utf-8');
-    res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate');
-    res.status(200).send(xml);
-
-  } catch (err) {
-    console.error('Sitemap xətası:', err);
-    res.status(500).send('Sitemap yaradılarkən xəta baş verdi');
+    // Vercel Edge/Serverless üçün Header tənzimləmələri
+    res.setHeader('Content-Type', 'application/xml');
+    res.setHeader('Cache-Control', 's-maxage=600, stale-while-revalidate=1200');
+    
+    return res.status(200).send(sitemapXml);
+  } catch (error) {
+    console.error('Sitemap Error:', error);
+    return res.status(500).send('Sitemap yaradılarkən xəta baş verdi.');
   }
-}
+};
