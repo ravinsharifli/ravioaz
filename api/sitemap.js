@@ -1,54 +1,96 @@
 const { createClient } = require('@sanity/client');
 
-// Mövcud Sanity Client konfiqurasiyası bura daxil edilməlidir
 const client = createClient({
-  projectId: process.env.SANITY_PROJECT_ID || 'LAYİHƏ_ID_DAXİL_EDİN',
-  dataset: process.env.SANITY_DATASET || 'production',
-  useCdn: false,
-  apiVersion: '2023-01-01',
+  projectId: 'w7scii42',
+  dataset:   'production',
+  useCdn:    true,
+  apiVersion: '2026-02-09',
 });
+
+const BASE_URL   = 'https://ravio.az';
+const CATEGORIES = ['qolbaqlar', 'tesbehler', 'domino', 'hediyelik_qutular'];
+
+function escapeXml(str) {
+  if (!str) return '';
+  return str
+    .replace(/&/g,  '&amp;')
+    .replace(/</g,  '&lt;')
+    .replace(/>/g,  '&gt;')
+    .replace(/"/g,  '&quot;');
+}
+
+function sanityImageUrl(url) {
+  if (!url) return null;
+  return `${url}?w=1200&h=630&fit=crop&auto=format`;
+}
 
 module.exports = async (req, res) => {
   try {
-    // Sanity-dən aktiv kateqoriya və məhsul slug-larını çəkirik
-    const categories = await client.fetch(`*[_type == "category" && defined(slug.current)].slug.current`);
-    const products = await client.fetch(`*[_type == "product" && defined(slug.current)].slug.current`);
+    const today = new Date().toISOString().split('T')[0];
 
-    const baseUrl = 'https://ravio.az';
-    const currentDate = new Date().toISOString().split('T')[0];
+    // Məhsul slug + ad + birinci şəkil birlikdə çəkilir
+    const products = await client.fetch(
+      `*[_type == "product" && defined(slug.current)] | order(bestSellerOrder asc) {
+        "slug": slug.current,
+        "name": name,
+        "imageUrl": variants[0].images[0].asset->url
+      }`
+    );
 
-    // 1. Statik Səhifələr
-    let xmlItems = [
-      `<url><loc>${baseUrl}</loc><lastmod>${currentDate}</lastmod><changefreq>weekly</changefreq><priority>1.0</priority></url>`,
-      `<url><loc>${baseUrl}/mehsullar</loc><lastmod>${currentDate}</lastmod><changefreq>weekly</changefreq><priority>0.9</priority></url>`,
-      `<url><loc>${baseUrl}/catdirilma</loc><lastmod>${currentDate}</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>`,
-      `<url><loc>${baseUrl}/haqqimizda</loc><lastmod>${currentDate}</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>`,
-      `<url><loc>${baseUrl}/elaqe</loc><lastmod>${currentDate}</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>`
-    ];
+    // ── Statik səhifələr ─────────────────────────────────────────────────────
+    const staticUrls = [
+      { loc: '',            priority: '1.0', changefreq: 'weekly'  },
+      { loc: '/mehsullar',  priority: '0.9', changefreq: 'weekly'  },
+      { loc: '/catdirilma', priority: '0.8', changefreq: 'monthly' },
+      { loc: '/haqqimizda', priority: '0.7', changefreq: 'monthly' },
+      { loc: '/elaqe',      priority: '0.6', changefreq: 'monthly' },
+    ].map(p => `  <url>
+    <loc>${BASE_URL}${p.loc}</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>${p.changefreq}</changefreq>
+    <priority>${p.priority}</priority>
+  </url>`).join('\n');
 
-    // 2. Sanity-dən gələn Dinamik Kateqoriyalar (/mehsullar/qolbaqlar və s.)
-    categories.forEach(slug => {
-      xmlItems.push(`<url><loc>${baseUrl}/mehsullar/${slug}</loc><lastmod>${currentDate}</lastmod><changefreq>weekly</changefreq><priority>0.9</priority></url>`);
-    });
+    // ── Kateqoriya səhifələri ────────────────────────────────────────────────
+    const categoryUrls = CATEGORIES.map(slug => `  <url>
+    <loc>${BASE_URL}/mehsullar/${slug}</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>`).join('\n');
 
-    // 3. Sanity-dən gələn Dinamik Məhsullar (/mehsullar/sac-ile-tesbeh-8 və s.)
-    products.forEach(slug => {
-      xmlItems.push(`<url><loc>${baseUrl}/mehsullar/${slug}</loc><lastmod>${currentDate}</lastmod><changefreq>weekly</changefreq><priority>0.85</priority></url>`);
-    });
+    // ── Məhsul səhifələri — şəkil teqləri ilə ───────────────────────────────
+    const productUrls = products.map(p => {
+      const imgUrl = sanityImageUrl(p.imageUrl);
+      const imgTag = imgUrl ? `
+    <image:image>
+      <image:loc>${imgUrl}</image:loc>
+      <image:title>${escapeXml(p.name)} | Ravio</image:title>
+    </image:image>` : '';
 
-    // XML strukturunun birləşdirilməsi
-    const sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  ${xmlItems.join('\n  ')}
+      return `  <url>
+    <loc>${BASE_URL}/mehsullar/${p.slug}</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>${imgTag}
+  </url>`;
+    }).join('\n');
+
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset
+  xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+${staticUrls}
+${categoryUrls}
+${productUrls}
 </urlset>`;
 
-    // Vercel Edge/Serverless üçün Header tənzimləmələri
-    res.setHeader('Content-Type', 'application/xml');
-    res.setHeader('Cache-Control', 's-maxage=600, stale-while-revalidate=1200');
-    
-    return res.status(200).send(sitemapXml);
-  } catch (error) {
-    console.error('Sitemap Error:', error);
+    res.setHeader('Content-Type', 'application/xml; charset=utf-8');
+    res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=7200');
+    return res.status(200).send(xml);
+
+  } catch (err) {
+    console.error('[Sitemap] Xəta:', err);
     return res.status(500).send('Sitemap yaradılarkən xəta baş verdi.');
   }
 };
