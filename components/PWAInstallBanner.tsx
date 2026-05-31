@@ -24,6 +24,10 @@ function isAlreadyInstalled(): boolean {
   );
 }
 
+function isMobile(): boolean {
+  return /android|iphone|ipad|ipod/i.test(navigator.userAgent);
+}
+
 // ── Komponent ─────────────────────────────────────────────────────────────────
 export default function PWAInstallBanner() {
   const [visible,        setVisible]        = useState(false);
@@ -33,7 +37,7 @@ export default function PWAInstallBanner() {
   const [showIosSteps,   setShowIosSteps]   = useState(false);
 
   useEffect(() => {
-    if (wasDismissed() || isAlreadyInstalled()) return;
+    if (wasDismissed() || isAlreadyInstalled() || !isMobile()) return;
 
     const ua  = navigator.userAgent.toLowerCase();
     const ios = /iphone|ipad|ipod/.test(ua);
