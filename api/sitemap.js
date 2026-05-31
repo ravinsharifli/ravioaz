@@ -1,3 +1,4 @@
+// api/sitemap.js  — v2  (şəkil teqləri ilə)
 const { createClient } = require('@sanity/client');
 
 const client = createClient({
@@ -10,6 +11,7 @@ const client = createClient({
 const BASE_URL   = 'https://ravio.az';
 const CATEGORIES = ['qolbaqlar', 'tesbehler', 'domino', 'hediyelik_qutular'];
 
+// XML-də xüsusi simvolları escape et
 function escapeXml(str) {
   if (!str) return '';
   return str
@@ -19,7 +21,9 @@ function escapeXml(str) {
     .replace(/"/g,  '&quot;');
 }
 
-function sanityImageUrl(url) {
+// Sanity URL-ni Google Image üçün hazırla
+// Qeyd: XML mətnindəki & mütləq &amp; olmalıdır — bu düzgün davranışdır
+function buildImageUrl(url) {
   if (!url) return null;
   return `${url}?w=1200&amp;h=630&amp;fit=crop&amp;auto=format`;
 }
@@ -28,12 +32,14 @@ module.exports = async (req, res) => {
   try {
     const today = new Date().toISOString().split('T')[0];
 
-    // Məhsul slug + ad + birinci şəkil birlikdə çəkilir
+    // ─── GROQ düzəldildi ────────────────────────────────────────────────────
+    // Əvvəl: variants[0].images[0].asset->url  →  yalnız 1-ci variantın 1-ci şəkli
+    // İndi:  variants[].images[0].asset->url   →  HƏR variantın 1-ci şəkli (array)
     const products = await client.fetch(
       `*[_type == "product" && defined(slug.current)] | order(bestSellerOrder asc) {
         "slug": slug.current,
         "name": name,
-        "imageUrl": variants[0].images[0].asset->url
+        "imageUrls": variants[].images[0].asset->url
       }`
     );
 
@@ -59,20 +65,30 @@ module.exports = async (req, res) => {
     <priority>0.9</priority>
   </url>`).join('\n');
 
-    // ── Məhsul səhifələri — şəkil teqləri ilə ───────────────────────────────
+    // ── Məhsul səhifələri — bütün variantların şəkilləri ────────────────────
     const productUrls = products.map(p => {
-      const imgUrl = sanityImageUrl(p.imageUrl);
-      const imgTag = imgUrl ? `
+      // null / undefined dəyərləri süz
+      const imageUrls = Array.isArray(p.imageUrls)
+        ? p.imageUrls.filter(Boolean)
+        : [];
+
+      // Hər şəkil üçün <image:image> teqi (maks 5)
+      const imgTags = imageUrls.slice(0, 5).map(url => {
+        const imgSrc = buildImageUrl(url);
+        if (!imgSrc) return '';
+        return `
     <image:image>
-      <image:loc>${imgUrl}</image:loc>
+      <image:loc>${imgSrc}</image:loc>
       <image:title>${escapeXml(p.name)} | Ravio</image:title>
-    </image:image>` : '';
+      <image:caption>Ravio — ${escapeXml(p.name)}</image:caption>
+    </image:image>`;
+      }).filter(Boolean).join('');
 
       return `  <url>
     <loc>${BASE_URL}/mehsullar/${p.slug}</loc>
     <lastmod>${today}</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.85</priority>${imgTag}
+    <priority>0.85</priority>${imgTags}
   </url>`;
     }).join('\n');
 
