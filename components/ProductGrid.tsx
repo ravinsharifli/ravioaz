@@ -276,7 +276,7 @@ const Card: React.FC<CardProps> = ({
       <div style={{ padding: '10px 10px 12px' }}>
         {product.category && (
           <span style={{
-            fontSize: 9, fontWeight: 600, color: '#999999',
+            fontSize: 11, fontWeight: 600, color: '#999999',
             letterSpacing: 0.8, textTransform: 'uppercase' as const,
             display: 'block', marginBottom: 4,
             fontFamily: F.sans,
@@ -314,7 +314,7 @@ const Card: React.FC<CardProps> = ({
 
           {product.variants && product.variants.length > 1 && (
             <span style={{
-              fontSize: 9, color: '#999',
+              fontSize: 11, color: '#999',
               background: C.bg, borderRadius: 6,
               padding: '3px 6px', fontWeight: 500,
               fontFamily: F.sans, flexShrink: 0,
@@ -323,7 +323,7 @@ const Card: React.FC<CardProps> = ({
         </div>
 
         <div style={{
-          marginTop: 8, fontSize: 10, color: '#555',
+          marginTop: 8, fontSize: 11, color: '#555',
           display: 'flex', alignItems: 'center', gap: 3,
           fontFamily: F.sans,
         }}>
