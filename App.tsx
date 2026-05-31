@@ -8,6 +8,7 @@ import { Product, CartItem, ReelPost } from './types';
 
 import Navbar from './components/Navbar';
 import ProductGrid from './components/ProductGrid';
+import PWAInstallBanner from './components/PWAInstallBanner';
 import CustomerReviews from './components/CustomerReviews';
 import AboutUs from './components/AboutUs';
 import Contact from './components/Contact';
@@ -1355,6 +1356,8 @@ function AppShell() {
           coupons={products.flatMap(p => p.coupons || [])}
         />
       </Suspense>
+
+      <PWAInstallBanner />
 
       <style>{`
         *, *::before, *::after { box-sizing: border-box; }
