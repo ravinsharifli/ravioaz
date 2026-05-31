@@ -21,7 +21,7 @@ function escapeXml(str) {
 
 function sanityImageUrl(url) {
   if (!url) return null;
-  return `${url}?w=1200&h=630&fit=crop&auto=format`;
+  return `${url}?w=1200&amp;h=630&amp;fit=crop&amp;auto=format`;
 }
 
 module.exports = async (req, res) => {
