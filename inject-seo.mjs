@@ -8,6 +8,9 @@
  *
  * Google botu bu statik HTML-i görür → məhsul indekslənir.
  * Puppeteer yoxdur, Vercel-də 100% işləyir.
+ *
+ * NOT: Gizli CSS bloklar silindi (cloaking riski).
+ * SEO Schema.org JSON-LD vasitəsilə təmin edilir — Google-un tövsiyəsi.
  */
 
 import { createClient } from '@sanity/client';
@@ -96,25 +99,6 @@ function injectProductSchema(html, product) {
   return html.replace('</head>', `${tag}\n</head>`);
 }
 
-/** Məhsul üçün Google botu oxuya biləcəyi statik body mətn bloku əlavə et */
-function injectVisibleProductContent(html, product) {
-  const priceText = product.price
-    ? `<span itemprop="price" content="${product.price}">${product.price} ₼</span>`
-    : '';
-
-  const contentBlock = `
-  <!-- SEO: Google botu üçün statik məhsul məlumatı -->
-  <div style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap" aria-hidden="true" itemscope itemtype="https://schema.org/Product">
-    <h1 itemprop="name">${esc(product.name)} — Ravio Bakı</h1>
-    <p itemprop="description">${esc(product.desc)}</p>
-    ${priceText ? `<div itemprop="offers" itemscope itemtype="https://schema.org/Offer">
-      Qiymət: ${priceText} AZN — Bakıda pulsuz çatdırılma ilə
-    </div>` : ''}
-    <p>Ravio fərdi hədiyyə mağazası. Lazer qravirə. Bakıda istehsal.</p>
-  </div>`;
-
-  return html.replace('<div id="root"></div>', `${contentBlock}\n    <div id="root"></div>`);
-}
 // ── Əsas funksiya ─────────────────────────────────────────────
 async function run() {
   console.log('\n🚀 inject-seo: başladı...\n');
@@ -163,12 +147,6 @@ async function run() {
         price: p.price,
       });
 
-      html = injectVisibleProductContent(html, {
-        name: p.name,
-        desc: rawDesc,
-        price: p.price,
-      });
-
       const dir = `dist/mehsullar/${p.slug}`;
       mkdirSync(dir, { recursive: true });
       writeFileSync(`${dir}/index.html`, html, 'utf-8');
@@ -195,7 +173,7 @@ async function run() {
     console.error(`  ❌ /mehsullar — ${err.message}`);
   }
 
-  // ── C işi: Kateqoriya səhifələrini prerender et ───────────────
+  // ── Kateqoriya səhifələrini prerender et ─────────────────────
   const CATEGORIES = [
     {
       slug: 'qolbaqlar',
@@ -235,28 +213,24 @@ async function run() {
         image: 'https://ravio.az/og-ravio.png',
       });
 
-      // Kateqoriya üçün BreadcrumbList schema
-      const breadcrumb = {
+      // Kateqoriya üçün BreadcrumbList + CollectionPage schema
+      const schema = {
         '@context': 'https://schema.org',
-        '@type': 'BreadcrumbList',
-        itemListElement: [
-          { '@type': 'ListItem', position: 1, name: 'Ravio',      item: 'https://ravio.az' },
-          { '@type': 'ListItem', position: 2, name: 'Məhsullar',  item: 'https://ravio.az/mehsullar' },
-          { '@type': 'ListItem', position: 3, name: cat.h1,       item: catUrl },
-        ],
+        '@type': 'CollectionPage',
+        name: cat.h1,
+        description: cat.desc,
+        url: catUrl,
+        breadcrumb: {
+          '@type': 'BreadcrumbList',
+          itemListElement: [
+            { '@type': 'ListItem', position: 1, name: 'Ravio',     item: 'https://ravio.az' },
+            { '@type': 'ListItem', position: 2, name: 'Məhsullar', item: 'https://ravio.az/mehsullar' },
+            { '@type': 'ListItem', position: 3, name: cat.h1,      item: catUrl },
+          ],
+        },
       };
-      const schemaTag = `\n  <script type="application/ld+json">${JSON.stringify(breadcrumb)}</script>`;
+      const schemaTag = `\n  <script type="application/ld+json">${JSON.stringify(schema)}</script>`;
       html = html.replace('</head>', `${schemaTag}\n</head>`);
-
-      // Google botu üçün görünən H1 + açıqlama bloku
-      const bodyBlock = `
-  <!-- SEO: Kateqoriya statik məlumatı -->
-  <div style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap" aria-hidden="true">
-    <h1>${esc(cat.h1)}</h1>
-    <p>${esc(cat.desc)}</p>
-    <p>Ravio — Bakıda fərdi hədiyyə mağazası. Lazer qravirə xidməti. Pulsuz çatdırılma.</p>
-  </div>`;
-      html = html.replace('<div id="root"></div>', `${bodyBlock}\n    <div id="root"></div>`);
 
       mkdirSync(`dist/mehsullar/${cat.slug}`, { recursive: true });
       writeFileSync(`dist/mehsullar/${cat.slug}/index.html`, html, 'utf-8');

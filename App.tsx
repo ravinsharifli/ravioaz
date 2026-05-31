@@ -278,7 +278,7 @@ function UnifiedHeroCarousel({
   const [current, setCurrent] = useState(0);
   const [paused,  setPaused]  = useState(false);
 
-  // Auto-advance: hər 3 saniyədə bir növbəti slayd
+  // Auto-advance: hər 4.5 saniyədə bir növbəti slayd
   useEffect(() => {
     if (slides.length <= 1 || paused) return;
     const t = setInterval(() => setCurrent(c => (c + 1) % slides.length), 3000);
@@ -368,7 +368,8 @@ function UnifiedHeroCarousel({
               src={toWebP(slide.imageUrl, 640)}
               alt={slide.title}
               style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-              loading="lazy"
+              loading={safeIdx === 0 ? 'eager' : 'lazy'}
+              fetchPriority={safeIdx === 0 ? 'high' : 'auto'}
             />
           ) : (
             /* Promo / text slayd — dekorativ dairələr */
