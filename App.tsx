@@ -278,7 +278,7 @@ function UnifiedHeroCarousel({
   const [current, setCurrent] = useState(0);
   const [paused,  setPaused]  = useState(false);
 
-  // Auto-advance: hər 4.5 saniyədə bir növbəti slayd
+  // Auto-advance: hər 3 saniyədə bir növbəti slayd
   useEffect(() => {
     if (slides.length <= 1 || paused) return;
     const t = setInterval(() => setCurrent(c => (c + 1) % slides.length), 3000);

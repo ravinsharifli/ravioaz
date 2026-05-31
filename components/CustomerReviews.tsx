@@ -39,11 +39,11 @@ const InstagramIcon = () => (
 
 // Fallback — Sanity boş olsa bunlar göstərilir
 const FALLBACK: Review[] = [
-  { name: 'Aytən M.', rating: 5, text: 'Sevgilimin adını qolbağa yazdırdım. Lazer yazısı çox dəqiq çıxdı, paketləmə də gözəl idi.', date: 'Mart 2026' },
-  { name: 'Rauf H.',  rating: 5, text: 'Məzun lentlərini sinif üçün 35 ədəd aldım. Qiymət əlverişli, hamısı eyni keyfiyyətdə gəldi.', date: 'İyun 2026' },
-  { name: 'Günel Ə.', rating: 5, text: 'Anama ad günü üçün giftbox aldım. Üzərinə "Ən sevimli anam" yazdırdım. Çox xoş gəldi.', date: 'Fevral 2026' },
-  { name: 'Tural B.', rating: 5, text: 'Gümüş təsbeh aldım, üzərinə ayə yazdırdım. İşçilik çox yaxşı. Dostlara tövsiyə etdim.', date: 'Yanvar 2026' },
-  { name: 'Lalə K.',  rating: 5, text: 'Cüt qolbaq sifarişi verdim. 1 gündə hazır oldu, möhtəşəm çıxdı!', date: 'Aprel 2026' },
+  { name: 'Aytən M.', rating: 5, text: 'Sevgilimin adını qolbağa yazdırdım. Lazer yazısı çox dəqiq çıxdı, paketləmə də gözəl idi.', date: 'Mart 2025' },
+  { name: 'Rauf H.',  rating: 4, text: 'Məzun lentlərini sinif üçün 35 ədəd aldım. Qiymət əlverişli, hamısı eyni keyfiyyətdə gəldi.', date: 'İyun 2024' },
+  { name: 'Günel Ə.', rating: 5, text: 'Anama ad günü üçün giftbox aldım. Üzərinə "Ən sevimli anam" yazdırdım. Çox xoş gəldi.', date: 'Fevral 2025' },
+  { name: 'Tural B.', rating: 4, text: 'Gümüş təsbeh aldım, üzərinə ayə yazdırdım. İşçilik çox yaxşı. Dostlara tövsiyə etdim.', date: 'Yanvar 2026' },
+  { name: 'Lalə K.',  rating: 5, text: 'Cüt qolbaq sifarişi verdim. 1 gündə hazır oldu, möhtəşəm çıxdı!', date: 'Aprel 2024' },
 ];
 
 interface Props {
