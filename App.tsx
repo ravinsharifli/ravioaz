@@ -223,7 +223,7 @@ const PROMO_SLIDES: HeroSlide[] = [
   {
     type: 'promo',
     label: '🚀 Ödənişsiz çatdırılma',
-    title: '1–3 iş günündə kapınıza gəlir.',
+    title: '1–3 iş günündə qapınıza gəlir.',
     subtitle: 'Kuryer pulsuz · Metro görüşü 2.99 ₼ · Azərpoçt 4.99 ₼',
     ctaText: 'Sifarişə başla →',
     bg: 'linear-gradient(135deg, #111111 0%, #2a2a2a 100%)',

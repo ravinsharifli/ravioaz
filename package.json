@@ -17,8 +17,7 @@
     "react-dom": "^19.2.4",
     "react-helmet-async": "^3.0.0",
     "react-router-dom": "^7.14.2",
-    "sanity": "^5.9.0",
-    "styled-components": "^6.4.1"
+    "sanity": "^5.9.0"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
