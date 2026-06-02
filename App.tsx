@@ -313,28 +313,6 @@ function UnifiedHeroCarousel({
       onMouseEnter={() => {}}
       onMouseLeave={() => {}}
     >
-      {/* ── Ox düymələri — sağ üst ────────────────────────────────────────── */}
-      <div style={{
-        maxWidth: 1280, margin: '0 auto 16px',
-        display: 'flex', justifyContent: 'flex-end', gap: 8,
-      }}>
-        {slides.length > 10 && (
-          <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', fontFamily: F.sans, marginRight: 4, alignSelf: 'center' }}>
-            {safeIdx + 1} / {slides.length}
-          </span>
-        )}
-        <button
-          onClick={() => setCurrent(c => (c - 1 + slides.length) % slides.length)}
-          aria-label="Əvvəlki slayd"
-          style={arrowBtn}
-        >‹</button>
-        <button
-          onClick={() => setCurrent(c => (c + 1) % slides.length)}
-          aria-label="Növbəti slayd"
-          style={arrowBtn}
-        >›</button>
-      </div>
-
       {/* ── Əsas karusel ──────────────────────────────────────────────────── */}
       <div
         className="ravio-reelworks-inner"
@@ -518,22 +496,42 @@ function UnifiedHeroCarousel({
         </div>
       </div>
 
-      {/* ── Naviqasiya nöqtələri (≤10 slayd) ─────────────────────────────── */}
-      {slides.length > 1 && slides.length <= 10 && (
-        <div style={{ display: 'flex', justifyContent: 'center', gap: 6, marginTop: 24 }}>
-          {slides.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setCurrent(i)}
-              aria-label={`${i + 1}-ci slayd`}
-              style={{
-                width: i === safeIdx ? 20 : 6, height: 6, borderRadius: 3,
-                background: i === safeIdx ? '#FF6A00' : 'rgba(255,255,255,0.25)',
-                border: 'none', cursor: 'pointer', padding: 0,
-                transition: 'all 0.3s',
-              }}
-            />
-          ))}
+      {/* ── Naviqasiya — ox düymələri + nöqtələr (aşağıda) ──────────────── */}
+      {slides.length > 1 && (
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 10, marginTop: 24 }}>
+          <button
+            onClick={() => setCurrent(c => (c - 1 + slides.length) % slides.length)}
+            aria-label="Əvvəlki slayd"
+            style={arrowBtn}
+          >&#8249;</button>
+
+          {slides.length <= 10 ? (
+            <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+              {slides.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setCurrent(i)}
+                  aria-label={`${i + 1}-ci slayd`}
+                  style={{
+                    width: i === safeIdx ? 20 : 6, height: 6, borderRadius: 3,
+                    background: i === safeIdx ? '#FF6A00' : 'rgba(255,255,255,0.25)',
+                    border: 'none', cursor: 'pointer', padding: 0,
+                    transition: 'all 0.3s',
+                  }}
+                />
+              ))}
+            </div>
+          ) : (
+            <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', fontFamily: F.sans, minWidth: 40, textAlign: 'center' }}>
+              {safeIdx + 1} / {slides.length}
+            </span>
+          )}
+
+          <button
+            onClick={() => setCurrent(c => (c + 1) % slides.length)}
+            aria-label="Növbəti slayd"
+            style={arrowBtn}
+          >&#8250;</button>
         </div>
       )}
 
