@@ -420,8 +420,8 @@ const ProductPage: React.FC<ProductPageProps> = ({
               <Label>Müştəri növü</Label>
               <div style={{ display: 'flex', gap: 8 }}>
                 {([
-                  { id: 'new'   as const, label: 'Yeni müştəri',  sub: 'İlk sifarişim — 10%' },
-                  { id: 'loyal' as const, label: 'Daimi müştəri', sub: 'Əvvəl vermişəm — 20%' },
+                  { id: 'new'   as const, label: 'Yeni müştəri',  sub: 'İlk sifarişimdir' },
+                  { id: 'loyal' as const, label: 'Daimi müştəri', sub: 'Əvvəl sifariş vermişəm' },
                 ] as const).map(opt => {
                   const sel = customerType === opt.id;
                   return (
