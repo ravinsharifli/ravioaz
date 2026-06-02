@@ -1168,7 +1168,7 @@ function AppShell() {
   const [activeCategory, setActiveCategory]   = useState<string | null>(null);
   const [visible, setVisible]                 = useState(false);
   const [settings, setSettings]               = useState<any>(null);
-  const [sanityError, setSanityError] = useState<string | null>(null);
+  // sanityError silindi — istifadəçiyə texniki xəta göstərilmir
 
   // Cart dəyişəndə avtomatik yadda saxla
   useEffect(() => {
@@ -1184,11 +1184,9 @@ function AppShell() {
     .then((raw: any[]) => {
       setProducts(raw.map(mapSanityProduct));
       setLoading(false);
-      setSanityError(null);
     })
     .catch((err) => {
       console.error('[Sanity] Məhsullar yüklənmədi:', err);
-      setSanityError('Məhsullar Sanity-dən yüklənmədi.');
       setLoading(false);
     });
   client.fetch(SETTINGS_QUERY)
@@ -1288,30 +1286,7 @@ function AppShell() {
       />
 
       <main id="main-content">
-      {sanityError && (
-  <div style={{
-    background: '#FFF3CD', border: '1px solid #FFC107',
-    borderRadius: 8, padding: '12px 20px', margin: '16px',
-    display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12
-  }}>
-    <span style={{ fontSize: 14, color: '#856404' }}>
-      ⚠️ Məhsullar yüklənmədi. Sanity bağlantısı kəsildi.
-    </span>
-    <button
-      onClick={() => {
-        setSanityError(null);
-        setLoading(true);
-        client.fetch(PRODUCTS_QUERY)
-          .then((raw: any[]) => { setProducts(raw.map(mapSanityProduct)); setLoading(false); })
-          .catch((err) => { console.error('[Sanity]:', err); setSanityError('Yenidən uğursuz oldu.'); setLoading(false); });
-      }}
-      style={{
-        padding: '6px 14px', background: '#856404', color: 'white',
-        border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 13, fontWeight: 600
-      }}
-    >Yenidən cəhd et</button>
-  </div>
-)}
+
         <Routes>
           <Route path="/" element={
             <HomePage

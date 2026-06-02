@@ -82,13 +82,13 @@ export default function PWAInstallBanner() {
   // ── Ortaq stil dəyişənləri ─────────────────────────────────────────────────
   const wrap: React.CSSProperties = {
     position:    'fixed',
-    bottom:      animIn ? 16 : -120,
+    top:         animIn ? 16 : -140,
     left:        '50%',
     transform:   'translateX(-50%)',
     width:       'calc(100% - 32px)',
     maxWidth:    480,
     zIndex:      9999,
-    transition:  'bottom 0.35s cubic-bezier(0.34, 1.20, 0.64, 1)',
+    transition:  'top 0.35s cubic-bezier(0.34, 1.20, 0.64, 1)',
     display:     'flex',
     flexDirection: 'column' as const,
     gap:         0,
