@@ -1,5 +1,5 @@
 // Ravio Service Worker — PWA offline & cache support
-const CACHE_NAME = 'ravio-v1';
+const CACHE_NAME = 'ravio-v2';
 
 const STATIC_SHELL = [
   '/',

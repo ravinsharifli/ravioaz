@@ -53,6 +53,22 @@ const PRODUCTS_QUERY = `*[_type == "product"] | order(bestSellerOrder asc) {
   coupons[]{ code, discountType, discountValue, minOrderAmount, isActive, description }
 }`;
 
+const SINGLE_PRODUCT_QUERY = `*[_type == "product" && slug.current == $slug][0]{
+  _id, name, "slug": slug.current, description,
+  category->{ name },
+  variants[] {
+    modelName, colorName, price, discountPrice, stock,
+    images[]{ asset->{ url } }
+  },
+  isPremium, premiumOrder, premiumSize,
+  isBestSeller, bestSellerOrder, orderCount,
+  hasBulkDiscount, bulkDiscountNote,
+  bulkTiers[]{ minQty, maxQty, discountAmount, label },
+  allowBoxSelection,
+  customBoxOptions[]{ id, name, desc, price, isActive, "imageUrl": image.asset->url },
+  coupons[]{ code, discountType, discountValue, minOrderAmount, isActive, description }
+}`;
+
 // ── heroSlides ── yeni kampaniya/bayram banner slaydları da buradan çəkilir ───
 const SETTINGS_QUERY = `*[_type == "siteSettings"][0]{
   "metroSchedule": {
@@ -100,6 +116,15 @@ function fromCategorySlug(slug: string, categories: string[]): string | null {
   return categories.find(cat => toCategorySlug(cat) === slug) ?? null;
 }
 
+function normalizeSlug(s?: string): string {
+  return decodeURIComponent((s || '').trim()).toLowerCase();
+}
+
+function findProductBySlug(products: Product[], slug: string): Product | undefined {
+  const needle = normalizeSlug(slug);
+  return products.find((p) => normalizeSlug(p.slug) === needle);
+}
+
 /** Hər kateqoriya üçün SEO məlumatı */
 const CATEGORY_SEO: Record<string, { title: string; description: string; h1: string }> = {
   qolbaqlar: {
@@ -140,7 +165,7 @@ function mapSanityProduct(raw: any): Product {
   return {
     id: raw._id,
     name: raw.name,
-    slug: raw.slug || '',
+    slug: (raw.slug || '').trim().toLowerCase(),
     category: raw.category?.name || '',
     description: raw.description || '',
     variants,
@@ -747,40 +772,6 @@ interface ProductsPageProps {
   openProduct: (p: Product) => void;
 }
 
-function ProductsPage({ categories, products, loading, openProduct }: ProductsPageProps) {
-  return (
-    <div style={{ maxWidth: 1280, margin: '0 auto', padding: 'clamp(20px,3vw,32px) clamp(16px,3vw,32px) 64px' }}>
-      <Helmet>
-        <title>Bütün Məhsullar | Ravio</title>
-        <meta name="description" content="Lazer yazılı qolbaq, fərdi təsbeh, domino, giftbox — bütün məhsullarımız. Bakı daxili pulsuz çatdırılma." />
-        <link rel="canonical" href="https://ravio.az/mehsullar" />
-        <meta property="og:title" content="Bütün Məhsullar | Ravio" />
-        <meta property="og:description" content="Lazer yazılı qolbaq, fərdi təsbeh, domino, giftbox — bütün məhsullarımız. Bakı daxili pulsuz çatdırılma." />
-        <meta property="og:url" content="https://ravio.az/mehsullar" />
-        <meta property="og:type" content="website" />
-      </Helmet>
-
-      <div style={{ marginBottom: 20 }}>
-        <h1 style={{ fontSize: 'clamp(20px,3vw,30px)', fontWeight: 800, color: C.black, margin: '0 0 4px', letterSpacing: '-0.3px' }}>
-          Bütün məhsullar
-        </h1>
-        <p style={{ fontSize: 13, color: C.textMuted, margin: 0 }}>{products.length} məhsul · Ödənişsiz çatdırılma</p>
-      </div>
-
-      <CatalogLayout
-        activeSlug={null}
-        activeCategory={null}
-        categories={categories}
-        products={products}
-        filteredProducts={products}
-        loading={loading}
-        openProduct={openProduct}
-      />
-    </div>
-  );
-}
-
-// ── /mehsullar/:slug — məhsul səhifəsi VƏ ya kateqoriya səhifəsi ─────────────
 interface SlugPageProps {
   selectedProduct: Product | null;
   products: Product[];
@@ -793,7 +784,6 @@ interface SlugPageProps {
 }
 
 function SlugPage({
-  selectedProduct,
   products,
   loading,
   categories,
@@ -802,70 +792,111 @@ function SlugPage({
   setEditingItem,
   openProduct,
 }: SlugPageProps) {
-  const { slug = '' } = useParams<{ slug: string }>();
+  const { slug: rawSlug = '' } = useParams<{ slug: string }>();
+  const slug = decodeURIComponent(rawSlug).trim();
   const navigate = useNavigate();
+
+  const [fetchedProduct, setFetchedProduct] = useState<Product | null>(null);
+  const [fetchingProduct, setFetchingProduct] = useState(false);
+
+  const listProduct = useMemo(
+    () => (slug ? findProductBySlug(products, slug) : undefined),
+    [products, slug]
+  );
+
+  useEffect(() => {
+    if (!slug || listProduct) {
+      setFetchedProduct(null);
+      setFetchingProduct(false);
+      return;
+    }
+    if (loading) return;
+
+    let cancelled = false;
+    setFetchingProduct(true);
+
+    client
+      .withConfig({ useCdn: false })
+      .fetch(SINGLE_PRODUCT_QUERY, { slug })
+      .then((raw: unknown) => {
+        if (cancelled) return;
+        setFetchedProduct(raw ? mapSanityProduct(raw) : null);
+      })
+      .catch((err) => {
+        console.error('[Sanity] Məhsul yüklənmədi:', slug, err);
+        if (!cancelled) setFetchedProduct(null);
+      })
+      .finally(() => {
+        if (!cancelled) setFetchingProduct(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [slug, listProduct, loading]);
+
+  const currentProduct = listProduct ?? fetchedProduct ?? null;
+  const pageLoading = loading || fetchingProduct;
 
   const isKnownCategory = Boolean(CATEGORY_SEO[slug]);
   const matchedCategory = useMemo(
     () => fromCategorySlug(slug, categories),
     [slug, categories]
   );
-  const isCategory = isKnownCategory || (categories.length > 0 && matchedCategory !== null);
+  const isCategory =
+    !pageLoading &&
+    !currentProduct &&
+    (isKnownCategory || (categories.length > 0 && matchedCategory !== null));
 
   useEffect(() => {
     if (isCategory) {
       setActiveCategory(matchedCategory);
     }
-  }, [isCategory, matchedCategory]);
+  }, [isCategory, matchedCategory, setActiveCategory]);
 
-  // ── Kateqoriya Səhifəsi ────────────────────────────────────────────────────
   if (isCategory) {
     const filteredProducts = matchedCategory
-      ? products.filter(p => p.category === matchedCategory)
+      ? products.filter((p) => p.category === matchedCategory)
       : [];
-    const seo   = CATEGORY_SEO[slug];
-    const title = seo?.title || (matchedCategory ? `${matchedCategory} | Ravio` : 'Məhsullar | Ravio');
-    const desc  = seo?.description || `${matchedCategory || 'Məhsullar'} — Ravio-da fərdi hazırlanmış hədiyyələr. Bakı daxili pulsuz çatdırılma.`;
-    const h1    = seo?.h1 || matchedCategory || slug;
+    const seo = CATEGORY_SEO[slug];
+    const title =
+      seo?.title || (matchedCategory ? `${matchedCategory} | Ravio` : 'Məhsullar | Ravio');
+    const desc =
+      seo?.description ||
+      `${matchedCategory || 'Məhsullar'} — Ravio-da fərdi hazırlanmış hədiyyələr. Bakı daxili pulsuz çatdırılma.`;
+    const h1 = seo?.h1 || matchedCategory || slug;
     const canonicalUrl = `https://ravio.az/mehsullar/${slug}`;
 
     return (
-      <div style={{ maxWidth: 1280, margin: '0 auto', padding: 'clamp(20px,3vw,32px) clamp(16px,3vw,32px) 64px' }}>
+      <>
         <Helmet>
           <title>{title}</title>
           <meta name="description" content={desc} />
           <link rel="canonical" href={canonicalUrl} />
-          <meta property="og:title"       content={title} />
-          <meta property="og:description" content={desc} />
-          <meta property="og:url"         content={canonicalUrl} />
-          <meta property="og:type"        content="website" />
-          <meta property="og:locale"      content="az_AZ" />
-          <script type="application/ld+json">{JSON.stringify({
-            '@context': 'https://schema.org',
-            '@type': 'CollectionPage',
-            name: h1,
-            description: desc,
-            url: canonicalUrl,
-            breadcrumb: {
-              '@type': 'BreadcrumbList',
-              itemListElement: [
-                { '@type': 'ListItem', position: 1, name: 'Ana Səhifə',     item: 'https://ravio.az/' },
-                { '@type': 'ListItem', position: 2, name: 'Məhsullar',      item: 'https://ravio.az/mehsullar' },
-                { '@type': 'ListItem', position: 3, name: h1,               item: canonicalUrl },
-              ],
-            },
-          })}</script>
+          <script type="application/ld+json">
+            {JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'CollectionPage',
+              name: h1,
+              description: desc,
+              url: canonicalUrl,
+              breadcrumb: {
+                '@type': 'BreadcrumbList',
+                itemListElement: [
+                  { '@type': 'ListItem', position: 1, name: 'Ana Səhifə', item: 'https://ravio.az/' },
+                  { '@type': 'ListItem', position: 2, name: 'Məhsullar', item: 'https://ravio.az/mehsullar' },
+                  { '@type': 'ListItem', position: 3, name: h1, item: canonicalUrl },
+                ],
+              },
+            })}
+          </script>
         </Helmet>
-
-        <div style={{ marginBottom: 20 }}>
-          <h1 style={{ fontSize: 'clamp(20px,3vw,30px)', fontWeight: 800, color: C.black, margin: '0 0 4px', letterSpacing: '-0.3px' }}>
-            {h1}
-          </h1>
-          <p style={{ fontSize: 13, color: C.textMuted, margin: 0 }}>
+        <div style={{ padding: '24px 24px 0', maxWidth: 1280, margin: '0 auto' }}>
+          <h1 style={{ fontSize: 28, fontWeight: 700, margin: '0 0 8px', fontFamily: F.sans }}>{h1}</h1>
+          <p style={{ color: C.textSec, margin: 0, fontSize: 14 }}>
             {loading ? 'Yüklənir...' : `${filteredProducts.length} məhsul · Ödənişsiz çatdırılma`}
           </p>
         </div>
-
         <CatalogLayout
           activeSlug={slug}
           activeCategory={matchedCategory}
@@ -875,79 +906,80 @@ function SlugPage({
           loading={loading}
           openProduct={openProduct}
         />
-      </div>
+      </>
     );
   }
 
-  // ── Məhsul Tam Səhifəsi ────────────────────────────────────────────────────
-  const currentProduct = slug ? products.find(p => p.slug === slug) : null;
-  const primaryImage   = currentProduct?.variants?.[0]?.images?.[0] || '';
-  const { min, max }   = currentProduct ? getProductPriceRange(currentProduct) : { min: 0, max: 0 };
-  const totalStock     = currentProduct
+  const primaryImage = currentProduct?.variants?.[0]?.images?.[0] || '';
+  const { min, max } = currentProduct ? getProductPriceRange(currentProduct) : { min: 0, max: 0 };
+  const totalStock = currentProduct
     ? (currentProduct.variants || []).reduce((sum, v) => sum + (v.stock || 0), 0)
     : 0;
   const productUrl = `https://ravio.az/mehsullar/${slug}`;
 
-  if (!loading && !currentProduct) {
+  if (pageLoading) {
     return (
-      <div style={{ maxWidth: 960, margin: '0 auto', padding: '32px 16px 56px' }}>
-        <Helmet>
-          <title>Məhsul tapılmadı | Ravio</title>
-          <meta name="robots" content="noindex,follow" />
-          <link rel="canonical" href={`https://ravio.az/mehsullar/${slug}`} />
-        </Helmet>
-        <NotFound onHome={() => navigate('/mehsullar')} />
-      </div>
-    );
-  }
-
-  if (loading) {
-    return (
-      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 16px 56px' }}>
+      <div style={{ padding: '48px 24px' }}>
         <LoadingGrid />
       </div>
     );
   }
 
+  if (!currentProduct) {
+    return <NotFound onHome={() => navigate('/mehsullar')} />;
+  }
+
   return (
     <>
       <Helmet>
-        <title>{currentProduct ? `${currentProduct.name} | Ravio` : 'Məhsul | Ravio'}</title>
-        <meta
-          name="description"
-          content={currentProduct
-            ? `${currentProduct.name} — fərdi hazırlanmış hədiyyə. Qiymət ${min === max ? `${min} ₼` : `${min}–${max} ₼`}.`
-            : 'Fərdi hazırlanmış hədiyyə — Ravio'}
-        />
-        <meta property="og:type"        content="product" />
-        <meta property="og:title"       content={currentProduct ? `${currentProduct.name} | Ravio` : 'Məhsul | Ravio'} />
-        <meta property="og:description" content={currentProduct ? (currentProduct.description || `${currentProduct.name} — Ravio`) : 'Məhsul'} />
-        <meta property="og:url"         content={productUrl} />
-        <meta property="og:locale"      content="az_AZ" />
-        {primaryImage && <meta property="og:image" content={primaryImage} />}
-        <meta name="twitter:card" content="summary_large_image" />
-        {primaryImage && <meta name="twitter:image" content={primaryImage} />}
+        <title>{`${currentProduct.name} | Ravio`}</title>
         <link rel="canonical" href={productUrl} />
-        {currentProduct && (() => {
-          const allPrices = currentProduct.variants.map(v => v.discountPrice ?? v.price).filter(Boolean);
-          const priceMin  = allPrices.length ? Math.min(...allPrices) : min;
-          const priceMax  = allPrices.length ? Math.max(...allPrices) : max;
-          const allImgs   = currentProduct.variants.flatMap(v => v.images || []).slice(0, 5);
-          const avail     = totalStock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock';
+        {primaryImage && <meta property="og:image" content={primaryImage} />}
+        {primaryImage && <meta name="twitter:image" content={primaryImage} />}
+        {(() => {
+          const allPrices = currentProduct.variants
+            .map((v) => v.discountPrice ?? v.price)
+            .filter(Boolean);
+          const priceMin = allPrices.length ? Math.min(...allPrices) : min;
+          const priceMax = allPrices.length ? Math.max(...allPrices) : max;
+          const allImgs = currentProduct.variants.flatMap((v) => v.images || []).slice(0, 5);
+          const avail =
+            totalStock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock';
           const productSchema = {
-            '@context': 'https://schema.org', '@type': 'Product',
-            name: currentProduct.name, image: allImgs,
+            '@context': 'https://schema.org',
+            '@type': 'Product',
+            name: currentProduct.name,
+            image: allImgs,
             description: currentProduct.description || `${currentProduct.name} - Ravio`,
-            sku: currentProduct.id, brand: { '@type': 'Brand', name: 'Ravio' },
-            offers: priceMin === priceMax
-              ? { '@type': 'Offer', url: productUrl, priceCurrency: 'AZN', price: String(priceMin), availability: avail, seller: { '@type': 'Organization', name: 'Ravio' } }
-              : { '@type': 'AggregateOffer', url: productUrl, priceCurrency: 'AZN', lowPrice: String(priceMin), highPrice: String(priceMax), offerCount: currentProduct.variants.length, availability: avail, seller: { '@type': 'Organization', name: 'Ravio' } },
+            sku: currentProduct.id,
+            brand: { '@type': 'Brand', name: 'Ravio' },
+            offers:
+              priceMin === priceMax
+                ? {
+                    '@type': 'Offer',
+                    url: productUrl,
+                    priceCurrency: 'AZN',
+                    price: String(priceMin),
+                    availability: avail,
+                    seller: { '@type': 'Organization', name: 'Ravio' },
+                  }
+                : {
+                    '@type': 'AggregateOffer',
+                    url: productUrl,
+                    priceCurrency: 'AZN',
+                    lowPrice: String(priceMin),
+                    highPrice: String(priceMax),
+                    offerCount: currentProduct.variants.length,
+                    availability: avail,
+                    seller: { '@type': 'Organization', name: 'Ravio' },
+                  },
           };
           const breadcrumbSchema = {
-            '@context': 'https://schema.org', '@type': 'BreadcrumbList',
+            '@context': 'https://schema.org',
+            '@type': 'BreadcrumbList',
             itemListElement: [
               { '@type': 'ListItem', position: 1, name: 'Ana Səhifə', item: 'https://ravio.az/' },
-              { '@type': 'ListItem', position: 2, name: 'Məhsullar',  item: 'https://ravio.az/mehsullar' },
+              { '@type': 'ListItem', position: 2, name: 'Məhsullar', item: 'https://ravio.az/mehsullar' },
               { '@type': 'ListItem', position: 3, name: currentProduct.name, item: productUrl },
             ],
           };
@@ -960,21 +992,19 @@ function SlugPage({
         })()}
       </Helmet>
 
-      {currentProduct && (
-        <Suspense fallback={<div style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 16px' }}><LoadingGrid /></div>}>
-          <ProductPage
-            product={currentProduct}
-            boxes={DEFAULT_BOXES}
-            coupons={(currentProduct.coupons || []) as import('./types').Coupon[]}
-            onBack={() => navigate('/mehsullar')}
-            onAddToCart={(item) => {
-              setSelectedProduct(null);
-              setEditingItem(undefined);
-              (window as any).__ravioAddToCart?.(item);
-            }}
-          />
-        </Suspense>
-      )}
+      <Suspense fallback={<LoadingGrid />}>
+        <ProductPage
+          product={currentProduct}
+          boxes={DEFAULT_BOXES}
+          coupons={currentProduct.coupons || []}
+          onBack={() => navigate('/mehsullar')}
+          onAddToCart={(item) => {
+            setSelectedProduct(null);
+            setEditingItem(undefined);
+            (window as any).__ravioAddToCart?.(item);
+          }}
+        />
+      </Suspense>
     </>
   );
 }
@@ -1178,7 +1208,7 @@ function AppShell() {
   }, [cart]);
 
   useEffect(() => {
-  client.fetch(PRODUCTS_QUERY)
+  client.withConfig({ useCdn: false }).fetch(PRODUCTS_QUERY)
     .then((raw: any[]) => {
       setProducts(raw.map(mapSanityProduct));
       setLoading(false);
@@ -1301,7 +1331,7 @@ function AppShell() {
               reviews={reviews}
             />
           } />
-          <Route path="/mehsullar"  element={<ProductsPage categories={categories} products={products} loading={loading} openProduct={openProduct} />} />
+          <Route path="/mehsullar"  element={<ProductPage categories={categories} products={products} loading={loading} openProduct={openProduct} />} />
           <Route path="/mehsullar/:slug" element={
             <SlugPage
               selectedProduct={selectedProduct}
