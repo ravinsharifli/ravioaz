@@ -772,6 +772,40 @@ interface ProductsPageProps {
   openProduct: (p: Product) => void;
 }
 
+function ProductsPage({ categories, products, loading, openProduct }: ProductsPageProps) {
+  return (
+    <>
+      <Helmet>
+        <title>Bütün Məhsullar | Ravio</title>
+        <meta
+          name="description"
+          content="Ravio-nun bütün fərdi hədiyyələri — lazer yazılı qolbaq, təsbeh, domino, giftbox. Bakıda pulsuz çatdırılma, 1–3 iş günü."
+        />
+        <link rel="canonical" href="https://ravio.az/mehsullar" />
+      </Helmet>
+      <div style={{ padding: '24px 24px 0', maxWidth: 1280, margin: '0 auto' }}>
+        <h1 style={{ fontSize: 28, fontWeight: 700, margin: '0 0 8px', fontFamily: F.sans }}>
+          Bütün məhsullar
+        </h1>
+        <p style={{ color: C.textSec, margin: 0, fontSize: 14 }}>
+          {loading ? 'Yüklənir...' : `${products.length} məhsul · Ödənişsiz çatdırılma`}
+        </p>
+      </div>
+      <div style={{ padding: '0 24px 48px', maxWidth: 1280, margin: '0 auto' }}>
+        <CatalogLayout
+          activeSlug={null}
+          activeCategory={null}
+          categories={categories}
+          products={products}
+          filteredProducts={products}
+          loading={loading}
+          openProduct={openProduct}
+        />
+      </div>
+    </>
+  );
+}
+
 interface SlugPageProps {
   selectedProduct: Product | null;
   products: Product[];
@@ -1331,7 +1365,7 @@ function AppShell() {
               reviews={reviews}
             />
           } />
-          <Route path="/mehsullar"  element={<ProductPage categories={categories} products={products} loading={loading} openProduct={openProduct} />} />
+          <Route path="/mehsullar" element={<ProductsPage categories={categories} products={products} loading={loading} openProduct={openProduct} />} />
           <Route path="/mehsullar/:slug" element={
             <SlugPage
               selectedProduct={selectedProduct}
