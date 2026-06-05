@@ -41,7 +41,7 @@ const Contact: React.FC = () => {
         <meta property="og:title"       content="Əlaqə | Ravio" />
         <meta property="og:description" content="WhatsApp, Instagram və ya telefon ilə sifariş verin. Bakı daxili pulsuz çatdırılma." />
         <meta property="og:url"         content="https://ravio.az/elaqe" />
-        <meta property="og:image"       content="https://ravio.az/og-cover.jpg" />
+        <meta property="og:image"       content="https://ravio.az/og-ravio.png" />
         <meta name="twitter:card"       content="summary_large_image" />
         <link rel="canonical" href="https://ravio.az/elaqe" />
       </Helmet>

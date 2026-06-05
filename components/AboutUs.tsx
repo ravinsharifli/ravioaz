@@ -18,7 +18,7 @@ const AboutUs: React.FC = () => {
         <meta property="og:title"       content="Haqqımızda | Ravio" />
         <meta property="og:description" content="Ravio — Bakıda fərdi hədiyyələr hazırlayan onlayn mağaza. Hər məhsul sizin üçün xüsusi hazırlanır." />
         <meta property="og:url"         content="https://ravio.az/haqqimizda" />
-        <meta property="og:image"       content="https://ravio.az/og-cover.jpg" />
+        <meta property="og:image"       content="https://ravio.az/og-ravio.png" />
         <meta name="twitter:card"       content="summary_large_image" />
         <link rel="canonical" href="https://ravio.az/haqqimizda" />
       </Helmet>

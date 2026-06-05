@@ -77,7 +77,7 @@ const DeliveryInfo: React.FC<DeliveryInfoProps> = () => {
         <meta property="og:title"       content="Çatdırılma | Ravio" />
         <meta property="og:description" content="Kuryer pulsuz, özəl kuryer metrodaxili +2.99₼, Azərpoçt ilə bütün Azərbaycana. 1–3 iş günü." />
         <meta property="og:url"         content="https://ravio.az/catdirilma" />
-        <meta property="og:image"       content="https://ravio.az/og-cover.jpg" />
+        <meta property="og:image"       content="https://ravio.az/og-ravio.png" />
         <meta name="twitter:card"       content="summary_large_image" />
         <link rel="canonical" href="https://ravio.az/catdirilma" />
       </Helmet>
