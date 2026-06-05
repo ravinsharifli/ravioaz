@@ -13,7 +13,8 @@ export const PRODUCTS_QUERY = `*[_type == "product"] | order(bestSellerOrder asc
   bulkTiers[]{ minQty, maxQty, discountAmount, label },
   allowBoxSelection,
   customBoxOptions[]{ id, name, desc, price, isActive, "imageUrl": image.asset->url },
-  coupons[]{ code, discountType, discountValue, minOrderAmount, isActive, description }
+  coupons[]{ code, discountType, discountValue, minOrderAmount, isActive, description },
+  reviews[]{ name, rating, text, date, isActive, "photoUrl": photo.asset->url }
 }`;
 
 export const SINGLE_PRODUCT_QUERY = `*[_type == "product" && slug.current == $slug][0]{
@@ -29,7 +30,8 @@ export const SINGLE_PRODUCT_QUERY = `*[_type == "product" && slug.current == $sl
   bulkTiers[]{ minQty, maxQty, discountAmount, label },
   allowBoxSelection,
   customBoxOptions[]{ id, name, desc, price, isActive, "imageUrl": image.asset->url },
-  coupons[]{ code, discountType, discountValue, minOrderAmount, isActive, description }
+  coupons[]{ code, discountType, discountValue, minOrderAmount, isActive, description },
+  reviews[]{ name, rating, text, date, isActive, "photoUrl": photo.asset->url }
 }`;
 
 export const SETTINGS_QUERY = `*[_type == "siteSettings"][0]{
@@ -52,12 +54,6 @@ export const SETTINGS_QUERY = `*[_type == "siteSettings"][0]{
   "heroSlides": heroSlides[isActive != false]{
     label, title, subtitle, ctaText,
     "imageUrl": image.asset->url
-  },
-  "reviews": reviews[isActive != false]{
-    name, rating, text, date,
-    "photoUrl": photo.asset->url,
-    productUrl,
-    isActive
   }
 }`;
 
@@ -99,5 +95,15 @@ export function mapSanityProduct(raw: any): Product {
         imageUrl: b.imageUrl || null,
       })),
     coupons: (raw.coupons || []).filter((c: any) => c.isActive !== false),
+    reviews: (raw.reviews || [])
+      .filter((r: any) => r.isActive !== false && r.name && r.text)
+      .map((r: any) => ({
+        name: r.name,
+        rating: r.rating ?? 5,
+        text: r.text,
+        date: r.date || '',
+        photoUrl: r.photoUrl || undefined,
+        isActive: r.isActive !== false,
+      })),
   };
 }

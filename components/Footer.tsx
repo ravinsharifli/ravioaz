@@ -3,7 +3,6 @@ import { C, F } from '../tokens';
 import { Instagram, Phone, MapPin } from 'lucide-react';
 
 interface FooterProps {
-  onReviewsClick?: () => void;
   onProductsClick?: () => void;
   onDeliveryClick?: () => void;
   onAboutClick?: () => void;
@@ -16,7 +15,7 @@ const TikTokIcon = () => (
   </svg>
 );
 
-const Footer: React.FC<FooterProps> = ({ onReviewsClick, onProductsClick, onDeliveryClick, onAboutClick, onContactClick }) => {
+const Footer: React.FC<FooterProps> = ({ onProductsClick, onDeliveryClick, onAboutClick, onContactClick }) => {
   return (
     <footer style={{ background: C.black, color: C.white, padding: 'clamp(48px,6vw,72px) clamp(16px,3vw,32px) 32px', fontFamily: F.sans }}>
       <div style={{ maxWidth: 1280, margin: '0 auto' }}>
@@ -59,10 +58,9 @@ const Footer: React.FC<FooterProps> = ({ onReviewsClick, onProductsClick, onDeli
               Keçidlər
             </h4>
             {[
-              { label: 'Məhsullar',       action: onProductsClick },
-              { label: 'Çatdırılma',      action: onDeliveryClick },
-              { label: 'Müştəri rəyləri', action: onReviewsClick },
-              { label: 'Haqqımızda',      action: onAboutClick },
+              { label: 'Məhsullar',  action: onProductsClick },
+              { label: 'Çatdırılma', action: onDeliveryClick },
+              { label: 'Haqqımızda', action: onAboutClick },
             ].map((link, i) => (
               <div key={i} style={{ marginBottom: 12 }}>
                 <button onClick={link.action} style={{

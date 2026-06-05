@@ -7,7 +7,6 @@ import { OG_IMAGE, SITE_URL } from '../../constants/seo';
 import InfoStrips from '../home/InfoStrips';
 import UnifiedHeroCarousel from '../home/UnifiedHeroCarousel';
 import ProductGrid from '../ProductGrid';
-import CustomerReviews from '../CustomerReviews';
 import LoadingGrid from '../catalog/LoadingGrid';
 
 interface HomePageProps {
@@ -21,7 +20,6 @@ interface HomePageProps {
   setActiveCategory: React.Dispatch<React.SetStateAction<string | null>>;
   goToProducts: (cat?: string | null) => void;
   openProduct: (p: Product) => void;
-  reviews: any[];
 }
 
 export default function HomePage({
@@ -35,7 +33,6 @@ export default function HomePage({
   setActiveCategory,
   goToProducts,
   openProduct,
-  reviews,
 }: HomePageProps) {
   const navigate = useNavigate();
 
@@ -354,10 +351,6 @@ export default function HomePage({
             ))}
           </div>
         </div>
-      </section>
-
-      <section style={{ background: C.bg }}>
-        <CustomerReviews reviews={reviews} />
       </section>
     </div>
   );

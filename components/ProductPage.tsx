@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { F } from '../tokens';
 import { ChevronLeft, ChevronRight, Upload, Minus, Plus, Check, Tag, X, ArrowLeft } from 'lucide-react';
 import { Product, CartItem, BulkTier, Coupon } from '../types';
+import ProductReviews from './ProductReviews';
 
 function toWebP(url: string, width: number = 800): string {
   if (!url || !url.includes('cdn.sanity.io')) return url;
@@ -792,6 +793,10 @@ const ProductPage: React.FC<ProductPageProps> = ({
           </div>{/* /detail col */}
         </div>{/* /grid */}
       </div>
+
+      {product.reviews && product.reviews.length > 0 && (
+        <ProductReviews reviews={product.reviews} />
+      )}
     </div>
   );
 };

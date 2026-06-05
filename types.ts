@@ -24,6 +24,15 @@ export interface BoxOption {
   isActive?: boolean;
 }
 
+export interface CustomerReview {
+  name: string;
+  rating: number;
+  text: string;
+  date: string;
+  photoUrl?: string;
+  isActive?: boolean;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -43,6 +52,7 @@ export interface Product {
   allowBoxSelection?: boolean;
   customBoxOptions?: BoxOption[];
   coupons?: Coupon[];
+  reviews?: CustomerReview[];
 }
 
 // ── Metro cədvəli — hər günün öz saatları ──────────────────────

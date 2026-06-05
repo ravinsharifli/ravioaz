@@ -78,7 +78,6 @@ function AppShell() {
   const metroSchedule = settings?.metroSchedule || DEFAULT_METRO;
   const reelPosts: ReelPost[] = settings?.reelPosts || [];
   const heroSlides: any[] = settings?.heroSlides || [];
-  const reviews: any[] = settings?.reviews || [];
 
   const categories = Array.from(new Set(products.map((p) => p.category).filter(Boolean))) as string[];
   const filteredProducts = activeCategory
@@ -187,7 +186,6 @@ function AppShell() {
                 setActiveCategory={setActiveCategory}
                 goToProducts={goToProducts}
                 openProduct={openProduct}
-                reviews={reviews}
               />
             }
           />
@@ -223,7 +221,6 @@ function AppShell() {
       </main>
 
       <Footer
-        onReviewsClick={() => navigate('/')}
         onProductsClick={() => goToProducts(null)}
         onDeliveryClick={() => navigate('/catdirilma')}
         onAboutClick={() => navigate('/haqqimizda')}
