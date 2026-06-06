@@ -121,7 +121,7 @@ ${productXml}
   console.log(`✅ Sitemap yazıldı: ${total} URL (${withImages} məhsulda şəkil teqi var)`);
 }
 
-generateSitemap().catch(err => {
-  console.error('❌ Sitemap xətası:', err);
-  process.exit(1);
+generateSitemap().catch((err) => {
+  console.error('⚠️  Sitemap generasiya uğursuz (build davam edir):', err.message || err);
+  process.exit(0);
 });

@@ -246,7 +246,7 @@ async function run() {
   console.log('');
 }
 
-run().catch(err => {
-  console.error('\n❌ Kritik xəta:', err);
-  process.exit(1);
+run().catch((err) => {
+  console.error('\n⚠️  inject-seo uğursuz (əsas build saxlanılır):', err.message || err);
+  process.exit(0);
 });

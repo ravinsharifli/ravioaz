@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
+import '../styles/cart-drawer.css';
 import { F } from '../tokens';
 import { X, Trash2, ShoppingBag, ArrowRight, Edit3, ChevronLeft, ChevronRight, Tag, CheckCircle, AlertCircle } from 'lucide-react';
 import { CartItem, MetroSchedule, Coupon } from '../types';
@@ -844,26 +845,6 @@ setIsCheckingOut(false);
       style={{ position: 'fixed', inset: 0, zIndex: 1500, background: 'rgba(0,0,0,0.5)', fontFamily: FONT }}
       onClick={e => { if (e.target === e.currentTarget) { onClose(); setIsCheckingOut(false); } }}
     >
-      <style>{`
-        .ravio-cart-drawer {
-          position: absolute;
-          right: 0; top: 0; bottom: 0;
-          width: 100%;
-          background: ${C.bg};
-          display: flex;
-          flex-direction: column;
-          box-shadow: -8px 0 32px rgba(0,0,0,0.12);
-        }
-        @media (min-width: 480px) {
-          .ravio-cart-drawer { max-width: 480px; }
-        }
-        @media (min-width: 768px) {
-          .ravio-cart-drawer { max-width: 520px; }
-        }
-        @media (min-width: 1024px) {
-          .ravio-cart-drawer { max-width: 560px; }
-        }
-      `}</style>
       <div
         ref={drawerRef}
         role="dialog"

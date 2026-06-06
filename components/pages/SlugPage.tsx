@@ -60,7 +60,6 @@ export default function SlugPage({
     setFetchingProduct(true);
 
     client
-      .withConfig({ useCdn: false })
       .fetch(SINGLE_PRODUCT_QUERY, { slug })
       .then((raw: unknown) => {
         if (cancelled) return;

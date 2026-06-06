@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import '../styles/navbar.css';
 import { C, F } from '../tokens';
 import { ShoppingBag, Search, X, Menu } from 'lucide-react';
 import { Product } from '../types';
@@ -289,27 +290,6 @@ const Navbar: React.FC<NavbarProps> = ({
       {/* Spacer — yalnız nav hündürlüyü qədər */}
       <div style={{ height: NAV_H }} />
 
-      <style>{`
-        @media (max-width: 768px) {
-          .r-desktop-nav { display: none !important; }
-          .r-mobile-menu-btn { display: flex !important; }
-        }
-        @media (min-width: 769px) {
-          .r-mobile-menu-btn { display: none !important; }
-        }
-        @media (max-width: 420px) {
-          .ravio-nav-brand-text { display: none !important; }
-        }
-        @media (max-width: 640px) {
-          .ravio-search-panel {
-            position: fixed !important;
-            left: 12px !important;
-            right: 12px !important;
-            width: auto !important;
-            top: var(--panel-top, 68px) !important;
-          }
-        }
-      `}</style>
     </>
   );
 };

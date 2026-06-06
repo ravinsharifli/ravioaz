@@ -1,0 +1,27 @@
+@media (max-width: 768px) {
+  .r-mobile-menu-btn {
+    display: flex !important;
+  }
+}
+
+@media (min-width: 769px) {
+  .r-mobile-menu-btn {
+    display: none !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .ravio-nav-brand-text {
+    display: none !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .ravio-search-panel {
+    position: fixed !important;
+    left: 12px !important;
+    right: 12px !important;
+    width: auto !important;
+    top: var(--panel-top, 68px) !important;
+  }
+}

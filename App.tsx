@@ -50,7 +50,6 @@ function AppShell() {
 
   useEffect(() => {
     client
-      .withConfig({ useCdn: false })
       .fetch(PRODUCTS_QUERY)
       .then((raw: any[]) => {
         setProducts(raw.map(mapSanityProduct));
@@ -245,36 +244,6 @@ function AppShell() {
       </Suspense>
 
       <PWAInstallBanner />
-
-      <style>{`
-        *, *::before, *::after { box-sizing: border-box; }
-        body { -webkit-font-smoothing: antialiased; margin: 0; }
-        ::selection { background: var(--clr-primary); color: var(--clr-white); }
-        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.45} }
-        aside::-webkit-scrollbar { display: none; }
-        div::-webkit-scrollbar { display: none; }
-        @media (max-width: 768px) { .r-desktop-nav { display: none !important; } }
-        @media (min-width: 769px) { .r-mobile-nav { display: none !important; } }
-        @media (max-width: 900px) {
-          .r-catalog-aside { display: none !important; }
-          .r-catalog-main { margin-left: 0 !important; }
-        }
-        @media (max-width: 640px) {
-          .ravio-reelworks-inner { flex-direction: column !important; overflow: visible !important; }
-          .ravio-reel-main-img   { flex: none !important; width: 100% !important; aspect-ratio: 4/3 !important; }
-          .ravio-reel-thumbs     { display: none !important; }
-        }
-        @media (min-width: 641px) and (max-width: 900px) {
-          .ravio-reel-main-img { flex: 0 0 52% !important; }
-          .ravio-reel-thumbs   { flex: 1 !important; }
-        }
-        @media (max-width: 640px) {
-          body { font-size: 15px; }
-          input, select, textarea { font-size: 16px !important; }
-          .r-section { padding-left: 16px !important; padding-right: 16px !important; }
-          .ravio-footer-grid { grid-template-columns: 1fr !important; gap: 32px !important; }
-        }
-      `}</style>
     </div>
   );
 }
