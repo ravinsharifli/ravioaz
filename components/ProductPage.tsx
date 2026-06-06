@@ -3,21 +3,7 @@ import { F } from '../tokens';
 import { ChevronLeft, ChevronRight, Upload, Minus, Plus, Check, Tag, X, ArrowLeft } from 'lucide-react';
 import { Product, CartItem, BulkTier, Coupon } from '../types';
 import ProductReviews from './ProductReviews';
-
-function toWebP(url: string, width: number = 800): string {
-  if (!url || !url.includes('cdn.sanity.io')) return url;
-  try {
-    const u = new URL(url);
-    u.searchParams.set('w', String(width));
-    u.searchParams.set('fm', 'webp');
-    u.searchParams.set('q', '85');
-    u.searchParams.set('fit', 'max');
-    u.searchParams.set('auto', 'format');
-    return u.toString();
-  } catch {
-    return url;
-  }
-}
+import { toWebP } from '../lib/image';
 
 const FONT = F.sans;
 
@@ -298,7 +284,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
                   aspectRatio: '1/1',
                 }}>
                   <img
-                    src={toWebP(allImages[imgIdx]?.url ?? '', 900)}
+                    src={toWebP(allImages[imgIdx]?.url ?? '', 900, 85)}
                     alt={product.name}
                     loading="eager"
                     decoding="async"

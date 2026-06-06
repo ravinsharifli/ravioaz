@@ -8,6 +8,7 @@ import { fromCategorySlug, findProductBySlug } from '../../lib/categorySlug';
 import { CATEGORY_SEO } from '../../lib/categorySeo';
 import { SINGLE_PRODUCT_QUERY, mapSanityProduct } from '../../lib/sanityProduct';
 import { getProductPriceRange } from '../../lib/productPrice';
+import { getProductMetaDescription } from '../../lib/productMeta';
 import { DEFAULT_BOXES } from '../../constants/defaults';
 import { SITE_URL } from '../../constants/seo';
 import CatalogLayout from '../catalog/CatalogLayout';
@@ -156,6 +157,7 @@ export default function SlugPage({
     ? (currentProduct.variants || []).reduce((sum, v) => sum + (v.stock || 0), 0)
     : 0;
   const productUrl = `${SITE_URL}/mehsullar/${slug}`;
+  const metaDesc = currentProduct ? getProductMetaDescription(currentProduct) : '';
 
   if (pageLoading) {
     return (
@@ -173,6 +175,14 @@ export default function SlugPage({
     <>
       <Helmet>
         <title>{`${currentProduct.name} | Ravio`}</title>
+        <meta name="description" content={metaDesc} />
+        <meta property="og:type" content="product" />
+        <meta property="og:title" content={`${currentProduct.name} | Ravio`} />
+        <meta property="og:description" content={metaDesc} />
+        <meta property="og:url" content={productUrl} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={`${currentProduct.name} | Ravio`} />
+        <meta name="twitter:description" content={metaDesc} />
         <link rel="canonical" href={productUrl} />
         {primaryImage && <meta property="og:image" content={primaryImage} />}
         {primaryImage && <meta name="twitter:image" content={primaryImage} />}

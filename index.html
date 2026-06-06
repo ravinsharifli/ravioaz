@@ -167,36 +167,12 @@
             href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" />
     </noscript>
 
-    <!-- Google Analytics -->
+    <!-- Google Analytics (xarici fayl — CSP unsafe-inline olmadan) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-4YEWCWGVTD"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-4YEWCWGVTD', {
-        page_title: 'Ravio',
-        send_page_view: true
-      });
-      window.trackEvent = function(eventName, params) {
-        if (typeof gtag !== 'undefined') {
-          gtag('event', eventName, params || {});
-        }
-      };
-    </script>
+    <script src="/ga-init.js" defer></script>
 
-    <!-- Meta Pixel -->
-    <script>
-      !function(f,b,e,v,n,t,s)
-      {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-      n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-      if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-      n.queue=[];t=b.createElement(e);t.async=!0;
-      t.src=v;s=b.getElementsByTagName(e)[0];
-      s.parentNode.insertBefore(t,s)}(window, document,'script',
-      'https://connect.facebook.net/en_US/fbevents.js');
-      fbq('init', '26646673358301164');
-      fbq('track', 'PageView');
-    </script>
+    <!-- Meta Pixel (xarici fayl) -->
+    <script src="/meta-pixel.js" defer></script>
 
     <style>
       :root {
@@ -225,12 +201,6 @@
     <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=26646673358301164&ev=PageView&noscript=1"></noscript>
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', function () {
-          navigator.serviceWorker.register('/sw.js').catch(function () {});
-        });
-      }
-    </script>
+    <script src="/sw-register.js" defer></script>
   </body>
 </html>

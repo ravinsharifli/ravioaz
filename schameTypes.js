@@ -1,4 +1,5 @@
 import product from './product'
+import productReview from './productReview'
 import siteSettings from './siteSettings'
 
 const category = {
@@ -28,4 +29,4 @@ const category = {
   ],
 }
 
-export const schemaTypes = [category, product, siteSettings]
+export const schemaTypes = [category, product, productReview, siteSettings]

@@ -5,8 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "node generate-sitemap.mjs || echo 'Sitemap skip' && vite build && node inject-seo.mjs",
-    "preview": "vite preview"
+    "build": "node generate-sitemap.mjs && vite build && node inject-seo.mjs",
+    "preview": "vite preview",
+    "studio": "sanity dev",
+    "studio:deploy": "sanity deploy"
   },
   "dependencies": {
     "@sanity/client": "^7.14.1",
