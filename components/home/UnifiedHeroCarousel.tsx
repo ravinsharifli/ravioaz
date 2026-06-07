@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { F } from '../../tokens';
 import { ReelPost } from '../../types';
-import { toWebP } from '../../lib/image';
+import { toWebP, toSrcSet } from '../../lib/image';
 import { buildHeroSlides } from './heroTypes';
 
 export default function UnifiedHeroCarousel({
@@ -88,9 +88,12 @@ export default function UnifiedHeroCarousel({
           {slide.imageUrl ? (
             <img
               src={toWebP(slide.imageUrl, 640)}
+              srcSet={toSrcSet(slide.imageUrl, [400, 640, 900])}
+              sizes="(max-width: 640px) 100vw, (max-width: 1280px) 45vw, 420px"
               alt={slide.title}
               style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
               loading={safeIdx === 0 ? 'eager' : 'lazy'}
+              decoding={safeIdx === 0 ? 'sync' : 'async'}
               fetchPriority={safeIdx === 0 ? 'high' : 'auto'}
             />
           ) : (

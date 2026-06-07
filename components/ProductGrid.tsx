@@ -2,7 +2,7 @@
 import { C, F } from '../tokens';
 import { ShoppingBag, Zap, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Product } from '../types';
-import { toWebP } from '../lib/image';
+import { toWebP, toSrcSet } from '../lib/image';
 
 interface ProductGridProps {
   products: Product[];
@@ -143,6 +143,8 @@ const Card: React.FC<CardProps> = ({
         {images.length > 0 ? (
           <img
           src={toWebP(images[imgIdx], 480)}
+          srcSet={toSrcSet(images[imgIdx], [240, 480, 720])}
+          sizes="(max-width: 400px) 45vw, (max-width: 900px) 45vw, (max-width: 1200px) 30vw, 25vw"
           alt={`${product.name} — fərdi hədiyyə, Bakı | Ravio`}
           loading={cardIndex < 4 ? 'eager' : 'lazy'}
           fetchPriority={cardIndex < 2 ? 'high' : 'auto'}
@@ -151,6 +153,7 @@ const Card: React.FC<CardProps> = ({
               width: '100%', height: '100%', objectFit: 'cover', display: 'block',
               transition: 'transform 0.5s ease',
               transform: hovered ? 'scale(1.05)' : 'scale(1)',
+              contentVisibility: cardIndex < 8 ? 'auto' : 'auto',
             }}
           />
         ) : (

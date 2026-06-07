@@ -49,22 +49,19 @@ function AppShell() {
   }, [cart]);
 
   useEffect(() => {
-    client
-      .fetch(PRODUCTS_QUERY)
-      .then((raw: any[]) => {
-        setProducts(raw.map(mapSanityProduct));
+    // İki Sanity sorğusunu eyni anda göndər — ardıcıl deyil, paralel
+    Promise.all([
+      client.fetch(PRODUCTS_QUERY),
+      client.fetch(SETTINGS_QUERY),
+    ])
+      .then(([rawProducts, s]: [any[], any]) => {
+        setProducts(rawProducts.map(mapSanityProduct));
+        setSettings(s);
         setLoading(false);
       })
       .catch((err) => {
-        console.error('[Sanity] Məhsullar yüklənmədi:', err);
+        console.error('[Sanity] Yüklənmə xətası:', err);
         setLoading(false);
-      });
-
-    client
-      .fetch(SETTINGS_QUERY)
-      .then((s: any) => setSettings(s))
-      .catch((err) => {
-        console.error('[Sanity] siteSettings yüklənmədi:', err);
       });
 
     
