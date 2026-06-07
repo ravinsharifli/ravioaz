@@ -10,7 +10,7 @@
   --clr-border: #edebe7;
   --clr-border-mid: #d5d0c8;
   --clr-text-sec: #666666;
-  --clr-text-muted: #767676;
+  --clr-text-muted: #595959;;
   --clr-success: #0a7a2f;
   --clr-error: #b00020;
   --font-sans: 'Inter', sans-serif;
@@ -111,4 +111,19 @@ div::-webkit-scrollbar {
   .ravio-reel-thumbs {
     flex: 1 !important;
   }
+}
+/* Focus görünürlüyü — klaviatura istifadəçiləri üçün */
+:focus-visible {
+  outline: 2px solid var(--clr-primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--clr-primary);
+  outline-offset: 2px;
 }

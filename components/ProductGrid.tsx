@@ -52,26 +52,27 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart, onView
         }
       `}</style>
       <div className="ravio-product-grid">
-        {products.map(product => {
-          const fv = product.variants?.[0];
-          if (!fv) return null;
-          const { min, max, minOld, hasDiscount, pct } = getPriceInfo(product);
-          const stock    = (product.variants || []).reduce((s, v) => s + (v.stock || 0), 0);
-          const lowStock = stock > 0 && stock <= 5;
-          const outOfStock = stock === 0;
-          return (
-            <Card
-              key={product.id}
-              product={product}
-              min={min} max={max} minOld={minOld}
-              hasDiscount={hasDiscount} pct={pct}
-              samePrice={min === max}
-              lowStock={lowStock} outOfStock={outOfStock} stock={stock}
-              onView={() => onViewProduct(product)}
-              onAdd={() => onAddToCart(product)}
-            />
-          );
-        })}
+        {products.map((product, index) => {
+  const fv = product.variants?.[0];
+  if (!fv) return null;
+  const { min, max, minOld, hasDiscount, pct } = getPriceInfo(product);
+  const stock      = (product.variants || []).reduce((s, v) => s + (v.stock || 0), 0);
+  const lowStock   = stock > 0 && stock <= 5;
+  const outOfStock = stock === 0;
+  return (
+    <Card
+      key={product.id}
+      product={product}
+      cardIndex={index}
+      min={min} max={max} minOld={minOld}
+      hasDiscount={hasDiscount} pct={pct}
+      samePrice={min === max}
+      lowStock={lowStock} outOfStock={outOfStock} stock={stock}
+      onView={() => onViewProduct(product)}
+      onAdd={() => onAddToCart(product)}
+    />
+  );
+})}
       </div>
     </>
   );
@@ -79,6 +80,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart, onView
 
 interface CardProps {
   product: Product;
+  cardIndex: number;
   min: number; max: number; minOld: number | null;
   hasDiscount: boolean; pct: number; samePrice: boolean;
   lowStock: boolean; outOfStock: boolean; stock: number;
@@ -86,7 +88,7 @@ interface CardProps {
 }
 
 const Card: React.FC<CardProps> = ({
-  product, min, max, minOld,
+  product, cardIndex, min, max, minOld,
   hasDiscount, pct, samePrice,
   lowStock, outOfStock, stock,
   onView, onAdd,
@@ -140,10 +142,11 @@ const Card: React.FC<CardProps> = ({
       >
         {images.length > 0 ? (
           <img
-            src={toWebP(images[imgIdx], 480)}
-            alt={`${product.name} — fərdi hədiyyə, Bakı | Ravio`}
-            loading="lazy"
-            decoding="async"
+          src={toWebP(images[imgIdx], 480)}
+          alt={`${product.name} — fərdi hədiyyə, Bakı | Ravio`}
+          loading={cardIndex < 4 ? 'eager' : 'lazy'}
+          fetchPriority={cardIndex < 2 ? 'high' : 'auto'}
+          decoding={cardIndex < 4 ? 'sync' : 'async'}
             style={{
               width: '100%', height: '100%', objectFit: 'cover', display: 'block',
               transition: 'transform 0.5s ease',

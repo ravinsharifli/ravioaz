@@ -10,14 +10,14 @@ import { DEFAULT_METRO } from './constants/defaults';
 
 import Navbar from './components/Navbar';
 import PWAInstallBanner from './components/PWAInstallBanner';
-import AboutUs from './components/AboutUs';
-import Contact from './components/Contact';
-import DeliveryInfo from './components/DeliveryInfo';
+const AboutUs     = React.lazy(() => import('./components/AboutUs'));
+const Contact     = React.lazy(() => import('./components/Contact'));
+const DeliveryInfo = React.lazy(() => import('./components/DeliveryInfo'));
 import Footer from './components/Footer';
-import HomePage from './components/pages/HomePage';
-import ProductsPage from './components/pages/ProductsPage';
-import SlugPage from './components/pages/SlugPage';
-import NotFound from './components/pages/NotFound';
+const HomePage    = React.lazy(() => import('./components/pages/HomePage'));
+const ProductsPage = React.lazy(() => import('./components/pages/ProductsPage'));
+const SlugPage    = React.lazy(() => import('./components/pages/SlugPage'));
+const NotFound    = React.lazy(() => import('./components/pages/NotFound'));
 
 const CartDrawer = React.lazy(() => import('./components/CartDrawer'));
 
@@ -37,7 +37,7 @@ function AppShell() {
   });
   const [cartOpen, setCartOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
-  const [visible, setVisible] = useState(false);
+  const [visible, setVisible] = useState(true);
   const [settings, setSettings] = useState<any>(null);
 
   useEffect(() => {
@@ -67,7 +67,7 @@ function AppShell() {
         console.error('[Sanity] siteSettings yüklənmədi:', err);
       });
 
-    setTimeout(() => setVisible(true), 60);
+    
   }, []);
 
   useEffect(() => {
@@ -170,6 +170,7 @@ function AppShell() {
       />
 
       <main id="main-content">
+      <Suspense fallback={<div style={{minHeight:'60vh'}} />}>
         <Routes>
           <Route
             path="/"
@@ -217,6 +218,7 @@ function AppShell() {
           <Route path="/catdirilma" element={<DeliveryInfo />} />
           <Route path="*" element={<NotFound onHome={() => navigate('/')} />} />
         </Routes>
+        </Suspense>
       </main>
 
       <Footer

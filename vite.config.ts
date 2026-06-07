@@ -15,21 +15,20 @@ export default defineConfig({
   },
   build: {
     cssCodeSplit: true,
+    minify: 'esbuild',
     rollupOptions: {
       output: {
         manualChunks(id) {
           if (!id.includes('node_modules')) return;
-          if (id.includes('lucide-react')) return 'vendor-icons';
-          if (id.includes('react-helmet')) return 'vendor-helmet';
+          if (id.includes('lucide-react'))  return 'vendor-icons';
+          if (id.includes('react-helmet'))  return 'vendor-helmet';
           if (id.includes('@sanity') || id.includes('/sanity/')) return 'vendor-sanity';
           if (
             id.includes('react-dom') ||
             id.includes('react-router') ||
             id.includes('/react/') ||
             id.includes('scheduler')
-          ) {
-            return 'vendor-react';
-          }
+          ) return 'vendor-react';
         },
       },
     },

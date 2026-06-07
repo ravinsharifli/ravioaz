@@ -84,7 +84,7 @@ const Navbar: React.FC<NavbarProps> = ({
           justifyContent: 'space-between', gap: 16,
         }}>
           {/* Logo */}
-          <button onClick={onLogoClick} style={{
+          <button onClick={onLogoClick} aria-label="Ana səhifəyə qayıt" style={{
             background: 'none', border: 'none', cursor: 'pointer',
             padding: 0, flexShrink: 0,
             display: 'flex', alignItems: 'center', gap: 8,
@@ -120,7 +120,10 @@ const Navbar: React.FC<NavbarProps> = ({
           {/* Right icons */}
           <div ref={searchRef} style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, position: 'relative' }}>
             {/* Search button */}
-            <button onClick={() => { setSearchOpen(v => !v); setQuery(''); }} style={{
+            <button onClick={() => { setSearchOpen(v => !v); setQuery(''); }}
+  aria-label={searchOpen ? "Axtarışı bağla" : "Axtarış"}
+  aria-expanded={searchOpen}
+  style={{
               background: 'none', border: 'none', cursor: 'pointer',
               width: 40, height: 40, borderRadius: 8,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -218,7 +221,9 @@ const Navbar: React.FC<NavbarProps> = ({
             )}
 
             {/* Cart */}
-            <button onClick={onCartClick} style={{
+            <button onClick={onCartClick}
+  aria-label={`Alış-veriş səbəti${cartCount > 0 ? ` (${cartCount} məhsul)` : ''}`}
+  style={{
               position: 'relative', background: 'none', border: 'none', cursor: 'pointer',
               width: 40, height: 40, borderRadius: 8,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -238,8 +243,10 @@ const Navbar: React.FC<NavbarProps> = ({
 
             {/* Mobile hamburger */}
             <button
-              className="r-mobile-menu-btn"
-              onClick={() => setMenuOpen(v => !v)}
+  className="r-mobile-menu-btn"
+  aria-label={menuOpen ? "Menyu bağla" : "Menyu aç"}
+  aria-expanded={menuOpen}
+  onClick={() => setMenuOpen(v => !v)}
               style={{
                 background: 'none', border: 'none', cursor: 'pointer',
                 width: 40, height: 40, borderRadius: 8,
