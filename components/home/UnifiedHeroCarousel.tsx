@@ -33,7 +33,17 @@ export default function UnifiedHeroCarousel({
   const safeIdx = slides.length > 0 ? Math.min(current, slides.length - 1) : 0;
   const slide   = slides[safeIdx];
 
-  if (!slides.length || !slide) return null;
+  if (!slides.length || !slide) {
+    return (
+      <div
+        style={{
+          background: '#111111',
+          height: 'clamp(280px, 55vw, 480px)',
+          padding: 'clamp(16px, 4vw, 48px) clamp(16px, 5vw, 48px)',
+        }}
+      />
+    );
+  }
 
   const arrowBtn: React.CSSProperties = {
     width: 36, height: 36, borderRadius: '50%',

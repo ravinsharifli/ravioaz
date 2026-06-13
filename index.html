@@ -8,7 +8,11 @@
     <link rel="apple-touch-icon" sizes="192x192" href="/icon-192.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 
-    <!-- Performans: Sanity CDN + şriftlər -->
+    <!-- Performans: Font preconnect ƏN ƏVVƏL — brauzer şrift serverinə dərhal qoşulur -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <!-- Sanity CDN + API -->
     <link rel="preconnect" href="https://cdn.sanity.io" crossorigin />
     <link rel="preconnect" href="https://w7scii42.apicdn.sanity.io" crossorigin />
     <link rel="dns-prefetch" href="https://cdn.sanity.io" />
@@ -173,20 +177,17 @@
   #root{min-height:100vh}
 </style>
 
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <!-- Inter şrifti: yalnız lazımlı çəkilər, font-display:swap -->
+    <!-- Inter şrifti: 400/600/700/800 — display:optional CLS sıfır edir -->
     <link rel="preload" as="style" crossorigin
-          href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,600;0,700&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=optional"
           onload="this.onload=null;this.rel='stylesheet'" />
     <noscript>
       <link rel="stylesheet"
-            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" />
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=optional" />
     </noscript>
 
-    <!-- Google Analytics (xarici fayl — CSP unsafe-inline olmadan) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-4YEWCWGVTD"></script>
+    <!-- Google Analytics — ga-init.js interaksiyadan/4s sonra gtag/js-i özü yükləyir -->
+    <!-- ÖNƏMLİ: async gtag skriptini sildik — bandwidth LCP üçün ayrılır -->
     <script src="/ga-init.js" defer></script>
 
     <!-- Meta Pixel — səhifə yüklənəndən 3s sonra başlayır, LCP-yə mane olmur -->
