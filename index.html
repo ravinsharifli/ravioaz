@@ -8,15 +8,11 @@
     <link rel="apple-touch-icon" sizes="192x192" href="/icon-192.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 
-    <!-- Performans: Font preconnect ƏN ƏVVƏL — brauzer şrift serverinə dərhal qoşulur -->
+    <!-- Performans: 4 preconnect — dəqiq hədəflər, artıq yox -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-
-    <!-- Sanity CDN + API -->
-    <link rel="preconnect" href="https://cdn.sanity.io" crossorigin />
-    <link rel="preconnect" href="https://w7scii42.apicdn.sanity.io" />
-<link rel="preconnect" href="https://capig.datah04.com" crossorigin />
-    <link rel="dns-prefetch" href="https://cdn.sanity.io" />
+    <link rel="preconnect" href="https://w7scii42.apicdn.sanity.io" crossorigin />
+    <link rel="preconnect" href="https://capig.datah04.com" />
     <link rel="dns-prefetch" href="https://w7scii42.apicdn.sanity.io" />
 
     <!-- PWA -->
@@ -46,6 +42,7 @@
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:alt" content="Ravio — Lazer yazılı fərdi hədiyyələr, Bakı" />
     <meta property="og:locale" content="az_AZ" />
     <meta property="og:site_name" content="Ravio" />
 
@@ -93,72 +90,6 @@
     }
     </script>
 
-    <!-- Schema: FAQPage -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "FAQPage",
-      "mainEntity": [
-        {
-          "@type": "Question",
-          "name": "Bakıda lazer hədiyyə haradan almaq olar?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "Ravio mağazasından online sifariş verə bilərsiniz. Bakı, Sumqayıt, Abşeron ərazisinə çatdırılma tamamilə ödənişsizdir. Sayt: ravio.az, WhatsApp: +994519831483"
-          }
-        },
-        {
-          "@type": "Question",
-          "name": "Çatdırılma pulsuz deyilmi?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "Bəli. Standart kuryer çatdırılması Bakı, Sumqayıt və Abşeron ərazisinə tamamilə ödənişsizdir — əlavə heç bir ödəniş tələb edilmir. Bundan əlavə, özəl metro görüşü xidməti mövcuddur: siz stansiya, gün və saat seçirsiniz, kuryer sizi metro daxilində qarşılayır — bu seçim +2.99 AZN təşkil edir."
-          }
-        },
-        {
-          "@type": "Question",
-          "name": "Sifariş nə qədər vaxtda hazır olur?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "Sifarişlər 1–3 iş günündə hazırlanır və çatdırılır. Bəzi məhsullar əlavə vaxt apara bilər."
-          }
-        },
-        {
-          "@type": "Question",
-          "name": "Lazer yazısı nə qədər davamlıdır?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "Lazer yazısı materialın içinə işləndiyi üçün son dərəcə davamlıdır — silinmir, solmur, rəngi dəyişmir."
-          }
-        },
-        {
-          "@type": "Question",
-          "name": "Toplu sifariş mümkündürmü?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "Bəli, 10 ədəd və daha çox sifarişlər üçün xüsusi endirim tətbiq edilir. Məzun lentləri, korporativ hədiyyələr və sinif sifarişləri qəbul edilir. Toplu sifariş zamanı xüsusi endirimdən yararlanmaq üçün əlaqə saxlayın."
-          }
-        },
-        {
-          "@type": "Question",
-          "name": "Hədiyyə qablaşdırması varmı?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "Bəli, sadə qutu (pulsuz), orta qutu (10₼) və premium qutu (17₼) seçimləri mövcuddur. Diqqət ! Qiymətlər zamana və qutuya görə dəyişə bilər"
-          }
-        },
-        {
-          "@type": "Question",
-          "name": "Qolbağa hansı yazıları yazmaq olar?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "Ad, soyad, tarix, sevgi mesajı, koordinatlar, qr kod — istənilən yazını lazer ilə qolbağa həkk etmək mümkündür."
-          }
-        }
-      ]
-    }
-    </script>
-
     <!-- Schema: WebSite -->
     <script type="application/ld+json">
     {
@@ -188,7 +119,6 @@
     </noscript>
 
     <!-- Google Analytics — ga-init.js interaksiyadan/4s sonra gtag/js-i özü yükləyir -->
-    <!-- ÖNƏMLİ: async gtag skriptini sildik — bandwidth LCP üçün ayrılır -->
     <script src="/ga-init.js" defer></script>
 
     <!-- Meta Pixel — səhifə yüklənəndən 3s sonra başlayır, LCP-yə mane olmur -->
@@ -196,7 +126,7 @@
 
   </head>
   <body>
-    <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=26646673358301164&ev=PageView&noscript=1"></noscript>
+    <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=266466733358301164&ev=PageView&noscript=1"></noscript>
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
     <script src="/sw-register.js" defer></script>
