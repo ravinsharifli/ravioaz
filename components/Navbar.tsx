@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import '../styles/navbar.css';
 import { C, F } from '../tokens';
 import { ShoppingBag, Search, X, Menu } from 'lucide-react';
@@ -60,17 +61,16 @@ const Navbar: React.FC<NavbarProps> = ({
     : [];
 
   const navLinks = [
-    { label: 'Məhsullar',  action: onProductsClick },
-    { label: 'Çatdırılma', action: onDeliveryClick },
-    { label: 'Haqqımızda', action: onAboutClick },
-    { label: 'Əlaqə',      action: onContactClick },
+    { label: 'Məhsullar',  href: '/mehsullar' },
+    { label: 'Çatdırılma', href: '/catdirilma' },
+    { label: 'Haqqımızda', href: '/haqqimizda' },
+    { label: 'Əlaqə',      href: '/elaqe' },
   ];
 
   const NAV_H = 60;
 
   return (
     <>
-      {/* Main nav */}
       <nav style={{
         position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000,
         background: C.white,
@@ -84,10 +84,11 @@ const Navbar: React.FC<NavbarProps> = ({
           justifyContent: 'space-between', gap: 16,
         }}>
           {/* Logo */}
-          <button onClick={onLogoClick} aria-label="Ana səhifəyə qayıt" style={{
+          <Link to="/" aria-label="Ana səhifəyə qayıt" style={{
             background: 'none', border: 'none', cursor: 'pointer',
             padding: 0, flexShrink: 0,
             display: 'flex', alignItems: 'center', gap: 8,
+            textDecoration: 'none',
           }}>
             <img
               src="/og-ravio.png"
@@ -100,20 +101,21 @@ const Navbar: React.FC<NavbarProps> = ({
             <span className="ravio-nav-brand-text" style={{ fontFamily: F.sans, fontSize: 18, fontWeight: 800, color: C.black, letterSpacing: '-0.5px' }}>
               Sizə Özəl Hədiyyələr
             </span>
-          </button>
+          </Link>
 
           {/* Desktop nav links */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 2 }} className="r-desktop-nav">
             {navLinks.map(link => (
-              <button key={link.label} onClick={link.action} style={{
+              <Link key={link.label} to={link.href} style={{
                 background: 'none', border: 'none', cursor: 'pointer',
                 padding: '8px 14px', fontSize: 13, fontWeight: 500,
                 color: '#444444', fontFamily: F.sans,
                 borderRadius: 6, transition: 'color 0.15s, background 0.15s',
+                textDecoration: 'none', display: 'inline-block',
               }}
                 onMouseEnter={e => { e.currentTarget.style.color = C.black; e.currentTarget.style.background = C.bg; }}
                 onMouseLeave={e => { e.currentTarget.style.color = '#444444'; e.currentTarget.style.background = 'transparent'; }}
-              >{link.label}</button>
+              >{link.label}</Link>
             ))}
           </div>
 
@@ -121,15 +123,15 @@ const Navbar: React.FC<NavbarProps> = ({
           <div ref={searchRef} style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, position: 'relative' }}>
             {/* Search button */}
             <button onClick={() => { setSearchOpen(v => !v); setQuery(''); }}
-  aria-label={searchOpen ? "Axtarışı bağla" : "Axtarış"}
-  aria-expanded={searchOpen}
-  style={{
-              background: 'none', border: 'none', cursor: 'pointer',
-              width: 40, height: 40, borderRadius: 8,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: searchOpen ? C.primary : '#444444',
-              transition: 'color 0.15s',
-            }}>
+              aria-label={searchOpen ? "Axtarışı bağla" : "Axtarış"}
+              aria-expanded={searchOpen}
+              style={{
+                background: 'none', border: 'none', cursor: 'pointer',
+                width: 40, height: 40, borderRadius: 8,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: searchOpen ? C.primary : '#444444',
+                transition: 'color 0.15s',
+              }}>
               {searchOpen ? <X size={17} /> : <Search size={17} />}
             </button>
 
@@ -172,12 +174,14 @@ const Navbar: React.FC<NavbarProps> = ({
                   <ul style={{ listStyle: 'none', margin: 0, padding: '6px 0', maxHeight: 320, overflowY: 'auto' as const }}>
                     {results.map(p => (
                       <li key={p.id}>
-                        <button
-                          onClick={() => { onViewProduct?.(p); setSearchOpen(false); setQuery(''); }}
+                        <Link
+                          to={`/mehsullar/${p.slug}`}
+                          onClick={() => { setSearchOpen(false); setQuery(''); }}
                           style={{
                             width: '100%', display: 'flex', alignItems: 'center', gap: 12,
-                            padding: '10px 16px', background: 'none', border: 'none',
+                            padding: '10px 16px', background: 'none',
                             cursor: 'pointer', textAlign: 'left' as const,
+                            textDecoration: 'none',
                           }}
                           onMouseEnter={e => (e.currentTarget.style.background = C.bg)}
                           onMouseLeave={e => (e.currentTarget.style.background = 'none')}
@@ -204,7 +208,7 @@ const Navbar: React.FC<NavbarProps> = ({
                             </p>
                           </div>
                           <span style={{ color: '#CCCCCC', fontSize: 16, flexShrink: 0 }}>›</span>
-                        </button>
+                        </Link>
                       </li>
                     ))}
                   </ul>
@@ -222,13 +226,13 @@ const Navbar: React.FC<NavbarProps> = ({
 
             {/* Cart */}
             <button onClick={onCartClick}
-  aria-label={`Alış-veriş səbəti${cartCount > 0 ? ` (${cartCount} məhsul)` : ''}`}
-  style={{
-              position: 'relative', background: 'none', border: 'none', cursor: 'pointer',
-              width: 40, height: 40, borderRadius: 8,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: '#444444',
-            }}>
+              aria-label={`Alış-veriş səbəti${cartCount > 0 ? ` (${cartCount} məhsul)` : ''}`}
+              style={{
+                position: 'relative', background: 'none', border: 'none', cursor: 'pointer',
+                width: 40, height: 40, borderRadius: 8,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: '#444444',
+              }}>
               <ShoppingBag size={18} />
               {cartCount > 0 && (
                 <span style={{
@@ -243,10 +247,10 @@ const Navbar: React.FC<NavbarProps> = ({
 
             {/* Mobile hamburger */}
             <button
-  className="r-mobile-menu-btn"
-  aria-label={menuOpen ? "Menyu bağla" : "Menyu aç"}
-  aria-expanded={menuOpen}
-  onClick={() => setMenuOpen(v => !v)}
+              className="r-mobile-menu-btn"
+              aria-label={menuOpen ? "Menyu bağla" : "Menyu aç"}
+              aria-expanded={menuOpen}
+              onClick={() => setMenuOpen(v => !v)}
               style={{
                 background: 'none', border: 'none', cursor: 'pointer',
                 width: 40, height: 40, borderRadius: 8,
@@ -268,35 +272,36 @@ const Navbar: React.FC<NavbarProps> = ({
             padding: '8px 16px 28px',
           }}>
             {navLinks.map(link => (
-              <button key={link.label} onClick={() => { link.action(); setMenuOpen(false); }}
+              <Link key={link.label} to={link.href} onClick={() => setMenuOpen(false)}
                 style={{
-                  width: '100%', background: 'none', border: 'none', cursor: 'pointer',
-                  padding: '15px 8px', textAlign: 'left' as const, display: 'block',
+                  width: '100%', display: 'block',
+                  padding: '15px 8px', textAlign: 'left' as const,
                   fontSize: 16, fontWeight: 500, color: C.black,
                   fontFamily: F.sans,
                   borderBottom: '1px solid #F5F2EC',
+                  textDecoration: 'none',
                 }}
-              >{link.label}</button>
+              >{link.label}</Link>
             ))}
-            <button
-              onClick={() => { setMenuOpen(false); onProductsClick(); }}
+            <Link
+              to="/mehsullar"
+              onClick={() => setMenuOpen(false)}
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                 marginTop: 20, padding: '15px', width: '100%',
                 background: C.primary, color: C.white,
-                border: 'none', borderRadius: 12,
+                borderRadius: 12,
                 fontSize: 16, fontWeight: 700,
                 fontFamily: F.sans,
                 cursor: 'pointer',
+                textDecoration: 'none',
               }}
-            >🛍️ Sifarişə başla</button>
+            >🛍️ Sifarişə başla</Link>
           </div>
         )}
       </nav>
 
-      {/* Spacer — yalnız nav hündürlüyü qədər */}
       <div style={{ height: NAV_H }} />
-
     </>
   );
 };

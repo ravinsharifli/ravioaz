@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { C, F } from '../tokens';
 import { Instagram, Phone, MapPin } from 'lucide-react';
 
@@ -15,7 +16,7 @@ const TikTokIcon = () => (
   </svg>
 );
 
-const Footer: React.FC<FooterProps> = ({ onProductsClick, onDeliveryClick, onAboutClick, onContactClick }) => {
+const Footer: React.FC<FooterProps> = () => {
   return (
     <footer style={{ background: C.black, color: C.white, padding: 'clamp(48px,6vw,72px) clamp(16px,3vw,32px) 32px', fontFamily: F.sans }}>
       <div style={{ maxWidth: 1280, margin: '0 auto' }}>
@@ -58,25 +59,25 @@ const Footer: React.FC<FooterProps> = ({ onProductsClick, onDeliveryClick, onAbo
               Keçidlər
             </h4>
             {[
-              { label: 'Məhsullar',  action: onProductsClick },
-              { label: 'Çatdırılma', action: onDeliveryClick },
-              { label: 'Haqqımızda', action: onAboutClick },
+              { label: 'Məhsullar',  href: '/mehsullar' },
+              { label: 'Çatdırılma', href: '/catdirilma' },
+              { label: 'Haqqımızda', href: '/haqqimizda' },
             ].map((link, i) => (
               <div key={i} style={{ marginBottom: 12 }}>
-                <button onClick={link.action} style={{
-                  background: 'none', border: 'none', padding: 0,
+                <Link to={link.href} style={{
                   color: 'rgba(255,255,255,0.4)', fontSize: 14,
-                  cursor: 'pointer', fontFamily: F.sans,
-                  fontWeight: 400, display: 'block', textAlign: 'left' as const, transition: 'color 0.15s',
+                  fontFamily: F.sans,
+                  fontWeight: 400, display: 'block', textAlign: 'left' as const,
+                  transition: 'color 0.15s', textDecoration: 'none',
                 }}
                   onMouseEnter={e => e.currentTarget.style.color = C.white}
                   onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.4)'}
-                >{link.label}</button>
+                >{link.label}</Link>
               </div>
             ))}
           </div>
 
-          {/* Delivery info summary */}
+          {/* Delivery info */}
           <div>
             <h4 style={{ fontSize: 11, fontWeight: 700, color: C.primary, letterSpacing: 1.5, textTransform: 'uppercase' as const, margin: '0 0 20px' }}>
               Çatdırılma
@@ -108,16 +109,16 @@ const Footer: React.FC<FooterProps> = ({ onProductsClick, onDeliveryClick, onAbo
                 <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)' }}>{item.text}</span>
               </div>
             ))}
-            <button onClick={onContactClick} style={{
-              marginTop: 8, padding: '10px 20px',
+            <Link to="/elaqe" style={{
+              marginTop: 8, padding: '10px 20px', display: 'inline-block',
               background: 'transparent', border: '1px solid rgba(255,255,255,0.15)',
               borderRadius: 8, color: 'rgba(255,255,255,0.6)', fontSize: 13,
-              cursor: 'pointer', fontFamily: F.sans,
-              transition: 'all 0.15s',
+              fontFamily: F.sans,
+              transition: 'all 0.15s', textDecoration: 'none',
             }}
               onMouseEnter={e => { e.currentTarget.style.borderColor = C.primary; e.currentTarget.style.color = C.primary; }}
               onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)'; e.currentTarget.style.color = 'rgba(255,255,255,0.6)'; }}
-            >Əlaqə səhifəsi →</button>
+            >Əlaqə səhifəsi →</Link>
           </div>
         </div>
 
