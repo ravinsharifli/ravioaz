@@ -8,9 +8,6 @@
  *
  * Google botu bu statik HTML-i görür → məhsul indekslənir.
  * Puppeteer yoxdur, Vercel-də 100% işləyir.
- *
- * NOT: Gizli CSS bloklar silindi (cloaking riski).
- * SEO Schema.org JSON-LD vasitəsilə təmin edilir — Google-un tövsiyəsi.
  */
 
 import { createClient } from '@sanity/client';
@@ -39,6 +36,38 @@ function esc(str) {
 function ogImage(url) {
   if (!url) return 'https://ravio.az/og-ravio.png';
   return `${url}?w=1200&h=630&fit=crop&auto=format`;
+}
+
+/**
+ * Sanity şəkil URL-ini WebP + ölçü ilə optimallaşdırır.
+ * lib/image.ts-dəki toWebP funksiyasının Node.js versiyası.
+ */
+function sanityWebP(url, width, quality = 80) {
+  if (!url) return '';
+  try {
+    const u = new URL(url);
+    u.searchParams.set('w', String(width));
+    u.searchParams.set('fm', 'webp');
+    u.searchParams.set('q', String(quality));
+    u.searchParams.set('fit', 'max');
+    u.searchParams.set('auto', 'format');
+    return u.toString();
+  } catch {
+    return url;
+  }
+}
+
+/**
+ * LCP şəklini preload et — brauzer preload scanner HTML-dən tapır,
+ * JS-i gözləmədən şəkli dərhal yükləyir.
+ * imagesrcset + imagesizes sayəsində brauzer ən uyğun ölçünü seçir.
+ */
+function lcpPreloadTag(imageUrl, sizes = '(max-width: 400px) 45vw, (max-width: 900px) 45vw, (max-width: 1200px) 30vw, 25vw') {
+  if (!imageUrl) return '';
+  const srcset = [240, 480, 720]
+    .map(w => `${sanityWebP(imageUrl, w)} ${w}w`)
+    .join(', ');
+  return `  <link rel="preload" as="image" imagesrcset="${srcset}" imagesizes="${sizes}" fetchpriority="high" />`;
 }
 
 /** HTML template-dəki meta tagları məhsula uyğun dəyişdir */
@@ -119,10 +148,22 @@ async function run() {
   // 2. dist/index.html-i template kimi oxu
   const template = readFileSync('dist/index.html', 'utf-8');
 
+  // ── 3. Ana səhifə LCP preload ─────────────────────────────────
+  // İlk məhsulun şəkli homepage-in ən böyük görünən elementidir (LCP).
+  // Build zamanı preload tag-ini dist/index.html-ə yazırıq ki,
+  // brauzer preload scanner JS-i gözləmədən şəkli tapıb yükləsin.
+  const lcpProduct = products[0];
+  if (lcpProduct?.firstImageUrl) {
+    const preload = lcpPreloadTag(lcpProduct.firstImageUrl);
+    const homeHtml = template.replace('</head>', `${preload}\n</head>`);
+    writeFileSync('dist/index.html', homeHtml, 'utf-8');
+    console.log(`  🖼️  LCP preload → / (${lcpProduct.name})\n`);
+  }
+
   let ok = 0;
   let fail = 0;
 
-  // 3. Hər məhsul üçün ayrı HTML yarat
+  // 4. Hər məhsul üçün ayrı HTML yarat
   for (const p of products) {
     try {
       const title = `${p.name} | Ravio`;
@@ -147,6 +188,16 @@ async function run() {
         price: p.price,
       });
 
+      // Məhsul səhifəsinin LCP şəkli — məhsulun öz şəklidir.
+      // Sizes: mobil 90vw, tablet/desktop 50vw | max 640px
+      if (p.firstImageUrl) {
+        const prodPreload = lcpPreloadTag(
+          p.firstImageUrl,
+          '(max-width: 640px) 90vw, (max-width: 1280px) 50vw, 640px'
+        );
+        html = html.replace('</head>', `${prodPreload}\n</head>`);
+      }
+
       const dir = `dist/mehsullar/${p.slug}`;
       mkdirSync(dir, { recursive: true });
       writeFileSync(`${dir}/index.html`, html, 'utf-8');
@@ -158,7 +209,7 @@ async function run() {
     }
   }
 
-  // 4. /mehsullar siyahı səhifəsi üçün HTML
+  // 5. /mehsullar siyahı səhifəsi üçün HTML
   try {
     const html = injectMeta(template, {
       title: 'Bütün Məhsullar | Ravio',

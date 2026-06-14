@@ -30,9 +30,21 @@ const Navbar: React.FC<NavbarProps> = ({
   const inputRef  = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const fn = () => setScrolled(window.scrollY > 10);
-    window.addEventListener('scroll', fn);
-    return () => window.removeEventListener('scroll', fn);
+    // passive:true — brauzer scroll-u blok edilmədən davam etdirir (daha az reflow)
+    // requestAnimationFrame — hər frame-də bir dəfə state dəyişir, burst-ləri batches edir
+    let raf: number | null = null;
+    const fn = () => {
+      if (raf) cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        setScrolled(window.scrollY > 10);
+        raf = null;
+      });
+    };
+    window.addEventListener('scroll', fn, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', fn);
+      if (raf) cancelAnimationFrame(raf);
+    };
   }, []);
 
   useEffect(() => {
