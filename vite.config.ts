@@ -20,7 +20,7 @@ export default defineConfig({
     reportCompressedSize: false,
     rollupOptions: {
       output: {
-        // Daha incə chunk bölgüsü — brauzer paralel yükləyir
+        // Ana səhifə komponentləri main bundle-da qalır — ayrı chunk lazım deyil
         manualChunks(id) {
           if (!id.includes('node_modules')) return;
           if (id.includes('lucide-react'))  return 'vendor-icons';
@@ -31,12 +31,11 @@ export default defineConfig({
           if (id.includes('react-dom'))     return 'vendor-react-dom';
           if (id.includes('/react/') || id.includes('scheduler')) return 'vendor-react';
         },
-        // Hash uzunluğunu azalt — URL daha qısa, cache daha yaxşı
         assetFileNames: 'assets/[name]-[hash:8][extname]',
         chunkFileNames: 'assets/[name]-[hash:8].js',
         entryFileNames: 'assets/[name]-[hash:8].js',
       },
     },
-    chunkSizeWarningLimit: 500,
+    chunkSizeWarningLimit: 600,
   },
 });

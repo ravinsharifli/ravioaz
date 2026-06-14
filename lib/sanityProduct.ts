@@ -13,8 +13,7 @@ export const PRODUCTS_QUERY = `*[_type == "product"] | order(bestSellerOrder asc
   bulkTiers[]{ minQty, maxQty, discountAmount, label },
   allowBoxSelection,
   customBoxOptions[]{ id, name, desc, price, isActive, "imageUrl": image.asset->url },
-  coupons[]{ code, discountType, discountValue, minOrderAmount, isActive, description },
-  reviews[]{ name, rating, text, date, isActive, "photoUrl": photo.asset->url }
+  coupons[]{ code, discountType, discountValue, minOrderAmount, isActive, description }
 }`;
 
 export const SINGLE_PRODUCT_QUERY = `*[_type == "product" && slug.current == $slug][0]{

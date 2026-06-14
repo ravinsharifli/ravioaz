@@ -146,8 +146,8 @@ const Card: React.FC<CardProps> = ({
           srcSet={toSrcSet(images[imgIdx], [240, 480, 720])}
           sizes="(max-width: 400px) 45vw, (max-width: 900px) 45vw, (max-width: 1200px) 30vw, 25vw"
           alt={`${product.name} — fərdi hədiyyə, Bakı | Ravio`}
-          loading={cardIndex < 4 ? 'eager' : 'lazy'}
-          fetchPriority={cardIndex < 2 ? 'high' : 'auto'}
+          loading={cardIndex < 6 ? 'eager' : 'lazy'}
+          fetchPriority={cardIndex === 0 ? 'high' : 'auto'}
           decoding={cardIndex < 4 ? 'sync' : 'async'}
             style={{
               width: '100%', height: '100%', objectFit: 'cover', display: 'block',

@@ -10,11 +10,12 @@ import { DEFAULT_METRO } from './constants/defaults';
 
 import Navbar from './components/Navbar';
 import PWAInstallBanner from './components/PWAInstallBanner';
+// ── Ana səhifə lazy deyil — birbaşa import: chunk yükləmə gözləməsi sıfırlanır ──
+import HomePage from './components/pages/HomePage';
 const AboutUs     = React.lazy(() => import('./components/AboutUs'));
 const Contact     = React.lazy(() => import('./components/Contact'));
 const DeliveryInfo = React.lazy(() => import('./components/DeliveryInfo'));
 import Footer from './components/Footer';
-const HomePage    = React.lazy(() => import('./components/pages/HomePage'));
 const ProductsPage = React.lazy(() => import('./components/pages/ProductsPage'));
 const SlugPage    = React.lazy(() => import('./components/pages/SlugPage'));
 const NotFound    = React.lazy(() => import('./components/pages/NotFound'));
