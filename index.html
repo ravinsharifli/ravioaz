@@ -191,15 +191,7 @@
     <script src="/ga-init.js" defer></script>
 
     <!-- Meta Pixel — səhifə yüklənəndən 3s sonra başlayır, LCP-yə mane olmur -->
-    <script>
-      window.addEventListener('load', function() {
-        setTimeout(function() {
-          var s = document.createElement('script');
-          s.src = '/meta-pixel.js';
-          document.head.appendChild(s);
-        }, 3000);
-      });
-    </script>
+    <script src="/meta-pixel.js" defer></script>
 
   </head>
   <body>
