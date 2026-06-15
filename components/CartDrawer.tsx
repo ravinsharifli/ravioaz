@@ -1,3 +1,503 @@
+import React, { useState } from 'react';
+import { X, Trash2, ShoppingBag, ArrowRight, Edit3, ChevronLeft } from 'lucide-react';
+import { CartItem, MetroSchedule, Coupon } from '../types';
+import { F } from '../tokens';
+import '../styles/cart-drawer.css';
+
+const WHATSAPP_NUMBER = '994519831483';
+const FONT = F.sans;
+
+const C = {
+  bg: 'var(--clr-bg)',
+  white: 'var(--clr-white)',
+  black: 'var(--clr-black)',
+  gray: 'var(--clr-text-sec)',
+  grayLt: 'var(--clr-text-muted)',
+  border: '#E5E1DB',
+  orange: 'var(--clr-primary)',
+  green: '#16A34A',
+  red: '#DC2626',
+  blue: '#2563EB',
+};
+
+const MONTHS_AZ = [
+  'Yanvar',
+  'Fevral',
+  'Mart',
+  'Aprel',
+  'May',
+  'İyun',
+  'İyul',
+  'Avqust',
+  'Sentyabr',
+  'Oktyabr',
+  'Noyabr',
+  'Dekabr',
+];
+
+const DAYS_LIST = Array.from({ length: 31 }, (_, i) => String(i + 1).padStart(2, '0'));
+const ORDER_YEARS = ['2026', '2027', '2028'];
+const currentYear = new Date().getFullYear();
+const BIRTH_YEARS = Array.from({ length: currentYear - 1969 }, (_, i) => String(1970 + i)).reverse();
+
+interface CartDrawerProps {
+  isOpen: boolean;
+  onClose: () => void;
+  items: CartItem[];
+  onRemove: (cartId: string) => void;
+  onEdit: (item: CartItem) => void;
+  onGoToProducts?: () => void;
+  onClearCart?: () => void;
+  metroSchedule?: MetroSchedule;
+  coupons?: Coupon[];
+}
+
+function getItemSubtotal(item: CartItem): number {
+  if (item.finalTotal !== undefined) return item.finalTotal;
+  const base = item.discountPrice ?? item.price;
+  return base * item.quantity + (item.boxPrice ?? 0);
+}
+
+function money(value: number): string {
+  return `${value.toFixed(2)} AZN`;
+}
+
+function openWhatsAppMessage(message: string) {
+  window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`, '_blank');
+}
+
+const Label: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <p style={{ fontSize: 11, fontWeight: 700, color: C.gray, margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: 0.4 }}>
+    {children}
+  </p>
+);
+
+const Input: React.FC<React.InputHTMLAttributes<HTMLInputElement>> = (props) => (
+  <input
+    {...props}
+    style={{
+      width: '100%',
+      background: C.white,
+      border: `1px solid ${C.border}`,
+      borderRadius: 8,
+      padding: '12px 14px',
+      color: C.black,
+      fontSize: 14,
+      fontFamily: FONT,
+      outline: 'none',
+      boxSizing: 'border-box',
+      ...props.style,
+    }}
+  />
+);
+
+const Select: React.FC<{
+  value: string;
+  onChange: (value: string) => void;
+  options: string[];
+  placeholder: string;
+}> = ({ value, onChange, options, placeholder }) => (
+  <select
+    value={value}
+    onChange={(event) => onChange(event.target.value)}
+    style={{
+      width: '100%',
+      background: C.white,
+      border: `1px solid ${C.border}`,
+      borderRadius: 8,
+      padding: '12px 10px',
+      color: value ? C.black : C.grayLt,
+      fontSize: 13,
+      fontFamily: FONT,
+      outline: 'none',
+      boxSizing: 'border-box',
+    }}
+  >
+    <option value="" disabled>{placeholder}</option>
+    {options.map((option) => (
+      <option key={option} value={option}>{option}</option>
+    ))}
+  </select>
+);
+
+const Section: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <div style={{ background: C.white, border: `1px solid ${C.border}`, borderRadius: 8, padding: 14, marginBottom: 12 }}>
+    {children}
+  </div>
+);
+
+const CartDrawer: React.FC<CartDrawerProps> = ({
+  isOpen,
+  onClose,
+  items,
+  onRemove,
+  onEdit,
+  onGoToProducts,
+  onClearCart,
+  metroSchedule,
+}) => {
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
+
+  const [custName, setCustName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [bdDay, setBdDay] = useState('');
+  const [bdMonth, setBdMonth] = useState('');
+  const [bdYear, setBdYear] = useState('');
+
+  const [delivery, setDelivery] = useState<'kuryer' | 'metro' | 'post'>('kuryer');
+  const [address, setAddress] = useState('');
+  const [kurDay, setKurDay] = useState('');
+  const [kurMonth, setKurMonth] = useState('');
+  const [kurYear, setKurYear] = useState('2026');
+  const [metro, setMetro] = useState('');
+  const [metroDay, setMetroDay] = useState('');
+  const [metroTime, setMetroTime] = useState('');
+
+  if (!isOpen) return null;
+
+  const stations = (metroSchedule?.stations ?? []).filter((station) => station.isActive !== false);
+  const selectedStation = stations.find((station) => station.name === metro);
+  const metroDays = (selectedStation?.daySchedules ?? []).map((day) => day.day);
+  const selectedMetroSchedule = selectedStation?.daySchedules?.find((day) => day.day === metroDay);
+  const metroTimes = selectedMetroSchedule?.allDayOpen
+    ? ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00']
+    : selectedMetroSchedule?.timeSlots ?? [];
+
+  const baseTotal = items.reduce((sum, item) => sum + getItemSubtotal(item), 0);
+  const deliveryFee = delivery === 'metro' ? 2.99 : delivery === 'post' ? 4.99 : 0;
+  const grandTotal = baseTotal + deliveryFee;
+  const deposit = Math.ceil(grandTotal * 0.5);
+  const remaining = grandTotal - deposit;
+
+  const birthDate = bdDay && bdMonth && bdYear ? `${bdDay} ${bdMonth} ${bdYear}` : 'Bildirilməyib';
+  const deliveryLabel = delivery === 'metro' ? 'Özəl Metro' : delivery === 'post' ? 'Poçt' : 'Kuryer';
+  const deliveryDate = delivery === 'metro' ? metroDay : `${kurDay} ${kurMonth} ${kurYear}`;
+  const deliveryTime = delivery === 'metro' ? metroTime : 'Gün ərzində';
+  const deliveryPlace = delivery === 'metro' ? metro : address;
+
+  const checkoutValid =
+    custName.trim().length > 0 &&
+    phone.trim().length > 0 &&
+    (delivery === 'metro'
+      ? metro.trim().length > 0 && metroDay.trim().length > 0 && metroTime.trim().length > 0
+      : address.trim().length > 0 && kurDay.trim().length > 0 && kurMonth.trim().length > 0 && kurYear.trim().length > 0);
+
+  function makeOrderNumber(date: Date) {
+    return `RV-${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, '0')}${String(date.getDate()).padStart(2, '0')}-${String(date.getHours()).padStart(2, '0')}${String(date.getMinutes()).padStart(2, '0')}${String(date.getSeconds()).padStart(2, '0')}`;
+  }
+
+  function buildMessages(orderNumber: string) {
+    const fullItemsText = items.map((item, index) => {
+      const unitPrice = item.discountPrice ?? item.price;
+      const imageUrl = item.images?.[0] ?? '';
+      return [
+        `MƏHSUL ${index + 1}`,
+        `- Ad: ${item.productName}`,
+        `- Model: ${item.modelName}`,
+        `- Rəng: ${item.colorName}`,
+        `- Say: ${item.quantity}`,
+        `- Vahid qiymət: ${money(unitPrice)}`,
+        (item.boxPrice ?? 0) > 0 ? `- Qutu: +${money(item.boxPrice ?? 0)}` : '',
+        item.couponCode ? `- Kupon: ${item.couponCode}` : '',
+        `- Məhsul cəmi: ${money(getItemSubtotal(item))}`,
+        item.customText ? `- Yazı/Qeyd: ${item.customText}` : '',
+        item.specialRequest ? `- Xüsusi istək: ${item.specialRequest}` : '',
+        imageUrl ? `- Məhsul şəkli: ${imageUrl}` : '',
+      ].filter(Boolean).join('\n');
+    }).join('\n\n');
+
+    const productionItemsText = items.map((item, index) => [
+      `MƏHSUL ${index + 1}`,
+      `- Ad: ${item.productName}`,
+      `- Model: ${item.modelName}`,
+      `- Rəng: ${item.colorName}`,
+      `- Say: ${item.quantity}`,
+      item.customText ? `- Yazı/Qeyd: ${item.customText}` : '',
+      item.specialRequest ? `- Xüsusi istək: ${item.specialRequest}` : '',
+    ].filter(Boolean).join('\n')).join('\n\n');
+
+    const fullMessage = [
+      'MESAJ 1/3 - TAM SİFARİŞ',
+      '',
+      `Sifariş nömrəsi: ${orderNumber}`,
+      '',
+      fullItemsText,
+      '',
+      'ÇATDIRILMA',
+      `- Növ: ${deliveryLabel}`,
+      `- Ünvan/Metro: ${deliveryPlace}`,
+      `- Tarix: ${deliveryDate}`,
+      `- Saat: ${deliveryTime}`,
+      '',
+      'MÜŞTƏRİ',
+      `- Ad: ${custName}`,
+      `- Telefon: ${phone}`,
+      `- Doğum tarixi: ${birthDate}`,
+      '',
+      'MƏBLƏĞ',
+      `- Məhsullar: ${money(baseTotal)}`,
+      `- Çatdırılma: ${money(deliveryFee)}`,
+      `- Ümumi: ${money(grandTotal)}`,
+      `- Beh 50%: ${money(deposit)}`,
+      `- Qalıq: ${money(remaining)}`,
+    ].join('\n');
+
+    const productionMessage = [
+      'MESAJ 2/3 - İSTEHSAL ÜÇÜN',
+      '',
+      `Sifariş nömrəsi: ${orderNumber}`,
+      '',
+      productionItemsText,
+      '',
+      'Qeyd: Bu mesajda qiymət, müştəri telefonu və çatdırılma ünvanı yoxdur.',
+    ].join('\n');
+
+    const courierMessage = [
+      'MESAJ 3/3 - KURYER ÜÇÜN',
+      '',
+      `Sifariş nömrəsi: ${orderNumber}`,
+      '',
+      'MÜŞTƏRİ',
+      `- Ad: ${custName}`,
+      `- Telefon: ${phone}`,
+      '',
+      'ÇATDIRILMA',
+      `- Növ: ${deliveryLabel}`,
+      `- Ünvan/Metro: ${deliveryPlace}`,
+      `- Tarix: ${deliveryDate}`,
+      `- Saat: ${deliveryTime}`,
+      '',
+      'ÖDƏNİŞ',
+      `- Qalıq: ${money(remaining)}`,
+    ].join('\n');
+
+    return { fullMessage, productionMessage, courierMessage };
+  }
+
+  async function handleWhatsApp() {
+    if (!checkoutValid || isSubmitting) return;
+
+    setError('');
+    setIsSubmitting(true);
+
+    const now = new Date();
+    const orderNumber = makeOrderNumber(now);
+    const messages = buildMessages(orderNumber);
+
+    const orderPayload = {
+      orderNumber,
+      createdAt: now.toISOString(),
+      year: now.getFullYear(),
+      month: now.getMonth() + 1,
+      status: 'new',
+      customer: {
+        name: custName,
+        phone,
+        birthDate,
+      },
+      items: items.map((item, index) => ({
+        _key: `${orderNumber}-${index}`,
+        productId: item.productId,
+        productName: item.productName,
+        modelName: item.modelName,
+        colorName: item.colorName,
+        quantity: item.quantity,
+        unitPrice: item.discountPrice ?? item.price,
+        totalPrice: getItemSubtotal(item),
+        customText: item.customText || '',
+        specialRequest: item.specialRequest || '',
+      })),
+      delivery: {
+        type: deliveryLabel,
+        address: delivery === 'metro' ? '' : address,
+        metro: delivery === 'metro' ? metro : '',
+        date: deliveryDate,
+        time: deliveryTime,
+      },
+      financial: {
+        subtotal: baseTotal,
+        deliveryFee,
+        total: grandTotal,
+        deposit,
+        remaining,
+      },
+      fullMessage: messages.fullMessage,
+      productionMessage: messages.productionMessage,
+      courierMessage: messages.courierMessage,
+    };
+
+    try {
+      const response = await fetch('/api/create-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orderPayload),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      openWhatsAppMessage(messages.fullMessage);
+      setTimeout(() => openWhatsAppMessage(messages.productionMessage), 600);
+      setTimeout(() => openWhatsAppMessage(messages.courierMessage), 1200);
+
+      onClearCart?.();
+      setIsCheckingOut(false);
+      onClose();
+    } catch (err) {
+      console.error('Sifariş Sanity-də yaradılmadı:', err);
+      setError('Sifariş Sanity-də yazılmadı. Vercel-də SANITY_WRITE_TOKEN və /api/create-order.js faylını yoxla.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  return (
+    <div
+      role="presentation"
+      style={{ position: 'fixed', inset: 0, zIndex: 1500, background: 'rgba(0,0,0,0.5)', fontFamily: FONT }}
+      onClick={(event) => {
+        if (event.target === event.currentTarget) {
+          onClose();
+          setIsCheckingOut(false);
+        }
+      }}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Alış-veriş səbəti"
+        className="ravio-cart-drawer"
+        style={{ background: C.bg }}
+      >
+        <div style={{ background: C.white, borderBottom: `1px solid ${C.border}`, padding: '18px 20px', flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              {isCheckingOut && (
+                <button
+                  onClick={() => setIsCheckingOut(false)}
+                  aria-label="Geri qayıt"
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, display: 'flex', alignItems: 'center', color: C.gray }}
+                >
+                  <ChevronLeft size={20} />
+                </button>
+              )}
+              <h2 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: C.black }}>
+                {isCheckingOut ? 'Sifarişi tamamla' : `Səbətim (${items.length})`}
+              </h2>
+            </div>
+            <button
+              aria-label="Səbəti bağla"
+              onClick={() => {
+                onClose();
+                setIsCheckingOut(false);
+              }}
+              style={{ width: 32, height: 32, borderRadius: '50%', background: C.bg, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.gray }}
+            >
+              <X size={16} />
+            </button>
+          </div>
+        </div>
+
+        {items.length === 0 && (
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, padding: 32 }}>
+            <ShoppingBag size={48} color={C.grayLt} />
+            <p style={{ fontSize: 15, color: C.gray, margin: 0, textAlign: 'center' }}>Səbətiniz boşdur</p>
+            <button
+              onClick={onGoToProducts}
+              style={{ padding: '12px 28px', background: C.orange, color: C.white, border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: FONT }}
+            >
+              Məhsullara bax
+            </button>
+          </div>
+        )}
+
+        {items.length > 0 && !isCheckingOut && (
+          <>
+            <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px' }}>
+              {items.map((item) => (
+                <div key={item.cartId} style={{ background: C.white, border: `1px solid ${C.border}`, borderRadius: 8, padding: 14, marginBottom: 10 }}>
+                  <div style={{ display: 'flex', gap: 12 }}>
+                    {item.images?.[0] && (
+                      <img
+                        src={item.images[0]}
+                        alt={item.productName}
+                        style={{ width: 64, height: 64, objectFit: 'cover', borderRadius: 8, border: `1px solid ${C.border}`, flexShrink: 0 }}
+                      />
+                    )}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: C.black, marginBottom: 3 }}>{item.productName}</div>
+                      <div style={{ fontSize: 12, color: C.gray, marginBottom: 6 }}>
+                        {[item.modelName, item.colorName].filter(Boolean).join(' · ')}
+                      </div>
+                      {item.customText && (
+                        <div style={{ fontSize: 11, color: C.blue, background: '#EFF6FF', borderRadius: 6, padding: '4px 8px', display: 'inline-block', marginBottom: 6 }}>
+                          {item.customText}
+                        </div>
+                      )}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: 13, color: C.grayLt }}>{item.quantity} ədəd</span>
+                        <span style={{ fontSize: 15, fontWeight: 800, color: C.black }}>{money(getItemSubtotal(item))}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: 8, marginTop: 10, borderTop: `1px solid ${C.border}`, paddingTop: 10 }}>
+                    <button
+                      onClick={() => onEdit(item)}
+                      style={{ flex: 1, padding: 9, borderRadius: 8, background: C.bg, border: `1px solid ${C.border}`, color: C.gray, fontSize: 12, cursor: 'pointer', fontFamily: FONT, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}
+                    >
+                      <Edit3 size={13} /> Düzəlt
+                    </button>
+                    <button
+                      onClick={() => onRemove(item.cartId)}
+                      style={{ flex: 1, padding: 9, borderRadius: 8, background: '#FFF5F5', border: '1px solid #FFC9C9', color: C.red, fontSize: 12, cursor: 'pointer', fontFamily: FONT, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}
+                    >
+                      <Trash2 size={13} /> Sil
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ padding: '14px 20px 28px', background: C.white, borderTop: `1px solid ${C.border}`, flexShrink: 0 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
+                <span style={{ fontSize: 14, color: C.gray }}>{items.length} məhsul</span>
+                <span style={{ fontSize: 16, fontWeight: 800, color: C.black }}>{money(baseTotal)}</span>
+              </div>
+              <button
+                onClick={() => setIsCheckingOut(true)}
+                style={{ width: '100%', padding: 15, borderRadius: 8, border: 'none', background: C.orange, color: C.white, fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: FONT, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+              >
+                Sifarişi tamamla <ArrowRight size={18} />
+              </button>
+            </div>
+          </>
+        )}
+
+        {items.length > 0 && isCheckingOut && (
+          <>
+            <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px 20px' }}>
+              <Section>
+                <Label>Çatdırılma üsulu</Label>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+                  {[
+                    { id: 'kuryer' as const, label: 'Kuryer', sub: '0 AZN' },
+                    { id: 'metro' as const, label: 'Özəl Metro', sub: '+2.99' },
+                    { id: 'post' as const, label: 'Poçt', sub: '+4.99' },
+                  ].map((option) => (
+                    <button
+                      key={option.id}
+                      onClick={() => setDelivery(option.id)}
+                      style={{
+                        background: delivery === option.id ? C.black : C.white,
+                        color: delivery === option.id ? C.white : C.black,
+                        border: `1px solid ${delivery === option.id ? C.black : C.border}`,
+                        borderRadius: 8,
+                        padding: '12px 8px',
+                        cursor: 'pointer',
+                        fontFamily: FONT,
                       }}
                     >
                       <div style={{ fontSize: 13, fontWeight: 700 }}>{option.label}</div>
