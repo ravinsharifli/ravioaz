@@ -766,51 +766,162 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
   };
 
   // ── WhatsApp göndər ────────────────────────────────────────────
-  const handleWhatsApp = () => {
+    const handleWhatsApp = () => {
     if (!checkoutValid) return;
+
+    const now = new Date();
+    const orderNumber =
+      `RV-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}-${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`;
 
     const birthStr = bdDay && bdMonth && bdYear
       ? `${bdDay} ${bdMonth} ${bdYear}`
       : 'Bildirilməyib';
 
-    const delStr = delivery === 'metro'
-      ? `Özəl Metro: ${metro} · Tarix: ${selDateDisplay} (${selWeekday}) · Saat: ${delTime}`
-      : `${kurDay} ${kurMonth} ${kurYear} · ${delivery === 'post' ? 'Poçt' : 'Kuryer (gün ərzində)'} · Ünvan: ${address}`;
+    const deliveryLabel =
+      delivery === 'metro'
+        ? 'Özəl Metro'
+        : delivery === 'post'
+          ? 'Poçt'
+          : 'Kuryer';
 
-    const itemsText = items.map((item, idx) => {
-      const imgUrl = item.images?.[0] ?? '';
-      const custTypeLabel = item.customerType === 'loyal' ? 'Daimi müştəri (−20%)' : item.customerType === 'new' ? 'Yeni müştəri (−10%)' : '';
-      let lines = `- Vahid qiyməti: ${(item.discountPrice ?? item.price).toFixed(2)} ₼\n`;
-      lines += `- Say: ${item.quantity} ədəd\n`;
-      if ((item.boxPrice ?? 0) > 0) lines += `  Qablaşdırma: +${item.boxPrice!.toFixed(2)} ₼\n`;
-      if (custTypeLabel) lines += `  ${custTypeLabel}\n`;
-      if ((item.couponCode) && (item.couponDiscount ?? 0) > 0) lines += `  Kupon (${item.couponCode}): −${item.couponDiscount!.toFixed(2)} ₼\n`;
-      lines += `  Məhsul cəmi: ${getItemSubtotal(item).toFixed(2)} ₼\n`;
+    const deliveryDate =
+      delivery === 'metro'
+        ? selDateDisplay
+        : `${kurDay} ${kurMonth} ${kurYear}`;
+
+    const deliveryTime =
+      delivery === 'metro'
+        ? delTime
+        : 'Gün ərzində';
+
+    const deliveryAddress =
+      delivery === 'metro'
+        ? metro
+        : address;
+
+    const deliveryText =
+      delivery === 'metro'
+        ? `Özəl Metro: ${metro}\nTarix: ${selDateDisplay} (${selWeekday})\nSaat: ${delTime}`
+        : `${deliveryLabel}\nTarix: ${deliveryDate}\nÜnvan: ${address}`;
+
+    const fullItemsText = items.map((item, idx) => {
+      const unitPrice = item.discountPrice ?? item.price;
+      const imageUrl = item.images?.[0] ?? '';
+
       return (
-        `━━━━━━━━━━━━━━━\n*MƏHSUL ${idx + 1}:*\n` +
-        `- Ad: ${item.productName}\n- Model: ${item.modelName}\n- Rəng: ${item.colorName}\n` +
-        (imgUrl ? `🖼 Şəkil: ${imgUrl}\n` : '') +
-        lines +
+        `MƏHSUL ${idx + 1}\n` +
+        `- Ad: ${item.productName}\n` +
+        `- Model: ${item.modelName}\n` +
+        `- Rəng: ${item.colorName}\n` +
+        `- Say: ${item.quantity}\n` +
+        `- Vahid qiymət: ${unitPrice.toFixed(2)} AZN\n` +
+        ((item.boxPrice ?? 0) > 0 ? `- Qutu: +${item.boxPrice!.toFixed(2)} AZN\n` : '') +
+        (item.couponCode ? `- Kupon: ${item.couponCode}\n` : '') +
+        `- Məhsul cəmi: ${getItemSubtotal(item).toFixed(2)} AZN\n` +
         (item.customText ? `- Yazı/Qeyd: ${item.customText}\n` : '') +
-        (item.specialRequest && item.specialRequest.startsWith('Müştəri şəkli:')
-          ? `📎 ${item.specialRequest}\n`
-          : item.specialRequest ? `- Xüsusi: ${item.specialRequest}\n` : '')
+        (item.specialRequest ? `- Xüsusi istək: ${item.specialRequest}\n` : '') +
+        (imageUrl ? `- Məhsul şəkli: ${imageUrl}\n` : '')
       );
     }).join('\n');
 
-    const msg =
-      `*🛍 YENİ SİFARİŞ — ravio.az*\n\n` +
-      itemsText +
-      `\n━━━━━━━━━━━━━━━\n*ÇATDIRILMA:* ${delStr}\n\n` +
-      `*ƏLAQƏ:*\n- Ad: ${custName}\n- Telefon: ${phone}\n- Doğum tarixi: ${birthStr}\n\n` +
-      `━━━━━━━━━━━━━━━\n` +
-      `Məhsullar cəmi: ${baseTotal.toFixed(2)} ₼\n` +
-      (deliveryFee > 0 ? `${delivery === 'post' ? 'Poçt' : 'Özəl Metro'}: +${deliveryFee.toFixed(2)} ₼\n` : `Kuryer: Pulsuz\n`) +
-      `*ÜMUMİ: ${grandTotal.toFixed(2)} ₼*\n` +
-      `*💳 ÖN ÖDƏNİŞ (50% beh): ${grandBeh.toFixed(2)} ₼*\n` +
-      `Qalan ${(grandTotal - grandBeh).toFixed(2)} ₼ məhsul alınarkən`;
+    const productionItemsText = items.map((item, idx) => {
+      return (
+        `MƏHSUL ${idx + 1}\n` +
+        `- Ad: ${item.productName}\n` +
+        `- Model: ${item.modelName}\n` +
+        `- Rəng: ${item.colorName}\n` +
+        `- Say: ${item.quantity}\n` +
+        (item.customText ? `- Yazı/Qeyd: ${item.customText}\n` : '') +
+        (item.specialRequest ? `- Xüsusi istək: ${item.specialRequest}\n` : '')
+      );
+    }).join('\n');
 
-    // GA4 + Meta Pixel
+    const fullMessage =
+      `MESAJ 1/3 - TAM SİFARİŞ\n\n` +
+      `Sifariş nömrəsi: ${orderNumber}\n\n` +
+      fullItemsText +
+      `\nÇATDIRILMA\n${deliveryText}\n\n` +
+      `MÜŞTƏRİ\n` +
+      `- Ad: ${custName}\n` +
+      `- Telefon: ${phone}\n` +
+      `- Doğum tarixi: ${birthStr}\n\n` +
+      `MƏBLƏĞ\n` +
+      `- Məhsullar: ${baseTotal.toFixed(2)} AZN\n` +
+      `- Çatdırılma: ${deliveryFee.toFixed(2)} AZN\n` +
+      `- Ümumi: ${grandTotal.toFixed(2)} AZN\n` +
+      `- Beh 50%: ${grandBeh.toFixed(2)} AZN\n` +
+      `- Qalıq: ${(grandTotal - grandBeh).toFixed(2)} AZN`;
+
+    const productionMessage =
+      `MESAJ 2/3 - İSTEHSAL ÜÇÜN\n\n` +
+      `Sifariş nömrəsi: ${orderNumber}\n\n` +
+      productionItemsText +
+      `\nQeyd: Bu mesajda qiymət, müştəri telefonu və çatdırılma ünvanı yoxdur.`;
+
+    const courierMessage =
+      `MESAJ 3/3 - KURYER ÜÇÜN\n\n` +
+      `Sifariş nömrəsi: ${orderNumber}\n\n` +
+      `MÜŞTƏRİ\n` +
+      `- Ad: ${custName}\n` +
+      `- Telefon: ${phone}\n\n` +
+      `ÇATDIRILMA\n` +
+      `- Növ: ${deliveryLabel}\n` +
+      `- Ünvan/Metro: ${deliveryAddress}\n` +
+      `- Tarix: ${deliveryDate}\n` +
+      `- Saat: ${deliveryTime}\n\n` +
+      `ÖDƏNİŞ\n` +
+      `- Qalıq: ${(grandTotal - grandBeh).toFixed(2)} AZN`;
+
+    const orderPayload = {
+      orderNumber,
+      createdAt: now.toISOString(),
+      year: now.getFullYear(),
+      month: now.getMonth() + 1,
+      status: 'new',
+      customer: {
+        name: custName,
+        phone,
+        birthDate: birthStr,
+      },
+      items: items.map((item, idx) => ({
+        _key: `${Date.now()}-${idx}-${item.cartId}`,
+        productId: item.productId,
+        productName: item.productName,
+        modelName: item.modelName,
+        colorName: item.colorName,
+        quantity: item.quantity,
+        unitPrice: item.discountPrice ?? item.price,
+        totalPrice: getItemSubtotal(item),
+        customText: item.customText || '',
+        specialRequest: item.specialRequest || '',
+      })),
+      delivery: {
+        type: deliveryLabel,
+        address: delivery === 'metro' ? '' : address,
+        metro: delivery === 'metro' ? metro : '',
+        date: deliveryDate,
+        time: deliveryTime,
+      },
+      financial: {
+        subtotal: baseTotal,
+        deliveryFee,
+        total: grandTotal,
+        deposit: grandBeh,
+        remaining: grandTotal - grandBeh,
+      },
+      fullMessage,
+      productionMessage,
+      courierMessage,
+    };
+
+    fetch('/api/create-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(orderPayload),
+    }).catch((error) => {
+      console.error('Sanity sifariş yazılmadı:', error);
+    });
+
     try {
       trackEvent('purchase', {
         currency: 'AZN',
@@ -824,18 +935,14 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
           index: i,
         })),
       });
-      if (typeof (window as any).fbq === 'function') {
-        (window as any).fbq('track', 'Purchase', {
-          value: grandTotal,
-          currency: 'AZN',
-          num_items: items.reduce((s, it) => s + it.quantity, 0),
-        });
-      }
     } catch (_) {}
 
-    window.open(`https://wa.me/994519831483?text=${encodeURIComponent(msg)}`, '_blank');
+    [fullMessage, productionMessage, courierMessage].forEach((message) => {
+      window.open(`https://wa.me/994519831483?text=${encodeURIComponent(message)}`, '_blank');
+    });
+
     onClearCart?.();
-setIsCheckingOut(false);
+    setIsCheckingOut(false);
   };
 
   // ── Render ─────────────────────────────────────────────────────
