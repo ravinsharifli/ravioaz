@@ -16,9 +16,46 @@ export default defineConfig({
           .title('Ravio')
           .items([
             S.listItem()
-              .title('Mehsullar')
+              .title('Sifarişlər')
               .child(
-                S.documentTypeList('product').title('Mehsullar')
+                S.documentTypeList('order')
+                  .title('Sifarişlər')
+                  .defaultOrdering([{ field: 'createdAt', direction: 'desc' }])
+              ),
+
+            S.listItem()
+              .title('Bu ayın sifarişləri')
+              .child(
+                S.documentList()
+                  .title('Bu ayın sifarişləri')
+                  .schemaType('order')
+                  .filter('_type == "order" && year == $year && month == $month')
+                  .params({
+                    year: new Date().getFullYear(),
+                    month: new Date().getMonth() + 1,
+                  })
+                  .defaultOrdering([{ field: 'createdAt', direction: 'desc' }])
+              ),
+
+            S.listItem()
+              .title('Bu ilin sifarişləri')
+              .child(
+                S.documentList()
+                  .title('Bu ilin sifarişləri')
+                  .schemaType('order')
+                  .filter('_type == "order" && year == $year')
+                  .params({
+                    year: new Date().getFullYear(),
+                  })
+                  .defaultOrdering([{ field: 'createdAt', direction: 'desc' }])
+              ),
+
+            S.divider(),
+
+            S.listItem()
+              .title('Məhsullar')
+              .child(
+                S.documentTypeList('product').title('Məhsullar')
               ),
 
             S.listItem()
@@ -30,12 +67,12 @@ export default defineConfig({
             S.divider(),
 
             S.listItem()
-              .title('Sayt tenzimlemeleri')
+              .title('Sayt tənzimləmələri')
               .child(
                 S.document()
                   .schemaType('siteSettings')
                   .documentId('siteSettings')
-                  .title('Sayt tenzimlemeleri')
+                  .title('Sayt tənzimləmələri')
               ),
           ]),
     }),

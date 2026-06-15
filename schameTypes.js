@@ -1,6 +1,7 @@
 import product from './product'
 import productReview from './productReview'
 import siteSettings from './siteSettings'
+import order from './schemas/order'
 
 const category = {
   name: 'category',
@@ -9,7 +10,7 @@ const category = {
   fields: [
     {
       name: 'name',
-      title: 'Kateqoriya adi',
+      title: 'Kateqoriya adı',
       type: 'string',
     },
     {
@@ -23,13 +24,14 @@ const category = {
     },
     {
       name: 'description',
-      title: 'Aciqlama',
+      title: 'Açıqlama',
       type: 'text',
     },
   ],
 }
 
 export const schemaTypes = [
+  order,
   category,
   product,
   productReview,
