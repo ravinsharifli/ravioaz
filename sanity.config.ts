@@ -11,7 +11,7 @@ import {
   SendToCourierAction,
   MarkReadyAction,
   MarkDeliveredAction,
-} from './studio/orderActions'
+} from './studio/Orderactions'  // ← Fayl adına uyğun: böyük O, kiçik a
 
 export default defineConfig({
   name:  'default',
@@ -99,7 +99,7 @@ export default defineConfig({
     types: schemaTypes,
   },
 
-  // ── DOCUMENT ACTIONs (DÜYMƏLƏR) ──────────────────────────
+  // ── DOCUMENT ACTIONS (DÜYMƏLƏR) ──────────────────────────
   //  "Sifariş" sənədinə xüsusi düymələr əlavə edilir.
   //  Digər sənəd tiplərində standart davranış saxlanılır.
   document: {
