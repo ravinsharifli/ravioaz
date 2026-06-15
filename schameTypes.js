@@ -1,7 +1,16 @@
-import product from './product'
+// ═══════════════════════════════════════════════════════════════
+//  RAVIO — BÜTÜN SANITY SXEMLƏRİ
+//  Bu faylı schameTypes.js ilə əvəzlə (köhnəni sil, yenisini yapışdır)
+// ═══════════════════════════════════════════════════════════════
+
+import product      from './product'
 import productReview from './productReview'
 import siteSettings from './siteSettings'
+import order        from './schemas/order'
+import manufacturer from './schemas/manufacturer'
+import courierProvider from './schemas/courier'
 
+// ── Kateqoriya sxemi (dəyişilməyib) ──────────────────────────
 const category = {
   name: 'category',
   title: 'Kateqoriya',
@@ -29,4 +38,18 @@ const category = {
   ],
 }
 
-export const schemaTypes = [category, product, productReview, siteSettings]
+// ── Bütün tiplər ──────────────────────────────────────────────
+export const schemaTypes = [
+  // 📦 Sifariş idarəetmə
+  order,
+  manufacturer,
+  courierProvider,
+
+  // 🛍 Məhsullar
+  category,
+  product,
+  productReview,
+
+  // ⚙️ Sayt tənzimləmələri
+  siteSettings,
+]
