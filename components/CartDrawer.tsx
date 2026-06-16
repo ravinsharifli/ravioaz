@@ -60,7 +60,7 @@ function getItemSubtotal(item: CartItem): number {
 }
 
 function money(value: number): string {
-  return `${value.toFixed(2)} AZN`;
+  return `${value.toFixed(2)} ₼`;
 }
 
 function openWhatsAppMessage(message: string) {
@@ -167,7 +167,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
     : selectedMetroSchedule?.timeSlots ?? [];
 
   const baseTotal = items.reduce((sum, item) => sum + getItemSubtotal(item), 0);
-  const deliveryFee = delivery === 'metro' ? 2.99 : delivery === 'post' ? 4.99 : 0;
+  const deliveryFee = delivery === 'post' ? 1.99 : 0;
   const grandTotal = baseTotal + deliveryFee;
   const deposit = Math.ceil(grandTotal * 0.5);
   const remaining = grandTotal - deposit;
@@ -483,11 +483,10 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
               <Section>
                 <Label>Çatdırılma üsulu</Label>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
-                  {[
-                    { id: 'kuryer' as const, label: 'Kuryer', sub: '0 AZN' },
-                    { id: 'metro' as const, label: 'Özəl Metro', sub: '+2.99' },
-                    { id: 'post' as const, label: 'Poçt', sub: '+4.99' },
-                  ].map((option) => (
+                  {[{ id: 'kuryer' as const, label: 'Kuryer', sub: 'Pulsuz' }, 
+                  { id: 'metro' as const, label: 'Özəl Metro', sub: 'Pulsuz' }, 
+                  { id: 'post' as const, label: 'Poçt', sub: '+1.99 ₼' }].
+                  map((option) => (
                     <button
                       key={option.id}
                       onClick={() => setDelivery(option.id)}

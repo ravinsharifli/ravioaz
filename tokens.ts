@@ -34,7 +34,7 @@ export const C = {
   borderMid:   'var(--clr-border-mid)',
   /** İkinci dərəcəli mətn — #666666 */
   textSec:     'var(--clr-text-sec)',
-  /** Solğun mətn — #AAAAAA */
+  /** Solğun mətn — #9E9E9E */
   textMuted:   'var(--clr-text-muted)',
   /** Tünd arxa fon (footer/banner) — #111111 */
   dark:        'var(--clr-dark)',

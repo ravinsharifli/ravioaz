@@ -31,7 +31,7 @@ const Footer: React.FC<FooterProps> = () => {
                 style={{ width: 52, height: 52, borderRadius: 10, objectFit: 'cover' }}
               />
             </div>
-            <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', lineHeight: 1.8, margin: '0 0 24px', maxWidth: 220 }}>
+            <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.65)', lineHeight: 1.8, margin: '0 0 24px', maxWidth: 220 }}>
               Lazer yazı, fərdi təsbeh, polad qolbaq. Hər məhsul yalnız sənin üçün hazırlanır.
             </p>
             <div style={{ display: 'flex', gap: 8 }}>
@@ -44,7 +44,7 @@ const Footer: React.FC<FooterProps> = () => {
                     width: 36, height: 36, borderRadius: 8,
                     border: '1px solid rgba(255,255,255,0.12)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: 'rgba(255,255,255,0.4)', textDecoration: 'none', transition: 'all 0.2s',
+                    color: 'rgba(255,255,255,0.65)', textDecoration: 'none', transition: 'all 0.2s',
                   }}
                   onMouseEnter={e => { e.currentTarget.style.borderColor = C.primary; e.currentTarget.style.color = C.primary; }}
                   onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)'; e.currentTarget.style.color = 'rgba(255,255,255,0.4)'; }}
@@ -65,7 +65,7 @@ const Footer: React.FC<FooterProps> = () => {
             ].map((link, i) => (
               <div key={i} style={{ marginBottom: 12 }}>
                 <Link to={link.href} style={{
-                  color: 'rgba(255,255,255,0.4)', fontSize: 14,
+                  color: 'rgba(255,255,255,0.65)', fontSize: 14,
                   fontFamily: F.sans,
                   fontWeight: 400, display: 'block', textAlign: 'left' as const,
                   transition: 'color 0.15s', textDecoration: 'none',
@@ -83,14 +83,14 @@ const Footer: React.FC<FooterProps> = () => {
               Çatdırılma
             </h4>
             {[
-              { icon: '🚇', text: 'Metrodaxili özəl kuryer - 2.99 ₼' },
-              { icon: '🛵', text: 'Kuryer (Bakı,Sumqayıt,Abşeron) — Ödənişsiz' },
-              { icon: '📮', text: 'Bölgələrə çatdırılma poçt vasitəsilə — 4.99 ₼' },
+              { icon: '🚇', text: 'Metrodaxili özəl kuryer — Ödənişsiz' },
+              { icon: '🛵', text: 'Bakı, Sumqayıt, Abşeron — Ödənişsiz' },
+              { icon: '📮', text: 'Regionlara Azərpoçt ilə — cəmi 1.99 ₼' },
               { icon: '⚡', text: '1–3 günə hazırlanır və çatdırılır' },
             ].map((item, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
                 <span style={{ fontSize: 14 }}>{item.icon}</span>
-                <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)' }}>{item.text}</span>
+                <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.65)' }}>{item.text}</span>
               </div>
             ))}
           </div>
@@ -106,7 +106,7 @@ const Footer: React.FC<FooterProps> = () => {
             ].map((item, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 13 }}>
                 <span style={{ color: C.primary, flexShrink: 0 }}>{item.icon}</span>
-                <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)' }}>{item.text}</span>
+                <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.65)' }}>{item.text}</span>
               </div>
             ))}
             <Link to="/elaqe" style={{

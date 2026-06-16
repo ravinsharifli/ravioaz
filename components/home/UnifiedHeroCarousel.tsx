@@ -22,7 +22,7 @@ export default function UnifiedHeroCarousel({
   const [current, setCurrent] = useState(0);
   const [paused,  setPaused]  = useState(false);
 
-  // Auto-advance: hər 4.5 saniyədə bir növbəti slayd
+  // Auto-advance: hər 3 saniyədə bir növbəti slayd
   useEffect(() => {
     if (slides.length <= 1 || paused) return;
     const t = setInterval(() => setCurrent(c => (c + 1) % slides.length), 3000);
@@ -63,8 +63,8 @@ export default function UnifiedHeroCarousel({
         position: 'relative',
         overflow: 'hidden',
       }}
-      onMouseEnter={() => {}}
-      onMouseLeave={() => {}}
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
     >
       {/* ── Əsas karusel ──────────────────────────────────────────────────── */}
       <div
@@ -290,13 +290,6 @@ export default function UnifiedHeroCarousel({
           >&#8250;</button>
         </div>
       )}
-
-      <style>{`
-        @keyframes ravio-fadein {
-          from { opacity: 0; transform: scale(0.98); }
-          to   { opacity: 1; transform: scale(1); }
-        }
-      `}</style>
-    </div>
+        </div>
   );
 }

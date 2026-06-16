@@ -278,6 +278,15 @@ const Navbar: React.FC<NavbarProps> = ({
 
         {/* Mobile dropdown menu */}
         {menuOpen && (
+  <div
+    onClick={() => setMenuOpen(false)}
+    style={{
+      position: 'fixed', inset: 0, zIndex: 999,
+      background: 'rgba(0,0,0,0.35)',
+    }}
+  />
+)}
+        {menuOpen && (
           <div style={{
             background: C.white,
             borderTop: '1px solid #F0EBE2',

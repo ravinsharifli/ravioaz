@@ -298,7 +298,7 @@ export default function HomePage({
             {[
               { n: '01', icon: '🛍️', title: 'Məhsul seç', desc: 'Kataloqdan bəyəndiyini seç, variantı müəyyən et' },
               { n: '02', icon: '✍️', title: 'Ad / mesaj yaz', desc: 'Lazer yazısı üçün istədiyini əlavə et' },
-              { n: '03', icon: '⚡', title: 'Ödənişsiz çatır', desc: '1–3 günə hazırlanır və çatdırılır' },
+              { n: '03', icon: '⚡', title: 'Biz çatdırırıq', desc: 'Bakıda pulsuz, 1–3 günə qapınıza' },
             ].map((s, i) => (
               <div
                 key={s.n}
