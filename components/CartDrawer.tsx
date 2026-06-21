@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { X, Trash2, ShoppingBag, ArrowRight, Edit3, ChevronLeft } from 'lucide-react';
 import { CartItem, MetroSchedule, Coupon } from '../types';
@@ -36,10 +35,23 @@ const MONTHS_AZ = [
   'Dekabr',
 ];
 
+const SANITY_STUDIO_URL = 'https://ravioshop.sanity.studio';
+
 const DAYS_LIST = Array.from({ length: 31 }, (_, i) => String(i + 1).padStart(2, '0'));
 const ORDER_YEARS = ['2026', '2027', '2028'];
 const currentYear = new Date().getFullYear();
 const BIRTH_YEARS = Array.from({ length: currentYear - 1969 }, (_, i) => String(1970 + i)).reverse();
+
+function getMinDeliveryDate(): Date {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() + 3);
+  return d;
+}
+
+function azDateStr(date: Date): string {
+  return `${String(date.getDate()).padStart(2, '0')} ${MONTHS_AZ[date.getMonth()]} ${date.getFullYear()}`;
+}
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -167,20 +179,31 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
     : selectedMetroSchedule?.timeSlots ?? [];
 
   const baseTotal = items.reduce((sum, item) => sum + getItemSubtotal(item), 0);
-  const deliveryFee = delivery === 'post' ? 1.99 : 0;
-  const grandTotal = baseTotal + deliveryFee;
+  const deliveryFee = 0;
+  const grandTotal = baseTotal;
   const deposit = Math.ceil(grandTotal * 0.5);
   const remaining = grandTotal - deposit;
 
   const birthDate = bdDay && bdMonth && bdYear ? `${bdDay} ${bdMonth} ${bdYear}` : 'Bildirilməyib';
-  const deliveryLabel = delivery === 'metro' ? 'Özəl Metro' : delivery === 'post' ? 'Poçt' : 'Kuryer';
+  const deliveryLabel = delivery === 'metro' ? 'Metro' : delivery === 'post' ? 'Poçt' : 'Ünvana çatdırılma';
   const deliveryDate = delivery === 'metro' ? metroDay : `${kurDay} ${kurMonth} ${kurYear}`;
   const deliveryTime = delivery === 'metro' ? metroTime : 'Gün ərzində';
   const deliveryPlace = delivery === 'metro' ? metro : address;
 
+  const minDeliveryDate = getMinDeliveryDate();
+  const minDateDisplay = azDateStr(minDeliveryDate);
+  const selectedDeliveryDate: Date | null = (() => {
+    if (delivery === 'metro' || !kurDay || !kurMonth || !kurYear) return null;
+    const mi = MONTHS_AZ.indexOf(kurMonth);
+    if (mi === -1) return null;
+    return new Date(parseInt(kurYear), mi, parseInt(kurDay));
+  })();
+  const deliveryDateValid = delivery === 'metro' || (selectedDeliveryDate !== null && selectedDeliveryDate >= minDeliveryDate);
+
   const checkoutValid =
     custName.trim().length > 0 &&
     phone.trim().length > 0 &&
+    deliveryDateValid &&
     (delivery === 'metro'
       ? metro.trim().length > 0 && metroDay.trim().length > 0 && metroTime.trim().length > 0
       : address.trim().length > 0 && kurDay.trim().length > 0 && kurMonth.trim().length > 0 && kurYear.trim().length > 0);
@@ -189,7 +212,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
     return `RV-${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, '0')}${String(date.getDate()).padStart(2, '0')}-${String(date.getHours()).padStart(2, '0')}${String(date.getMinutes()).padStart(2, '0')}${String(date.getSeconds()).padStart(2, '0')}`;
   }
 
-  function buildMessages(orderNumber: string) {
+  function buildMessage(orderNumber: string, sanityDocId: string) {
     const fullItemsText = items.map((item, index) => {
       const unitPrice = item.discountPrice ?? item.price;
       const imageUrl = item.images?.[0] ?? '';
@@ -209,20 +232,8 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
       ].filter(Boolean).join('\n');
     }).join('\n\n');
 
-    const productionItemsText = items.map((item, index) => [
-      `MƏHSUL ${index + 1}`,
-      `- Ad: ${item.productName}`,
-      `- Model: ${item.modelName}`,
-      `- Rəng: ${item.colorName}`,
-      `- Say: ${item.quantity}`,
-      item.customText ? `- Yazı/Qeyd: ${item.customText}` : '',
-      item.specialRequest ? `- Xüsusi istək: ${item.specialRequest}` : '',
-    ].filter(Boolean).join('\n')).join('\n\n');
-
-    const fullMessage = [
-      'MESAJ 1/3 - TAM SİFARİŞ',
-      '',
-      `Sifariş nömrəsi: ${orderNumber}`,
+    return [
+      `SİFARİŞ: ${orderNumber}`,
       '',
       fullItemsText,
       '',
@@ -238,43 +249,12 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
       `- Doğum tarixi: ${birthDate}`,
       '',
       'MƏBLƏĞ',
-      `- Məhsullar: ${money(baseTotal)}`,
-      `- Çatdırılma: ${money(deliveryFee)}`,
       `- Ümumi: ${money(grandTotal)}`,
       `- Beh 50%: ${money(deposit)}`,
       `- Qalıq: ${money(remaining)}`,
+      '',
+      `🔗 ${SANITY_STUDIO_URL}/structure/order;${sanityDocId}`,
     ].join('\n');
-
-    const productionMessage = [
-      'MESAJ 2/3 - İSTEHSAL ÜÇÜN',
-      '',
-      `Sifariş nömrəsi: ${orderNumber}`,
-      '',
-      productionItemsText,
-      '',
-      'Qeyd: Bu mesajda qiymət, müştəri telefonu və çatdırılma ünvanı yoxdur.',
-    ].join('\n');
-
-    const courierMessage = [
-      'MESAJ 3/3 - KURYER ÜÇÜN',
-      '',
-      `Sifariş nömrəsi: ${orderNumber}`,
-      '',
-      'MÜŞTƏRİ',
-      `- Ad: ${custName}`,
-      `- Telefon: ${phone}`,
-      '',
-      'ÇATDIRILMA',
-      `- Növ: ${deliveryLabel}`,
-      `- Ünvan/Metro: ${deliveryPlace}`,
-      `- Tarix: ${deliveryDate}`,
-      `- Saat: ${deliveryTime}`,
-      '',
-      'ÖDƏNİŞ',
-      `- Qalıq: ${money(remaining)}`,
-    ].join('\n');
-
-    return { fullMessage, productionMessage, courierMessage };
   }
 
   async function handleWhatsApp() {
@@ -285,7 +265,6 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
 
     const now = new Date();
     const orderNumber = makeOrderNumber(now);
-    const messages = buildMessages(orderNumber);
 
     const orderPayload = {
       orderNumber,
@@ -324,9 +303,6 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
         deposit,
         remaining,
       },
-      fullMessage: messages.fullMessage,
-      productionMessage: messages.productionMessage,
-      courierMessage: messages.courierMessage,
     };
 
     try {
@@ -340,17 +316,24 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
         throw new Error(`HTTP ${response.status}`);
       }
 
-      openWhatsAppMessage(messages.fullMessage);
-      setTimeout(() => openWhatsAppMessage(messages.productionMessage), 600);
-      setTimeout(() => openWhatsAppMessage(messages.courierMessage), 1200);
+      const result = await response.json();
+      const docId = result.id ?? orderNumber;
+      const message = buildMessage(orderNumber, docId);
 
+      openWhatsAppMessage(message);
+    } catch (err) {
+      // Sanity-yə yazıla bilmədi — müştəriyə bunu göstərmirik, sifariş yenə WhatsApp-a gedir.
+      // Bu xətanı yalnız brauzer konsolunda görmək olar (F12 → Console), müştəri heç nə görmür.
+      console.error('Sifariş Sanity-də saxlanmadı, amma WhatsApp-a göndərildi:', err);
+      const fallbackMessage = buildMessage(orderNumber, orderNumber);
+      openWhatsAppMessage(fallbackMessage);
+    } finally {
+      try {
+        localStorage.setItem('ravio_has_ordered', '1');
+      } catch {}
       onClearCart?.();
       setIsCheckingOut(false);
       onClose();
-    } catch (err) {
-      console.error('Sifariş Sanity-də yaradılmadı:', err);
-      setError('Sifariş Sanity-də yazılmadı. Vercel-də SANITY_WRITE_TOKEN və /api/create-order.js faylını yoxla.');
-    } finally {
       setIsSubmitting(false);
     }
   }
@@ -482,34 +465,51 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
             <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px 20px' }}>
               <Section>
                 <Label>Çatdırılma üsulu</Label>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
-                  {[{ id: 'kuryer' as const, label: 'Kuryer', sub: 'Pulsuz' }, 
-                  { id: 'metro' as const, label: 'Özəl Metro', sub: 'Pulsuz' }, 
-                  { id: 'post' as const, label: 'Poçt', sub: '+1.99 ₼' }].
-                  map((option) => (
-                    <button
-                      key={option.id}
-                      onClick={() => setDelivery(option.id)}
-                      style={{
-                        background: delivery === option.id ? C.black : C.white,
-                        color: delivery === option.id ? C.white : C.black,
-                        border: `1px solid ${delivery === option.id ? C.black : C.border}`,
-                        borderRadius: 8,
-                        padding: '12px 8px',
-                        cursor: 'pointer',
-                        fontFamily: FONT,
-                      }}
-                    >
-                      <div style={{ fontSize: 13, fontWeight: 700 }}>{option.label}</div>
-                      <div style={{ fontSize: 11, opacity: 0.7, marginTop: 3 }}>{option.sub}</div>
-                    </button>
-                  ))}
+                <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
+                  {([
+                    { id: 'metro' as const,  label: 'Metro',  icon: '🚇', note: 'İstənilən stansiya' },
+                    { id: 'kuryer' as const, label: 'Ünvan',  icon: '🛵', note: 'Bakı & Abşeron' },
+                    { id: 'post' as const,   label: 'Poçt',   icon: '📮', note: 'Bütün Azərbaycan' },
+                  ] as const).map((opt) => {
+                    const active = delivery === opt.id;
+                    return (
+                      <button
+                        key={opt.id}
+                        onClick={() => setDelivery(opt.id)}
+                        style={{
+                          flex: 1, padding: '10px 6px', borderRadius: 10,
+                          border: active ? 'none' : `1px solid ${C.border}`,
+                          cursor: 'pointer', fontFamily: FONT,
+                          background: active ? C.orange : C.white,
+                          color: active ? C.white : C.black,
+                        }}
+                      >
+                        <div style={{ fontSize: 18, lineHeight: 1, marginBottom: 5 }}>{opt.icon}</div>
+                        <div style={{ fontSize: 13, fontWeight: 700 }}>{opt.label}</div>
+                        <div style={{ fontSize: 10, marginTop: 2, opacity: active ? 0.85 : 0.45 }}>{opt.note}</div>
+                      </button>
+                    );
+                  })}
+                </div>
+                <div style={{ fontSize: 12, color: '#16A34A', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <span>✓</span>
+                  <span>Ödənişsiz çatdırılma — ünvandan asılı olmayaraq</span>
                 </div>
               </Section>
 
               {delivery !== 'metro' && (
                 <Section>
-                  <Label>Çatdırılma ünvanı</Label>
+                  {delivery === 'kuryer' && (
+                    <p style={{ fontSize: 12, color: C.grayLt, margin: '0 0 12px', lineHeight: 1.55 }}>
+                      🛵 Bakı, Masazır, Xırdalan, Sumqayıt, Abşeron ərazisinə çatdırılır. Özəl kuryer şirkəti tərəfindən.
+                    </p>
+                  )}
+                  {delivery === 'post' && (
+                    <p style={{ fontSize: 12, color: C.grayLt, margin: '0 0 12px', lineHeight: 1.55 }}>
+                      📮 Azərpoçt vasitəsilə Azərbaycanın istənilən bölgəsinə. Ödənişsiz.
+                    </p>
+                  )}
+                  <Label>{delivery === 'post' ? 'Şəhər və ünvan' : 'Çatdırılma ünvanı'}</Label>
                   <Input
                     value={address}
                     onChange={(event) => setAddress(event.target.value)}
@@ -523,6 +523,16 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                     <Select value={kurMonth} onChange={setKurMonth} options={MONTHS_AZ} placeholder="Ay" />
                     <Select value={kurYear} onChange={setKurYear} options={ORDER_YEARS} placeholder="İl" />
                   </div>
+                  {kurDay && kurMonth && kurYear && !deliveryDateValid && (
+                    <p style={{ fontSize: 12, color: C.red, margin: '8px 0 0' }}>
+                      Ən erkən çatdırılma tarixi: {minDateDisplay}
+                    </p>
+                  )}
+                  {!kurDay && !kurMonth && (
+                    <p style={{ fontSize: 12, color: C.grayLt, margin: '8px 0 0' }}>
+                      Ən erkən tarix: {minDateDisplay}
+                    </p>
+                  )}
                 </Section>
               )}
 

@@ -3,7 +3,7 @@ import { F } from '../tokens';
 import { ChevronLeft, ChevronRight, Upload, Minus, Plus, Check, Tag, X, ArrowLeft } from 'lucide-react';
 import { Product, CartItem, BulkTier, Coupon } from '../types';
 import ProductReviews from './ProductReviews';
-import { toWebP } from '../lib/image';
+import { toWebP, toSrcSet } from '../lib/image';
 
 const FONT = F.sans;
 
@@ -93,6 +93,13 @@ const ProductPage: React.FC<ProductPageProps> = ({
 
   // ── Endirim seçimləri ──────────────────────────────────────────
   const [customerType,  setCustomerType]  = useState<'new' | 'loyal' | null>(null);
+  const [hasOrderedBefore] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('ravio_has_ordered') === '1';
+    } catch {
+      return false;
+    }
+  });
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
   const [couponInput,   setCouponInput]   = useState('');
   const [couponError,   setCouponError]   = useState('');
@@ -284,10 +291,13 @@ const ProductPage: React.FC<ProductPageProps> = ({
                   aspectRatio: '1/1',
                 }}>
                   <img
-                    src={toWebP(allImages[imgIdx]?.url ?? '', 900, 85)}
+                    src={toWebP(allImages[imgIdx]?.url ?? '', 720, 80)}
+                    srcSet={toSrcSet(allImages[imgIdx]?.url ?? '', [240, 480, 720], 80)}
+                    sizes="(max-width: 640px) 90vw, (max-width: 1280px) 50vw, 640px"
                     alt={product.name}
                     loading="eager"
                     decoding="async"
+                    fetchPriority="high"
                     style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
                     onError={e => { (e.target as HTMLImageElement).src = 'https://placehold.co/600x600/F5F2EC/AAAAAA?text=Şəkil+yoxdur'; }}
                   />
@@ -411,12 +421,14 @@ const ProductPage: React.FC<ProductPageProps> = ({
                   { id: 'loyal' as const, label: 'Daimi müştəri', sub: 'Əvvəl sifariş vermişəm' },
                 ] as const).map(opt => {
                   const sel = customerType === opt.id;
+                  const locked = opt.id === 'loyal' && !hasOrderedBefore;
                   return (
-                    <div key={opt.id} onClick={() => setCustomerType(sel ? null : opt.id)} style={{
+                    <div key={opt.id} onClick={() => { if (locked) return; setCustomerType(sel ? null : opt.id); }} style={{
                       flex: 1, display: 'flex', alignItems: 'center', gap: 8,
-                      padding: '10px 12px', borderRadius: 10, cursor: 'pointer',
+                      padding: '10px 12px', borderRadius: 10, cursor: locked ? 'not-allowed' : 'pointer',
                       background: sel ? C.bg : C.white,
                       border: `1.5px solid ${sel ? C.blue : C.border}`,
+                      opacity: locked ? 0.5 : 1,
                       transition: 'all 0.15s',
                     }}>
                       <div style={{
@@ -429,7 +441,9 @@ const ProductPage: React.FC<ProductPageProps> = ({
                       </div>
                       <div>
                         <div style={{ fontSize: 12, fontWeight: sel ? 600 : 400, color: C.black, lineHeight: 1.2 }}>{opt.label}</div>
-                        <div style={{ fontSize: 10, color: sel ? C.blue : C.grayLt, marginTop: 1 }}>{opt.sub}</div>
+                        <div style={{ fontSize: 10, color: sel ? C.blue : C.grayLt, marginTop: 1 }}>
+                          {locked ? 'İlk sifarişdən sonra aktivləşir' : opt.sub}
+                        </div>
                       </div>
                     </div>
                   );

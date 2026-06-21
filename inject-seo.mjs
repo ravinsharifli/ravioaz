@@ -62,9 +62,9 @@ function sanityWebP(url, width, quality = 80) {
  * JS-i gözləmədən şəkli dərhal yükləyir.
  * imagesrcset + imagesizes sayəsində brauzer ən uyğun ölçünü seçir.
  */
-function lcpPreloadTag(imageUrl, sizes = '(max-width: 400px) 45vw, (max-width: 900px) 45vw, (max-width: 1200px) 30vw, 25vw') {
+function lcpPreloadTag(imageUrl, sizes = '(max-width: 400px) 45vw, (max-width: 900px) 45vw, (max-width: 1200px) 30vw, 25vw', widths = [240, 480, 720]) {
   if (!imageUrl) return '';
-  const srcset = [240, 480, 720]
+  const srcset = widths
     .map(w => `${sanityWebP(imageUrl, w)} ${w}w`)
     .join(', ');
   return `  <link rel="preload" as="image" imagesrcset="${srcset}" imagesizes="${sizes}" fetchpriority="high" />`;
@@ -145,19 +145,32 @@ async function run() {
 
   console.log(`📦 ${products.length} məhsul tapıldı\n`);
 
+  // 1b. Ana səhifənin əsl LCP elementi — hero karusel (məhsul kartı yox,
+  // çünki UnifiedHeroCarousel ProductGrid-dən ƏVVƏL render olunur)
+  const heroSettings = await client.fetch(`
+    *[_type == "siteSettings"][0]{
+      "heroImage": heroSlides[isActive != false][0].image.asset->url
+    }
+  `);
+
   // 2. dist/index.html-i template kimi oxu
   const template = readFileSync('dist/index.html', 'utf-8');
 
   // ── 3. Ana səhifə LCP preload ─────────────────────────────────
-  // İlk məhsulun şəkli homepage-in ən böyük görünən elementidir (LCP).
+  // Hero karusel ilk slaydı homepage-in ən böyük görünən elementidir (LCP).
+  // Widths/sizes UnifiedHeroCarousel.tsx-dəki əsl <img> ilə EYNİ olmalıdır,
+  // əks halda brauzer preload edilən şəkli yox, başqasını yükləyir.
   // Build zamanı preload tag-ini dist/index.html-ə yazırıq ki,
   // brauzer preload scanner JS-i gözləmədən şəkli tapıb yükləsin.
-  const lcpProduct = products[0];
-  if (lcpProduct?.firstImageUrl) {
-    const preload = lcpPreloadTag(lcpProduct.firstImageUrl);
+  if (heroSettings?.heroImage) {
+    const preload = lcpPreloadTag(
+      heroSettings.heroImage,
+      '(max-width: 640px) 100vw, (max-width: 1280px) 45vw, 420px',
+      [400, 640, 900]
+    );
     const homeHtml = template.replace('</head>', `${preload}\n</head>`);
     writeFileSync('dist/index.html', homeHtml, 'utf-8');
-    console.log(`  🖼️  LCP preload → / (${lcpProduct.name})\n`);
+    console.log(`  🖼️  LCP preload → / (hero slayd)\n`);
   }
 
   let ok = 0;
