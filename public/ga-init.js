@@ -6,11 +6,11 @@ function gtag() { dataLayer.push(arguments); }
 function loadGAScript() {
   var s = document.createElement('script');
   s.async = true;
-  s.src = 'https://www.googletagmanager.com/gtag/js?id=G-4YEWCWGVTD';
+  s.src = 'https://www.googletagmanager.com/gtag/js?id=G-VKNTQ97S5P';
   document.head.appendChild(s);
   s.onload = function() {
     gtag('js', new Date());
-    gtag('config', 'G-4YEWCWGVTD', {
+    gtag('config', 'G-VKNTQ97S5P', {
       page_title: 'Ravio',
       send_page_view: true,
       transport_type: 'beacon',
