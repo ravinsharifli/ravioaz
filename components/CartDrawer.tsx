@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { client } from '../sanityclient';
 import { X, Trash2, ShoppingBag, ArrowRight, Edit3, ChevronLeft } from 'lucide-react';
 import { CartItem, MetroSchedule, Coupon } from '../types';
 import { F } from '../tokens';
@@ -6,6 +7,15 @@ import '../styles/cart-drawer.css';
 
 const WHATSAPP_NUMBER = '994519831483';
 const FONT = F.sans;
+
+function normalizeAzPhone(raw: string): string {
+  const d = raw.replace(/\D/g, '');
+  return d.startsWith('994') ? d.slice(3) : d;
+}
+
+function isValidAzPhone(raw: string): boolean {
+  return /^0[5-9]\d{8}$/.test(normalizeAzPhone(raw));
+}
 
 const C = {
   bg: 'var(--clr-bg)',
@@ -167,8 +177,19 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
   const [metro, setMetro] = useState('');
   const [metroDay, setMetroDay] = useState('');
   const [metroTime, setMetroTime] = useState('');
+  const [loyalNotif, setLoyalNotif] = useState<null | 'checking' | 'verified' | 'failed'>(null);
 
   if (!isOpen) return null;
+
+  const isLoyalFailed = loyalNotif === 'failed';
+
+  function getEffectiveItemTotal(item: CartItem): number {
+    if (!isLoyalFailed || item.customerType !== 'loyal') return getItemSubtotal(item);
+    const baseUnit = item.discountPrice ?? item.price;
+    const bulkOff = item.bulkDiscountAmount ? item.bulkDiscountAmount / item.quantity : 0;
+    const sub = Math.max(0, baseUnit - bulkOff) * item.quantity + (item.boxPrice ?? 0);
+    return Math.max(0, sub - Math.round(sub * 0.10 * 100) / 100 - (item.couponDiscount ?? 0));
+  }
 
   const stations = (metroSchedule?.stations ?? []).filter((station) => station.isActive !== false);
   const selectedStation = stations.find((station) => station.name === metro);
@@ -178,7 +199,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
     ? ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00']
     : selectedMetroSchedule?.timeSlots ?? [];
 
-  const baseTotal = items.reduce((sum, item) => sum + getItemSubtotal(item), 0);
+  const baseTotal = items.reduce((sum, item) => sum + getEffectiveItemTotal(item), 0);
   const deliveryFee = 0;
   const grandTotal = baseTotal;
   const deposit = Math.ceil(grandTotal * 0.5);
@@ -202,7 +223,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
 
   const checkoutValid =
     custName.trim().length > 0 &&
-    phone.trim().length > 0 &&
+    isValidAzPhone(phone) &&
     deliveryDateValid &&
     (delivery === 'metro'
       ? metro.trim().length > 0 && metroDay.trim().length > 0 && metroTime.trim().length > 0
@@ -225,7 +246,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
         `- Vahid qiymət: ${money(unitPrice)}`,
         (item.boxPrice ?? 0) > 0 ? `- Qutu: +${money(item.boxPrice ?? 0)}` : '',
         item.couponCode ? `- Kupon: ${item.couponCode}` : '',
-        `- Məhsul cəmi: ${money(getItemSubtotal(item))}`,
+        `- Məhsul cəmi: ${money(getEffectiveItemTotal(item))}`,
         item.customText ? `- Yazı/Qeyd: ${item.customText}` : '',
         item.specialRequest ? `- Xüsusi istək: ${item.specialRequest}` : '',
         imageUrl ? `- Məhsul şəkli: ${imageUrl}` : '',
@@ -247,6 +268,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
       `- Ad: ${custName}`,
       `- Telefon: ${phone}`,
       `- Doğum tarixi: ${birthDate}`,
+      ...(isLoyalFailed ? ['- Qeyd: Daimi müştəri seçildi, lakin nömrə tapılmadı. Yeni müştəri endirimi (10%) tətbiq edildi.'] : []),
       '',
       'MƏBLƏĞ',
       `- Ümumi: ${money(grandTotal)}`,
@@ -259,6 +281,33 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
 
   async function handleWhatsApp() {
     if (!checkoutValid || isSubmitting) return;
+    setError('');
+
+    const hasLoyalItem = items.some(i => i.customerType === 'loyal');
+
+    if (hasLoyalItem && loyalNotif === null) {
+      setIsSubmitting(true);
+      setLoyalNotif('checking');
+      try {
+        const last9 = normalizeAzPhone(phone).slice(-9);
+        const found = await client.fetch(
+          `*[_type == "order" && customer.phone match $p][0]{ _id }`,
+          { p: `*${last9}*` }
+        );
+        if (!found) {
+          setLoyalNotif('failed');
+          setIsSubmitting(false);
+          return;
+        }
+        setLoyalNotif('verified');
+      } catch {
+        setLoyalNotif(null);
+        setError('Yoxlama zamanı xəta baş verdi. Yenidən cəhd edin.');
+        setIsSubmitting(false);
+        return;
+      }
+      setIsSubmitting(false);
+    }
 
     setError('');
     setIsSubmitting(true);
@@ -285,7 +334,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
         colorName: item.colorName,
         quantity: item.quantity,
         unitPrice: item.discountPrice ?? item.price,
-        totalPrice: getItemSubtotal(item),
+        totalPrice: getEffectiveItemTotal(item),
         customText: item.customText || '',
         specialRequest: item.specialRequest || '',
       })),
@@ -422,7 +471,14 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                         </div>
                       )}
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: 13, color: C.grayLt }}>{item.quantity} ədəd</span>
+                        <div>
+                          <span style={{ fontSize: 13, color: C.grayLt }}>{item.quantity} ədəd</span>
+                          {item.quantity > 1 && (
+                            <div style={{ fontSize: 11, color: C.grayLt }}>
+                              ×{((getItemSubtotal(item) - (item.boxPrice ?? 0)) / item.quantity).toFixed(2)} ₼/ədəd
+                            </div>
+                          )}
+                        </div>
                         <span style={{ fontSize: 15, fontWeight: 800, color: C.black }}>{money(getItemSubtotal(item))}</span>
                       </div>
                     </div>
@@ -586,7 +642,10 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
               <Section>
                 <Label>Əlaqə məlumatları</Label>
                 <Input value={custName} onChange={(event) => setCustName(event.target.value)} placeholder="Adınız" autoComplete="name" style={{ marginBottom: 10 }} />
-                <Input value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="Telefon (+994 50 xxx xx xx)" type="tel" autoComplete="tel" style={{ marginBottom: 10 }} />
+                <Input value={phone} onChange={(event) => { setPhone(event.target.value); setLoyalNotif(null); }} placeholder="050 xxx xx xx" type="tel" autoComplete="tel" style={{ marginBottom: phone.length > 3 && !isValidAzPhone(phone) ? 4 : 10 }} />
+                {phone.length > 3 && !isValidAzPhone(phone) && (
+                  <p style={{ fontSize: 12, color: C.red, margin: '0 0 10px' }}>Format: 050 xxx xx xx</p>
+                )}
                 <Label>Doğum tarixi</Label>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1fr', gap: 8 }}>
                   <Select value={bdDay} onChange={setBdDay} options={DAYS_LIST} placeholder="Gün" />
@@ -621,6 +680,21 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                 </div>
               </Section>
 
+              {loyalNotif === 'checking' && (
+                <div style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', color: '#1D4ED8', borderRadius: 8, padding: 12, fontSize: 13, marginBottom: 12 }}>
+                  ⏳ Daimi müştəri yoxlanılır...
+                </div>
+              )}
+              {loyalNotif === 'verified' && (
+                <div style={{ background: '#F0FDF4', border: '1px solid #BBF7D0', color: C.green, borderRadius: 8, padding: 12, fontSize: 13, marginBottom: 12 }}>
+                  ✓ Daimi müştəri doğrulandı — 20% endirim tətbiq edildi
+                </div>
+              )}
+              {loyalNotif === 'failed' && (
+                <div style={{ background: '#FFFBEB', border: '1px solid #FDE68A', color: '#92400E', borderRadius: 8, padding: 12, fontSize: 13, marginBottom: 12 }}>
+                  ⚠️ Bu nömrə ilə əvvəl sifariş tapılmadı. Yeni müştəri endirimi (10%) tətbiq edildi. Davam etmək üçün yenidən göndər düyməsinə basın.
+                </div>
+              )}
               {error && (
                 <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', color: C.red, borderRadius: 8, padding: 12, fontSize: 13, marginBottom: 12 }}>
                   {error}

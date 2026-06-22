@@ -93,13 +93,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
 
   // ── Endirim seçimləri ──────────────────────────────────────────
   const [customerType,  setCustomerType]  = useState<'new' | 'loyal' | null>(null);
-  const [hasOrderedBefore] = useState<boolean>(() => {
-    try {
-      return localStorage.getItem('ravio_has_ordered') === '1';
-    } catch {
-      return false;
-    }
-  });
+
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
   const [couponInput,   setCouponInput]   = useState('');
   const [couponError,   setCouponError]   = useState('');
@@ -421,14 +415,12 @@ const ProductPage: React.FC<ProductPageProps> = ({
                   { id: 'loyal' as const, label: 'Daimi müştəri', sub: 'Əvvəl sifariş vermişəm' },
                 ] as const).map(opt => {
                   const sel = customerType === opt.id;
-                  const locked = opt.id === 'loyal' && !hasOrderedBefore;
                   return (
-                    <div key={opt.id} onClick={() => { if (locked) return; setCustomerType(sel ? null : opt.id); }} style={{
+                    <div key={opt.id} onClick={() => setCustomerType(sel ? null : opt.id)} style={{
                       flex: 1, display: 'flex', alignItems: 'center', gap: 8,
-                      padding: '10px 12px', borderRadius: 10, cursor: locked ? 'not-allowed' : 'pointer',
+                      padding: '10px 12px', borderRadius: 10, cursor: 'pointer',
                       background: sel ? C.bg : C.white,
                       border: `1.5px solid ${sel ? C.blue : C.border}`,
-                      opacity: locked ? 0.5 : 1,
                       transition: 'all 0.15s',
                     }}>
                       <div style={{
@@ -442,7 +434,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
                       <div>
                         <div style={{ fontSize: 12, fontWeight: sel ? 600 : 400, color: C.black, lineHeight: 1.2 }}>{opt.label}</div>
                         <div style={{ fontSize: 10, color: sel ? C.blue : C.grayLt, marginTop: 1 }}>
-                          {locked ? 'İlk sifarişdən sonra aktivləşir' : opt.sub}
+                          {opt.sub}
                         </div>
                       </div>
                     </div>
@@ -452,6 +444,9 @@ const ProductPage: React.FC<ProductPageProps> = ({
               {customerType && (
                 <div style={{ marginTop: 8, padding: '8px 12px', background: C.blueBg, border: `1px solid ${C.blueBd}`, borderRadius: 8, fontSize: 12, color: C.blue, fontWeight: 600 }}>
                   ✓ {discRate}% endirim tətbiq ediləcək — {customerDisc.toFixed(2)} ₼ qənaət
+                  {customerType === 'loyal' && (
+                    <div style={{ fontWeight: 400, marginTop: 4, opacity: 0.8 }}>Nömrəniz sifariş keçmişinə görə yoxlanılacaq</div>
+                  )}
                 </div>
               )}
             </Sec>
@@ -607,7 +602,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
                   </div>
                   {bulkDiscTotal > 0 && (
                     <div style={{ background: C.greenBg, border: '1px solid #BBF7D0', borderRadius: 8, padding: '8px 12px', fontSize: 12, color: C.green, fontWeight: 500 }}>
-                      ✓ Say endirimi: <strong>{bulkDiscTotal.toFixed(2)} ₼</strong> qənaət
+                      ✓ {qty} × {effectiveUnit.toFixed(2)} ₼/ədəd = {(effectiveUnit * qty).toFixed(2)} ₼ &nbsp;·&nbsp; <strong>{bulkDiscTotal.toFixed(2)} ₼ qənaət</strong>
                     </div>
                   )}
                 </div>

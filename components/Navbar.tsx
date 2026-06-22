@@ -291,6 +291,8 @@ const Navbar: React.FC<NavbarProps> = ({
             background: C.white,
             borderTop: '1px solid #F0EBE2',
             padding: '8px 16px 28px',
+            position: 'relative' as const,
+            zIndex: 1001,
           }}>
             {navLinks.map(link => (
               <Link key={link.label} to={link.href} onClick={() => setMenuOpen(false)}
