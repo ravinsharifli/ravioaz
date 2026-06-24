@@ -112,6 +112,29 @@ const ProductPage: React.FC<ProductPageProps> = ({
     initialData?.boxType ?? effectiveBoxes[0]?.id ?? 'simple'
   );
 
+  // view_item — məhsul səhifəsi açıldıqda GA4 + Meta-ya göndər
+  // NOT: Bu useEffect mütləq conditional return-dan ƏVVƏL gəlməlidir (React Hooks qaydası)
+  useEffect(() => {
+    const v = variants[0];
+    if (!v) return;
+    if (typeof (window as any).trackEvent !== 'undefined') {
+      (window as any).trackEvent('view_item', {
+        currency: 'AZN',
+        value: v.discountPrice ?? v.price,
+        items: [{ item_id: product.id, item_name: product.name, price: v.discountPrice ?? v.price }],
+      });
+    }
+    if (typeof (window as any).fbq !== 'undefined') {
+      (window as any).fbq('track', 'ViewContent', {
+        content_ids: [product.id],
+        content_name: product.name,
+        content_type: 'product',
+        value: v.discountPrice ?? v.price,
+        currency: 'AZN',
+      });
+    }
+  }, [product.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const variant  = variants[variantIdx] || variants[0];
   if (!variant) return null;
 
@@ -220,6 +243,26 @@ const ProductPage: React.FC<ProductPageProps> = ({
       behAmount:            Math.ceil(finalPrice * 0.5),
     };
     onAddToCart(item);
+
+    // GA4 add_to_cart
+    if (typeof (window as any).trackEvent !== 'undefined') {
+      (window as any).trackEvent('add_to_cart', {
+        currency: 'AZN',
+        value: finalPrice,
+        items: [{ item_id: product.id, item_name: product.name, price: effectiveUnit, quantity: qty }],
+      });
+    }
+    // Meta Pixel AddToCart
+    if (typeof (window as any).fbq !== 'undefined') {
+      (window as any).fbq('track', 'AddToCart', {
+        content_ids: [product.id],
+        content_name: product.name,
+        content_type: 'product',
+        value: finalPrice,
+        currency: 'AZN',
+      });
+    }
+
     setAddedToCart(true);
     setTimeout(() => setAddedToCart(false), 2500);
   };
