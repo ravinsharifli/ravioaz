@@ -70,6 +70,18 @@ function AppShell() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
+    // SPA route dəyişikliyi — GA4 + Meta-ya yeni page_view göndər
+    // React Router hər /mehsullar/slug keçidini brauzer yenilənməsi kimi görmür,
+    // ona görə biz bunu əl ilə bildirməliyik
+    if (typeof (window as any).gtag !== 'undefined') {
+      (window as any).gtag('event', 'page_view', {
+        page_title: document.title,
+        page_location: window.location.href,
+      });
+    }
+    if (typeof (window as any).fbq !== 'undefined') {
+      (window as any).fbq('track', 'PageView');
+    }
   }, [location.pathname]);
 
   const metroSchedule = settings?.metroSchedule || DEFAULT_METRO;
