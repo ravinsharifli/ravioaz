@@ -93,13 +93,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
 
   // ── Endirim seçimləri ──────────────────────────────────────────
   const [customerType,  setCustomerType]  = useState<'new' | 'loyal' | null>(null);
-  const [hasOrderedBefore] = useState<boolean>(() => {
-    try {
-      return localStorage.getItem('ravio_has_ordered') === '1';
-    } catch {
-      return false;
-    }
-  });
+
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
   const [couponInput,   setCouponInput]   = useState('');
   const [couponError,   setCouponError]   = useState('');
@@ -464,14 +458,12 @@ const ProductPage: React.FC<ProductPageProps> = ({
                   { id: 'loyal' as const, label: 'Daimi müştəri', sub: 'Əvvəl sifariş vermişəm' },
                 ] as const).map(opt => {
                   const sel = customerType === opt.id;
-                  const locked = opt.id === 'loyal' && !hasOrderedBefore;
                   return (
-                    <div key={opt.id} onClick={() => { if (locked) return; setCustomerType(sel ? null : opt.id); }} style={{
+                    <div key={opt.id} onClick={() => setCustomerType(sel ? null : opt.id)} style={{
                       flex: 1, display: 'flex', alignItems: 'center', gap: 8,
-                      padding: '10px 12px', borderRadius: 10, cursor: locked ? 'not-allowed' : 'pointer',
+                      padding: '10px 12px', borderRadius: 10, cursor: 'pointer',
                       background: sel ? C.bg : C.white,
                       border: `1.5px solid ${sel ? C.blue : C.border}`,
-                      opacity: locked ? 0.5 : 1,
                       transition: 'all 0.15s',
                     }}>
                       <div style={{
@@ -484,9 +476,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
                       </div>
                       <div>
                         <div style={{ fontSize: 12, fontWeight: sel ? 600 : 400, color: C.black, lineHeight: 1.2 }}>{opt.label}</div>
-                        <div style={{ fontSize: 10, color: sel ? C.blue : C.grayLt, marginTop: 1 }}>
-                          {locked ? 'İlk sifarişdən sonra aktivləşir' : opt.sub}
-                        </div>
+                        <div style={{ fontSize: 10, color: sel ? C.blue : C.grayLt, marginTop: 1 }}>{opt.sub}</div>
                       </div>
                     </div>
                   );
