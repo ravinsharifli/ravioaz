@@ -328,6 +328,29 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
       const fallbackMessage = buildMessage(orderNumber, orderNumber);
       openWhatsAppMessage(fallbackMessage);
     } finally {
+      // GA4 purchase — sifariş WhatsApp-a göndərildi
+      if (typeof (window as any).trackEvent !== 'undefined') {
+        (window as any).trackEvent('purchase', {
+          transaction_id: orderNumber,
+          value: grandTotal,
+          currency: 'AZN',
+          items: items.map(item => ({
+            item_id: item.productId,
+            item_name: item.productName,
+            price: item.discountPrice ?? item.price,
+            quantity: item.quantity,
+          })),
+        });
+      }
+      // Meta Pixel Purchase
+      if (typeof (window as any).fbq !== 'undefined') {
+        (window as any).fbq('track', 'Purchase', {
+          value: grandTotal,
+          currency: 'AZN',
+          content_ids: items.map(i => i.productId),
+          content_type: 'product',
+        });
+      }
       try {
         localStorage.setItem('ravio_has_ordered', '1');
       } catch {}
@@ -451,7 +474,30 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                 <span style={{ fontSize: 16, fontWeight: 800, color: C.black }}>{money(baseTotal)}</span>
               </div>
               <button
-                onClick={() => setIsCheckingOut(true)}
+                onClick={() => {
+                  setIsCheckingOut(true);
+                  // GA4 begin_checkout
+                  if (typeof (window as any).trackEvent !== 'undefined') {
+                    (window as any).trackEvent('begin_checkout', {
+                      currency: 'AZN',
+                      value: grandTotal,
+                      items: items.map(item => ({
+                        item_id: item.productId,
+                        item_name: item.productName,
+                        price: item.discountPrice ?? item.price,
+                        quantity: item.quantity,
+                      })),
+                    });
+                  }
+                  // Meta Pixel InitiateCheckout
+                  if (typeof (window as any).fbq !== 'undefined') {
+                    (window as any).fbq('track', 'InitiateCheckout', {
+                      value: grandTotal,
+                      currency: 'AZN',
+                      num_items: items.length,
+                    });
+                  }
+                }}
                 style={{ width: '100%', padding: 15, borderRadius: 8, border: 'none', background: C.orange, color: C.white, fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: FONT, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
               >
                 Sifarişi tamamla <ArrowRight size={18} />
