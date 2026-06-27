@@ -31,11 +31,11 @@ export const DEFAULT_BOXES = [
 export const PROMO_SLIDES: HeroSlide[] = [
   {
     type: 'promo',
-    label: '✨ Sizə özəl hazırlanır',
-    title: 'Hər hədiyyə, sənin adınla.',
-    subtitle: 'Lazer yazılı qolbaq, fərdi təsbeh, domino. Bütün Azərbaycana ödənişsiz çatdırılma.',
+    label: '🐾 Hər alışda bir heyvan doyur',
+    title: 'Satışın 5%-i küçə heyvanlarına gedir.',
+    subtitle: 'Hər sifarişlə bir küçə heyvanı yemlənir, isti yuva, müalicə görür. Sənin hədiyyən — onların qayğısıdır.',
     ctaText: 'Kataloqa bax →',
-    bg: 'linear-gradient(135deg, #FF6A00 0%, #FF8C42 100%)',
+    bg: 'linear-gradient(135deg, #0f2a30 0%, #1a6678 100%)',
   },
   {
     type: 'promo',
