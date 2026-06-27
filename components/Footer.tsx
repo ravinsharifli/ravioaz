@@ -84,8 +84,8 @@ const Footer: React.FC<FooterProps> = () => {
             </h4>
             {[
               { icon: '🚇', text: 'Metrodaxili özəl kuryer — Ödənişsiz' },
-              { icon: '🛵', text: 'Bakı, Sumqayıt, Abşeron — Ödənişsiz' },
-              { icon: '📮', text: 'Regionlara Azərpoçt ilə — cəmi 1.99 ₼' },
+              { icon: '🛵', text: 'Bakı, Sumqayıt, Xırdalan, Lökbatan — Ödənişsiz' },
+              { icon: '📮', text: 'Regionlara Azərpoçt ilə — Ödənişsiz' },
               { icon: '⚡', text: '1–3 günə hazırlanır və çatdırılır' },
             ].map((item, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>

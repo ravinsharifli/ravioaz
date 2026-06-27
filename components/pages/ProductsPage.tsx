@@ -19,7 +19,7 @@ export default function ProductsPage({ categories, products, loading, openProduc
         <title>Bütün Məhsullar | Ravio</title>
         <meta
           name="description"
-          content="Ravio-nun bütün fərdi hədiyyələri — lazer yazılı qolbaq, təsbeh, domino, giftbox. Bakıda pulsuz çatdırılma, 1–3 iş günü."
+          content="Ravio-nun bütün fərdi hədiyyələri — lazer yazılı qolbaq, təsbeh, domino, giftbox. Bütün Azərbaycana ödənişsiz çatdırılma, 1–3 iş günü."
         />
         <link rel="canonical" href={`${SITE_URL}/mehsullar`} />
       </Helmet>

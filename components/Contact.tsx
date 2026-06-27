@@ -36,10 +36,10 @@ const Contact: React.FC = () => {
     <div style={{ maxWidth: 1280, margin: '0 auto', padding: 'clamp(48px,6vw,80px) 32px', fontFamily: FONT }}>
       <Helmet>
         <title>Əlaqə | Ravio</title>
-        <meta name="description" content="Ravio ilə əlaqə saxlayın. WhatsApp, Instagram və ya telefon ilə sifariş verin. Bakı daxili pulsuz çatdırılma, 1–3 iş günündə hazır." />
+        <meta name="description" content="Ravio ilə əlaqə saxlayın. WhatsApp, Instagram və ya telefon ilə sifariş verin. Bütün Azərbaycana ödənişsiz çatdırılma, 1–3 iş günündə hazır." />
         <meta property="og:type"        content="website" />
         <meta property="og:title"       content="Əlaqə | Ravio" />
-        <meta property="og:description" content="WhatsApp, Instagram və ya telefon ilə sifariş verin. Bakı daxili pulsuz çatdırılma." />
+        <meta property="og:description" content="WhatsApp, Instagram və ya telefon ilə sifariş verin. Bütün Azərbaycana ödənişsiz çatdırılma." />
         <meta property="og:url"         content="https://ravio.az/elaqe" />
         <meta property="og:image"       content="https://ravio.az/og-ravio.png" />
         <meta name="twitter:card"       content="summary_large_image" />

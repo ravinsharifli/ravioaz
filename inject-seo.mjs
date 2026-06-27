@@ -182,7 +182,7 @@ async function run() {
       const title = `${p.name} | Ravio`;
       const rawDesc = p.description
         ? p.description.slice(0, 155)
-        : `${p.name} — Ravio-dan fərdi hədiyyə. Bakıda pulsuz çatdırılma.`;
+        : `${p.name} — Ravio-dan fərdi hədiyyə. Bütün Azərbaycana ödənişsiz çatdırılma.`;
       const pageUrl  = `https://ravio.az/mehsullar/${p.slug}`;
       const image    = ogImage(p.firstImageUrl);
 
@@ -226,7 +226,7 @@ async function run() {
   try {
     const html = injectMeta(template, {
       title: 'Bütün Məhsullar | Ravio',
-      desc:  'Ravio-nun bütün fərdi hədiyyələri — lazer yazılı qolbaq, təsbeh, domino, giftbox. Bakıda pulsuz çatdırılma, 1–3 iş günü.',
+      desc:  'Ravio-nun bütün fərdi hədiyyələri — lazer yazılı qolbaq, təsbeh, domino, giftbox. Bütün Azərbaycana ödənişsiz çatdırılma, 1–3 iş günü.',
       url:   'https://ravio.az/mehsullar',
       image: 'https://ravio.az/og-ravio.png',
     });
@@ -242,19 +242,19 @@ async function run() {
     {
       slug: 'qolbaqlar',
       title: 'Lazer Yazılı Qolbaqlar — Fərdi Hədiyyə | Ravio Bakı',
-      desc:  'Bakıda fərdi lazer yazılı qolbaqlar. Ad, tarix, mesaj yazılır. Pulsuz metro çatdırılma, 1–3 iş günündə hazır.',
+      desc:  'Bakıda fərdi lazer yazılı qolbaqlar. Ad, tarix, mesaj yazılır. Bütün Azərbaycana ödənişsiz çatdırılma, 1–3 iş günündə hazır.',
       h1:   'Lazer Yazılı Qolbaqlar Bakıda',
     },
     {
       slug: 'tesbehler',
       title: 'Fərdi Qravürlü Təsbehlər | Ravio Bakı',
-      desc:  'Ağac və daş materiallardan lazer qravürlü fərdi təsbehlər. Bakıda özəl hədiyyə. Pulsuz metro çatdırılma.',
+      desc:  'Ağac və daş materiallardan lazer qravürlü fərdi təsbehlər. Bakıda özəl hədiyyə. Bütün Azərbaycana ödənişsiz çatdırılma.',
       h1:   'Fərdi Qravürlü Təsbehlər',
     },
     {
       slug: 'domino',
       title: 'Hədiyyəlik Domino Dəsti — Lazer Yazılı | Ravio Bakı',
-      desc:  'Fərdi lazer yazılı domino dəstləri. Korporativ hədiyyə, ad günü üçün ideal. Bakı daxili pulsuz çatdırılma.',
+      desc:  'Fərdi lazer yazılı domino dəstləri. Korporativ hədiyyə, ad günü üçün ideal. Bütün Azərbaycana ödənişsiz çatdırılma.',
       h1:   'Hədiyyəlik Domino Dəsti',
     },
     {

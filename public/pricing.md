@@ -11,8 +11,11 @@
 
 ## Çatdırılma
 
-- Metro daxili çatdırılma: 2.99₼
-- Kuryer xidməti (Bakı, Sumqayıt, Abşeron): pulsuz
+Bütün çatdırılma növləri tamamilə ödənişsizdir.
+
+- Kuryer (Bakı, Xırdalan, Masazır, Sumqayıt, Lökbatan): ödənişsiz
+- Metro görüşü (istənilən Bakı metro stansiyası): ödənişsiz
+- Azərpoçt (Azərbaycanın bütün bölgələri): ödənişsiz
 - Hazırlanma müddəti: 1–3 iş günü
 
 ## Toplu Sifariş Endirimləri

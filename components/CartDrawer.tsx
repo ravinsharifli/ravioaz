@@ -514,7 +514,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                 <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
                   {([
                     { id: 'metro' as const,  label: 'Metro',  icon: '🚇', note: 'İstənilən stansiya' },
-                    { id: 'kuryer' as const, label: 'Ünvan',  icon: '🛵', note: 'Bakı & Abşeron' },
+                    { id: 'kuryer' as const, label: 'Ünvan',  icon: '🛵', note: 'Bakı, Xırdalan, Lökbatan' },
                     { id: 'post' as const,   label: 'Poçt',   icon: '📮', note: 'Bütün Azərbaycan' },
                   ] as const).map((opt) => {
                     const active = delivery === opt.id;
@@ -547,7 +547,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                 <Section>
                   {delivery === 'kuryer' && (
                     <p style={{ fontSize: 12, color: C.grayLt, margin: '0 0 12px', lineHeight: 1.55 }}>
-                      🛵 Bakı, Masazır, Xırdalan, Sumqayıt, Abşeron ərazisinə çatdırılır. Özəl kuryer şirkəti tərəfindən.
+                      🛵 Bakı, Xırdalan, Masazır, Sumqayıt, Lökbatan ərazisinə çatdırılır. Tamamilə ödənişsizdir.
                     </p>
                   )}
                   {delivery === 'post' && (

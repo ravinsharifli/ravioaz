@@ -20,21 +20,21 @@ const DeliveryInfo: React.FC<DeliveryInfoProps> = () => {
       title: 'Kuryer çatdırılması',
       badge: 'Ödənişsiz',
       badgeColor: C.green,
-      desc: 'Bakı, Masazır, Xırdalan, Sumqayıt və Abşeron ərazisində ünvana çatdırılır. Sifariş günü ərzində çatdırılır.',
+      desc: 'Bakı, Xırdalan, Masazır, Sumqayıt, Lökbatan ərazisinə ünvana çatdırılır. Sifariş günü ərzində çatdırılır.',
     },
     {
       icon: '🚇',
-      title: 'Özəl kuryer metrodaxili',
-      badge: 'Pulsuz',
-      badgeColor: C.orange,
-      desc: 'Bakı metrosunun istənilən stansiyasına çatdırılır — pulsuz. Sizin üçün xüsusi kuryer ayrılır, istədiyiniz gün və saatda.',
+      title: 'Özəl metro görüşü',
+      badge: 'Ödənişsiz',
+      badgeColor: C.green,
+      desc: 'Bakı metrosunun istənilən stansiyasında görüşülür — tamamilə ödənişsiz. Sizin üçün xüsusi vaxt ayrılır, istədiyiniz gün və saatda.',
     },
     {
       icon: '📮',
-      title: 'Azərpoçt',
-      badge: '+1.99 ₼',
-      badgeColor: C.orange,
-      desc: 'Azərpoçt vasitəsilə Azərbaycanın istənilən bölgəsinə çatdırılır.',
+      title: 'Azərpoçt (Bölgələr)',
+      badge: 'Ödənişsiz',
+      badgeColor: C.green,
+      desc: 'Azərpoçt vasitəsilə Azərbaycanın istənilən bölgəsinə çatdırılır — tamamilə ödənişsizdir.',
     },
   ];
 
@@ -47,16 +47,20 @@ const DeliveryInfo: React.FC<DeliveryInfoProps> = () => {
 
   const faqs = [
     {
-      q: 'Kuryer çatdırılması ödənişsizdir?',
-      a: 'Bəli, kuryer çatdırılması tamamilə ödənişsizdir. Bakı, Masazır, Xırdalan, Sumqayıt və bütün Abşeron ərazisi üçün geçerlidir.',
+      q: 'Çatdırılma ödənişsizdir?',
+      a: 'Bəli, bütün çatdırılma növləri tamamilə ödənişsizdir. Kuryer (Bakı, Xırdalan, Masazır, Sumqayıt, Lökbatan), metro görüşü (istənilən stansiya) və Azərpoçt (bütün bölgələr) — hamısı pulsuzdur.',
     },
     {
       q: 'Kuryer nə vaxt çatdırır?',
       a: 'Kuryer sifarişinizi seçilən gün ərzində çatdırır. Dəqiq vaxt növbə əsasında sifariş vaxtına görə müəyyənləşdirilir. Misal üçün, 12 avqust seçsəniz, həmin gün daxilində çatdırılır.',
     },
     {
-      q: 'Özəl kuryer metrodaxili nədir?',
-      a: 'Bakı metrosunun istənilən stansiyasında, içəridə, istədiyiniz gün və saatda çatdırılma edilir. Çatdırılma xərci biz ödəyirik.',
+      q: 'Metro görüşü nədir?',
+      a: 'Bakı metrosunun istənilən stansiyasında, içəridə, istədiyiniz gün və saatda görüşülür. Tamamilə ödənişsizdir.',
+    },
+    {
+      q: 'Bölgələrə çatdırılma necədir?',
+      a: 'Bakı xaricindəki bütün bölgələrə Azərpoçt vasitəsilə göndərilir. Çatdırılma tamamilə ödənişsizdir. Poçt şöbəsindən götürmə üçün bildiriş alacaqsınız.',
     },
     {
       q: 'Sifariş nə qədər müddətdə hazır olur?',
@@ -72,10 +76,10 @@ const DeliveryInfo: React.FC<DeliveryInfoProps> = () => {
     <div style={{ maxWidth: 1280, margin: '0 auto', padding: 'clamp(48px,6vw,80px) clamp(16px,3vw,32px)', fontFamily: FONT }}>
       <Helmet>
         <title>Çatdırılma | Ravio</title>
-        <meta name="description" content="Ravio çatdırılma: Bakı daxilində kuryer və metro tamamilə pulsuzdur. Regionlara Azərpoçt ilə cəmi 1.99₼. 1–3 iş günündə çatdırılma." />
+        <meta name="description" content="Ravio çatdırılma: Bütün Azərbaycana ödənişsiz çatdırılma. Bakıya kuryer, bölgələrə Azərpoçt, metro stansiyasına görüş — hamısı tamamilə pulsuzdur." />
         <meta property="og:type"        content="website" />
         <meta property="og:title"       content="Çatdırılma | Ravio" />
-        <meta property="og:description" content="Bakıda kuryer və metro çatdırılması tamamilə pulsuzdur. Regionlara +1.99₼. 1–3 iş günü." />
+        <meta property="og:description" content="Bütün Azərbaycana ödənişsiz çatdırılma. Kuryer, metro, Azərpoçt — hamısı pulsuzdur. 1–3 iş günü." />
         <meta property="og:url"         content="https://ravio.az/catdirilma" />
         <meta property="og:image"       content="https://ravio.az/og-ravio.png" />
         <meta name="twitter:card"       content="summary_large_image" />
@@ -89,7 +93,7 @@ const DeliveryInfo: React.FC<DeliveryInfoProps> = () => {
         Çatdırılma məlumatları
       </h1>
       <p style={{ fontSize: 16, color: C.gray, lineHeight: 1.75, margin: '0 0 48px', maxWidth: 580 }}>
-        Bakıda çatdırılma xərcini biz öz üzərimizə götürdük. Kuryer, metro — fərqi yoxdur, pulsuzdur. Çünki hədiyyəniz zamanında çatmalıdır.
+        Bütün Azərbaycana çatdırılma tamamilə ödənişsizdir. Kuryer, metro görüşü, Azərpoçt — fərqi yoxdur, heç bir əlavə ödəniş tutulmur. Çünki hədiyyəniz zamanında çatmalıdır.
       </p>
 
       <div style={{

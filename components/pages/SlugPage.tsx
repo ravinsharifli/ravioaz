@@ -103,7 +103,7 @@ export default function SlugPage({
       seo?.title || (matchedCategory ? `${matchedCategory} | Ravio` : 'Məhsullar | Ravio');
     const desc =
       seo?.description ||
-      `${matchedCategory || 'Məhsullar'} — Ravio-da fərdi hazırlanmış hədiyyələr. Bakı daxili pulsuz çatdırılma.`;
+      `${matchedCategory || 'Məhsullar'} — Ravio-da fərdi hazırlanmış hədiyyələr. Bütün Azərbaycana ödənişsiz çatdırılma.`;
     const h1 = seo?.h1 || matchedCategory || slug;
     const canonicalUrl = `${SITE_URL}/mehsullar/${slug}`;
 
