@@ -114,41 +114,39 @@ function injectProductSchema(html, product) {
     brand: { '@type': 'Brand', name: 'Ravio' },
   };
 
-  if (product.price) {
-    schema.offers = {
-      '@type': 'Offer',
-      priceCurrency: 'AZN',
-      price: String(product.price),
-      availability: 'https://schema.org/InStock',
-      url: product.url,
-      shippingDetails: {
-        '@type': 'OfferShippingDetails',
-        shippingRate: {
-          '@type': 'MonetaryAmount',
-          value: '0',
-          currency: 'AZN',
-        },
-        shippingDestination: {
-          '@type': 'DefinedRegion',
-          addressCountry: 'AZ',
-        },
-        deliveryTime: {
-          '@type': 'ShippingDeliveryTime',
-          handlingTime: {
-            '@type': 'QuantitativeValue',
-            minValue: 1,
-            maxValue: 3,
-            unitCode: 'DAY',
-          },
+  schema.offers = {
+    '@type': 'Offer',
+    priceCurrency: 'AZN',
+    price: product.price ? String(product.price) : '0',
+    availability: 'https://schema.org/InStock',
+    url: product.url,
+    shippingDetails: {
+      '@type': 'OfferShippingDetails',
+      shippingRate: {
+        '@type': 'MonetaryAmount',
+        value: '0',
+        currency: 'AZN',
+      },
+      shippingDestination: {
+        '@type': 'DefinedRegion',
+        addressCountry: 'AZ',
+      },
+      deliveryTime: {
+        '@type': 'ShippingDeliveryTime',
+        handlingTime: {
+          '@type': 'QuantitativeValue',
+          minValue: 1,
+          maxValue: 3,
+          unitCode: 'DAY',
         },
       },
-      hasMerchantReturnPolicy: {
-        '@type': 'MerchantReturnPolicy',
-        applicableCountry: 'AZ',
-        returnPolicyCategory: 'https://schema.org/MerchantReturnNotPermitted',
-      },
-    };
-  }
+    },
+    hasMerchantReturnPolicy: {
+      '@type': 'MerchantReturnPolicy',
+      applicableCountry: 'AZ',
+      returnPolicyCategory: 'https://schema.org/MerchantReturnNotPermitted',
+    },
+  };
 
   const tag = `\n  <script type="application/ld+json">${JSON.stringify(schema)}</script>`;
   return html.replace('</head>', `${tag}\n</head>`);
