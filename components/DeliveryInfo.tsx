@@ -20,14 +20,14 @@ const DeliveryInfo: React.FC<DeliveryInfoProps> = () => {
       title: 'Kuryer çatdırılması',
       badge: 'Ödənişsiz',
       badgeColor: C.green,
-      desc: 'Bakı, Xırdalan, Masazır, Sumqayıt, Lökbatan ərazisinə ünvana çatdırılır. Sifariş günü ərzində çatdırılır.',
+      desc: 'Bakı, Abşeron və Sumqayıt ərazisinə çatdırılır. Sifariş 3 gün ərzində hazırlanır və çatdırılır.',
     },
     {
       icon: '🚇',
-      title: 'Özəl metro görüşü',
+      title: 'Özəl metrodaxili çatdırılma',
       badge: 'Ödənişsiz',
       badgeColor: C.green,
-      desc: 'Bakı metrosunun istənilən stansiyasında görüşülür — tamamilə ödənişsiz. Sizin üçün xüsusi vaxt ayrılır, istədiyiniz gün və saatda.',
+      desc: 'Bakı metrosunun istənilən stansiyasına çatdırılır — tamamilə ödənişsiz. Sizin üçün xüsusi vaxt ayrılır, istədiyiniz gün və saatda.',
     },
     {
       icon: '📮',
@@ -48,15 +48,15 @@ const DeliveryInfo: React.FC<DeliveryInfoProps> = () => {
   const faqs = [
     {
       q: 'Çatdırılma ödənişsizdir?',
-      a: 'Bəli, bütün çatdırılma növləri tamamilə ödənişsizdir. Kuryer (Bakı, Xırdalan, Masazır, Sumqayıt, Lökbatan), metro görüşü (istənilən stansiya) və Azərpoçt (bütün bölgələr) — hamısı ödənişsizdir.',
+      a: 'Bəli, bütün çatdırılma növləri tamamilə ödənişsizdir. Kuryer (Bakı,Abşeron və Sumqayıt), metrodaxili çatdırılma (istənilən stansiya) və Azərpoçt (bütün bölgələr) — hamısı ödənişsizdir.',
     },
     {
       q: 'Kuryer nə vaxt çatdırır?',
       a: 'Kuryer sifarişinizi seçilən gün ərzində çatdırır. Dəqiq vaxt növbə əsasında sifariş vaxtına görə müəyyənləşdirilir. Misal üçün, 12 avqust seçsəniz, həmin gün daxilində çatdırılır.',
     },
     {
-      q: 'Metro görüşü nədir?',
-      a: 'Bakı metrosunun istənilən stansiyasında, içəridə, istədiyiniz gün və saatda görüşülür. Tamamilə ödənişsizdir.',
+      q: 'Metrodaxili çatdırılma nədir?',
+      a: 'Bakı metrosunun istənilən stansiyasına çatdırılır — tamamilə ödənişsiz. Sizin üçün xüsusi vaxt ayrılır, istədiyiniz gün və saatda.',
     },
     {
       q: 'Bölgələrə çatdırılma necədir?',
@@ -93,7 +93,7 @@ const DeliveryInfo: React.FC<DeliveryInfoProps> = () => {
         Bütün Azərbaycana. Ödənişsiz.
       </h1>
       <p style={{ fontSize: 16, color: C.gray, lineHeight: 1.75, margin: '0 0 48px', maxWidth: 580 }}>
-        Bütün Azərbaycana çatdırılma tamamilə ödənişsizdir. Kuryer, metro görüşü, Azərpoçt — fərqi yoxdur, heç bir əlavə ödəniş tutulmur. Çünki hədiyyəniz zamanında çatmalıdır.
+        Bütün Azərbaycana çatdırılma tamamilə ödənişsizdir. Kuryer, metrodaxili çatdırılma, Azərpoçt — fərqi yoxdur, heç bir əlavə ödəniş tutulmur. Çünki hədiyyəniz zamanında çatmalıdır.
       </p>
 
       <div style={{

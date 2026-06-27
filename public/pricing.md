@@ -13,8 +13,8 @@
 
 Bütün çatdırılma növləri tamamilə ödənişsizdir.
 
-- Kuryer (Bakı, Xırdalan, Masazır, Sumqayıt, Lökbatan): ödənişsiz
-- Metro görüşü (istənilən Bakı metro stansiyası): ödənişsiz
+- Kuryer (Bakı, Abşeron və Sumqayıt): ödənişsiz
+- Metrodaxili (istənilən Bakı metro stansiyası): ödənişsiz
 - Azərpoçt (Azərbaycanın bütün bölgələri): ödənişsiz
 - Hazırlanma müddəti: 1–3 iş günü
 

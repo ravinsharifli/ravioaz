@@ -547,7 +547,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                 <Section>
                   {delivery === 'kuryer' && (
                     <p style={{ fontSize: 12, color: C.grayLt, margin: '0 0 12px', lineHeight: 1.55 }}>
-                      🛵 Bakı, Xırdalan, Masazır, Sumqayıt, Lökbatan ərazisinə çatdırılır. Tamamilə ödənişsizdir.
+                      🛵 Bakı, Abşeron və Sumqayıt ərazisinə çatdırılır. Tamamilə ödənişsizdir.
                     </p>
                   )}
                   {delivery === 'post' && (
