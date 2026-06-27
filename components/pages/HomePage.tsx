@@ -48,13 +48,13 @@ export default function HomePage({
         <title>Ravio — Sizə Özəl Hədiyyələr | Bakı</title>
         <meta
           name="description"
-          content="Lazer yazılı qolbaq, fərdi təsbeh, domino və giftbox. Hər məhsul sizin üçün özəl hazırlanır. 17₼-dən başlayan qiymətlə, 1–3 iş günündə çatdırılma."
+          content="Lazer yazılı qolbaq, fərdi təsbeh, domino və giftbox. Hər məhsul sizin üçün özəl hazırlanır. Bütün Azərbaycana ödənişsiz çatdırılma, 1–3 iş günü."
         />
         <meta property="og:type" content="website" />
         <meta property="og:title" content="Ravio — Sizə Özəl Hədiyyələr | Bakı" />
         <meta
           property="og:description"
-          content="Lazer yazılı qolbaq, fərdi təsbeh, domino və giftbox. 17₼-dən başlayan qiymətlə."
+          content="Lazer yazılı qolbaq, fərdi təsbeh, domino və giftbox. Bütün Azərbaycana ödənişsiz çatdırılma, 1–3 iş günü."
         />
         <meta property="og:url" content={`${SITE_URL}/`} />
         <meta property="og:image" content={OG_IMAGE} />
@@ -63,7 +63,7 @@ export default function HomePage({
         <meta name="twitter:title" content="Ravio — Sizə Özəl Hədiyyələr | Bakı" />
         <meta
           name="twitter:description"
-          content="Lazer yazılı qolbaq, fərdi təsbeh, domino və giftbox. 17₼-dən başlayan qiymətlə."
+          content="Lazer yazılı qolbaq, fərdi təsbeh, domino və giftbox. Bütün Azərbaycana ödənişsiz çatdırılma, 1–3 iş günü."
         />
         <meta name="twitter:image" content={OG_IMAGE} />
         <link rel="canonical" href={`${SITE_URL}/`} />

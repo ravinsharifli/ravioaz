@@ -8,5 +8,5 @@ export function getProductMetaDescription(product: Product): string {
   if (raw && raw.length >= 20) {
     return raw.length > META_MAX ? `${raw.slice(0, META_MAX - 3)}...` : raw;
   }
-  return `${product.name} — Ravio-da fərdi sifarişlə hazırlanır. Bakıda ödənişsiz çatdırılma, 1–3 iş günü.`;
+  return `${product.name} — Ravio-da fərdi sifarişlə hazırlanır. Bütün Azərbaycana ödənişsiz çatdırılma, 1–3 iş günü.`;
 }

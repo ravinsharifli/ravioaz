@@ -513,8 +513,8 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                 <Label>Çatdırılma üsulu</Label>
                 <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
                   {([
+                    { id: 'kuryer' as const, label: 'Kuryer', icon: '🛵', note: 'Bakı və ətrafı' },
                     { id: 'metro' as const,  label: 'Metro',  icon: '🚇', note: 'İstənilən stansiya' },
-                    { id: 'kuryer' as const, label: 'Ünvan',  icon: '🛵', note: 'Bakı, Xırdalan, Lökbatan' },
                     { id: 'post' as const,   label: 'Poçt',   icon: '📮', note: 'Bütün Azərbaycan' },
                   ] as const).map((opt) => {
                     const active = delivery === opt.id;

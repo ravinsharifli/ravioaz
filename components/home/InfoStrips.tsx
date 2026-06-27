@@ -3,7 +3,7 @@ import { C } from '../../tokens';
 
 export default function InfoStrips() {
   const strips = [
-    { icon: '🚚', title: 'Bütün Azərbaycana ödənişsiz çatdırılma', desc: 'Kuryer, metro, poçt — pulsuzdur' },
+    { icon: '🚚', title: 'Bütün Azərbaycana ödənişsiz çatdırılma', desc: 'Kuryer, metro, poçt — ödənişsizdir' },
     { icon: '⚡', title: '1–3 iş günü', desc: 'Sürətli hazırlıq' },
     { icon: '✍️', title: 'Lazer yazısı', desc: 'Ad, tarix, mesaj' },
     { icon: '🎁', title: 'Hədiyyəlik qutu', desc: 'Fərqli qutu seçimi' },

@@ -48,7 +48,7 @@ const DeliveryInfo: React.FC<DeliveryInfoProps> = () => {
   const faqs = [
     {
       q: 'Çatdırılma ödənişsizdir?',
-      a: 'Bəli, bütün çatdırılma növləri tamamilə ödənişsizdir. Kuryer (Bakı, Xırdalan, Masazır, Sumqayıt, Lökbatan), metro görüşü (istənilən stansiya) və Azərpoçt (bütün bölgələr) — hamısı pulsuzdur.',
+      a: 'Bəli, bütün çatdırılma növləri tamamilə ödənişsizdir. Kuryer (Bakı, Xırdalan, Masazır, Sumqayıt, Lökbatan), metro görüşü (istənilən stansiya) və Azərpoçt (bütün bölgələr) — hamısı ödənişsizdir.',
     },
     {
       q: 'Kuryer nə vaxt çatdırır?',
@@ -76,10 +76,10 @@ const DeliveryInfo: React.FC<DeliveryInfoProps> = () => {
     <div style={{ maxWidth: 1280, margin: '0 auto', padding: 'clamp(48px,6vw,80px) clamp(16px,3vw,32px)', fontFamily: FONT }}>
       <Helmet>
         <title>Çatdırılma | Ravio</title>
-        <meta name="description" content="Ravio çatdırılma: Bütün Azərbaycana ödənişsiz çatdırılma. Bakıya kuryer, bölgələrə Azərpoçt, metro stansiyasına görüş — hamısı tamamilə pulsuzdur." />
+        <meta name="description" content="Ravio çatdırılma: Bütün Azərbaycana ödənişsiz çatdırılma. Bakıya kuryer, bölgələrə Azərpoçt, metro stansiyasına görüş — hamısı tamamilə ödənişsizdir." />
         <meta property="og:type"        content="website" />
         <meta property="og:title"       content="Çatdırılma | Ravio" />
-        <meta property="og:description" content="Bütün Azərbaycana ödənişsiz çatdırılma. Kuryer, metro, Azərpoçt — hamısı pulsuzdur. 1–3 iş günü." />
+        <meta property="og:description" content="Bütün Azərbaycana ödənişsiz çatdırılma. Kuryer, metro, Azərpoçt — hamısı ödənişsizdir. 1–3 iş günü." />
         <meta property="og:url"         content="https://ravio.az/catdirilma" />
         <meta property="og:image"       content="https://ravio.az/og-ravio.png" />
         <meta name="twitter:card"       content="summary_large_image" />
@@ -90,7 +90,7 @@ const DeliveryInfo: React.FC<DeliveryInfoProps> = () => {
         Çatdırılma
       </p>
       <h1 style={{ fontSize: 'clamp(28px,5vw,48px)', fontWeight: 800, color: C.black, margin: '0 0 16px', letterSpacing: '-0.5px', lineHeight: 1.15 }}>
-        Çatdırılma məlumatları
+        Bütün Azərbaycana. Ödənişsiz.
       </h1>
       <p style={{ fontSize: 16, color: C.gray, lineHeight: 1.75, margin: '0 0 48px', maxWidth: 580 }}>
         Bütün Azərbaycana çatdırılma tamamilə ödənişsizdir. Kuryer, metro görüşü, Azərpoçt — fərqi yoxdur, heç bir əlavə ödəniş tutulmur. Çünki hədiyyəniz zamanında çatmalıdır.
