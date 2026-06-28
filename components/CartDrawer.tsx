@@ -184,6 +184,22 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
   const deposit = Math.ceil(grandTotal * 0.5);
   const remaining = grandTotal - deposit;
 
+  // Endirim xülasəsi üçün hesablamalar
+  const originalTotal = items.reduce((sum, item) => sum + item.price * item.quantity + (item.boxPrice ?? 0), 0);
+  const totalSaleDiscount = items.reduce((sum, item) => {
+    if (item.discountPrice && item.discountPrice < item.price) {
+      return sum + (item.price - item.discountPrice) * item.quantity;
+    }
+    return sum;
+  }, 0);
+  const totalBulkDiscount = items.reduce((sum, item) => sum + (item.bulkDiscountAmount ?? 0), 0);
+  const totalCustomerDiscount = items.reduce((sum, item) => sum + (item.customerDiscount ?? 0), 0);
+  const totalCouponDiscount = items.reduce((sum, item) => sum + (item.couponDiscount ?? 0), 0);
+  const hasAnyDiscount = totalSaleDiscount > 0 || totalBulkDiscount > 0 || totalCustomerDiscount > 0 || totalCouponDiscount > 0;
+  const customerTypeLabel = items.find(i => i.customerType === 'loyal') ? 'Daimi müştəri (−20%)' :
+                            items.find(i => i.customerType === 'new')   ? 'Yeni müştəri (−10%)'  : '';
+  const couponCodeLabel = items.map(i => i.couponCode).filter(Boolean).join(', ');
+
   const birthDate = bdDay && bdMonth && bdYear ? `${bdDay} ${bdMonth} ${bdYear}` : 'Bildirilməyib';
   const deliveryLabel = delivery === 'metro' ? 'Metro' : delivery === 'post' ? 'Poçt' : 'Ünvana çatdırılma';
   const deliveryDate = delivery === 'metro' ? metroDay : `${kurDay} ${kurMonth} ${kurYear}`;
@@ -214,29 +230,37 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
 
   function buildMessage(orderNumber: string, sanityDocId: string) {
     const fullItemsText = items.map((item, index) => {
-      const unitPrice = item.discountPrice ?? item.price;
       const imageUrl = item.images?.[0] ?? '';
       return [
         `MƏHSUL ${index + 1}`,
         `- Ad: ${item.productName}`,
         `- Model: ${item.modelName}`,
         `- Rəng: ${item.colorName}`,
-        `- Say: ${item.quantity}`,
-        `- Vahid qiymət: ${money(unitPrice)}`,
-        (item.boxPrice ?? 0) > 0 ? `- Qutu: +${money(item.boxPrice ?? 0)}` : '',
-        item.couponCode ? `- Kupon: ${item.couponCode}` : '',
-        `- Məhsul cəmi: ${money(getItemSubtotal(item))}`,
+        `- Say: ${item.quantity} ədəd`,
+        item.boxType && item.boxType !== 'simple' ? `- Qablaşdırma: ${item.boxType}` : '',
         item.customText ? `- Yazı/Qeyd: ${item.customText}` : '',
         item.specialRequest ? `- Xüsusi istək: ${item.specialRequest}` : '',
         imageUrl ? `- Məhsul şəkli: ${imageUrl}` : '',
       ].filter(Boolean).join('\n');
     }).join('\n\n');
 
+    const priceLines: string[] = [
+      `- İlkin qiymət: ${money(originalTotal)}`,
+    ];
+    if (totalSaleDiscount > 0) priceLines.push(`- Satış endirimi: −${money(totalSaleDiscount)}`);
+    if (totalBulkDiscount > 0) priceLines.push(`- Toplu endirim: −${money(totalBulkDiscount)}`);
+    if (totalCustomerDiscount > 0) priceLines.push(`- Müştəri endirimi${customerTypeLabel ? ` (${customerTypeLabel})` : ''}: −${money(totalCustomerDiscount)}`);
+    if (totalCouponDiscount > 0) priceLines.push(`- Kupon endirimi${couponCodeLabel ? ` (${couponCodeLabel})` : ''}: −${money(totalCouponDiscount)}`);
+    priceLines.push(`- Yekun məbləğ: ${money(grandTotal)}`);
+    priceLines.push(`- Beh (50%): ${money(deposit)}`);
+    priceLines.push(`- Qalıq: ${money(remaining)}`);
+
     return [
       `SİFARİŞ: ${orderNumber}`,
       '',
       fullItemsText,
       '',
+      '─────────────────',
       'ÇATDIRILMA',
       `- Növ: ${deliveryLabel}`,
       `- Ünvan/Metro: ${deliveryPlace}`,
@@ -248,10 +272,9 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
       `- Telefon: ${phone}`,
       `- Doğum tarixi: ${birthDate}`,
       '',
+      '─────────────────',
       'MƏBLƏĞ',
-      `- Ümumi: ${money(grandTotal)}`,
-      `- Beh 50%: ${money(deposit)}`,
-      `- Qalıq: ${money(remaining)}`,
+      ...priceLines,
       '',
       `🔗 ${SANITY_STUDIO_URL}/structure/order;${sanityDocId}`,
     ].join('\n');
@@ -644,25 +667,72 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
               <Section>
                 <Label>Sifariş xülasəsi</Label>
                 {items.map((item) => (
-                  <div key={item.cartId} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 13 }}>
+                  <div key={item.cartId} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontSize: 13 }}>
                     <span style={{ color: C.gray }}>{item.productName} ×{item.quantity}</span>
-                    <strong>{money(getItemSubtotal(item))}</strong>
+                    <span style={{ color: C.grayLt, textDecoration: hasAnyDiscount ? 'line-through' : 'none' }}>
+                      {money(item.price * item.quantity + (item.boxPrice ?? 0))}
+                    </span>
                   </div>
                 ))}
-                {deliveryFee > 0 && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 13 }}>
-                    <span style={{ color: C.gray }}>Çatdırılma</span>
-                    <strong>{money(deliveryFee)}</strong>
+
+                <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 10, marginTop: 8 }}>
+                  {/* İlkin qiymət */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontSize: 13 }}>
+                    <span style={{ color: C.gray }}>İlkin qiymət</span>
+                    <span style={{ color: hasAnyDiscount ? C.grayLt : C.black, textDecoration: hasAnyDiscount ? 'line-through' : 'none' }}>
+                      {money(originalTotal)}
+                    </span>
                   </div>
-                )}
-                <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 10, marginTop: 10 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                    <span>Ümumi</span>
-                    <strong>{money(grandTotal)}</strong>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', color: C.orange }}>
-                    <span>Beh 50%</span>
-                    <strong>{money(deposit)}</strong>
+
+                  {/* Satış endirimi */}
+                  {totalSaleDiscount > 0 && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontSize: 13, color: C.green }}>
+                      <span>− Satış endirimi</span>
+                      <span>−{money(totalSaleDiscount)}</span>
+                    </div>
+                  )}
+
+                  {/* Toplu endirim */}
+                  {totalBulkDiscount > 0 && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontSize: 13, color: C.green }}>
+                      <span>− Toplu endirim</span>
+                      <span>−{money(totalBulkDiscount)}</span>
+                    </div>
+                  )}
+
+                  {/* Müştəri endirimi */}
+                  {totalCustomerDiscount > 0 && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontSize: 13, color: C.green }}>
+                      <span>− {customerTypeLabel || 'Müştəri endirimi'}</span>
+                      <span>−{money(totalCustomerDiscount)}</span>
+                    </div>
+                  )}
+
+                  {/* Kupon endirimi */}
+                  {totalCouponDiscount > 0 && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontSize: 13, color: C.green }}>
+                      <span>− Kupon{couponCodeLabel ? ` (${couponCodeLabel})` : ''}</span>
+                      <span>−{money(totalCouponDiscount)}</span>
+                    </div>
+                  )}
+
+                  {deliveryFee > 0 && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontSize: 13 }}>
+                      <span style={{ color: C.gray }}>Çatdırılma</span>
+                      <span>{money(deliveryFee)}</span>
+                    </div>
+                  )}
+
+                  {/* Yekun məbləğ */}
+                  <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 10, marginTop: 6 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                      <span style={{ fontWeight: 700 }}>Yekun məbləğ</span>
+                      <strong style={{ fontSize: 16, color: hasAnyDiscount ? C.green : C.black }}>{money(grandTotal)}</strong>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: C.orange }}>
+                      <span>Beh (50%)</span>
+                      <strong>{money(deposit)}</strong>
+                    </div>
                   </div>
                 </div>
               </Section>

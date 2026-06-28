@@ -117,6 +117,7 @@ export interface CartItem {
   boxPrice?: number;
   couponCode?: string;
   couponDiscount?: number;
+  customerDiscount?: number;
   hasQrCode?: boolean;
   lazerPrice?: number;
   deliveryMethod?: 'metro' | 'kuryer';

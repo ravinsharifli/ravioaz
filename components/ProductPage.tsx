@@ -230,6 +230,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
       boxPrice:             boxFee,
       couponCode:           appliedCoupon?.code,
       couponDiscount:       couponDiscount > 0 ? couponDiscount : undefined,
+      customerDiscount:     customerDisc > 0 ? customerDisc : undefined,
       hasQrCode:            !!uploadedImgUrl,
       lazerPrice:           0,
       deliveryMethod:       'kuryer' as any,
