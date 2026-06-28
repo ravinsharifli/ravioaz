@@ -28,7 +28,7 @@
 
     <!-- SEO -->
     <title>Ravio — Sizə Özəl Hədiyyələr | Bakı</title>
-    <meta name="description" content="Lazer yazılı qolbaq, fərdi təsbeh, domino və giftbox. Hər məhsul sizin üçün özəl hazırlanır. Bakıda pulsuz çatdırılma, 1–3 iş günündə." />
+    <meta name="description" content="Lazer yazılı qolbaq, fərdi təsbeh, domino və giftbox. Hər məhsul sizin üçün özəl hazırlanır. Bütün Azərbaycana ödənişsiz çatdırılma, 1–3 gün ərzində." />
     <meta name="keywords" content="lazer yazı, fərdi hədiyyə, qolbaq, təsbeh, giftbox, Bakı, özəl hədiyyə, ad yazısı, lazer qravirə" />
     <meta name="author" content="Ravio" />
     <meta name="robots" content="index, follow" />
@@ -40,7 +40,7 @@
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://ravio.az/" />
     <meta property="og:title" content="Ravio — Sizə Özəl Hədiyyələr | Bakı" />
-    <meta property="og:description" content="Lazer yazılı qolbaq, fərdi təsbeh, domino və giftbox. Hər məhsul sizin üçün özəl hazırlanır. Bakıda pulsuz çatdırılma." />
+    <meta property="og:description" content="Lazer yazılı qolbaq, fərdi təsbeh, domino və giftbox. Hər məhsul sizin üçün özəl hazırlanır. Bütün Azərbaycana ödənişsiz çatdırılma." />
     <meta property="og:image" content="https://ravio.az/og-ravio.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
@@ -52,7 +52,7 @@
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Ravio — Sizə Özəl Hədiyyələr | Bakı" />
-    <meta name="twitter:description" content="Lazer yazılı qolbaq, fərdi təsbeh, domino və giftbox. Bakıda pulsuz çatdırılma." />
+    <meta name="twitter:description" content="Lazer yazılı qolbaq, fərdi təsbeh, domino və giftbox. Bütün Azərbaycana ödənişsiz çatdırılma." />
     <meta name="twitter:image" content="https://ravio.az/og-ravio.png" />
 
     <!-- Schema: LocalBusiness -->
@@ -131,6 +131,19 @@
   <body>
     <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=26646673358301164&ev=PageView&noscript=1"></noscript>
     <div id="root"></div>
+    <div id="ravio-skeleton" aria-hidden="true">
+      <div class="ravio-skel-nav"><div class="ravio-skel-logo"></div></div>
+      <div class="ravio-skel-hero"></div>
+    </div>
+    <style>
+      #ravio-skeleton{background:#F5F2EC}
+      .ravio-skel-nav{height:60px;background:#FFFFFF;border-bottom:1px solid #EDEBE7;
+        display:flex;align-items:center;padding:0 20px}
+      .ravio-skel-logo{width:38px;height:38px;border-radius:8px;background:#FF6A00}
+      .ravio-skel-hero{background:#111111;height:clamp(280px,55vw,480px)}
+      /* React #root-a məzmun yazan kimi skeleton dərhal gizlənir — JS lazım deyil */
+      #root:not(:empty) ~ #ravio-skeleton{display:none}
+    </style>
     <script type="module" src="/index.tsx"></script>
     <script src="/sw-register.js" defer></script>
   </body>

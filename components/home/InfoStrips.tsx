@@ -6,7 +6,7 @@ export default function InfoStrips() {
     {
       icon: '🚚',
       title: 'Bütün Azərbaycana ödənişsiz',
-      desc: 'Kuryer, metro, poçt — tamamilə pulsuz',
+      desc: 'Kuryer, metro, poçt — tamamilə ödənişsiz',
     },
     {
       icon: '🐾',
