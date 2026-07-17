@@ -1,7 +1,7 @@
 // Ravio Service Worker v3 — performance optimized
-const CACHE_NAME    = 'ravio-v3';
-const IMG_CACHE     = 'ravio-img-v3';
-const SANITY_CACHE  = 'ravio-sanity-v3';
+const CACHE_NAME    = 'ravio-v4';
+const IMG_CACHE     = 'ravio-img-v4';
+const SANITY_CACHE  = 'ravio-sanity-v4';
 
 const STATIC_SHELL = [
   '/',
@@ -46,6 +46,9 @@ self.addEventListener('fetch', (event) => {
 
   // 1. Analytics — keşlənmir, skip
   if (ANALYTICS_HOSTS.some((h) => url.hostname.includes(h))) return;
+
+  // 1b. Öz saytımızdakı analitika skriptləri — həmişə server-dən təzə gəlsin
+  if (url.origin === self.location.origin && (url.pathname === '/meta-pixel.js' || url.pathname === '/ga-init.js')) return;
 
   // 2. Sanity API sorğuları — network-first, 5s timeout
   if (SANITY_API_HOSTS.some((h) => url.hostname.includes(h))) {
