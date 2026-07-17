@@ -18,7 +18,7 @@ function initPixel() {
   t.src = 'https://connect.facebook.net/en_US/fbevents.js';
   var s = document.getElementsByTagName('script')[0];
   s.parentNode.insertBefore(t, s);
-  fbq('init', '26646673358301164');
+  fbq('init', '1660843438327381');
   fbq('track', 'PageView');
 }
 
