@@ -64,9 +64,16 @@ const Contact: React.FC = () => {
             target="_blank"
             rel="noreferrer"
             onClick={() => {
-              if (item.href.includes('wa.me') && typeof (window as any).fbq !== 'undefined') {
-                (window as any).fbq('track', 'Contact');
-                (window as any).fbq('track', 'Lead');
+              if (item.href.includes('wa.me')) {
+                if (typeof (window as any).fbq !== 'undefined') {
+                  (window as any).fbq('track', 'Contact');
+                  (window as any).fbq('track', 'Lead');
+                }
+                fetch('/api/capi', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ event: 'Contact' }),
+                }).catch(() => {});
               }
             }}
             style={{
