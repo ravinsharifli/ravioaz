@@ -48,6 +48,7 @@ export default async function handler(req, res) {
       orderNumber: doc.orderNumber,
       value: doc.financial?.total,
       phone: doc.customer?.phone,
+      items: doc.items,
       req,
     }).catch((err) => console.error('Meta CAPI çağırışı uğursuz oldu:', err))
 
