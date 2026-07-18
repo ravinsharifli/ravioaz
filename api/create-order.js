@@ -1,4 +1,5 @@
 import { createClient } from '@sanity/client'
+import { sendMetaPurchaseEvent } from '../lib/metaCapi.js'
 
 const client = createClient({
   projectId: 'w7scii42',
@@ -41,6 +42,14 @@ export default async function handler(req, res) {
     }
 
     const result = await client.create(doc)
+
+    // Meta Conversions API — server-side Purchase hadisəsi
+    sendMetaPurchaseEvent({
+      orderNumber: doc.orderNumber,
+      value: doc.financial?.total,
+      phone: doc.customer?.phone,
+      req,
+    }).catch((err) => console.error('Meta CAPI çağırışı uğursuz oldu:', err))
 
     return res.status(200).json({
       ok: true,

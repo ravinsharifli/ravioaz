@@ -372,7 +372,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
           currency: 'AZN',
           content_ids: items.map(i => i.productId),
           content_type: 'product',
-        });
+        }, { eventID: orderNumber });
       }
       try {
         localStorage.setItem('ravio_has_ordered', '1');
