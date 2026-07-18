@@ -63,6 +63,12 @@ const Contact: React.FC = () => {
             href={item.href}
             target="_blank"
             rel="noreferrer"
+            onClick={() => {
+              if (item.href.includes('wa.me') && typeof (window as any).fbq !== 'undefined') {
+                (window as any).fbq('track', 'Contact');
+                (window as any).fbq('track', 'Lead');
+              }
+            }}
             style={{
               display: 'flex', flexDirection: 'column' as const, gap: 12,
               padding: '24px', borderRadius: 12,
