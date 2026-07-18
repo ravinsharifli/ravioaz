@@ -2,6 +2,16 @@
 <html lang="az">
   <head>
     <meta name="facebook-domain-verification" content="0mv06aekj5scx53feuauvfaq9phlfs" />
+    <script>
+      (function () {
+        var params = new URLSearchParams(window.location.search);
+        var fbclid = params.get('fbclid');
+        if (fbclid) {
+          var fbc = 'fb.1.' + Date.now() + '.' + fbclid;
+          document.cookie = '_fbc=' + fbc + '; domain=.' + window.location.hostname + '; path=/; max-age=7776000; SameSite=Lax';
+        }
+      })();
+    </script>
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
