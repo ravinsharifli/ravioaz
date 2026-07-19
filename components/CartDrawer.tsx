@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { X, Trash2, ShoppingBag, ArrowRight, Edit3, ChevronLeft } from 'lucide-react';
 import { CartItem, MetroSchedule, Coupon } from '../types';
 import { F } from '../tokens';
+import { WHATSAPP_NUMBER } from '../constants';
 import '../styles/cart-drawer.css';
 
-const WHATSAPP_NUMBER = '994519831483';
 const FONT = F.sans;
 
 const C = {
@@ -38,7 +38,7 @@ const MONTHS_AZ = [
 const SANITY_STUDIO_URL = 'https://ravioshop.sanity.studio';
 
 const DAYS_LIST = Array.from({ length: 31 }, (_, i) => String(i + 1).padStart(2, '0'));
-const ORDER_YEARS = ['2026', '2027', '2028'];
+const ORDER_YEARS = Array.from({ length: 3 }, (_, i) => String(new Date().getFullYear() + i));
 const currentYear = new Date().getFullYear();
 const BIRTH_YEARS = Array.from({ length: currentYear - 1969 }, (_, i) => String(1970 + i)).reverse();
 
@@ -163,7 +163,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
   const [address, setAddress] = useState('');
   const [kurDay, setKurDay] = useState('');
   const [kurMonth, setKurMonth] = useState('');
-  const [kurYear, setKurYear] = useState('2026');
+  const [kurYear, setKurYear] = useState(String(new Date().getFullYear()));
   const [metro, setMetro] = useState('');
   const [metroDay, setMetroDay] = useState('');
   const [metroTime, setMetroTime] = useState('');

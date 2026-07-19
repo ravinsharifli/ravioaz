@@ -87,7 +87,7 @@ export default function PWAInstallBanner() {
     transform:   'translateX(-50%)',
     width:       'calc(100% - 32px)',
     maxWidth:    480,
-    zIndex:      9999,
+    zIndex:      500,
     transition:  'top 0.35s cubic-bezier(0.34, 1.20, 0.64, 1)',
     display:     'flex',
     flexDirection: 'column' as const,
