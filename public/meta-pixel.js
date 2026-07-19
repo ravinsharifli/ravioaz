@@ -26,5 +26,10 @@ function initPixel() {
 ['scroll', 'click', 'keydown', 'touchstart'].forEach(function(ev) {
   window.addEventListener(ev, initPixel, { once: true, passive: true });
 });
-// Heç interaksiya olmasa, 4 saniyə sonra yüklə (ga-init.js ilə eyni qayda)
-setTimeout(initPixel, 4000);
+// İnteraksiya olmasa: brauzer boş qaldığı an yüklə (requestIdleCallback, max 8s).
+// ga-init.js ilə eyni məntiq.
+if ('requestIdleCallback' in window) {
+  requestIdleCallback(initPixel, { timeout: 8000 });
+} else {
+  setTimeout(initPixel, 4000);
+}

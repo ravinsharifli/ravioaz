@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Suspense, useCallback } from 'react';
+import React, { useState, useEffect, Suspense, useCallback, useMemo, startTransition } from 'react';
 import { C, F } from './tokens';
 import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { client } from './sanityclient';
@@ -56,16 +56,20 @@ function AppShell() {
       client.fetch(SETTINGS_QUERY),
     ])
       .then(([rawProducts, s]: [any[], any]) => {
-        setProducts(rawProducts.map(mapSanityProduct));
-        setSettings(s);
-        setLoading(false);
+        // startTransition: bu state yeniləməsini "təcili olmayan" kimi işarələyir —
+        // React bütün məhsul siyahısını bir dəfəyə bloklayıcı şəkildə render etmək
+        // əvəzinə, işi kiçik hissələrə bölüb render edir. Nəticə eynidir (dizayn
+        // dəyişmir), sadəcə main-thread-i bir dəfəlik uzun "long task" ilə bloklamır.
+        startTransition(() => {
+          setProducts(rawProducts.map(mapSanityProduct));
+          setSettings(s);
+          setLoading(false);
+        });
       })
       .catch((err) => {
         console.error('[Sanity] Yüklənmə xətası:', err);
         setLoading(false);
       });
-
-    
   }, []);
 
   useEffect(() => {
@@ -88,10 +92,14 @@ function AppShell() {
   const reelPosts: ReelPost[] = settings?.reelPosts || [];
   const heroSlides: any[] = settings?.heroSlides || [];
 
-  const categories = Array.from(new Set(products.map((p) => p.category).filter(Boolean))) as string[];
-  const filteredProducts = activeCategory
-    ? products.filter((p) => p.category === activeCategory)
-    : products;
+  const categories = useMemo(
+    () => Array.from(new Set(products.map((p) => p.category).filter(Boolean))) as string[],
+    [products]
+  );
+  const filteredProducts = useMemo(
+    () => (activeCategory ? products.filter((p) => p.category === activeCategory) : products),
+    [products, activeCategory]
+  );
 
   const handleAddToCart = useCallback((item: CartItem) => {
     setCart((prev) => {
@@ -137,7 +145,7 @@ function AppShell() {
     }
   };
 
-  const allCoupons = products.flatMap((p) => p.coupons || []);
+  const allCoupons = useMemo(() => products.flatMap((p) => p.coupons || []), [products]);
 
   return (
     <div style={{ minHeight: '100vh', background: C.bg, fontFamily: F.sans, color: C.black }}>

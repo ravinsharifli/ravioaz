@@ -31,8 +31,14 @@ function loadGAScript() {
 ['scroll', 'click', 'keydown', 'touchstart'].forEach(function(ev) {
   window.addEventListener(ev, loadGAScript, { once: true, passive: true });
 });
-// Heç interaksiya olmasa, 4 saniyə sonra yüklə
-setTimeout(loadGAScript, 4000);
+// İnteraksiya olmasa: brauzer boş qaldığı an yüklə (requestIdleCallback).
+// Real istifadəçidə adətən 1 saniyədən az müddətdə işə düşür, çünki brauzer
+// tez boşalır; maksimum 8 saniyə gözlənilir (timeout) — "əbədi" gözləmə olmur.
+if ('requestIdleCallback' in window) {
+  requestIdleCallback(loadGAScript, { timeout: 8000 });
+} else {
+  setTimeout(loadGAScript, 4000);
+}
 
 // Digər komponentlər hadisə göndərə bilər
 window.trackEvent = function(eventName, params) {
