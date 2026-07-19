@@ -57,7 +57,7 @@ export default function ProductReviews({ reviews }: ProductReviewsProps) {
             style={{
               fontSize: 11,
               fontWeight: 700,
-              color: C.primary,
+              color: C.primaryText,
               letterSpacing: 1.5,
               textTransform: 'uppercase',
               margin: '0 0 8px',

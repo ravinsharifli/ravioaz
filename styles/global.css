@@ -2,6 +2,7 @@
 :root {
   --clr-primary: #ff6a00;
   --clr-primary-dark: #e55a00;
+  --clr-primary-text: #b84500;
   --clr-black: #111111;
   --clr-white: #ffffff;
   --clr-bg: #f5f2ec;
@@ -10,7 +11,7 @@
   --clr-border: #edebe7;
   --clr-border-mid: #d5d0c8;
   --clr-text-sec: #666666;
-  --clr-text-muted: #9e9e9e;
+  --clr-text-muted: #6e6e6e;
   --clr-success: #0a7a2f;
   --clr-error: #b00020;
   --font-sans: 'Inter', sans-serif;

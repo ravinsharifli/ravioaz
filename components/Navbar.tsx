@@ -215,7 +215,7 @@ const Navbar: React.FC<NavbarProps> = ({
                             }}>
                               {p.name}
                             </p>
-                            <p style={{ margin: '2px 0 0', fontSize: 13, color: C.primary, fontWeight: 700 }}>
+                            <p style={{ margin: '2px 0 0', fontSize: 13, color: C.primaryText, fontWeight: 700 }}>
                               {(p.variants[0]?.discountPrice ?? p.variants[0]?.price ?? 0).toFixed(2)} ₼
                             </p>
                           </div>

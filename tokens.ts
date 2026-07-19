@@ -22,6 +22,8 @@ export const C = {
   primary:     'var(--clr-primary)',
   /** Hover üçün tünd narıncı — #E55A00 */
   primaryDark: 'var(--clr-primary-dark)',
+  /** Açıq fonda mətn üçün AA-uyğun narıncı (kontrast 5.4:1). C.primary-ni açıq fonda mətn kimi işlətmə. */
+  primaryText: 'var(--clr-primary-text)',
   /** Demək olar qara — #111111 */
   black:       'var(--clr-black)',
   /** Ağ — #FFFFFF */

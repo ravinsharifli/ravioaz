@@ -460,13 +460,20 @@ const ProductPage: React.FC<ProductPageProps> = ({
                 ] as const).map(opt => {
                   const sel = customerType === opt.id;
                   return (
-                    <div key={opt.id} onClick={() => setCustomerType(sel ? null : opt.id)} style={{
-                      flex: 1, display: 'flex', alignItems: 'center', gap: 8,
-                      padding: '10px 12px', borderRadius: 10, cursor: 'pointer',
-                      background: sel ? C.bg : C.white,
-                      border: `1.5px solid ${sel ? C.blue : C.border}`,
-                      transition: 'all 0.15s',
-                    }}>
+                    <div
+                      key={opt.id}
+                      onClick={() => setCustomerType(sel ? null : opt.id)}
+                      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setCustomerType(sel ? null : opt.id); } }}
+                      role="button"
+                      tabIndex={0}
+                      aria-pressed={sel}
+                      style={{
+                        flex: 1, display: 'flex', alignItems: 'center', gap: 8,
+                        padding: '10px 12px', borderRadius: 10, cursor: 'pointer',
+                        background: sel ? C.bg : C.white,
+                        border: `1.5px solid ${sel ? C.blue : C.border}`,
+                        transition: 'all 0.15s',
+                      }}>
                       <div style={{
                         width: 14, height: 14, borderRadius: '50%', flexShrink: 0,
                         border: `2px solid ${sel ? C.blue : C.border}`,
@@ -563,13 +570,27 @@ const ProductPage: React.FC<ProductPageProps> = ({
                     const sel = variantIdx === i;
                     const lbl = [v.modelName, v.colorName].filter(Boolean).join(' · ') || `Variant ${i + 1}`;
                     return (
-                      <div key={i} onClick={() => {
-                        if (!oos) {
-                          setVariantIdx(i);
-                          const firstIdx = allImages.findIndex(img => img.vIdx === i);
-                          setImgIdx(firstIdx >= 0 ? firstIdx : 0);
-                        }
-                      }}
+                      <div
+                        key={i}
+                        onClick={() => {
+                          if (!oos) {
+                            setVariantIdx(i);
+                            const firstIdx = allImages.findIndex(img => img.vIdx === i);
+                            setImgIdx(firstIdx >= 0 ? firstIdx : 0);
+                          }
+                        }}
+                        onKeyDown={e => {
+                          if ((e.key === 'Enter' || e.key === ' ') && !oos) {
+                            e.preventDefault();
+                            setVariantIdx(i);
+                            const firstIdx = allImages.findIndex(img => img.vIdx === i);
+                            setImgIdx(firstIdx >= 0 ? firstIdx : 0);
+                          }
+                        }}
+                        role="button"
+                        tabIndex={oos ? -1 : 0}
+                        aria-pressed={sel}
+                        aria-disabled={oos}
                         style={{
                           padding: '8px 10px', borderRadius: 8, cursor: oos ? 'not-allowed' : 'pointer',
                           background: sel ? C.black : C.white,
@@ -629,11 +650,18 @@ const ProductPage: React.FC<ProductPageProps> = ({
                       const lbl = tier.label || (tier.maxQty ? `${tier.minQty}–${tier.maxQty} ədəd` : `${tier.minQty}+ ədəd`);
                       const disc = Math.max(0, baseUnit - tier.discountAmount);
                       return (
-                        <div key={i} onClick={() => setQty(tier.minQty)} style={{
-                          padding: '5px 12px', borderRadius: 100, fontSize: 11, cursor: 'pointer', fontWeight: 600,
-                          background: isActive ? C.orange : C.bg, color: isActive ? C.white : C.gray,
-                          border: `1px solid ${isActive ? C.orange : C.border}`, transition: 'all 0.15s',
-                        }}>
+                        <div
+                          key={i}
+                          onClick={() => setQty(tier.minQty)}
+                          onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setQty(tier.minQty); } }}
+                          role="button"
+                          tabIndex={0}
+                          aria-pressed={isActive}
+                          style={{
+                            padding: '5px 12px', borderRadius: 100, fontSize: 11, cursor: 'pointer', fontWeight: 600,
+                            background: isActive ? C.orange : C.bg, color: isActive ? C.white : C.gray,
+                            border: `1px solid ${isActive ? C.orange : C.border}`, transition: 'all 0.15s',
+                          }}>
                           {lbl} → {disc.toFixed(2)} ₼/ədəd
                         </div>
                       );
@@ -734,12 +762,19 @@ const ProductPage: React.FC<ProductPageProps> = ({
                   {effectiveBoxes.map((b: BoxOption) => {
                     const sel = boxId === b.id;
                     return (
-                      <div key={b.id} onClick={() => setBoxId(b.id)} style={{
-                        position: 'relative', cursor: 'pointer',
-                        border: `2px solid ${sel ? C.black : C.border}`,
-                        borderRadius: 10, overflow: 'hidden', transition: 'all 0.15s',
-                        background: sel ? '#F8F8F8' : C.white,
-                      }}>
+                      <div
+                        key={b.id}
+                        onClick={() => setBoxId(b.id)}
+                        onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setBoxId(b.id); } }}
+                        role="button"
+                        tabIndex={0}
+                        aria-pressed={sel}
+                        style={{
+                          position: 'relative', cursor: 'pointer',
+                          border: `2px solid ${sel ? C.black : C.border}`,
+                          borderRadius: 10, overflow: 'hidden', transition: 'all 0.15s',
+                          background: sel ? '#F8F8F8' : C.white,
+                        }}>
                         <div style={{ aspectRatio: '1/1', background: C.bg, overflow: 'hidden' }}>
                           {b.imageUrl ? (
                             <img src={toWebP(b.imageUrl, 200)} alt={b.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} loading="lazy" />

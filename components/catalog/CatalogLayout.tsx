@@ -44,7 +44,7 @@ export default function CatalogLayout({
           style={{
             fontSize: 10,
             fontWeight: 700,
-            color: C.primary,
+            color: C.primaryText,
             letterSpacing: 1.5,
             textTransform: 'uppercase',
             margin: '0 0 12px',
