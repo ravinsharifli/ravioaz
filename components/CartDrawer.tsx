@@ -35,8 +35,6 @@ const MONTHS_AZ = [
   'Dekabr',
 ];
 
-const SANITY_STUDIO_URL = 'https://ravioshop.sanity.studio';
-
 const DAYS_LIST = Array.from({ length: 31 }, (_, i) => String(i + 1).padStart(2, '0'));
 const ORDER_YEARS = Array.from({ length: 3 }, (_, i) => String(new Date().getFullYear() + i));
 const currentYear = new Date().getFullYear();
@@ -151,7 +149,6 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
 }) => {
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState('');
 
   const [custName, setCustName] = useState('');
   const [phone, setPhone] = useState('');
@@ -228,7 +225,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
     return `RV-${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, '0')}${String(date.getDate()).padStart(2, '0')}-${String(date.getHours()).padStart(2, '0')}${String(date.getMinutes()).padStart(2, '0')}${String(date.getSeconds()).padStart(2, '0')}`;
   }
 
-  function buildMessage(orderNumber: string, sanityDocId: string) {
+  function buildMessage(orderNumber: string) {
     const fullItemsText = items.map((item, index) => {
       const imageUrl = item.images?.[0] ?? '';
       return [
@@ -275,113 +272,74 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
       '─────────────────',
       'MƏBLƏĞ',
       ...priceLines,
-      '',
-      `🔗 ${SANITY_STUDIO_URL}/structure/order;${sanityDocId}`,
     ].join('\n');
   }
 
-  async function handleWhatsApp() {
+  function handleWhatsApp() {
     if (!checkoutValid || isSubmitting) return;
 
-    setError('');
     setIsSubmitting(true);
 
     const now = new Date();
     const orderNumber = makeOrderNumber(now);
+    const message = buildMessage(orderNumber);
 
-    const orderPayload = {
-      orderNumber,
-      createdAt: now.toISOString(),
-      year: now.getFullYear(),
-      month: now.getMonth() + 1,
-      status: 'new',
-      customer: {
-        name: custName,
-        phone,
-        birthDate,
-      },
-      items: items.map((item, index) => ({
-        _key: `${orderNumber}-${index}`,
-        productId: item.productId,
-        productName: item.productName,
-        modelName: item.modelName,
-        colorName: item.colorName,
-        quantity: item.quantity,
-        unitPrice: item.discountPrice ?? item.price,
-        totalPrice: getItemSubtotal(item),
-        customText: item.customText || '',
-        specialRequest: item.specialRequest || '',
-      })),
-      delivery: {
-        type: deliveryLabel,
-        address: delivery === 'metro' ? '' : address,
-        metro: delivery === 'metro' ? metro : '',
-        date: deliveryDate,
-        time: deliveryTime,
-      },
-      financial: {
-        subtotal: baseTotal,
-        deliveryFee,
-        total: grandTotal,
-        deposit,
-        remaining,
-      },
-    };
+    // VACİB: WhatsApp pəncərəsi klikin İÇİNDƏ, HEÇ bir gözləmə (await/fetch) olmadan,
+    // dərhal açılır. Əvvəlki versiyada bu sətir server sorğusundan (Sanity-yə yazıdan)
+    // SONRA çağırılırdı — mobil brauzerlər (xüsusilə iOS Safari) istifadəçi klikindən
+    // bir qədər gec açılan pəncərələri "pop-up" sayıb ya bloklayır, ya da əlavə təsdiq
+    // istəyir. Məhz müştərinin "3 dəfə təsdiq etmək" problemi buradan yaranırdı.
+    openWhatsAppMessage(message);
 
-    try {
-      const response = await fetch('/api/create-order', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(orderPayload),
+    // GA4 purchase
+    if (typeof (window as any).trackEvent !== 'undefined') {
+      (window as any).trackEvent('purchase', {
+        transaction_id: orderNumber,
+        value: grandTotal,
+        currency: 'AZN',
+        items: items.map(item => ({
+          item_id: item.productId,
+          item_name: item.productName,
+          price: item.discountPrice ?? item.price,
+          quantity: item.quantity,
+        })),
       });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-
-      const result = await response.json();
-      const docId = result.id ?? orderNumber;
-      const message = buildMessage(orderNumber, docId);
-
-      openWhatsAppMessage(message);
-    } catch (err) {
-      // Sanity-yə yazıla bilmədi — müştəriyə bunu göstərmirik, sifariş yenə WhatsApp-a gedir.
-      // Bu xətanı yalnız brauzer konsolunda görmək olar (F12 → Console), müştəri heç nə görmür.
-      console.error('Sifariş Sanity-də saxlanmadı, amma WhatsApp-a göndərildi:', err);
-      const fallbackMessage = buildMessage(orderNumber, orderNumber);
-      openWhatsAppMessage(fallbackMessage);
-    } finally {
-      // GA4 purchase — sifariş WhatsApp-a göndərildi
-      if (typeof (window as any).trackEvent !== 'undefined') {
-        (window as any).trackEvent('purchase', {
-          transaction_id: orderNumber,
-          value: grandTotal,
-          currency: 'AZN',
-          items: items.map(item => ({
-            item_id: item.productId,
-            item_name: item.productName,
-            price: item.discountPrice ?? item.price,
-            quantity: item.quantity,
-          })),
-        });
-      }
-      // Meta Pixel Purchase
-      if (typeof (window as any).fbq !== 'undefined') {
-        (window as any).fbq('track', 'Purchase', {
-          value: grandTotal,
-          currency: 'AZN',
-          content_ids: items.map(i => i.productId),
-          content_type: 'product',
-        }, { eventID: orderNumber });
-      }
-      try {
-        localStorage.setItem('ravio_has_ordered', '1');
-      } catch {}
-      onClearCart?.();
-      setIsCheckingOut(false);
-      onClose();
-      setIsSubmitting(false);
     }
+    // Meta Pixel Purchase (brauzer tərəfi)
+    if (typeof (window as any).fbq !== 'undefined') {
+      (window as any).fbq('track', 'Purchase', {
+        value: grandTotal,
+        currency: 'AZN',
+        content_ids: items.map(i => i.productId),
+        content_type: 'product',
+      }, { eventID: orderNumber });
+    }
+    try {
+      localStorage.setItem('ravio_has_ordered', '1');
+    } catch {}
+
+    // Server-side Meta Purchase hadisəsi (reklam izləməsinin dəqiqliyi üçün) —
+    // Sanity-yə HEÇ NƏ yazılmır, sadəcə Meta-ya bildiriş göndərilir. Nəticəsini
+    // gözləmirik ki, müştərinin WhatsApp keçidinə görə ən kiçik gecikmə belə olmasın.
+    fetch('/api/track-purchase', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        orderNumber,
+        value: grandTotal,
+        phone,
+        items: items.map(item => ({
+          productId: item.productId,
+          quantity: item.quantity,
+          unitPrice: item.discountPrice ?? item.price,
+        })),
+      }),
+    }).catch((err) => console.error('Purchase izləmə sorğusu uğursuz oldu (sifarişə təsiri yoxdur):', err));
+
+    onClearCart?.();
+    setIsCheckingOut(false);
+    onClose();
+    setIsSubmitting(false);
   }
 
   return (
@@ -737,12 +695,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                 </div>
               </Section>
 
-              {error && (
-                <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', color: C.red, borderRadius: 8, padding: 12, fontSize: 13, marginBottom: 12 }}>
-                  {error}
-                </div>
-              )}
-            </div>
+              </div>
 
             <div style={{ padding: '14px 20px 28px', background: C.white, borderTop: `1px solid ${C.border}`, flexShrink: 0 }}>
               {!checkoutValid && (
@@ -766,7 +719,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                   fontFamily: FONT,
                 }}
               >
-                {isSubmitting ? 'Sifariş yazılır...' : 'WhatsApp ilə göndər'}
+                WhatsApp ilə göndər
               </button>
             </div>
           </>

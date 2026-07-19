@@ -8,9 +8,9 @@
  * TBT düşür), funksionallıqda heç bir dəyişiklik olmadan.
  *
  * DİQQƏT: Bu fayl yalnız BRAUZER tərəfi üçündür. Build skriptləri
- * (inject-seo.mjs, generate-sitemap.mjs) və API route (api/create-order.js)
- * öz `@sanity/client` import-larını saxlayır — onlar Node.js-də işləyir,
- * brauzer bundle-ına düşmür, ona görə həmin paketi package.json-dan SİLMİRİK.
+ * (inject-seo.mjs, generate-sitemap.mjs) öz `@sanity/client` import-larını saxlayır —
+ * onlar Node.js-də işləyir, brauzer bundle-ına düşmür, ona görə həmin paketi
+ * package.json-dan SİLMİRİK.
  */
 
 const PROJECT_ID = 'w7scii42';
