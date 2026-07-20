@@ -2,6 +2,7 @@ User-agent: *
 Allow: /
 Disallow: /studio
 Disallow: /api/
+Disallow: /pricing.md
 
 User-agent: GPTBot
 Allow: /
