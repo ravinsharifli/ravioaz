@@ -125,7 +125,7 @@ const DeliveryInfo: React.FC<DeliveryInfoProps> = () => {
             <div key={s.n} style={{ padding: '24px', borderLeft: i > 0 ? '1px solid rgba(255,255,255,0.06)' : 'none' }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: C.orange, letterSpacing: 2, marginBottom: 10 }}>{s.n}</div>
               <h4 style={{ fontSize: 15, fontWeight: 700, color: C.white, margin: '0 0 8px' }}>{s.title}</h4>
-              <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', margin: 0, lineHeight: 1.6 }}>{s.desc}</p>
+              <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.72)', margin: 0, lineHeight: 1.6 }}>{s.desc}</p>
             </div>
           ))}
         </div>

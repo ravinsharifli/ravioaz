@@ -19,6 +19,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 
     <!-- Performans: 4 preconnect — dəqiq hədəflər, artıq yox -->
+    <link rel="preload" as="image" href="/og-ravio.webp" fetchpriority="high" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="preconnect" href="https://w7scii42.apicdn.sanity.io" crossorigin />
@@ -142,7 +143,7 @@
     <div id="root"></div>
     <div id="ravio-skeleton" aria-hidden="true">
       <div class="ravio-skel-nav"><div class="ravio-skel-logo"></div></div>
-      <div class="ravio-skel-hero"></div>
+      <div class="ravio-skel-hero"><img src="/og-ravio.webp" alt="" fetchpriority="high" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0.55;" /></div>
     </div>
     <style>
       #ravio-skeleton{background:#F5F2EC}

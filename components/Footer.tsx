@@ -26,7 +26,7 @@ const Footer: React.FC<FooterProps> = () => {
           <div>
             <div style={{ marginBottom: 16 }}>
               <img
-                src="/og-ravio.png"
+                src="/favicon.png"
                 alt="Ravio"
                 style={{ width: 52, height: 52, borderRadius: 10, objectFit: 'cover' }}
               />
@@ -36,10 +36,10 @@ const Footer: React.FC<FooterProps> = () => {
             </p>
             <div style={{ display: 'flex', gap: 8 }}>
               {[
-                { href: 'https://instagram.com/ravio.az', icon: <Instagram size={15} /> },
-                { href: 'https://tiktok.com/@ravio.az', icon: <TikTokIcon /> },
+              { href: 'https://instagram.com/ravio.az', icon: <Instagram size={15} />, label: 'Instagram' },
+              { href: 'https://tiktok.com/@ravio.az', icon: <TikTokIcon />, label: 'TikTok' },
               ].map((s, i) => (
-                <a key={i} href={s.href} target="_blank" rel="noreferrer"
+                <a key={i} href={s.href} target="_blank" rel="noreferrer" aria-label={s.label}
                   style={{
                     width: 36, height: 36, borderRadius: 8,
                     border: '1px solid rgba(255,255,255,0.12)',
@@ -123,8 +123,8 @@ const Footer: React.FC<FooterProps> = () => {
         </div>
 
         <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' as const, gap: 12 }}>
-          <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.2)' }}>© 2026 Ravio. Bütün hüquqlar qorunur.</span>
-          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.15)', letterSpacing: 2, textTransform: 'uppercase' as const }}>@ravio.az</span>
+          <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)' }}>© 2026 Ravio. Bütün hüquqlar qorunur.</span>
+          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.55)', letterSpacing: 2, textTransform: 'uppercase' as const }}>@ravio.az</span>
         </div>
       </div>
     </footer>

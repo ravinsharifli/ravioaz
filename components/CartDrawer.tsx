@@ -568,6 +568,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                   <Label>Metro stansiyası</Label>
                   <select
                     value={metro}
+                    aria-label="Metro stansiyası seçin"
                     onChange={(event) => {
                       setMetro(event.target.value);
                       setMetroDay('');
@@ -584,6 +585,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                   <Label>Gün</Label>
                   <select
                     value={metroDay}
+                    aria-label="Çatdırılma günü seçin"
                     onChange={(event) => {
                       setMetroDay(event.target.value);
                       setMetroTime('');
@@ -599,6 +601,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                   <Label>Saat</Label>
                   <select
                     value={metroTime}
+                    aria-label="Çatdırılma saatı seçin"
                     onChange={(event) => setMetroTime(event.target.value)}
                     style={{ width: '100%', background: C.white, border: `1px solid ${C.border}`, borderRadius: 8, padding: 12, fontFamily: FONT }}
                   >

@@ -516,7 +516,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
                         </div>
                       </div>
                     </div>
-                    <button onClick={() => setAppliedCoupon(null)} style={{
+                    <button onClick={() => setAppliedCoupon(null)} aria-label="Kuponu sil" style={{
                       background: 'none', border: 'none', cursor: 'pointer',
                       color: C.gray, padding: 4, display: 'flex', alignItems: 'center',
                     }}><X size={16} /></button>
@@ -528,6 +528,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
                         <Tag size={14} style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)', color: C.grayLt, pointerEvents: 'none' }} />
                         <input
                           value={couponInput}
+                          aria-label="Kupon kodu"
                           onChange={e => { setCouponInput(e.target.value.toUpperCase()); setCouponError(''); }}
                           onKeyDown={e => e.key === 'Enter' && handleApplyCoupon()}
                           placeholder="Kupon kodunu daxil edin"
@@ -617,7 +618,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
               <Label>Say</Label>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div style={{ display: 'flex', alignItems: 'center' }}>
-                  <button onClick={() => setQty(q => Math.max(1, q - 1))} style={{
+                  <button onClick={() => setQty(q => Math.max(1, q - 1))} aria-label="Sayı azalt" style={{
                     width: 44, height: 44, borderRadius: '8px 0 0 8px',
                     border: `1px solid ${C.border}`, background: C.bg,
                     cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -628,7 +629,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: 16, fontWeight: 700, background: C.white, color: C.black,
                   }}>{qty}</div>
-                  <button onClick={() => setQty(q => q + 1)} style={{
+                  <button onClick={() => setQty(q => q + 1)} aria-label="Sayı artır" style={{
                     width: 44, height: 44, borderRadius: '0 8px 8px 0',
                     border: `1px solid ${C.border}`, background: C.bg,
                     cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
