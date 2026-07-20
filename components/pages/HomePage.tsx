@@ -344,7 +344,7 @@ export default function HomePage({
                 >
                   {s.title}
                 </h3>
-                <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', lineHeight: 1.7, margin: 0 }}>
+                <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.65)', lineHeight: 1.7, margin: 0 }}>
                   {s.desc}
                 </p>
               </div>

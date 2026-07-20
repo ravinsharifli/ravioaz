@@ -103,7 +103,7 @@ const Navbar: React.FC<NavbarProps> = ({
             textDecoration: 'none',
           }}>
             <img
-              src="/og-ravio.png"
+              src="/favicon.png"
               alt="Ravio logo"
               style={{
                 width: 38, height: 38, borderRadius: 8,
@@ -167,6 +167,7 @@ const Navbar: React.FC<NavbarProps> = ({
                     value={query}
                     onChange={e => setQuery(e.target.value)}
                     placeholder="Məhsul axtar..."
+                    aria-label="Məhsul axtar"
                     style={{
                       flex: 1, border: 'none', outline: 'none',
                       fontSize: 15, color: C.black,
@@ -229,7 +230,7 @@ const Navbar: React.FC<NavbarProps> = ({
                     🔍 Nəticə tapılmadı
                   </div>
                 ) : (
-                  <div style={{ padding: '16px', textAlign: 'center' as const, color: '#BBBBBB', fontSize: 12 }}>
+                  <div style={{ padding: '16px', textAlign: 'center' as const, color: '#767676', fontSize: 12 }}>
                     Axtar...
                   </div>
                 )}

@@ -154,7 +154,7 @@ export default function UnifiedHeroCarousel({
               <p style={{
                 margin: '0 0 14px',
                 fontSize: slide.imageUrl ? 12 : 13,
-                color: 'rgba(255,255,255,0.85)',
+                color: 'rgba(255,255,255,0.92)',
                 fontFamily: F.sans, lineHeight: 1.5,
                 textShadow: slide.imageUrl ? '0 1px 3px rgba(0,0,0,0.5)' : 'none',
               }}>
@@ -224,7 +224,7 @@ export default function UnifiedHeroCarousel({
                   {p.label && (
                     <span style={{
                       fontSize: 10, fontWeight: 700, marginBottom: 4, fontFamily: F.sans,
-                      color: p.imageUrl ? '#FF6A00' : 'rgba(255,255,255,0.75)',
+                     color: p.imageUrl ? '#FF6A00' : 'rgba(255,255,255,0.9)',
                     }}>
                       {p.label}
                     </span>
@@ -239,7 +239,7 @@ export default function UnifiedHeroCarousel({
                   </p>
                   {p.subtitle && (
                     <p style={{
-                      margin: '4px 0 0', fontSize: 11, color: 'rgba(255,255,255,0.5)',
+                      margin: '4px 0 0', fontSize: 11, color: 'rgba(255,255,255,0.72)',
                       fontFamily: F.sans,
                       overflow: 'hidden', whiteSpace: 'nowrap' as const, textOverflow: 'ellipsis',
                     }}>
@@ -271,7 +271,7 @@ export default function UnifiedHeroCarousel({
                   style={{
                     width: i === safeIdx ? 20 : 6, height: 6, borderRadius: 3,
                     background: i === safeIdx ? '#FF6A00' : 'rgba(255,255,255,0.25)',
-                    border: 'none', cursor: 'pointer', padding: 0,
+                    border: 'none', cursor: 'pointer', padding: '10px 6px',
                     transition: 'all 0.3s',
                   }}
                 />

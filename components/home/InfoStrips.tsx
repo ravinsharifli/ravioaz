@@ -30,7 +30,7 @@ export default function InfoStrips() {
               <div style={{ fontSize: 12, fontWeight: 700, color: C.black, marginBottom: 1 }}>
                 {s.title}
               </div>
-              <div style={{ fontSize: 11, color: '#888888', fontWeight: 400 }}>{s.desc}</div>
+              <div style={{ fontSize: 11, color: '#6B6B6B', fontWeight: 400 }}>{s.desc}</div>
             </div>
           </div>
         ))}
