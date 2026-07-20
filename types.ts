@@ -108,7 +108,7 @@ export interface CartItem {
   phone: string;
   birthDate: string;
   isGift: boolean;
-  isFirstOrSecondOrder: boolean;
+  isFirstOrSecondOrder?: boolean;
   customerType: 'new' | 'loyal' | null;
   deliveryType: 'standard' | 'urgent' | 'express';
   deliveryDetails: string;
@@ -127,5 +127,3 @@ export interface CartItem {
   finalTotal?: number;
   behAmount?: number;
 }
-
-export type AppView = 'home' | 'about' | 'contact' | 'delivery' | 'reviews';

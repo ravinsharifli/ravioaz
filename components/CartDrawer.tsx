@@ -621,6 +621,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                 <Input value={custName} aria-label="Adınız" onChange={(event) => setCustName(event.target.value)} placeholder="Adınız" autoComplete="name" style={{ marginBottom: 10 }} />
                 <Input value={phone} aria-label="Telefon nömrəsi" onChange={(event) => setPhone(event.target.value)} placeholder="Telefon (+994 50 xxx xx xx)" type="tel" autoComplete="tel" style={{ marginBottom: 10 }} />
                 <Label>Doğum tarixi</Label>
+                <p style={{ margin: '0 0 8px', fontSize: 11, color: 'var(--clr-text-muted)', lineHeight: 1.5 }}>Doğum günündə sürpriz hədiyyə göndərə bilək :) </p>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1fr', gap: 8 }}>
                   <Select value={bdDay} onChange={setBdDay} options={DAYS_LIST} placeholder="Gün" />
                   <Select value={bdMonth} onChange={setBdMonth} options={MONTHS_AZ} placeholder="Ay" />
