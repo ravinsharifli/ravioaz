@@ -107,9 +107,11 @@ const Select: React.FC<{
   onChange: (value: string) => void;
   options: string[];
   placeholder: string;
-}> = ({ value, onChange, options, placeholder }) => (
+  ariaLabel?: string;
+}> = ({ value, onChange, options, placeholder, ariaLabel }) => (
   <select
     value={value}
+    aria-label={ariaLabel || placeholder}
     onChange={(event) => onChange(event.target.value)}
     style={{
       width: '100%',
@@ -539,6 +541,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                   <Label>{delivery === 'post' ? 'Şəhər və ünvan' : 'Çatdırılma ünvanı'}</Label>
                   <Input
                     value={address}
+                    aria-label="Çatdırılma ünvanı"
                     onChange={(event) => setAddress(event.target.value)}
                     placeholder={delivery === 'post' ? 'Şəhər, poçt indeksi, ünvan' : 'Məhəllə, küçə, bina nömrəsi'}
                     autoComplete="street-address"
@@ -615,8 +618,8 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
 
               <Section>
                 <Label>Əlaqə məlumatları</Label>
-                <Input value={custName} onChange={(event) => setCustName(event.target.value)} placeholder="Adınız" autoComplete="name" style={{ marginBottom: 10 }} />
-                <Input value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="Telefon (+994 50 xxx xx xx)" type="tel" autoComplete="tel" style={{ marginBottom: 10 }} />
+                <Input value={custName} aria-label="Adınız" onChange={(event) => setCustName(event.target.value)} placeholder="Adınız" autoComplete="name" style={{ marginBottom: 10 }} />
+                <Input value={phone} aria-label="Telefon nömrəsi" onChange={(event) => setPhone(event.target.value)} placeholder="Telefon (+994 50 xxx xx xx)" type="tel" autoComplete="tel" style={{ marginBottom: 10 }} />
                 <Label>Doğum tarixi</Label>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1fr', gap: 8 }}>
                   <Select value={bdDay} onChange={setBdDay} options={DAYS_LIST} placeholder="Gün" />
