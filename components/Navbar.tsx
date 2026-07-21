@@ -4,6 +4,7 @@ import '../styles/navbar.css';
 import { C, F } from '../tokens';
 import { ShoppingBag, Search, X, Menu } from 'lucide-react';
 import { Product } from '../types';
+import { toWebP } from '../lib/image';
 
 interface NavbarProps {
   cartCount: number;
@@ -202,9 +203,10 @@ const Navbar: React.FC<NavbarProps> = ({
                           {p.variants?.[0]?.images?.[0] && (
                             <div style={{ width: 44, height: 44, borderRadius: 8, overflow: 'hidden', background: C.bg, flexShrink: 0 }}>
                               <img
-                                src={p.variants[0].images[0]}
+                                src={toWebP(p.variants[0].images[0], 88)}
                                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                                 alt=""
+                                loading="lazy"
                               />
                             </div>
                           )}

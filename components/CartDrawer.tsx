@@ -3,6 +3,7 @@ import { X, Trash2, ShoppingBag, ArrowRight, Edit3, ChevronLeft } from 'lucide-r
 import { CartItem, MetroSchedule, Coupon } from '../types';
 import { F } from '../tokens';
 import { WHATSAPP_NUMBER } from '../constants';
+import { toWebP } from '../lib/image';
 import '../styles/cart-drawer.css';
 
 const FONT = F.sans;
@@ -412,9 +413,10 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                   <div style={{ display: 'flex', gap: 12 }}>
                     {item.images?.[0] && (
                       <img
-                        src={item.images[0]}
+                        src={toWebP(item.images[0], 128)}
                         alt={item.productName}
                         style={{ width: 64, height: 64, objectFit: 'cover', borderRadius: 8, border: `1px solid ${C.border}`, flexShrink: 0 }}
+                        loading="lazy"
                       />
                     )}
                     <div style={{ flex: 1, minWidth: 0 }}>

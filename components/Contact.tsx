@@ -1,6 +1,7 @@
 import React from 'react';
 import { F } from '../tokens';
 import { Helmet } from 'react-helmet-async';
+import { WHATSAPP_NUMBER, PHONE_DISPLAY } from '../constants';
 
 const FONT = F.sans;
 const C = {
@@ -26,10 +27,10 @@ interface ContactItem {
 
 const Contact: React.FC = () => {
   const items: ContactItem[] = [
-    { href: 'https://wa.me/994519831483', emoji: '💬', label: 'WhatsApp',  value: '+994 51 983 14 83', cta: 'Sifariş et', highlight: true },
+    { href: `https://wa.me/${WHATSAPP_NUMBER}`, emoji: '💬', label: 'WhatsApp',  value: PHONE_DISPLAY, cta: 'Sifariş et', highlight: true },
     { href: 'https://instagram.com/ravio.az', emoji: '📷',  label: 'Instagram', value: '@ravio.az',         cta: 'İzlə' },
     { href: 'https://tiktok.com/@ravio.az',   isTikTok: true, label: 'TikTok',    value: '@ravio.az',         cta: 'İzlə' },
-    { href: 'tel:+994519831483',              emoji: '📞',  label: 'Zəng',      value: '+994 51 983 14 83', cta: 'Zəng et' },
+    { href: `tel:+${WHATSAPP_NUMBER}`,        emoji: '📞',  label: 'Zəng',      value: PHONE_DISPLAY, cta: 'Zəng et' },
   ];
 
   return (

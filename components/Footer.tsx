@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { C, F } from '../tokens';
 import { Instagram, Phone, MapPin } from 'lucide-react';
+import { PHONE_DISPLAY } from '../constants';
 
 interface FooterProps {
   onProductsClick?: () => void;
@@ -101,7 +102,7 @@ const Footer: React.FC<FooterProps> = () => {
               Əlaqə
             </h4>
             {[
-              { icon: <Phone size={13} />, text: '+994 51 983 14 83' },
+              { icon: <Phone size={13} />, text: PHONE_DISPLAY },
               { icon: <MapPin size={13} />, text: 'Bakı, Azərbaycan' },
             ].map((item, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 13 }}>

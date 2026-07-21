@@ -3,6 +3,7 @@ import { F } from '../tokens';
 import { ChevronLeft, ChevronRight, Upload, Minus, Plus, Check, Tag, X, ArrowLeft } from 'lucide-react';
 import { Product, CartItem, BulkTier, Coupon } from '../types';
 import ProductReviews from './ProductReviews';
+import ZoomableImage from './ZoomableImage.tsx';
 import { toWebP, toSrcSet } from '../lib/image';
 
 const FONT = F.sans;
@@ -90,7 +91,6 @@ const ProductPage: React.FC<ProductPageProps> = ({
   const [uploadLoading,      setUploadLoading]      = useState(false);
   const [uploadError,        setUploadError]        = useState('');
   const [addedToCart,        setAddedToCart]        = useState(false);
-  const [lightboxOpen,       setLightboxOpen]       = useState(false);
 
   // ── Endirim seçimləri ──────────────────────────────────────────
   const [customerType,  setCustomerType]  = useState<'new' | 'loyal' | null>(null);
@@ -322,24 +322,20 @@ const ProductPage: React.FC<ProductPageProps> = ({
               <>
                 {/* Əsas şəkil */}
                 <div
-                  onClick={() => setLightboxOpen(true)}
-                  title="Böyütmək üçün bas"
                   style={{
                     position: 'relative', background: C.white,
                     borderRadius: 16, overflow: 'hidden',
                     border: `1px solid ${C.border}`,
                     aspectRatio: '1/1',
-                    cursor: 'zoom-in',
                   }}>
-                  <img
+                  <ZoomableImage
                     src={toWebP(allImages[imgIdx]?.url ?? '', 720, 80)}
                     srcSet={toSrcSet(allImages[imgIdx]?.url ?? '', [240, 480, 720], 80)}
                     sizes="(max-width: 640px) 90vw, (max-width: 1280px) 50vw, 640px"
+                    zoomSrc={toWebP(allImages[imgIdx]?.url ?? '', 1400, 85)}
                     alt={product.name}
                     loading="eager"
-                    decoding="async"
                     fetchPriority="high"
-                    style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
                     onError={e => { (e.target as HTMLImageElement).src = 'https://placehold.co/600x600/F5F2EC/AAAAAA?text=Şəkil+yoxdur'; }}
                   />
 
@@ -871,39 +867,6 @@ const ProductPage: React.FC<ProductPageProps> = ({
         <ProductReviews reviews={product.reviews} />
       )}
 
-      {lightboxOpen && (
-        <div
-          onClick={() => setLightboxOpen(false)}
-          role="dialog"
-          aria-label="Şəkil böyüdülmüş görünüş"
-          style={{
-            position: 'fixed', inset: 0, zIndex: 9999,
-            background: 'rgba(0,0,0,0.92)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            padding: 20, cursor: 'zoom-out',
-          }}
-        >
-          <img
-            src={toWebP(allImages[imgIdx]?.url ?? '', 1200, 90)}
-            alt={product.name}
-            style={{ maxWidth: '100%', maxHeight: '90vh', objectFit: 'contain', borderRadius: 8 }}
-          />
-          <button
-            onClick={e => { e.stopPropagation(); setLightboxOpen(false); }}
-            style={{
-              position: 'absolute', top: 20, right: 20,
-              background: 'rgba(255,255,255,0.15)', border: 'none',
-              color: '#fff', borderRadius: '50%', width: 44, height: 44,
-              cursor: 'pointer', fontSize: 22, display: 'flex',
-              alignItems: 'center', justifyContent: 'center',
-            }}
-            aria-label="Bağla"
-          >✕</button>
-          <div style={{ position: 'absolute', bottom: 20, color: 'rgba(255,255,255,0.45)', fontSize: 12 }}>
-            Bağlamaq üçün hər yerə bas
-          </div>
-        </div>
-      )}
     </div>
   );
 };
