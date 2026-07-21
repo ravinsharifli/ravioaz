@@ -47,7 +47,6 @@ function sanityWebP(url, width, quality = 80) {
   try {
     const u = new URL(url);
     u.searchParams.set('w', String(width));
-    u.searchParams.set('fm', 'webp');
     u.searchParams.set('q', String(quality));
     u.searchParams.set('fit', 'max');
     u.searchParams.set('auto', 'format');
