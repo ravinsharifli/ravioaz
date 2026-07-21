@@ -50,24 +50,29 @@ function AppShell() {
   }, [cart]);
 
   useEffect(() => {
-    // İki Sanity sorğusunu eyni anda göndər — ardıcıl deyil, paralel
-    Promise.all([
-      client.fetch(PRODUCTS_QUERY),
-      client.fetch(SETTINGS_QUERY),
-    ])
-      .then(([rawProducts, s]: [any[], any]) => {
+    // Settings (hero slaydlar) AYRICA və DƏRHAL tətbiq olunur — startTransition-a
+    // bükülmür, çünki bu kiçik state yeniləməsidir (uzun blocking render riski yoxdur).
+    // Məqsəd: hero şəkli real datanı ALDIQDAN dərhal sonra göstərsin, gecikməsin.
+    // Əvvəllər Promise.all ilə products sorğusuna bağlı idi — böyük kataloq cavabı
+    // gecikəndə hero da onunla bağlı gecikirdi. İndi tam müstəqildir (index.html-dəki
+    // <link rel="preload" as="fetch"> bu sorğunu artıq erkən isitmiş olur).
+    client.fetch(SETTINGS_QUERY)
+      .then((s: any) => setSettings(s))
+      .catch((err) => console.error('[Sanity] Settings yüklənmə xətası:', err));
+
+    client.fetch(PRODUCTS_QUERY)
+      .then((rawProducts: any[]) => {
         // startTransition: bu state yeniləməsini "təcili olmayan" kimi işarələyir —
         // React bütün məhsul siyahısını bir dəfəyə bloklayıcı şəkildə render etmək
         // əvəzinə, işi kiçik hissələrə bölüb render edir. Nəticə eynidir (dizayn
         // dəyişmir), sadəcə main-thread-i bir dəfəlik uzun "long task" ilə bloklamır.
         startTransition(() => {
           setProducts(rawProducts.map(mapSanityProduct));
-          setSettings(s);
           setLoading(false);
         });
       })
       .catch((err) => {
-        console.error('[Sanity] Yüklənmə xətası:', err);
+        console.error('[Sanity] Products yüklənmə xətası:', err);
         setLoading(false);
       });
   }, []);

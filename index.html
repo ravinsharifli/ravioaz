@@ -28,6 +28,16 @@
     <link rel="preconnect" href="https://cdn.sanity.io" crossorigin />
     <link rel="dns-prefetch" href="https://cdn.sanity.io" />
 
+    <!-- Hero slaydların datası (SETTINGS_QUERY) ERKƏN başladılır — HTML parse olunan
+         kimi, React mount olub useEffect işə düşməsini gözləmədən. sanityclient.ts
+         sonra EYNİ URL-i çağıranda brauzer bunu keşdən dərhal götürür — hero şəklinin
+         başlama vaxtı bir neçə yüz ms əvvələ çəkilir, bu birbaşa LCP-yə təsir edir.
+         DİQQƏT: URL, lib/sanityProduct.ts-dəki SETTINGS_QUERY ilə BAYT-BAYT eynidir.
+         Sorğu mətni dəyişərsə, bu sətir YENİDƏN generasiya olunmalıdır, əks halda
+         keş uyğunlaşmır və preload boşa gedir. -->
+    <link rel="preload" as="fetch" crossorigin fetchpriority="high"
+          href="https://w7scii42.apicdn.sanity.io/v2026-02-09/data/query/production?query=*%5B_type+%3D%3D+%22siteSettings%22%5D%5B0%5D%7B%0A++%22metroSchedule%22%3A+%7B%0A++++%22stations%22%3A+metroSchedule%5B%5D%7B%0A++++++name%2C%0A++++++isActive%2C%0A++++++%22daySchedules%22%3A+daySchedules%5B%5D%7B%0A++++++++day%2C%0A++++++++allDayOpen%2C%0A++++++++timeSlots%0A++++++%7D%0A++++%7D%0A++%7D%2C%0A++%22reelPosts%22%3A+reelPosts%5BisActive+%21%3D+false%5D%7B%0A++++label%2C+title%2C+subtitle%2C+ctaText%2C%0A++++%22imageUrl%22%3A+image.asset-%3Eurl%2C%0A++++%22slug%22%3A+product-%3Eslug.current%0A++%7D%2C%0A++%22heroSlides%22%3A+heroSlides%5BisActive+%21%3D+false%5D%7B%0A++++label%2C+title%2C+subtitle%2C+ctaText%2C%0A++++%22imageUrl%22%3A+image.asset-%3Eurl%0A++%7D%0A%7D" />
+
     <!-- PWA -->
     <link rel="manifest" href="/manifest.json" />
     <meta name="theme-color" content="#FF6A00" />
