@@ -20,6 +20,26 @@ export function toWebP(url: string, width: number = 600, quality: number = 80): 
     u.searchParams.set('q', String(quality));
     u.searchParams.set('fit', 'max');
     u.searchParams.set('auto', 'format');
+    u.searchParams.set('dpr', '1');
+    return u.toString();
+  } catch {
+    return url;
+  }
+}
+
+/**
+ * Hero şəkli üçün xüsusi optimallaşdırma (LCP kritik)
+ * Lighthouse test 640px genişliyində çalışır, 85% keyfiyyət
+ */
+export function toHeroWebP(url: string): string {
+  if (!url || !url.includes('cdn.sanity.io')) return url;
+  try {
+    const u = new URL(url);
+    u.searchParams.set('w', '640');
+    u.searchParams.set('q', '85');
+    u.searchParams.set('fit', 'max');
+    u.searchParams.set('auto', 'format');
+    u.searchParams.set('dpr', '1');
     return u.toString();
   } catch {
     return url;
@@ -33,5 +53,14 @@ export function toWebP(url: string, width: number = 600, quality: number = 80): 
 export function toSrcSet(url: string, widths: number[] = [320, 640, 960], quality = 80): string {
   return widths
     .map(w => `${toWebP(url, w, quality)} ${w}w`)
+    .join(', ');
+}
+
+/**
+ * Hero üçün srcset — daha az variant, daha sürətli
+ */
+export function toHeroSrcSet(url: string): string {
+  return [320, 640, 900]
+    .map(w => `${toWebP(url, w, 85)} ${w}w`)
     .join(', ');
 }

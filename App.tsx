@@ -275,7 +275,9 @@ export default function App() {
   return (
     <BrowserRouter>
       <AppShell />
-      <Analytics />
+      <Suspense fallback={null}>
+        <Analytics />
+      </Suspense>
     </BrowserRouter>
   );
 }

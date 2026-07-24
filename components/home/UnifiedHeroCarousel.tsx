@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { F } from '../../tokens';
 import { ReelPost } from '../../types';
-import { toWebP, toSrcSet } from '../../lib/image';
+import { toHeroWebP, toHeroSrcSet } from '../../lib/image';
 import { buildHeroSlides } from './heroTypes';
 
 export default function UnifiedHeroCarousel({
@@ -97,8 +97,8 @@ export default function UnifiedHeroCarousel({
           {/* ── Arxa plan ── */}
           {slide.imageUrl ? (
             <img
-              src={toWebP(slide.imageUrl, 640)}
-              srcSet={toSrcSet(slide.imageUrl, [400, 640, 900])}
+              src={toHeroWebP(slide.imageUrl)}
+              srcSet={toHeroSrcSet(slide.imageUrl)}
               sizes="(max-width: 640px) 100vw, (max-width: 1280px) 45vw, 420px"
               alt={slide.title}
               style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
@@ -106,14 +106,7 @@ export default function UnifiedHeroCarousel({
               decoding="sync"
               fetchPriority="high"
             />
-          ) : (
-            /* Promo / text slayd — dekorativ dairələr */
-            <>
-              <div style={{ position: 'absolute', right: '-40px', top: '-40px', width: 200, height: 200, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', pointerEvents: 'none' }} />
-              <div style={{ position: 'absolute', left: '20px', bottom: '-60px', width: 150, height: 150, borderRadius: '50%', background: 'rgba(255,255,255,0.04)', pointerEvents: 'none' }} />
-              <div style={{ position: 'absolute', right: '30px', bottom: '80px', width: 80, height: 80, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', pointerEvents: 'none' }} />
-            </>
-          )}
+          ) : null}
 
           {/* Şəkil üzərindəki qaranlıq gradient overlay */}
           {slide.imageUrl && (
