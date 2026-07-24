@@ -1,0 +1,281 @@
+import React, { useState, useEffect, Suspense, useCallback, useMemo, startTransition } from 'react';
+import { C, F } from './tokens';
+import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { client } from './sanityclient';
+import { Analytics } from '@vercel/analytics/react';
+import { Product, CartItem, ReelPost } from './types';
+import { PRODUCTS_QUERY, SETTINGS_QUERY, mapSanityProduct } from './lib/sanityProduct';
+import { toCategorySlug } from './lib/categorySlug';
+import { DEFAULT_METRO } from './constants/defaults';
+
+import Navbar from './components/Navbar';
+import PWAInstallBanner from './components/PWAInstallBanner';
+// ── Ana səhifə lazy deyil — birbaşa import: chunk yükləmə gözləməsi sıfırlanır ──
+import HomePage from './components/pages/HomePage';
+const AboutUs     = React.lazy(() => import('./components/AboutUs'));
+const Contact     = React.lazy(() => import('./components/Contact'));
+const DeliveryInfo = React.lazy(() => import('./components/DeliveryInfo'));
+import Footer from './components/Footer';
+const ProductsPage = React.lazy(() => import('./components/pages/ProductsPage'));
+const SlugPage    = React.lazy(() => import('./components/pages/SlugPage'));
+const NotFound    = React.lazy(() => import('./components/pages/NotFound'));
+
+const CartDrawer = React.lazy(() => import('./components/CartDrawer'));
+
+function AppShell() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [cart, setCart] = useState<CartItem[]>(() => {
+    try {
+      const saved = localStorage.getItem('ravio_cart');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [cartOpen, setCartOpen] = useState(false);
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [visible, setVisible] = useState(true);
+  const [settings, setSettings] = useState<any>(null);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('ravio_cart', JSON.stringify(cart));
+    } catch {
+      console.warn('Cart localStorage-a yazıla bilmədi');
+    }
+  }, [cart]);
+
+  useEffect(() => {
+    // Settings (hero slaydlar) AYRICA və DƏRHAL tətbiq olunur
+    client.fetch(SETTINGS_QUERY)
+      .then((s: any) => setSettings(s))
+      .catch((err) => console.error('[Sanity] Settings yüklənmə xətası:', err));
+
+    // Kataloq sorğusunu bir az gecikdiririk (100ms) ki, Hero və digər LCP elementləri
+    // şəbəkə resurslarını daha rahat götürsün.
+    setTimeout(() => {
+      client.fetch(PRODUCTS_QUERY)
+        .then((rawProducts: any[]) => {
+          startTransition(() => {
+            setProducts(rawProducts.map(mapSanityProduct));
+            setLoading(false);
+          });
+        })
+        .catch((err) => {
+          console.error('[Sanity] Products yüklənmə xətası:', err);
+          setLoading(false);
+        });
+    }, 100);
+  }, []);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    // SPA route dəyişikliyi — GA4 + Meta-ya yeni page_view göndər
+    if (typeof (window as any).trackEvent !== 'undefined') {
+      (window as any).trackEvent('page_view', {
+        page_title: document.title,
+        page_location: window.location.href,
+      });
+    } else if (typeof (window as any).gtag !== 'undefined') {
+      (window as any).gtag('event', 'page_view', {
+        page_title: document.title,
+        page_location: window.location.href,
+      });
+    }
+    if (typeof (window as any).fbq !== 'undefined') {
+      (window as any).fbq('track', 'PageView');
+    }
+  }, [location.pathname]);
+
+  const metroSchedule = settings?.metroSchedule || DEFAULT_METRO;
+  const reelPosts: ReelPost[] = settings?.reelPosts || [];
+  const heroSlides: any[] = settings?.heroSlides || [];
+
+  const categories = useMemo(
+    () => Array.from(new Set(products.map((p) => p.category).filter(Boolean))) as string[],
+    [products]
+  );
+  const filteredProducts = useMemo(
+    () => (activeCategory ? products.filter((p) => p.category === activeCategory) : products),
+    [products, activeCategory]
+  );
+
+  const handleAddToCart = useCallback((item: CartItem) => {
+    setCart((prev) => {
+      const idx = prev.findIndex((c) => c.cartId === item.cartId);
+      return idx >= 0 ? prev.map((c, i) => (i === idx ? item : c)) : [...prev, item];
+    });
+  }, []);
+
+  const handleProductAddToCart = useCallback((item: CartItem) => {
+    handleAddToCart(item);
+    setCartOpen(true);
+  }, [handleAddToCart]);
+
+  const handleRemove = (cartId: string) => setCart((prev) => prev.filter((c) => c.cartId !== cartId));
+
+  const handleEdit = (item: CartItem) => {
+    const p = products.find((prod) => prod.id === item.productId);
+    if (p?.slug) {
+      setCartOpen(false);
+      navigate(`/mehsullar/${p.slug}`, { state: { editItem: item } });
+    }
+  };
+
+  const handleClearCart = () => {
+    setCart([]);
+    localStorage.removeItem('ravio_cart');
+  };
+
+  const cartCount = cart.reduce((s, c) => s + c.quantity, 0);
+
+  const openProduct = (p: Product) => {
+    if (p.slug) {
+      navigate(`/mehsullar/${p.slug}`);
+    }
+  };
+
+  const goToProducts = (cat?: string | null) => {
+    if (cat) {
+      navigate(`/mehsullar/${toCategorySlug(cat)}`);
+    } else {
+      setActiveCategory(null);
+      navigate('/mehsullar');
+    }
+  };
+
+  const allCoupons = useMemo(() => products.flatMap((p) => p.coupons || []), [products]);
+
+  return (
+    <div style={{ minHeight: '100vh', background: C.bg, fontFamily: F.sans, color: C.black }}>
+      <a
+        href="#main-content"
+        style={{
+          position: 'absolute',
+          top: -999,
+          left: 0,
+          zIndex: 9999,
+          background: C.black,
+          color: C.white,
+          padding: '10px 20px',
+          fontWeight: 700,
+          fontSize: 14,
+          borderRadius: '0 0 8px 0',
+          textDecoration: 'none',
+          fontFamily: F.sans,
+        }}
+        onFocus={(e) => {
+          e.currentTarget.style.top = '0';
+        }}
+        onBlur={(e) => {
+          e.currentTarget.style.top = '-999px';
+        }}
+      >
+        Əsas məzmuna keç
+      </a>
+
+      <Navbar
+        cartCount={cartCount}
+        onLogoClick={() => navigate('/')}
+        onCartClick={() => setCartOpen(true)}
+        onAboutClick={() => navigate('/haqqimizda')}
+        onContactClick={() => navigate('/elaqe')}
+        onDeliveryClick={() => navigate('/catdirilma')}
+        onProductsClick={() => goToProducts(null)}
+        products={products}
+        onViewProduct={openProduct}
+      />
+
+      <main id="main-content">
+      <Suspense fallback={<div style={{minHeight:'60vh'}} />}>
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <HomePage
+                visible={visible}
+                reelPosts={reelPosts}
+                heroSlides={heroSlides}
+                categories={categories}
+                filteredProducts={filteredProducts}
+                loading={loading}
+                activeCategory={activeCategory}
+                setActiveCategory={setActiveCategory}
+                goToProducts={goToProducts}
+                openProduct={openProduct}
+              />
+            }
+          />
+          <Route
+            path="/mehsullar"
+            element={
+              <ProductsPage
+                categories={categories}
+                products={products}
+                loading={loading}
+                openProduct={openProduct}
+              />
+            }
+          />
+          <Route
+            path="/mehsullar/:slug"
+            element={
+              <SlugPage
+                products={products}
+                loading={loading}
+                categories={categories}
+                setActiveCategory={setActiveCategory}
+                openProduct={openProduct}
+                onAddToCart={handleProductAddToCart}
+              />
+            }
+          />
+          <Route path="/haqqimizda" element={<AboutUs />} />
+          <Route path="/elaqe" element={<Contact />} />
+          <Route path="/catdirilma" element={<DeliveryInfo />} />
+          <Route path="*" element={<NotFound onHome={() => navigate('/')} />} />
+        </Routes>
+        </Suspense>
+      </main>
+
+      <Footer
+        onProductsClick={() => goToProducts(null)}
+        onDeliveryClick={() => navigate('/catdirilma')}
+        onAboutClick={() => navigate('/haqqimizda')}
+        onContactClick={() => navigate('/elaqe')}
+      />
+
+      <Suspense fallback={null}>
+        <CartDrawer
+          isOpen={cartOpen}
+          onClose={() => setCartOpen(false)}
+          items={cart}
+          onRemove={handleRemove}
+          onEdit={handleEdit}
+          onClearCart={handleClearCart}
+          onGoToProducts={() => {
+            setCartOpen(false);
+            navigate('/mehsullar');
+          }}
+          metroSchedule={metroSchedule}
+          coupons={allCoupons}
+        />
+      </Suspense>
+
+      <PWAInstallBanner />
+    </div>
+  );
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <AppShell />
+      <Analytics />
+    </BrowserRouter>
+  );
+}
