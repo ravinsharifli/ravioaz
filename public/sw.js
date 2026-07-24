@@ -1,7 +1,7 @@
-// Ravio Service Worker v3 — performance optimized
-const CACHE_NAME    = 'ravio-v4';
-const IMG_CACHE     = 'ravio-img-v4';
-const SANITY_CACHE  = 'ravio-sanity-v4';
+// Ravio Service Worker v5 — cache cleanup after fix
+const CACHE_NAME    = 'ravio-v5';
+const IMG_CACHE     = 'ravio-img-v5';
+const SANITY_CACHE  = 'ravio-sanity-v5';
 
 const STATIC_SHELL = [
   '/',
@@ -12,7 +12,6 @@ const STATIC_SHELL = [
   '/favicon.png',
 ];
 
-// ─── Install ─────────────────────────────────────────────────────────────────
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_SHELL))
@@ -20,7 +19,6 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
-// ─── Activate ────────────────────────────────────────────────────────────────
 self.addEventListener('activate', (event) => {
   const KEEP = [CACHE_NAME, IMG_CACHE, SANITY_CACHE];
   event.waitUntil(
@@ -31,7 +29,6 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// ─── Fetch ───────────────────────────────────────────────────────────────────
 const ANALYTICS_HOSTS = [
   'googletagmanager.com', 'google-analytics.com', 'analytics.google.com',
   'connect.facebook.net', 'facebook.com',
@@ -41,41 +38,27 @@ const SANITY_API_HOSTS = ['api.sanity.io', 'w7scii42.api.sanity.io'];
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
-
   const url = new URL(event.request.url);
-
-  // 1. Analytics — keşlənmir, skip
   if (ANALYTICS_HOSTS.some((h) => url.hostname.includes(h))) return;
-
-  // 1b. Öz saytımızdakı analitika skriptləri — həmişə server-dən təzə gəlsin
   if (url.origin === self.location.origin && (url.pathname === '/meta-pixel.js' || url.pathname === '/ga-init.js')) return;
-
-  // 2. Sanity API sorğuları — network-first, 5s timeout
   if (SANITY_API_HOSTS.some((h) => url.hostname.includes(h))) {
     event.respondWith(networkFirst(event.request, SANITY_CACHE, 5000));
     return;
   }
-
-  // 3. Sanity CDN şəkilləri — cache-first, 7 gün
   if (url.hostname.includes('cdn.sanity.io')) {
     event.respondWith(cacheFirst(event.request, IMG_CACHE));
     return;
   }
-
-  // 4. Google Fonts — cache-first
   if (url.hostname.includes('fonts.gstatic.com') || url.hostname.includes('fonts.googleapis.com')) {
     event.respondWith(cacheFirst(event.request, CACHE_NAME));
     return;
   }
-
-  // 5. App shell (same-origin JS/CSS/HTML) — stale-while-revalidate
   if (url.origin === self.location.origin) {
     event.respondWith(staleWhileRevalidate(event.request, CACHE_NAME));
     return;
   }
 });
 
-// ─── Strategies ──────────────────────────────────────────────────────────────
 async function cacheFirst(request, cacheName) {
   const cached = await caches.match(request);
   if (cached) return cached;
