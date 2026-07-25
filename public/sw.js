@@ -1,7 +1,7 @@
-// Ravio Service Worker v3 — performance optimized
-const CACHE_NAME    = 'ravio-v4';
-const IMG_CACHE     = 'ravio-img-v4';
-const SANITY_CACHE  = 'ravio-sanity-v4';
+// Ravio Service Worker v6 — restored to last known-good state + cache invalidation
+const CACHE_NAME    = 'ravio-v6';
+const IMG_CACHE     = 'ravio-img-v6';
+const SANITY_CACHE  = 'ravio-sanity-v6';
 
 const STATIC_SHELL = [
   '/',
