@@ -1,7 +1,7 @@
-// Ravio Service Worker v6 — restored to last known-good state + cache invalidation
-const CACHE_NAME    = 'ravio-v6';
-const IMG_CACHE     = 'ravio-img-v6';
-const SANITY_CACHE  = 'ravio-sanity-v6';
+// Ravio Service Worker v7 — fix: white screen on navigate (stale index.html referencing old hashed chunks)
+const CACHE_NAME    = 'ravio-v7';
+const IMG_CACHE     = 'ravio-img-v7';
+const SANITY_CACHE  = 'ravio-sanity-v7';
 
 const STATIC_SHELL = [
   '/',
@@ -68,7 +68,18 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 5. App shell (same-origin JS/CSS/HTML) — stale-while-revalidate
+  // 5a. Naviqasiya sorğuları (səhifə açılışı) və index.html — HƏMİŞƏ network-first.
+  // Səbəb: index.html hər deploy-da dəyişən hash-lənmiş JS fayllarına (məs. ProductPage-XXXX.js)
+  // istinad edir. Bu sənəd köhnə keşdən verilsə, brauzer artıq mövcud olmayan köhnə hash-li
+  // fayl axtarır → "ağ ekran" məhz bura görə yaranır. Offline zaman üçün yenə cache-ə fallback var.
+  if (url.origin === self.location.origin &&
+      (event.request.mode === 'navigate' || url.pathname === '/' || url.pathname === '/index.html')) {
+    event.respondWith(networkFirst(event.request, CACHE_NAME, 4000));
+    return;
+  }
+
+  // 5b. Digər eyni-mənşəli fayllar (hash-lənmiş JS/CSS) — stale-while-revalidate təhlükəsizdir,
+  // çünki hər build-də fayl adı (hash) dəyişir, köhnə versiya ilə qarışıqlıq yaranmır.
   if (url.origin === self.location.origin) {
     event.respondWith(staleWhileRevalidate(event.request, CACHE_NAME));
     return;
