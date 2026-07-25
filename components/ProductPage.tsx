@@ -35,6 +35,18 @@ function getActiveTier(tiers: BulkTier[], qty: number): BulkTier | null {
     .find(t => qty >= t.minQty && (!t.maxQty || qty <= t.maxQty)) || null;
 }
 
+// Rəngin açıq/tünd olduğunu hesablayır ki, üzərindəki tik işarəsi (✓) həmişə oxunaqlı olsun
+function isLightColor(hex: string): boolean {
+  const h = hex.replace('#', '');
+  if (h.length !== 6 && h.length !== 3) return true;
+  const full = h.length === 3 ? h.split('').map(c => c + c).join('') : h;
+  const r = parseInt(full.substring(0, 2), 16);
+  const g = parseInt(full.substring(2, 4), 16);
+  const b = parseInt(full.substring(4, 6), 16);
+  const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+  return brightness > 165;
+}
+
 const Label: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.8, textTransform: 'uppercase' as const, color: C.gray, margin: '0 0 10px', fontFamily: FONT }}>
     {children}
@@ -594,83 +606,92 @@ const ProductPage: React.FC<ProductPageProps> = ({
               </Sec>
             )}
 
-            {/* Model seçimi (yalnız fərqli modellər olduqda görünür) */}
-            {hasMultipleModels && (
+            {/* Model + Rəng seçimi — tək, yığcam blokda (bellita.net tərzi) */}
+            {(hasMultipleModels || hasMultipleColors) && (
               <Sec>
-                <Label>Model</Label>
-                <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 6 }}>
-                  {uniqueModels.map((m) => {
-                    const sel = currentModel === m;
-                    // Bu modelin bütün variantları bitibsə düyməni passiv göstər
-                    const modelOos = variants
-                      .filter(v => (v.modelName || '').trim() === m)
-                      .every(v => v.stock === 0);
-                    return (
-                      <button
-                        key={m}
-                        type="button"
-                        onClick={() => !modelOos && selectModel(m)}
-                        disabled={modelOos}
-                        style={{
-                          padding: '7px 14px', borderRadius: 20, cursor: modelOos ? 'not-allowed' : 'pointer',
-                          background: sel ? C.black : C.white,
-                          color: sel ? C.white : modelOos ? C.grayLt : C.black,
-                          border: `1.5px solid ${sel ? C.black : C.border}`,
-                          opacity: modelOos ? 0.45 : 1, transition: 'all 0.15s',
-                          fontSize: 13, fontWeight: sel ? 600 : 500, fontFamily: FONT,
-                        }}
-                      >
-                        {m}{modelOos && ' · Bitib'}
-                      </button>
-                    );
-                  })}
-                </div>
-              </Sec>
-            )}
+                {hasMultipleModels && (
+                  <div style={{ marginBottom: hasMultipleColors ? 14 : 0 }}>
+                    <Label>Model</Label>
+                    <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 6 }}>
+                      {uniqueModels.map((m) => {
+                        const sel = currentModel === m;
+                        const modelOos = variants
+                          .filter(v => (v.modelName || '').trim() === m)
+                          .every(v => v.stock === 0);
+                        return (
+                          <button
+                            key={m}
+                            type="button"
+                            onClick={() => !modelOos && selectModel(m)}
+                            disabled={modelOos}
+                            style={{
+                              padding: '7px 14px', borderRadius: 20, cursor: modelOos ? 'not-allowed' : 'pointer',
+                              background: sel ? C.black : C.white,
+                              color: sel ? C.white : modelOos ? C.grayLt : C.black,
+                              border: `1.5px solid ${sel ? C.black : C.border}`,
+                              opacity: modelOos ? 0.45 : 1, transition: 'all 0.15s',
+                              fontSize: 13, fontWeight: sel ? 600 : 500, fontFamily: FONT,
+                            }}
+                          >
+                            {m}{modelOos && ' · Bitib'}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
 
-            {/* Rəng seçimi (dairə formasında) */}
-            {hasMultipleColors && (
-              <Sec>
-                <Label>Rəng: <span style={{ color: C.black, textTransform: 'none' as const, letterSpacing: 0, fontWeight: 600 }}>{variant.colorName || ''}</span></Label>
-                <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 10 }}>
-                  {colorVariants.map(({ v, i }) => {
-                    const oos = v.stock === 0;
-                    const sel = variantIdx === i;
-                    const swatch = v.colorSwatch || '#D9D4CC'; // default boz ton əgər rəng seçilməyibsə
-                    return (
-                      <button
-                        key={i}
-                        type="button"
-                        onClick={() => !oos && selectVariant(i)}
-                        disabled={oos}
-                        aria-label={v.colorName || `Rəng ${i + 1}`}
-                        aria-pressed={sel}
-                        title={v.colorName || ''}
-                        style={{
-                          width: 34, height: 34, borderRadius: '50%', padding: 0,
-                          cursor: oos ? 'not-allowed' : 'pointer',
-                          background: swatch,
-                          border: sel ? `2.5px solid ${C.black}` : `1.5px solid ${C.border}`,
-                          outline: sel ? `2px solid ${C.white}` : 'none',
-                          outlineOffset: sel ? -6 : 0,
-                          boxShadow: sel ? '0 0 0 1.5px ' + C.black : 'none',
-                          opacity: oos ? 0.35 : 1,
-                          position: 'relative' as const,
-                          transition: 'all 0.15s',
-                        }}
-                      >
-                        {oos && (
-                          <span style={{
-                            position: 'absolute' as const, inset: 0, display: 'flex',
-                            alignItems: 'center', justifyContent: 'center',
-                          }}>
-                            <span style={{ width: '120%', height: 1.5, background: C.red, transform: 'rotate(45deg)' }} />
-                          </span>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
+                {hasMultipleColors && (
+                  <div>
+                    <Label>Rəng: <span style={{ color: C.black, textTransform: 'none' as const, letterSpacing: 0, fontWeight: 600 }}>{variant.colorName || ''}</span></Label>
+                    <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 8 }}>
+                      {colorVariants.map(({ v, i }) => {
+                        const oos = v.stock === 0;
+                        const sel = variantIdx === i;
+                        const swatch = v.colorSwatch || '#D9D4CC';
+                        return (
+                          <button
+                            key={i}
+                            type="button"
+                            onClick={() => !oos && selectVariant(i)}
+                            disabled={oos}
+                            aria-label={v.colorName || `Rəng ${i + 1}`}
+                            aria-pressed={sel}
+                            title={v.colorName || ''}
+                            style={{
+                              width: 30, height: 30, borderRadius: '50%', padding: 0,
+                              cursor: oos ? 'not-allowed' : 'pointer',
+                              background: swatch,
+                              border: `1px solid ${C.border}`,
+                              opacity: oos ? 0.35 : 1,
+                              position: 'relative' as const,
+                              transition: 'transform 0.15s',
+                              transform: sel ? 'scale(1.08)' : 'scale(1)',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              boxShadow: sel ? `0 0 0 2px ${C.white}, 0 0 0 3.5px ${C.black}` : 'none',
+                            }}
+                          >
+                            {sel && !oos && (
+                              <Check
+                                size={14}
+                                strokeWidth={3}
+                                color={isLightColor(swatch) ? C.black : C.white}
+                              />
+                            )}
+                            {oos && (
+                              <span style={{
+                                position: 'absolute' as const, inset: 0, display: 'flex',
+                                alignItems: 'center', justifyContent: 'center',
+                              }}>
+                                <span style={{ width: '120%', height: 1.5, background: C.red, transform: 'rotate(45deg)' }} />
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </Sec>
             )}
 
