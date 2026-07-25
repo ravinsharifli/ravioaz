@@ -133,6 +133,40 @@ const ProductPage: React.FC<ProductPageProps> = ({
   const variant  = variants[variantIdx] || variants[0];
   if (!variant) return null;
 
+  // ── Model / Rəng seçimi üçün unikal siyahılar ──────────────────
+  // Əgər bütün variantlarda modelName eynidir (yaxud boşdur) -> model seçimi göstərilmir, sadəcə rəng dairələri.
+  // Əgər fərqli modellər varsa -> əvvəl model (kiçik yazı düymələri), sonra seçilmiş modelin rəngləri (dairə).
+  const uniqueModels = Array.from(
+    new Set(variants.map(v => (v.modelName || '').trim()).filter(Boolean))
+  );
+  const hasMultipleModels = uniqueModels.length > 1;
+
+  const currentModel = hasMultipleModels ? (variant.modelName || '').trim() : null;
+
+  // Seçilmiş modelə uyğun rəng variantları (model yoxdursa bütün variantlar)
+  const colorVariants = hasMultipleModels
+    ? variants.map((v, i) => ({ v, i })).filter(({ v }) => (v.modelName || '').trim() === currentModel)
+    : variants.map((v, i) => ({ v, i }));
+
+  const hasMultipleColors = colorVariants.length > 1
+    && colorVariants.some(({ v }) => (v.colorName || '').trim());
+
+  function selectVariant(i: number) {
+    const v = variants[i];
+    if (v.stock === 0) return;
+    setVariantIdx(i);
+    const firstIdx = allImages.findIndex(img => img.vIdx === i);
+    setImgIdx(firstIdx >= 0 ? firstIdx : 0);
+  }
+
+  function selectModel(modelName: string) {
+    // Bu modelin ilk mövcud (stokda olan, ya da ilk) variantına keç
+    const candidates = variants.map((v, i) => ({ v, i })).filter(({ v }) => (v.modelName || '').trim() === modelName);
+    const inStock = candidates.find(({ v }) => v.stock !== 0);
+    const target = inStock || candidates[0];
+    if (target) selectVariant(target.i);
+  }
+
   const totalImgs  = allImages.length;
   const origPrice  = variant.price;
   const salePrice  = variant.discountPrice;
@@ -560,52 +594,80 @@ const ProductPage: React.FC<ProductPageProps> = ({
               </Sec>
             )}
 
-            {/* Variantlar */}
-            {variants.length > 1 && (
+            {/* Model seçimi (yalnız fərqli modellər olduqda görünür) */}
+            {hasMultipleModels && (
               <Sec>
-                <Label>Model / Rəng</Label>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 6 }}>
-                  {variants.map((v, i) => {
-                    const oos = v.stock === 0;
-                    const sel = variantIdx === i;
-                    const lbl = [v.modelName, v.colorName].filter(Boolean).join(' · ') || `Variant ${i + 1}`;
+                <Label>Model</Label>
+                <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 6 }}>
+                  {uniqueModels.map((m) => {
+                    const sel = currentModel === m;
+                    // Bu modelin bütün variantları bitibsə düyməni passiv göstər
+                    const modelOos = variants
+                      .filter(v => (v.modelName || '').trim() === m)
+                      .every(v => v.stock === 0);
                     return (
-                      <div
-                        key={i}
-                        onClick={() => {
-                          if (!oos) {
-                            setVariantIdx(i);
-                            const firstIdx = allImages.findIndex(img => img.vIdx === i);
-                            setImgIdx(firstIdx >= 0 ? firstIdx : 0);
-                          }
-                        }}
-                        onKeyDown={e => {
-                          if ((e.key === 'Enter' || e.key === ' ') && !oos) {
-                            e.preventDefault();
-                            setVariantIdx(i);
-                            const firstIdx = allImages.findIndex(img => img.vIdx === i);
-                            setImgIdx(firstIdx >= 0 ? firstIdx : 0);
-                          }
-                        }}
-                        role="button"
-                        tabIndex={oos ? -1 : 0}
-                        aria-pressed={sel}
-                        aria-disabled={oos}
+                      <button
+                        key={m}
+                        type="button"
+                        onClick={() => !modelOos && selectModel(m)}
+                        disabled={modelOos}
                         style={{
-                          padding: '8px 10px', borderRadius: 8, cursor: oos ? 'not-allowed' : 'pointer',
+                          padding: '7px 14px', borderRadius: 20, cursor: modelOos ? 'not-allowed' : 'pointer',
                           background: sel ? C.black : C.white,
-                          color: sel ? C.white : oos ? C.grayLt : C.black,
+                          color: sel ? C.white : modelOos ? C.grayLt : C.black,
                           border: `1.5px solid ${sel ? C.black : C.border}`,
-                          opacity: oos ? 0.45 : 1, transition: 'all 0.15s',
-                          display: 'flex', flexDirection: 'column' as const, gap: 2,
+                          opacity: modelOos ? 0.45 : 1, transition: 'all 0.15s',
+                          fontSize: 13, fontWeight: sel ? 600 : 500, fontFamily: FONT,
                         }}
                       >
-                        <div style={{ fontSize: 12, fontWeight: sel ? 600 : 500, lineHeight: 1.3 }}>{lbl}</div>
-                        <div style={{ fontSize: 11, fontWeight: 700, color: sel ? 'rgba(255,255,255,0.65)' : oos ? C.grayLt : C.orange }}>
-                          {(v.discountPrice ?? v.price).toFixed(2)} ₼
-                          {oos && <span style={{ fontSize: 10, fontWeight: 500 }}> · Bitib</span>}
-                        </div>
-                      </div>
+                        {m}{modelOos && ' · Bitib'}
+                      </button>
+                    );
+                  })}
+                </div>
+              </Sec>
+            )}
+
+            {/* Rəng seçimi (dairə formasında) */}
+            {hasMultipleColors && (
+              <Sec>
+                <Label>Rəng: <span style={{ color: C.black, textTransform: 'none' as const, letterSpacing: 0, fontWeight: 600 }}>{variant.colorName || ''}</span></Label>
+                <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 10 }}>
+                  {colorVariants.map(({ v, i }) => {
+                    const oos = v.stock === 0;
+                    const sel = variantIdx === i;
+                    const swatch = v.colorSwatch || '#D9D4CC'; // default boz ton əgər rəng seçilməyibsə
+                    return (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => !oos && selectVariant(i)}
+                        disabled={oos}
+                        aria-label={v.colorName || `Rəng ${i + 1}`}
+                        aria-pressed={sel}
+                        title={v.colorName || ''}
+                        style={{
+                          width: 34, height: 34, borderRadius: '50%', padding: 0,
+                          cursor: oos ? 'not-allowed' : 'pointer',
+                          background: swatch,
+                          border: sel ? `2.5px solid ${C.black}` : `1.5px solid ${C.border}`,
+                          outline: sel ? `2px solid ${C.white}` : 'none',
+                          outlineOffset: sel ? -6 : 0,
+                          boxShadow: sel ? '0 0 0 1.5px ' + C.black : 'none',
+                          opacity: oos ? 0.35 : 1,
+                          position: 'relative' as const,
+                          transition: 'all 0.15s',
+                        }}
+                      >
+                        {oos && (
+                          <span style={{
+                            position: 'absolute' as const, inset: 0, display: 'flex',
+                            alignItems: 'center', justifyContent: 'center',
+                          }}>
+                            <span style={{ width: '120%', height: 1.5, background: C.red, transform: 'rotate(45deg)' }} />
+                          </span>
+                        )}
+                      </button>
                     );
                   })}
                 </div>

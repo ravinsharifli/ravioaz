@@ -1,5 +1,6 @@
 import { defineConfig } from 'sanity'
 import { structureTool } from 'sanity/structure'
+import { colorInput } from '@sanity/color-input'
 import { schemaTypes } from './schameTypes'
 
 export default defineConfig({
@@ -10,6 +11,7 @@ export default defineConfig({
   dataset: 'production',
 
   plugins: [
+    colorInput(),
     structureTool({
       structure: (S) =>
         S.list()

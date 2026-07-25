@@ -8,6 +8,7 @@ export interface BulkTier {
 export interface Variant {
   modelName?: string;
   colorName?: string;
+  colorSwatch?: string; // hex kodu, məs. "#C0C0C0" — rəng dairəsi üçün
   images: string[];
   price: number;
   discountPrice?: number;

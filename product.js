@@ -155,6 +155,13 @@ export default {
               type: 'string',
             },
             {
+              name: 'colorSwatch',
+              title: '🎨 Rəng nümunəsi (saytda dairə kimi görünür)',
+              description: 'Bu rəngin saytda dairə şəklində görünəcək tonu. Naxışlı/qarışıq rənglər üçün ən yaxın tonu seçin (məs. naxışlı qızılı Zippo üçün qızılı ton).',
+              type: 'color',
+              options: { disableAlpha: true },
+            },
+            {
               name: 'images',
               title: '📸 Şəkillər (1-3 ədəd)',
               type: 'array',
@@ -184,14 +191,16 @@ export default {
             select: {
               modelName: 'modelName',
               colorName: 'colorName',
+              colorSwatch: 'colorSwatch',
               stock: 'stock',
               price: 'price',
               discountPrice: 'discountPrice',
               media: 'images.0'
             },
-            prepare({ modelName, colorName, stock, price, discountPrice, media }) {
+            prepare({ modelName, colorName, colorSwatch, stock, price, discountPrice, media }) {
               const model = modelName || '-';
-              const color = colorName || '-';
+              const swatchHex = colorSwatch?.hex;
+              const color = colorName ? `${swatchHex ? '●' : ''} ${colorName}`.trim() : '-';
               const stockBadge = stock === 0 ? '❌ Bitib' : stock < 20 ? `⚠️ ${stock} əd` : `✅ ${stock} əd`;
               const priceText = discountPrice ? `${discountPrice} AZN` : `${price} AZN`;
               return {

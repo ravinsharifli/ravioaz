@@ -4,7 +4,7 @@ export const PRODUCTS_QUERY = `*[_type == "product"] | order(bestSellerOrder asc
   _id, name, "slug": slug.current, description,
   category->{ name },
   variants[] {
-    modelName, colorName, price, discountPrice, stock,
+    modelName, colorName, "colorSwatch": colorSwatch.hex, price, discountPrice, stock,
     images[]{ asset->{ url } }
   },
   isPremium, premiumOrder, premiumSize,
@@ -20,7 +20,7 @@ export const SINGLE_PRODUCT_QUERY = `*[_type == "product" && slug.current == $sl
   _id, name, "slug": slug.current, description,
   category->{ name },
   variants[] {
-    modelName, colorName, price, discountPrice, stock,
+    modelName, colorName, "colorSwatch": colorSwatch.hex, price, discountPrice, stock,
     images[]{ asset->{ url } }
   },
   isPremium, premiumOrder, premiumSize,
@@ -60,6 +60,7 @@ export function mapSanityProduct(raw: any): Product {
   const variants = (raw.variants || []).map((v: any) => ({
     modelName: v.modelName || '',
     colorName: v.colorName || '',
+    colorSwatch: v.colorSwatch || undefined,
     images: (v.images || [])
       .map((img: any) => (img?.asset?.url ? img.asset.url : typeof img === 'string' ? img : ''))
       .filter(Boolean),
