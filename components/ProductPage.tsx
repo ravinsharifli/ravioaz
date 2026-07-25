@@ -659,22 +659,21 @@ const ProductPage: React.FC<ProductPageProps> = ({
                             aria-pressed={sel}
                             title={v.colorName || ''}
                             style={{
-                              width: 30, height: 30, borderRadius: '50%', padding: 0,
+                              width: 24, height: 24, borderRadius: '50%', padding: 0,
                               cursor: oos ? 'not-allowed' : 'pointer',
                               background: swatch,
                               border: `1px solid ${C.border}`,
                               opacity: oos ? 0.35 : 1,
                               position: 'relative' as const,
-                              transition: 'transform 0.15s',
-                              transform: sel ? 'scale(1.08)' : 'scale(1)',
+                              transition: 'box-shadow 0.15s',
                               display: 'flex', alignItems: 'center', justifyContent: 'center',
-                              boxShadow: sel ? `0 0 0 2px ${C.white}, 0 0 0 3.5px ${C.black}` : 'none',
+                              boxShadow: sel ? `0 0 0 2px ${C.white}, 0 0 0 3px ${C.black}` : 'none',
                             }}
                           >
                             {sel && !oos && (
                               <Check
-                                size={14}
-                                strokeWidth={3}
+                                size={11}
+                                strokeWidth={3.5}
                                 color={isLightColor(swatch) ? C.black : C.white}
                               />
                             )}
