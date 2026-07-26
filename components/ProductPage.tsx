@@ -208,6 +208,10 @@ const ProductPage: React.FC<ProductPageProps> = ({
     : 0;
   const finalPrice = Math.max(0, couponBase - couponDiscount);
 
+  // Sticky bar üçün: say × (kampaniyasız əsl qiymət) + qutu — xətli göstərmək üçün
+  const origSub = origPrice * qty + boxFee;
+  const hasAnyDiscount = isOnSale || bulkOff > 0 || customerDisc > 0 || couponDiscount > 0;
+
   const handleApplyCoupon = () => {
     const trimmed = couponInput.trim().toUpperCase();
     if (!trimmed) { setCouponError('Kupon kodu daxil edin'); return; }
@@ -478,22 +482,11 @@ const ProductPage: React.FC<ProductPageProps> = ({
               </h1>
             </div>
 
-            {/* Qiymət */}
-            <Sec>
-              <div>
-                {isOnSale && (
-                  <span style={{ fontSize: 14, color: C.grayLt, textDecoration: 'line-through', display: 'block', marginBottom: 2 }}>
-                    {origPrice.toFixed(2)} ₼
-                  </span>
-                )}
-                <span style={{ fontSize: 32, fontWeight: 800, color: isOnSale ? C.orange : C.black, letterSpacing: '-1px' }}>
-                  {baseUnit.toFixed(2)} ₼
-                </span>
-                {product.description && (
-                  <p style={{ margin: '8px 0 0', fontSize: 13, color: C.gray, lineHeight: 1.65 }}>{product.description}</p>
-                )}
-              </div>
-            </Sec>
+            {product.description && (
+              <Sec>
+                <p style={{ margin: 0, fontSize: 13, color: C.gray, lineHeight: 1.65 }}>{product.description}</p>
+              </Sec>
+            )}
 
             {/* Müştəri növü */}
             <Sec>
@@ -716,12 +709,6 @@ const ProductPage: React.FC<ProductPageProps> = ({
                     cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
                   }}><Plus size={15} /></button>
                 </div>
-                <div style={{ textAlign: 'right' as const }}>
-                  {qty > 1 && <div style={{ fontSize: 12, color: C.grayLt, marginBottom: 2 }}>{effectiveUnit.toFixed(2)} ₼ / ədəd</div>}
-                  <div style={{ fontSize: 26, fontWeight: 800, color: C.black, letterSpacing: '-0.5px' }}>
-                    {(effectiveUnit * qty).toFixed(2)} ₼
-                  </div>
-                </div>
               </div>
 
               {product.hasBulkDiscount && product.bulkTiers && product.bulkTiers.length > 0 && (
@@ -896,10 +883,10 @@ const ProductPage: React.FC<ProductPageProps> = ({
                 <span style={{ fontSize: 13, color: C.gray }}>
                   {qty} ədəd{boxFee > 0 ? ` + ${box?.name}` : ''}
                 </span>
-                {(customerDisc > 0 || couponDiscount > 0) ? (
+                {hasAnyDiscount ? (
                   <div style={{ textAlign: 'right' as const }}>
                     <span style={{ fontSize: 13, color: C.grayLt, textDecoration: 'line-through', display: 'block' }}>
-                      {productSub.toFixed(2)} ₼
+                      {origSub.toFixed(2)} ₼
                     </span>
                     <span style={{ fontSize: 18, fontWeight: 800, color: C.green }}>
                       {finalPrice.toFixed(2)} ₼
@@ -907,7 +894,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
                   </div>
                 ) : (
                   <span style={{ fontSize: 18, fontWeight: 800, color: C.black }}>
-                    {productSub.toFixed(2)} ₼
+                    {finalPrice.toFixed(2)} ₼
                   </span>
                 )}
               </div>
