@@ -690,26 +690,40 @@ const ProductPage: React.FC<ProductPageProps> = ({
             {/* Say */}
             <Sec>
               <Label>Say</Label>
-              <div style={{ display: 'flex', alignItems: 'center' }}>
-                <button onClick={() => setQty(q => Math.max(1, q - 1))} aria-label="Sayı azalt" style={{
-                  width: 32, height: 32, borderRadius: '6px 0 0 6px',
-                  border: `1px solid ${C.border}`, background: C.bg,
-                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}><Minus size={12} /></button>
-                <div style={{
-                  width: 40, height: 32, border: `1px solid ${C.border}`,
-                  borderLeft: 'none', borderRight: 'none',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 13, fontWeight: 700, background: C.white, color: C.black,
-                }}>{qty}</div>
-                <button onClick={() => setQty(q => q + 1)} aria-label="Sayı artır" style={{
-                  width: 32, height: 32, borderRadius: '0 6px 6px 0',
-                  border: `1px solid ${C.border}`, background: C.bg,
-                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}><Plus size={12} /></button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' as const }}>
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  <button onClick={() => setQty(q => Math.max(1, q - 1))} aria-label="Sayı azalt" style={{
+                    width: 32, height: 32, borderRadius: '6px 0 0 6px',
+                    border: `1px solid ${C.border}`, background: C.bg,
+                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}><Minus size={12} /></button>
+                  <div style={{
+                    width: 40, height: 32, border: `1px solid ${C.border}`,
+                    borderLeft: 'none', borderRight: 'none',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 13, fontWeight: 700, background: C.white, color: C.black,
+                  }}>{qty}</div>
+                  <button onClick={() => setQty(q => q + 1)} aria-label="Sayı artır" style={{
+                    width: 32, height: 32, borderRadius: '0 6px 6px 0',
+                    border: `1px solid ${C.border}`, background: C.bg,
+                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}><Plus size={12} /></button>
+                </div>
+
+                {product.hasBulkDiscount && product.bulkTiers && product.bulkTiers.length === 1 && (() => {
+                  const tier = product.bulkTiers[0];
+                  const isActive = qty >= tier.minQty && (!tier.maxQty || qty <= tier.maxQty);
+                  const lbl = tier.label || (tier.maxQty ? `${tier.minQty}–${tier.maxQty} ədəd` : `${tier.minQty}+ ədəd`);
+                  const disc = Math.max(0, baseUnit - tier.discountAmount);
+                  return (
+                    <span style={{ fontSize: 12, fontWeight: 600, color: isActive ? C.green : C.grayLt }}>
+                      {lbl} → {disc.toFixed(2)} ₼/ədəd
+                    </span>
+                  );
+                })()}
               </div>
 
-              {product.hasBulkDiscount && product.bulkTiers && product.bulkTiers.length > 0 && (
+              {product.hasBulkDiscount && product.bulkTiers && product.bulkTiers.length > 1 && (
                 <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 6, marginTop: 10 }}>
                   {product.bulkTiers.map((tier, i) => {
                     const isActive = qty >= tier.minQty && (!tier.maxQty || qty <= tier.maxQty);
