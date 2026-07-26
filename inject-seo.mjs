@@ -12,6 +12,7 @@
 
 import { createClient } from '@sanity/client';
 import { readFileSync, writeFileSync, mkdirSync } from 'fs';
+import { join } from 'path';
 
 // ── Sanity client ─────────────────────────────────────────────
 const client = createClient({
@@ -155,6 +156,38 @@ function injectProductSchema(html, product) {
   return html.replace('</head>', `${tag}\n</head>`);
 }
 
+/**
+ * Kritik CSS-i inline edir — render-blocking <link rel="stylesheet"> sorğusunu
+ * aradan qaldırır. Yalnız fayl KİÇİK olduqda (< 15 KB) mənalıdır: bir HTTP
+ * gediş-gəlişinin (round-trip) dəyəri, faylı HTML-in içinə yazmaqdan böyükdür.
+ * Bizim CSS ~2.7 KB-dır — inline etmək PageSpeed-in bildirdiyi
+ * "Render-blocking requests" xəbərdarlığını (~490ms itki) aradan qaldırır.
+ */
+function inlineMainCss(html, distDir = 'dist') {
+  const linkRe = /<link rel="stylesheet" crossorigin href="(\/assets\/[^"]+\.css)">/;
+  const match = html.match(linkRe);
+  if (!match) {
+    console.warn('  ⚠️  Inline ediləcək CSS <link> tapılmadı — vite chunk adı dəyişibmi?');
+    return html;
+  }
+  const cssPath = join(distDir, match[1]);
+  let cssContent;
+  try {
+    cssContent = readFileSync(cssPath, 'utf-8');
+  } catch (err) {
+    console.warn(`  ⚠️  CSS faylı oxuna bilmədi (${cssPath}): ${err.message}`);
+    return html;
+  }
+  if (cssContent.length > 15000) {
+    console.warn(`  ⚠️  CSS faylı çox böyükdür (${cssContent.length} bayt) — inline edilmədi, limit aşıldı`);
+    return html;
+  }
+  const inlineTag = `<style>${cssContent}</style>`;
+  const result = html.replace(linkRe, inlineTag);
+  console.log(`  ok CSS inline edildi (${(cssContent.length / 1024).toFixed(1)} KB) — render-blocking request aradan qalxdı\n`);
+  return result;
+}
+
 // ── Əsas funksiya ─────────────────────────────────────────────
 async function run() {
   console.log('\n🚀 inject-seo: başladı...\n');
@@ -188,12 +221,19 @@ async function run() {
   // App.tsx PRODUCTS_QUERY) — grid-in İLK kartı budur.
   const firstGridProduct = await client.fetch(`
     *[_type == "product"] | order(bestSellerOrder asc) [0]{
-      "firstImageUrl": variants[0].images[0].asset->url
+      "firstImageUrl": variants[0].images[0].asset->url,
+      name
     }
   `);
 
   // 2. dist/index.html-i template kimi oxu
-  const template = readFileSync('dist/index.html', 'utf-8');
+  let template = readFileSync('dist/index.html', 'utf-8');
+
+  // Kritik CSS-i BÜTÜN prerender olunan səhifələr üçün İLK addım olaraq inline
+  // edirik (template hələ heç bir digər dəyişikliyə uğramamış) — beləliklə
+  // həm / (ana səhifə), həm /mehsullar/[slug] səhifələri render-blocking CSS
+  // sorğusundan azad olur.
+  template = inlineMainCss(template);
 
   // ── 3. Ana səhifə LCP preload ─────────────────────────────────
   // Hero karusel ilk slaydı homepage-in ən böyük görünən elementidir (LCP).
@@ -230,10 +270,60 @@ async function run() {
       );
     }
 
+    let homeHtml = template;
+
     if (preloadTags.length) {
-      const homeHtml = template.replace('</head>', `${preloadTags.join('\n')}\n</head>`);
+      homeHtml = homeHtml.replace('</head>', `${preloadTags.join('\n')}\n</head>`);
+    }
+
+    // ── Statik LCP şəkli: React mount olmadan ƏVVƏL görünən əsl <img> ──────
+    // Preload təkcə bayt yükləməsini sürətləndirir — brauzer şəkli hələ də
+    // "render edə" bilmir, çünki DOM-da <img> elementi YOXDUR (React onu yalnız
+    // JS icra olunub Sanity fetch bitdikdən sonra yaradır). Elə buna görə
+    // "Element render delay" 2+ saniyə idi, halbuki "Resource load duration"
+    // cəmi 20ms idi — şəkil artıq yüklənmişdi, sadəcə göstərilməmişdi.
+    // Həll: #ravio-skeleton-un içinə əsl <img> əlavə edirik (React #root-u
+    // dolduran kimi mövcud CSS qaydası bunu avtomatik gizlədir — JS lazım deyil,
+    // useEffect/hydration mismatch riski yoxdur, çünki bu, #root-dan KƏNARdadır).
+    if (firstGridProduct?.firstImageUrl) {
+      const gridWidths = [240, 480, 720];
+      const gridSizes  = '(max-width: 400px) 45vw, (max-width: 900px) 45vw, (max-width: 1200px) 30vw, 25vw';
+      const gridSrcset = gridWidths.map(w => `${sanityWebP(firstGridProduct.firstImageUrl, w)} ${w}w`).join(', ');
+      const gridSrc    = sanityWebP(firstGridProduct.firstImageUrl, 480);
+      const altText    = esc(firstGridProduct.name || 'Ravio məhsulu');
+
+      const skeletonProductBlock = `<div class="ravio-skel-product"><img src="${gridSrc}" srcset="${gridSrcset}" sizes="${gridSizes}" alt="${altText}" fetchpriority="high" style="width:100%;height:100%;object-fit:cover;display:block;" /></div>`;
+
+      // index.html-dəki sabit marker-lərə görə insert edirik (string-in özünə
+      // görə deyil) — beləliklə index.html-in başqa hissəsi dəyişsə belə bu
+      // build addımı qırılmır.
+      if (homeHtml.includes('<!-- INJECT_SEO:SKELETON_PRODUCT_SLOT -->')) {
+        homeHtml = homeHtml.replace('<!-- INJECT_SEO:SKELETON_PRODUCT_SLOT -->', skeletonProductBlock);
+      } else {
+        console.warn('  ⚠️  SKELETON_PRODUCT_SLOT marker tapılmadı — index.html dəyişibmi?');
+      }
+
+      // Grid skeleton üçün CSS: hero-nun altında, ProductGrid-in həqiqi ilk
+      // kartı ilə TƏXMİNƏN eyni mövqedə (max-width 1280px konteyner, 2/3/4 sütun).
+      // Dəqiq piksel-piksel uyğunluq lazım deyil — məqsəd LCP şəklinin HTML
+      // parse zamanı dərhal görünməsidir, real React kartı yükləndikdə
+      // #root dolacaq və bu blok dərhal gizlənəcək.
+      const skeletonCss = `.ravio-skel-product{max-width:1280px;margin:24px auto 0;padding:0 clamp(16px,3vw,32px);
+        aspect-ratio:1/1;max-height:45vw;overflow:hidden;border-radius:12px;background:#F5F2EC}
+      @media (min-width:640px){.ravio-skel-product{max-width:300px}}`;
+
+      if (homeHtml.includes('/* INJECT_SEO:SKELETON_PRODUCT_CSS_SLOT */')) {
+        homeHtml = homeHtml.replace('/* INJECT_SEO:SKELETON_PRODUCT_CSS_SLOT */', skeletonCss);
+      } else {
+        console.warn('  ⚠️  SKELETON_PRODUCT_CSS_SLOT marker tapılmadı — index.html dəyişibmi?');
+      }
+
+      console.log(`  ok Statik LCP <img> -> #ravio-skeleton (${firstGridProduct.name})\n`);
+    }
+
+    if (preloadTags.length || firstGridProduct?.firstImageUrl) {
       writeFileSync('dist/index.html', homeHtml, 'utf-8');
-      console.log(`  ok LCP preload -> / (hero + ilk grid kartı, ${preloadTags.length} tag)\n`);
+      console.log(`  ok LCP preload -> / (hero + ilk grid kartı, ${preloadTags.length} preload tag)\n`);
     }
   }
 
