@@ -60,13 +60,17 @@ function sanityWebP(url, width, quality = 80) {
  * LCP şəklini preload et — brauzer preload scanner HTML-dən tapır,
  * JS-i gözləmədən şəkli dərhal yükləyir.
  * imagesrcset + imagesizes sayəsində brauzer ən uyğun ölçünü seçir.
+ *
+ * fetchPriority parametri: eyni səhifədə 2 preload olanda (hero + ilk grid kartı)
+ * hər ikisinə "high" versək, brauzer bant genişliyini bölür və HEÇ BİRİ tez
+ * bitmir. Ona görə yalnız real LCP namizədinə "high" veririk, digərinə "auto".
  */
-function lcpPreloadTag(imageUrl, sizes = '(max-width: 400px) 45vw, (max-width: 900px) 45vw, (max-width: 1200px) 30vw, 25vw', widths = [240, 480, 720]) {
+function lcpPreloadTag(imageUrl, sizes = '(max-width: 400px) 45vw, (max-width: 900px) 45vw, (max-width: 1200px) 30vw, 25vw', widths = [240, 480, 720], fetchPriority = 'high') {
   if (!imageUrl) return '';
   const srcset = widths
     .map(w => `${sanityWebP(imageUrl, w)} ${w}w`)
     .join(', ');
-  return `  <link rel="preload" as="image" imagesrcset="${srcset}" imagesizes="${sizes}" fetchpriority="high" />`;
+  return `  <link rel="preload" as="image" imagesrcset="${srcset}" imagesizes="${sizes}" fetchpriority="${fetchPriority}" />`;
 }
 
 /** HTML template-dəki meta tagları məhsula uyğun dəyişdir */
@@ -168,11 +172,23 @@ async function run() {
 
   console.log(`📦 ${products.length} məhsul tapıldı\n`);
 
-  // 1b. Ana səhifənin əsl LCP elementi — hero karusel (məhsul kartı yox,
-  // çünki UnifiedHeroCarousel ProductGrid-dən ƏVVƏL render olunur)
+  // 1b. Ana səhifə LCP namizədləri: real PageSpeed testində (Moto G Power,
+  // dar mobil viewport) LCP elementi HƏMIŞƏ hero yox, ProductGrid-in İLK kartının
+  // şəkli olaraq ölçülür — hero DOM-da əvvəl gəlsə də, mobil ekranda vizual
+  // sahəsi (piksel sahəsi) grid kartından kiçik qala bilir və Lighthouse
+  // böyük olanı seçir. Ona görə HƏR İKİSİNİ preload edirik: brauzer real
+  // LCP-ni hansı olursa seçsin, hər ikisi artıq HTML-də mövcud olur.
   const heroSettings = await client.fetch(`
     *[_type == "siteSettings"][0]{
       "heroImage": heroSlides[isActive != false][0].image.asset->url
+    }
+  `);
+
+  // Ana səhifə grid-i bestSellerOrder asc sırası ilə göstərir (ProductGrid.tsx,
+  // App.tsx PRODUCTS_QUERY) — grid-in İLK kartı budur.
+  const firstGridProduct = await client.fetch(`
+    *[_type == "product"] | order(bestSellerOrder asc) [0]{
+      "firstImageUrl": variants[0].images[0].asset->url
     }
   `);
 
@@ -185,15 +201,40 @@ async function run() {
   // əks halda brauzer preload edilən şəkli yox, başqasını yükləyir.
   // Build zamanı preload tag-ini dist/index.html-ə yazırıq ki,
   // brauzer preload scanner JS-i gözləmədən şəkli tapıb yükləsin.
-  if (heroSettings?.heroImage) {
-    const preload = lcpPreloadTag(
-      heroSettings.heroImage,
-      '(max-width: 640px) 100vw, (max-width: 1280px) 45vw, 420px',
-      [400, 640, 900]
-    );
-    const homeHtml = template.replace('</head>', `${preload}\n</head>`);
-    writeFileSync('dist/index.html', homeHtml, 'utf-8');
-    console.log(`  🖼️  LCP preload → / (hero slayd)\n`);
+  {
+    const preloadTags = [];
+
+    // Real PageSpeed ölçmələri (2026-07) göstərir ki, mobil LCP elementi
+    // grid kartıdır, hero YOX — ona görə "high" prioritet BURAYA gedir,
+    // hero isə "auto" alır (yenə preload olunur, sadəcə bant genişliyi
+    // ilk növbədə əsl LCP elementinə ayrılır).
+    if (firstGridProduct?.firstImageUrl) {
+      preloadTags.push(
+        lcpPreloadTag(
+          firstGridProduct.firstImageUrl,
+          '(max-width: 400px) 45vw, (max-width: 900px) 45vw, (max-width: 1200px) 30vw, 25vw',
+          [240, 480, 720],
+          'high'
+        )
+      );
+    }
+
+    if (heroSettings?.heroImage) {
+      preloadTags.push(
+        lcpPreloadTag(
+          heroSettings.heroImage,
+          '(max-width: 640px) 100vw, (max-width: 1280px) 45vw, 420px',
+          [400, 640, 900],
+          'auto'
+        )
+      );
+    }
+
+    if (preloadTags.length) {
+      const homeHtml = template.replace('</head>', `${preloadTags.join('\n')}\n</head>`);
+      writeFileSync('dist/index.html', homeHtml, 'utf-8');
+      console.log(`  ok LCP preload -> / (hero + ilk grid kartı, ${preloadTags.length} tag)\n`);
+    }
   }
 
   let ok = 0;
