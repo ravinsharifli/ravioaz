@@ -713,11 +713,11 @@ const ProductPage: React.FC<ProductPageProps> = ({
                 {product.hasBulkDiscount && product.bulkTiers && product.bulkTiers.length === 1 && (() => {
                   const tier = product.bulkTiers[0];
                   const isActive = qty >= tier.minQty && (!tier.maxQty || qty <= tier.maxQty);
-                  const lbl = tier.label || (tier.maxQty ? `${tier.minQty}–${tier.maxQty} ədəd` : `${tier.minQty}+ ədəd`);
+                  const lbl = tier.label || (tier.maxQty ? `${tier.minQty}–${tier.maxQty} əd` : `${tier.minQty}+ əd`);
                   const disc = Math.max(0, baseUnit - tier.discountAmount);
                   return (
                     <span style={{ fontSize: 12, fontWeight: 600, color: isActive ? C.green : C.grayLt }}>
-                      {lbl} → {disc.toFixed(2)} ₼/ədəd
+                      {lbl} → {disc.toFixed(2)} ₼/əd
                     </span>
                   );
                 })()}
@@ -727,7 +727,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
                 <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 6, marginTop: 10 }}>
                   {product.bulkTiers.map((tier, i) => {
                     const isActive = qty >= tier.minQty && (!tier.maxQty || qty <= tier.maxQty);
-                    const lbl = tier.label || (tier.maxQty ? `${tier.minQty}–${tier.maxQty} ədəd` : `${tier.minQty}+ ədəd`);
+                    const lbl = tier.label || (tier.maxQty ? `${tier.minQty}–${tier.maxQty} əd` : `${tier.minQty}+ əd`);
                     const disc = Math.max(0, baseUnit - tier.discountAmount);
                     return (
                       <div
@@ -742,7 +742,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
                           background: isActive ? C.orange : C.bg, color: isActive ? C.white : C.gray,
                           border: `1px solid ${isActive ? C.orange : C.border}`, transition: 'all 0.15s',
                         }}>
-                        {lbl} → {disc.toFixed(2)} ₼/ədəd
+                        {lbl} → {disc.toFixed(2)} ₼/əd
                       </div>
                     );
                   })}
@@ -886,7 +886,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
                 <span style={{ fontSize: 13, color: C.gray }}>
-                  {qty} ədəd{boxFee > 0 ? ` + ${box?.name}` : ''}
+                  {qty} əd{boxFee > 0 ? ` + ${box?.name}` : ''}
                 </span>
                 {hasAnyDiscount ? (
                   <div style={{ textAlign: 'right' as const }}>

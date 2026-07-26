@@ -284,7 +284,7 @@ export default {
             },
             {
               name: 'label',
-              title: 'Göstəriləcək mətn (məs: \"1-10 ədəd\")',
+              title: 'Göstəriləcək mətn (məs: \"1-10 əd\")',
               type: 'string',
             },
           ],
