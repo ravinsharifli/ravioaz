@@ -1,4 +1,38 @@
 /* ── Ravio global stillər (brauzer cache edir) ───────────────────────────── */
+
+/* Inter — yerli saxlanılır (self-hosted). Google Fonts CDN-i Azərbaycan
+   hərflərini (ə, ş, ğ və s.) ayrı bir "latin-ext" fayl parçasına bölürdü;
+   həmin parça gecikəndə brauzer sistem fontuna keçirdi və "ə" hərfi
+   digərlərindən fərqli görünürdü. Tək fayl = bütün hərflər həmişə eyni fontdan. */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/Inter-Regular.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/Inter-SemiBold.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/Inter-Bold.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url('/fonts/Inter-ExtraBold.woff2') format('woff2');
+}
+
 :root {
   --clr-primary: #ff6a00;
   --clr-primary-dark: #e55a00;

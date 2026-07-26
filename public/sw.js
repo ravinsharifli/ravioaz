@@ -1,7 +1,7 @@
-// Ravio Service Worker v7 — fix: white screen on navigate (stale index.html referencing old hashed chunks)
-const CACHE_NAME    = 'ravio-v7';
-const IMG_CACHE     = 'ravio-img-v7';
-const SANITY_CACHE  = 'ravio-sanity-v7';
+// Ravio Service Worker v8 — Inter font self-hosted (Azərbaycan hərfləri sabit görünür)
+const CACHE_NAME    = 'ravio-v8';
+const IMG_CACHE     = 'ravio-img-v8';
+const SANITY_CACHE  = 'ravio-sanity-v8';
 
 const STATIC_SHELL = [
   '/',
@@ -62,8 +62,8 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 4. Google Fonts — cache-first
-  if (url.hostname.includes('fonts.gstatic.com') || url.hostname.includes('fonts.googleapis.com')) {
+  // 4. Font faylları (öz domenimizdə) — cache-first, uzunmüddətli
+  if (url.origin === self.location.origin && url.pathname.startsWith('/fonts/')) {
     event.respondWith(cacheFirst(event.request, CACHE_NAME));
     return;
   }

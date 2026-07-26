@@ -20,8 +20,6 @@
 
     <!-- Performans: 4 preconnect — dəqiq hədəflər, artıq yox -->
     <link rel="preload" as="image" href="/og-ravio.webp" fetchpriority="high" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="preconnect" href="https://w7scii42.apicdn.sanity.io" crossorigin />
     <link rel="dns-prefetch" href="https://w7scii42.apicdn.sanity.io" />
     <!-- Məhsul şəkilləri cdn.sanity.io-dan gəlir — əlaqəni erkən qur, LCP delay azalır -->
@@ -132,14 +130,8 @@
   #root{min-height:100vh}
 </style>
 
-    <!-- Inter şrifti: 400/600/700/800 — display:optional CLS sıfır edir -->
-    <link rel="preload" as="style" crossorigin
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=optional"
-          onload="this.onload=null;this.rel='stylesheet'" />
-    <noscript>
-      <link rel="stylesheet"
-            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=optional" />
-    </noscript>
+    <!-- Inter şrifti: yerli saxlanılır (self-hosted), Azərbaycan hərfləri daxil -->
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/Inter-Regular.woff2" crossorigin />
 
     <!-- Google Analytics — ga-init.js interaksiyadan/4s sonra gtag/js-i özü yükləyir -->
     <script src="/ga-init.js" defer></script>
