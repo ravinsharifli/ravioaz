@@ -180,6 +180,13 @@ export default {
               type: 'number',
             },
             {
+              name: 'costPrice',
+              title: '🔒 Alış qiyməti (₼) — DAXİLİ, saytda görünmür',
+              type: 'number',
+              description: 'YALNIZ CEO/idarəetmə üçün. Bu sahə frontend kodunda istifadə olunmur və müştəriyə göstərilmir — yalnız qiymət hesablaması üçündür.',
+              validation: Rule => Rule.min(0),
+            },
+            {
               name: 'stock',
               title: 'Stok sayı',
               type: 'number',
@@ -195,17 +202,22 @@ export default {
               stock: 'stock',
               price: 'price',
               discountPrice: 'discountPrice',
+              costPrice: 'costPrice',
               media: 'images.0'
             },
-            prepare({ modelName, colorName, colorSwatch, stock, price, discountPrice, media }) {
+            prepare({ modelName, colorName, colorSwatch, stock, price, discountPrice, costPrice, media }) {
               const model = modelName || '-';
               const swatchHex = colorSwatch?.hex;
               const color = colorName ? `${swatchHex ? '●' : ''} ${colorName}`.trim() : '-';
               const stockBadge = stock === 0 ? '❌ Bitib' : stock < 20 ? `⚠️ ${stock} əd` : `✅ ${stock} əd`;
               const priceText = discountPrice ? `${discountPrice} AZN` : `${price} AZN`;
+              const effectivePrice = discountPrice || price;
+              const marginBadge = (costPrice != null && effectivePrice != null)
+                ? ` | 🔒 Qazanc: ${(effectivePrice - costPrice).toFixed(2)}₼`
+                : '';
               return {
                 title: `${model} | ${color}`,
-                subtitle: `${priceText} | ${stockBadge}`,
+                subtitle: `${priceText} | ${stockBadge}${marginBadge}`,
                 media
               }
             }
@@ -214,97 +226,21 @@ export default {
       ]
     },
 
-    // ⭐ ƏN ÇOX SATILANLAR
-    {
-      name: 'isBestSeller',
-      title: '⭐ Ən çox satılan?',
-      type: 'boolean',
-      description: 'Açın — \"Ən çox satılanlar\" bölməsində görünsün.',
-      initialValue: false,
-    },
-    {
-      name: 'bestSellerOrder',
-      title: 'Ən çox satılan sırası (1, 2, 3...)',
-      type: 'number',
-      description: 'Kiçik rəqəm — əvvəldə görünür.',
-      hidden: ({ document }) => !document?.isBestSeller,
-    },
-    {
-      name: 'orderCount',
-      title: '📦 Ümumi sifariş sayı (avtomatik artır)',
-      type: 'number',
-      description: 'Hər sifarişdə avtomatik artır. Çox olduqda \"Ən çox satılan\"a düşür.',
-      initialValue: 0,
-      readOnly: false,
-    },
-
-    // 💰 KƏMİYYƏT ENDİRİMİ
+    // 💰 KƏMİYYƏT ENDİRİMİ (2-10 ədəd arası, sabit aralıq)
     {
       name: 'hasBulkDiscount',
-      title: '💰 Kəmiyyətə görə endirim var?',
+      title: '💰 2-10 ədəd arası endirim aktivdirmi?',
       type: 'boolean',
-      description: 'Açın — say artdıqca endirim tətbiq olunur.',
+      description: 'Açın — müştəri 2-10 ədəd sifariş etdikdə hər ədəddən aşağıdakı məbləğ endirim olunur.',
       initialValue: false,
     },
     {
-      name: 'bulkDiscountNote',
-      title: 'Endirim bildirişi (qırmızı yazı ilə göstərilir)',
-      type: 'string',
-      description: 'Məs: \"2+ sifariş etdikdə xüsusi endirim əldə et!\"',
+      name: 'bulkDiscountAmount',
+      title: 'Hər ədədə endirim məbləği (₼)',
+      type: 'number',
+      description: 'Məs: 1 yazsan — 2-10 ədəd sifarişdə hər ədəddən 1₼ endirim olunur. (10+ üçün kupon kodundan istifadə edin.)',
       hidden: ({ document }) => !document?.hasBulkDiscount,
-    },
-    {
-      name: 'bulkTiers',
-      title: 'Kəmiyyət pillələri',
-      type: 'array',
-      description: 'Hər pillə üçün minimum say və endirim məbləği (AZN) yazın.',
-      hidden: ({ document }) => !document?.hasBulkDiscount,
-      of: [
-        {
-          type: 'object',
-          fields: [
-            {
-              name: 'minQty',
-              title: 'Minimum say (məs: 1, 11, 21)',
-              type: 'number',
-              validation: Rule => Rule.required().min(1).integer(),
-            },
-            {
-              name: 'maxQty',
-              title: 'Maksimum say (məs: 10, 20 — sonsuz üçün boş burax)',
-              type: 'number',
-              description: 'Boş buraxsanız \"və daha çox\" mənasını verir.',
-            },
-            {
-              name: 'discountAmount',
-              title: 'Endirim məbləği (AZN) — hər ədədə',
-              type: 'number',
-              description: 'Məs: 2 yazsan — hər ədəddən 2 AZN endirim.',
-              validation: Rule => Rule.required().min(0),
-            },
-            {
-              name: 'label',
-              title: 'Göstəriləcək mətn (məs: \"1-10 əd\")',
-              type: 'string',
-            },
-          ],
-          preview: {
-            select: {
-              minQty: 'minQty',
-              maxQty: 'maxQty',
-              discountAmount: 'discountAmount',
-              label: 'label',
-            },
-            prepare({ minQty, maxQty, discountAmount, label }) {
-              const range = maxQty ? `${minQty}-${maxQty} ədəd` : `${minQty}+ ədəd`;
-              return {
-                title: label || range,
-                subtitle: `Hər ədəddən -${discountAmount} AZN endirim`,
-              }
-            }
-          }
-        }
-      ],
+      validation: Rule => Rule.min(0),
     },
 
     // 🎟 MƏHSULA ÖZƏL ENDİRİM KODLARI
@@ -428,18 +364,16 @@ export default {
     select: {
       title: 'name',
       isPremium: 'isPremium',
-      isBestSeller: 'isBestSeller',
       hasBulkDiscount: 'hasBulkDiscount',
       allowBoxSelection: 'allowBoxSelection',
       variants: 'variants',
     },
     prepare(selection) {
-      const { title, isPremium, isBestSeller, hasBulkDiscount, allowBoxSelection, variants } = selection;
+      const { title, isPremium, hasBulkDiscount, allowBoxSelection, variants } = selection;
       const variantList = variants && Array.isArray(variants) ? variants : [];
       const totalStock = variantList.reduce((sum, v) => sum + (v?.stock || 0), 0);
       const badges = [
         isPremium ? '💎' : '',
-        isBestSeller ? '⭐' : '',
         hasBulkDiscount ? '💰' : '',
         allowBoxSelection === false ? '🚫📦' : '📦',
       ].filter(Boolean).join(' ');

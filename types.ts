@@ -1,10 +1,3 @@
-export interface BulkTier {
-  minQty: number;
-  maxQty?: number;
-  discountAmount: number;
-  label?: string;
-}
-
 export interface Variant {
   modelName?: string;
   colorName?: string;
@@ -44,12 +37,8 @@ export interface Product {
   isPremium?: boolean;
   premiumOrder?: number;
   premiumSize?: string;
-  isBestSeller?: boolean;
-  bestSellerOrder?: number;
-  orderCount?: number;
   hasBulkDiscount?: boolean;
-  bulkDiscountNote?: string;
-  bulkTiers?: BulkTier[];
+  bulkDiscountAmount?: number;
   allowBoxSelection?: boolean;
   customBoxOptions?: BoxOption[];
   coupons?: Coupon[];

@@ -171,15 +171,6 @@ const Card: React.FC<CardProps> = ({
           }}>−{pct}%</div>
         )}
 
-        {product.isBestSeller && !hasDiscount && (
-          <div style={{
-            position: 'absolute', top: 8, left: 8,
-            background: C.black, color: C.white,
-            fontSize: 10, fontWeight: 700,
-            padding: '3px 8px', borderRadius: 6,
-          }}>✦ Populyar</div>
-        )}
-
         {lowStock && (
           <div style={{
             position: 'absolute', top: 8, right: 8,

@@ -1,6 +1,6 @@
 import { Product } from '../types';
 
-export const PRODUCTS_QUERY = `*[_type == "product"] | order(bestSellerOrder asc) {
+export const PRODUCTS_QUERY = `*[_type == "product"] | order(name asc) {
   _id, name, "slug": slug.current, description,
   category->{ name },
   variants[] {
@@ -8,9 +8,7 @@ export const PRODUCTS_QUERY = `*[_type == "product"] | order(bestSellerOrder asc
     images[]{ asset->{ url } }
   },
   isPremium, premiumOrder, premiumSize,
-  isBestSeller, bestSellerOrder, orderCount,
-  hasBulkDiscount, bulkDiscountNote,
-  bulkTiers[]{ minQty, maxQty, discountAmount, label },
+  hasBulkDiscount, bulkDiscountAmount,
   allowBoxSelection,
   customBoxOptions[]{ id, name, desc, price, isActive, "imageUrl": image.asset->url },
   coupons[]{ code, discountType, discountValue, minOrderAmount, isActive, description }
@@ -24,9 +22,7 @@ export const SINGLE_PRODUCT_QUERY = `*[_type == "product" && slug.current == $sl
     images[]{ asset->{ url } }
   },
   isPremium, premiumOrder, premiumSize,
-  isBestSeller, bestSellerOrder, orderCount,
-  hasBulkDiscount, bulkDiscountNote,
-  bulkTiers[]{ minQty, maxQty, discountAmount, label },
+  hasBulkDiscount, bulkDiscountAmount,
   allowBoxSelection,
   customBoxOptions[]{ id, name, desc, price, isActive, "imageUrl": image.asset->url },
   coupons[]{ code, discountType, discountValue, minOrderAmount, isActive, description },
@@ -78,12 +74,8 @@ export function mapSanityProduct(raw: any): Product {
     isPremium: raw.isPremium || false,
     premiumOrder: raw.premiumOrder,
     premiumSize: raw.premiumSize,
-    isBestSeller: raw.isBestSeller || false,
-    bestSellerOrder: raw.bestSellerOrder,
-    orderCount: raw.orderCount || 0,
     hasBulkDiscount: raw.hasBulkDiscount || false,
-    bulkDiscountNote: raw.bulkDiscountNote || '',
-    bulkTiers: raw.bulkTiers || [],
+    bulkDiscountAmount: raw.bulkDiscountAmount ?? 0,
     allowBoxSelection: raw.allowBoxSelection !== false,
     customBoxOptions: (raw.customBoxOptions || [])
       .filter((b: any) => b.isActive !== false)
