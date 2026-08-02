@@ -104,6 +104,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
   const [couponInput,   setCouponInput]   = useState('');
   const [couponError,   setCouponError]   = useState('');
   const [couponFocused, setCouponFocused] = useState(false);
+  const [bulkNoticeDismissed, setBulkNoticeDismissed] = useState(false);
 
   const effectiveBoxes: BoxOption[] = (product as any).customBoxOptions?.length > 0
     ? (product as any).customBoxOptions
@@ -179,11 +180,10 @@ const ProductPage: React.FC<ProductPageProps> = ({
   const isOnSale   = !!(salePrice && salePrice < origPrice);
   const salePct    = isOnSale ? Math.round(((origPrice - baseUnit) / origPrice) * 100) : 0;
 
-  const bulkOff       = (product.hasBulkDiscount && product.bulkDiscountAmount && qty >= 2 && qty <= 10)
-    ? product.bulkDiscountAmount
-    : 0;
+  const bulkOff       = qty >= 2 ? (product.bulkDiscountAmount ?? 1) : 0;
   const effectiveUnit = Math.max(0, baseUnit - bulkOff);
   const bulkDiscTotal = bulkOff * qty;
+  const showBulkNotice = qty >= 10 && !bulkNoticeDismissed;
 
   const showBox = product.allowBoxSelection !== false;
   const box    = showBox ? (effectiveBoxes.find((b: BoxOption) => b.id === boxId) ?? effectiveBoxes[0]) : null;
@@ -704,16 +704,42 @@ const ProductPage: React.FC<ProductPageProps> = ({
                   }}><Plus size={12} /></button>
                 </div>
 
-                {product.hasBulkDiscount && !!product.bulkDiscountAmount && (() => {
-                  const isActive = qty >= 2 && qty <= 10;
-                  const disc = Math.max(0, baseUnit - product.bulkDiscountAmount);
+                {(() => {
+                  const amount = product.bulkDiscountAmount ?? 1;
+                  const isActive = qty >= 2;
+                  const disc = Math.max(0, baseUnit - amount);
                   return (
                     <span style={{ fontSize: 12, fontWeight: 600, color: isActive ? C.green : C.grayLt }}>
-                      2–10 əd → {disc.toFixed(2)} ₼/əd
+                      2+ əd → {disc.toFixed(2)} ₼/əd
                     </span>
                   );
                 })()}
               </div>
+
+              {showBulkNotice && (
+                <div style={{
+                  display: 'flex', alignItems: 'flex-start', gap: 8, marginTop: 10,
+                  padding: '10px 12px', background: C.orangeBg, border: `1px solid ${C.orangeBd}`,
+                  borderRadius: 8,
+                }}>
+                  <span style={{ fontSize: 12, color: '#7C2D12', lineHeight: 1.5, flex: 1 }}>
+                    10+ ədəd toplu sifarişdir — əlavə endirimdən yararlanmaq üçün bizimlə əlaqə saxlayın:{' '}
+                    <a href="tel:0519831483" style={{ color: C.orange, fontWeight: 700, textDecoration: 'none' }}>
+                      051 983 14 83
+                    </a>
+                  </span>
+                  <button
+                    onClick={() => setBulkNoticeDismissed(true)}
+                    aria-label="Bildirişi bağla"
+                    style={{
+                      background: 'none', border: 'none', cursor: 'pointer',
+                      color: '#7C2D12', flexShrink: 0, display: 'flex', padding: 2,
+                    }}
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              )}
             </Sec>
 
             {/* Xüsusi yazı */}

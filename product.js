@@ -46,93 +46,6 @@ export default {
       type: 'text',
     },
 
-    // ⭐ MÜŞTƏRİ RƏYLƏRİ
-    {
-      name: 'reviews',
-      title: '⭐ Müştəri rəyləri',
-      type: 'array',
-      description:
-        'Bu məhsulu almış müştərilərin real rəyləri. Boş buraxsanız — saytda rəy bölməsi görünməz.',
-      of: [{ type: 'productReview' }],
-    },
-
-    // 📦 QUTU SEÇİMİ
-    {
-      name: 'allowBoxSelection',
-      title: '📦 Qutu seçimi aktiv olsun?',
-      type: 'boolean',
-      description: 'AÇIN — bijuteriya, qolbaq, təsbeh kimi məhsullar üçün. BAĞLAYIN — qutu seçimi lazım olmayan məhsullar üçün.',
-      initialValue: true,
-    },
-    {
-      name: 'customBoxOptions',
-      title: '📦 Bu məhsula özəl qutu seçimləri',
-      type: 'array',
-      description: 'Boş buraxsanız — Sayt Tənzimləmələrindəki ümumi qutular göstərilir. Doldursanız — yalnız buradakı qutular göstərilir.',
-      hidden: ({ document }) => document?.allowBoxSelection === false,
-      of: [
-        {
-          type: 'object',
-          fields: [
-            {
-              name: 'id',
-              title: 'ID (unikal, məs: simple, orta, premium)',
-              type: 'string',
-              validation: Rule => Rule.required(),
-            },
-            {
-              name: 'name',
-              title: 'Qutu adı (müştəriyə görünür)',
-              type: 'string',
-              description: 'Məs: Sadə qutu, Gümüş qutu, Premium qutu',
-              validation: Rule => Rule.required(),
-            },
-            {
-              name: 'desc',
-              title: 'Qısa açıqlama',
-              type: 'string',
-              description: 'Məs: Standart qablaşdırma, Lent + köpük yastıq',
-            },
-            {
-              name: 'price',
-              title: 'Qiymət (₼) — 0 = pulsuz',
-              type: 'number',
-              initialValue: 0,
-              validation: Rule => Rule.required().min(0),
-            },
-            {
-              name: 'image',
-              title: '📸 Qutu şəkli',
-              type: 'image',
-              options: { hotspot: true },
-              description: 'Müştəri bu şəkli görüb seçim edəcək',
-            },
-            {
-              name: 'isActive',
-              title: 'Aktiv?',
-              type: 'boolean',
-              initialValue: true,
-            },
-          ],
-          preview: {
-            select: {
-              title: 'name',
-              subtitle: 'price',
-              isActive: 'isActive',
-              media: 'image',
-            },
-            prepare({ title, subtitle, isActive, media }) {
-              return {
-                title: `${isActive ? '✅' : '❌'} ${title || 'Qutu'}`,
-                subtitle: subtitle === 0 ? 'Pulsuz' : `+${subtitle} ₼`,
-                media,
-              };
-            },
-          },
-        },
-      ],
-    },
-
     // 🎨 VARİANTLAR
     {
       name: 'variants',
@@ -226,21 +139,14 @@ export default {
       ]
     },
 
-    // 💰 KƏMİYYƏT ENDİRİMİ (2-10 ədəd arası, sabit aralıq)
-    {
-      name: 'hasBulkDiscount',
-      title: '💰 2-10 ədəd arası endirim aktivdirmi?',
-      type: 'boolean',
-      description: 'Açın — müştəri 2-10 ədəd sifariş etdikdə hər ədəddən aşağıdakı məbləğ endirim olunur.',
-      initialValue: false,
-    },
+    // 💰 KƏMİYYƏT ENDİRİMİ (həmişə aktiv, 2+ ədəddə işə düşür)
     {
       name: 'bulkDiscountAmount',
-      title: 'Hər ədədə endirim məbləği (₼)',
+      title: '💰 2+ ədəddə hər ədədə endirim məbləği (₼)',
       type: 'number',
-      description: 'Məs: 1 yazsan — 2-10 ədəd sifarişdə hər ədəddən 1₼ endirim olunur. (10+ üçün kupon kodundan istifadə edin.)',
-      hidden: ({ document }) => !document?.hasBulkDiscount,
-      validation: Rule => Rule.min(0),
+      description: 'Bu endirim həmişə aktivdir. Müştəri 2 və daha çox ədəd sifariş etdikdə hər ədəddən bu məbləğ avtomatik endirim olunur. 10+ ədəddə əlavə olaraq əlaqə bildirişi göstərilir. Standart: 1₼.',
+      initialValue: 1,
+      validation: Rule => Rule.required().min(0),
     },
 
     // 🎟 MƏHSULA ÖZƏL ENDİRİM KODLARI
@@ -333,8 +239,6 @@ export default {
     },
 
     // 🔑 AVTOMATLAŞDIRMA ÜÇÜN DAXİLİ AÇAR (Google Drive qovluq adı)
-    // Make.com ssenarisi eyni qovluqdan gələn yeni rəng/model şəkillərini
-    // yeni məhsul yaratmaq əvəzinə bu məhsula variant kimi əlavə edir.
     {
       name: 'sourceKey',
       title: '🔑 Mənbə açarı (Drive qovluq adı) — toxunma',
@@ -346,18 +250,14 @@ export default {
   preview: {
     select: {
       title: 'name',
-      hasBulkDiscount: 'hasBulkDiscount',
-      allowBoxSelection: 'allowBoxSelection',
+      bulkDiscountAmount: 'bulkDiscountAmount',
       variants: 'variants',
     },
     prepare(selection) {
-      const { title, hasBulkDiscount, allowBoxSelection, variants } = selection;
+      const { title, bulkDiscountAmount, variants } = selection;
       const variantList = variants && Array.isArray(variants) ? variants : [];
       const totalStock = variantList.reduce((sum, v) => sum + (v?.stock || 0), 0);
-      const badges = [
-        hasBulkDiscount ? '💰' : '',
-        allowBoxSelection === false ? '🚫📦' : '📦',
-      ].filter(Boolean).join(' ');
+      const badges = bulkDiscountAmount > 0 ? '💰' : '';
       return {
         title: `${badges ? badges + ' ' : ''}${title || 'Məhsul'}`,
         subtitle: `Ümumi stok: ${totalStock} əd`,
