@@ -332,48 +332,29 @@ export default {
       ],
     },
 
-    // PREMIUM
+    // 🔑 AVTOMATLAŞDIRMA ÜÇÜN DAXİLİ AÇAR (Google Drive qovluq adı)
+    // Make.com ssenarisi eyni qovluqdan gələn yeni rəng/model şəkillərini
+    // yeni məhsul yaratmaq əvəzinə bu məhsula variant kimi əlavə edir.
     {
-      name: 'isPremium',
-      title: '💎 Premium məhsuldur?',
-      type: 'boolean',
-      initialValue: false,
-    },
-    {
-      name: 'premiumOrder',
-      title: 'Premium sırası',
-      type: 'number',
-      hidden: ({ document }) => !document?.isPremium,
-    },
-    {
-      name: 'premiumSize',
-      title: 'Premium ölçüsü',
+      name: 'sourceKey',
+      title: '🔑 Mənbə açarı (Drive qovluq adı) — toxunma',
       type: 'string',
-      options: {
-        list: [
-          { title: 'Böyük (Sol 50%)', value: 'large' },
-          { title: 'Kiçik (Sağ üst 25%)', value: 'small-top' },
-          { title: 'Kiçik (Sağ alt 25%)', value: 'small-bottom' },
-        ],
-      },
-      hidden: ({ document }) => !document?.isPremium,
-      initialValue: 'large',
+      description: 'Avtomatik doldurulur. Bu sahəni əl ilə dəyişməyin — Make.com bunu istifadə edərək eyni məhsulun rəng/model variantlarını tanıyır.',
+      readOnly: true,
     },
   ],
   preview: {
     select: {
       title: 'name',
-      isPremium: 'isPremium',
       hasBulkDiscount: 'hasBulkDiscount',
       allowBoxSelection: 'allowBoxSelection',
       variants: 'variants',
     },
     prepare(selection) {
-      const { title, isPremium, hasBulkDiscount, allowBoxSelection, variants } = selection;
+      const { title, hasBulkDiscount, allowBoxSelection, variants } = selection;
       const variantList = variants && Array.isArray(variants) ? variants : [];
       const totalStock = variantList.reduce((sum, v) => sum + (v?.stock || 0), 0);
       const badges = [
-        isPremium ? '💎' : '',
         hasBulkDiscount ? '💰' : '',
         allowBoxSelection === false ? '🚫📦' : '📦',
       ].filter(Boolean).join(' ');
