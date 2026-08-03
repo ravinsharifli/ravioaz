@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { X, Trash2, ShoppingBag, ArrowRight, Edit3, ChevronLeft } from 'lucide-react';
-import { CartItem, MetroSchedule, Coupon } from '../types';
+import { X, Trash2, ShoppingBag, ArrowRight, Edit3, ChevronLeft, Minus, Plus } from 'lucide-react';
+import { CartItem, MetroSchedule, Coupon, Product } from '../types';
 import { F } from '../tokens';
 import { WHATSAPP_NUMBER } from '../constants';
 import { toWebP } from '../lib/image';
+import { getMaxQuantityForItem } from '../lib/cartPricing';
 import '../styles/cart-drawer.css';
 
 const FONT = F.sans;
@@ -56,8 +57,10 @@ interface CartDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   items: CartItem[];
+  products?: Product[];
   onRemove: (cartId: string) => void;
   onEdit: (item: CartItem) => void;
+  onUpdateQuantity?: (cartId: string, quantity: number) => void;
   onGoToProducts?: () => void;
   onClearCart?: () => void;
   metroSchedule?: MetroSchedule;
@@ -144,8 +147,10 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
   isOpen,
   onClose,
   items,
+  products,
   onRemove,
   onEdit,
+  onUpdateQuantity,
   onGoToProducts,
   onClearCart,
   metroSchedule,
@@ -429,8 +434,70 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                           {item.customText}
                         </div>
                       )}
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: 13, color: C.grayLt }}>{item.quantity} ədəd</span>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' as const, gap: 8 }}>
+                        {(() => {
+                          const product = products?.find((p) => p.id === item.productId);
+                          const maxQty = getMaxQuantityForItem(item, product);
+                          const atMin = item.quantity <= 1;
+                          const atMax = item.quantity >= maxQty;
+                          return (
+                            <div style={{ display: 'flex', alignItems: 'center' }}>
+                              <button
+                                type="button"
+                                onClick={() => onUpdateQuantity?.(item.cartId, item.quantity - 1)}
+                                disabled={atMin}
+                                aria-label="Sayı azalt"
+                                style={{
+                                  width: 28, height: 28, borderRadius: '6px 0 0 6px',
+                                  border: `1px solid ${C.border}`, background: C.bg,
+                                  cursor: atMin ? 'default' : 'pointer', opacity: atMin ? 0.4 : 1,
+                                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                }}
+                              >
+                                <Minus size={11} />
+                              </button>
+                              <input
+                                type="number"
+                                inputMode="numeric"
+                                value={item.quantity}
+                                min={1}
+                                max={maxQty}
+                                aria-label={`${item.productName} sayı`}
+                                onChange={(event) => {
+                                  const raw = parseInt(event.target.value, 10);
+                                  if (Number.isNaN(raw)) return;
+                                  onUpdateQuantity?.(item.cartId, Math.min(maxQty, Math.max(1, raw)));
+                                }}
+                                onBlur={(event) => {
+                                  if (!event.target.value) onUpdateQuantity?.(item.cartId, 1);
+                                }}
+                                style={{
+                                  width: 38, height: 28, border: `1px solid ${C.border}`,
+                                  borderLeft: 'none', borderRight: 'none',
+                                  textAlign: 'center', fontSize: 13, fontWeight: 700,
+                                  background: C.white, color: C.black, fontFamily: FONT, outline: 'none',
+                                }}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => onUpdateQuantity?.(item.cartId, item.quantity + 1)}
+                                disabled={atMax}
+                                aria-label="Sayı artır"
+                                style={{
+                                  width: 28, height: 28, borderRadius: '0 6px 6px 0',
+                                  border: `1px solid ${C.border}`, background: C.bg,
+                                  cursor: atMax ? 'default' : 'pointer', opacity: atMax ? 0.4 : 1,
+                                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                }}
+                              >
+                                <Plus size={11} />
+                              </button>
+                              {maxQty <= 10 && (
+                                <span style={{ fontSize: 11, color: C.grayLt, marginLeft: 8 }}>maks. {maxQty}</span>
+                              )}
+                            </div>
+                          );
+                        })()}
                         <span style={{ fontSize: 15, fontWeight: 800, color: C.black }}>{money(getItemSubtotal(item))}</span>
                       </div>
                     </div>

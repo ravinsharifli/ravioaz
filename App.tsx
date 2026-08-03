@@ -6,6 +6,7 @@ import { Analytics } from '@vercel/analytics/react';
 import { Product, CartItem, ReelPost } from './types';
 import { PRODUCTS_QUERY, SETTINGS_QUERY, mapSanityProduct } from './lib/sanityProduct';
 import { toCategorySlug } from './lib/categorySlug';
+import { recalcCartItemForQuantity } from './lib/cartPricing';
 import { DEFAULT_METRO } from './constants/defaults';
 
 import Navbar from './components/Navbar';
@@ -105,6 +106,7 @@ function AppShell() {
     () => (activeCategory ? products.filter((p) => p.category === activeCategory) : products),
     [products, activeCategory]
   );
+  const allCoupons = useMemo(() => products.flatMap((p) => p.coupons || []), [products]);
 
   const handleAddToCart = useCallback((item: CartItem) => {
     setCart((prev) => {
@@ -119,6 +121,18 @@ function AppShell() {
   }, [handleAddToCart]);
 
   const handleRemove = (cartId: string) => setCart((prev) => prev.filter((c) => c.cartId !== cartId));
+
+  // Səbətdə "+/−" və ya inputla sayı birbaşa dəyişmək üçün — məhsul səhifəsinə
+  // qayıtmağa ehtiyac qalmır. Qiymət/endirim sahələri ProductPage.tsx-dəki EYNİ
+  // düsturla (bax: lib/cartPricing.ts) yenidən hesablanır ki, yekun məbləğ həmişə
+  // göstərilən sayla üst-üstə düşsün.
+  const handleUpdateQuantity = useCallback((cartId: string, quantity: number) => {
+    setCart((prev) => prev.map((item) => {
+      if (item.cartId !== cartId) return item;
+      const product = products.find((p) => p.id === item.productId);
+      return recalcCartItemForQuantity(item, quantity, product, allCoupons);
+    }));
+  }, [products, allCoupons]);
 
   const handleEdit = (item: CartItem) => {
     const p = products.find((prod) => prod.id === item.productId);
@@ -149,8 +163,6 @@ function AppShell() {
       navigate('/mehsullar');
     }
   };
-
-  const allCoupons = useMemo(() => products.flatMap((p) => p.coupons || []), [products]);
 
   return (
     <div style={{ minHeight: '100vh', background: C.bg, fontFamily: F.sans, color: C.black }}>
@@ -256,8 +268,10 @@ function AppShell() {
           isOpen={cartOpen}
           onClose={() => setCartOpen(false)}
           items={cart}
+          products={products}
           onRemove={handleRemove}
           onEdit={handleEdit}
+          onUpdateQuantity={handleUpdateQuantity}
           onClearCart={handleClearCart}
           onGoToProducts={() => {
             setCartOpen(false);

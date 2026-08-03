@@ -48,8 +48,20 @@ export default function SlugPage({
     [products, slug],
   );
 
+  // Kateqoriya təyini fetch effektindən ƏVVƏL aparılır. Əvvəllər bu yoxlama
+  // effektdən SONRA gəlirdi, ona görə də kateqoriyalar arasında keçiddə (məs.
+  // /mehsullar/qolbaqlar → /mehsullar/tesbehler) hər dəfə lazımsız yerə
+  // "bu slug-lı MƏHSUL var?" sorğusu Sanity-yə göndərilirdi. O sorğu (həmişə boş
+  // qayıdır, çünki slug məhsul deyil, kateqoriyadır) fetchingProduct-u qısa
+  // müddətə true edirdi, bu da bütün CatalogLayout-u (sidebar + kateqoriya
+  // düymələri + grid) LoadingGrid ilə əvəz edib dərhal geri qaytarırdı —
+  // istifadəçiyə "səhifə pozulur" kimi görünən vizual sıçrayış elə budur.
+  const isKnownCategory = Boolean(CATEGORY_SEO[slug]);
+  const matchedCategory = useMemo(() => fromCategorySlug(slug, categories), [slug, categories]);
+  const isSlugACategory = isKnownCategory || (categories.length > 0 && matchedCategory !== null);
+
   useEffect(() => {
-    if (!slug || listProduct) {
+    if (!slug || listProduct || isSlugACategory) {
       setFetchedProduct(null);
       setFetchingProduct(false);
       return;
@@ -76,17 +88,12 @@ export default function SlugPage({
     return () => {
       cancelled = true;
     };
-  }, [slug, listProduct, loading]);
+  }, [slug, listProduct, loading, isSlugACategory]);
 
   const currentProduct = listProduct ?? fetchedProduct ?? null;
   const pageLoading = loading || fetchingProduct;
 
-  const isKnownCategory = Boolean(CATEGORY_SEO[slug]);
-  const matchedCategory = useMemo(() => fromCategorySlug(slug, categories), [slug, categories]);
-  const isCategory =
-    !pageLoading &&
-    !currentProduct &&
-    (isKnownCategory || (categories.length > 0 && matchedCategory !== null));
+  const isCategory = !pageLoading && !currentProduct && isSlugACategory;
 
   useEffect(() => {
     if (isCategory) {

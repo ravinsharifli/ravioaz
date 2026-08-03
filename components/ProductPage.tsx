@@ -697,11 +697,21 @@ const ProductPage: React.FC<ProductPageProps> = ({
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: 13, fontWeight: 700, background: C.white, color: C.black,
                   }}>{qty}</div>
-                  <button onClick={() => setQty(q => q + 1)} aria-label="Sayı artır" style={{
-                    width: 32, height: 32, borderRadius: '0 6px 6px 0',
-                    border: `1px solid ${C.border}`, background: C.bg,
-                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}><Plus size={12} /></button>
+                  {/* maxQty: stok izlənirsə tavan kimi istifadə olunur, əks halda 99 —
+                      təsadüfən həddindən artıq böyük ədəd yazılmasının qarşısını alır
+                      (bax: lib/cartPricing.ts-dəki eyni məntiq, səbətdəki input üçün) */}
+                  <button
+                    onClick={() => setQty(q => Math.min(typeof variant.stock === 'number' && variant.stock > 0 ? variant.stock : 99, q + 1))}
+                    disabled={typeof variant.stock === 'number' && variant.stock > 0 && qty >= variant.stock}
+                    aria-label="Sayı artır"
+                    style={{
+                      width: 32, height: 32, borderRadius: '0 6px 6px 0',
+                      border: `1px solid ${C.border}`, background: C.bg,
+                      cursor: (typeof variant.stock === 'number' && variant.stock > 0 && qty >= variant.stock) ? 'default' : 'pointer',
+                      opacity: (typeof variant.stock === 'number' && variant.stock > 0 && qty >= variant.stock) ? 0.4 : 1,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}
+                  ><Plus size={12} /></button>
                 </div>
 
                 {(() => {
