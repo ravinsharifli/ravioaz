@@ -1,6 +1,6 @@
 ﻿import React, { useState } from 'react';
 import { C, F } from '../tokens';
-import { ShoppingBag, Zap, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ShoppingBag, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Product } from '../types';
 import { toWebP, toSrcSet } from '../lib/image';
 
@@ -56,9 +56,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart, onView
   const fv = product.variants?.[0];
   if (!fv) return null;
   const { min, max, minOld, hasDiscount, pct } = getPriceInfo(product);
-  const stock      = (product.variants || []).reduce((s, v) => s + (v.stock || 0), 0);
-  const lowStock   = stock > 0 && stock <= 5;
-  const outOfStock = stock === 0;
+  const outOfStock = (product.variants || []).every(v => v.inStock === false);
   return (
     <Card
       key={product.id}
@@ -67,7 +65,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart, onView
       min={min} max={max} minOld={minOld}
       hasDiscount={hasDiscount} pct={pct}
       samePrice={min === max}
-      lowStock={lowStock} outOfStock={outOfStock} stock={stock}
+      outOfStock={outOfStock}
       onView={() => onViewProduct(product)}
       onAdd={() => onAddToCart(product)}
     />
@@ -83,14 +81,14 @@ interface CardProps {
   cardIndex: number;
   min: number; max: number; minOld: number | null;
   hasDiscount: boolean; pct: number; samePrice: boolean;
-  lowStock: boolean; outOfStock: boolean; stock: number;
+  outOfStock: boolean;
   onView: () => void; onAdd: () => void;
 }
 
 const Card: React.FC<CardProps> = ({
   product, cardIndex, min, max, minOld,
   hasDiscount, pct, samePrice,
-  lowStock, outOfStock, stock,
+  outOfStock,
   onView, onAdd,
 }) => {
   const [hovered, setHovered]       = useState(false);
@@ -169,18 +167,6 @@ const Card: React.FC<CardProps> = ({
             fontSize: 10, fontWeight: 800,
             padding: '3px 8px', borderRadius: 6,
           }}>−{pct}%</div>
-        )}
-
-        {lowStock && (
-          <div style={{
-            position: 'absolute', top: 8, right: 8,
-            background: C.primary, color: C.white,
-            fontSize: 10, fontWeight: 700,
-            padding: '3px 7px', borderRadius: 6,
-            display: 'flex', alignItems: 'center', gap: 3,
-          }}>
-            <Zap size={9} fill={C.white} />Son {stock}
-          </div>
         )}
 
         {outOfStock && (

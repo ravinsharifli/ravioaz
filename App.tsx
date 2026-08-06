@@ -7,7 +7,7 @@ import { Product, CartItem, ReelPost } from './types';
 import { PRODUCTS_QUERY, SETTINGS_QUERY, mapSanityProduct } from './lib/sanityProduct';
 import { toCategorySlug } from './lib/categorySlug';
 import { recalcCartItemForQuantity } from './lib/cartPricing';
-import { DEFAULT_METRO } from './constants/defaults';
+import { DEFAULT_METRO, BULK_DISCOUNT_PER_UNIT } from './constants/defaults';
 
 import Navbar from './components/Navbar';
 import PWAInstallBanner from './components/PWAInstallBanner';
@@ -97,6 +97,7 @@ function AppShell() {
   const metroSchedule = settings?.metroSchedule || DEFAULT_METRO;
   const reelPosts: ReelPost[] = settings?.reelPosts || [];
   const heroSlides: any[] = settings?.heroSlides || [];
+  const bulkDiscountPerUnit: number = settings?.bulkDiscountPerUnit ?? BULK_DISCOUNT_PER_UNIT;
 
   const categories = useMemo(
     () => Array.from(new Set(products.map((p) => p.category).filter(Boolean))) as string[],
@@ -130,7 +131,7 @@ function AppShell() {
     setCart((prev) => prev.map((item) => {
       if (item.cartId !== cartId) return item;
       const product = products.find((p) => p.id === item.productId);
-      return recalcCartItemForQuantity(item, quantity, product, allCoupons);
+      return recalcCartItemForQuantity(item, quantity, product, allCoupons, bulkDiscountPerUnit);
     }));
   }, [products, allCoupons]);
 
@@ -245,6 +246,7 @@ function AppShell() {
                 setActiveCategory={setActiveCategory}
                 openProduct={openProduct}
                 onAddToCart={handleProductAddToCart}
+                bulkDiscountPerUnit={bulkDiscountPerUnit}
               />
             }
           />

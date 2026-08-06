@@ -4,32 +4,31 @@ export const PRODUCTS_QUERY = `*[_type == "product"] | order(name asc) {
   _id, name, "slug": slug.current, description,
   category->{ name },
   variants[] {
-    modelName, colorName, "colorSwatch": colorSwatch.hex, price, discountPrice, stock,
+    modelName, colorName, price, discountPrice, inStock,
     images[]{ asset->{ url } }
   },
   isPremium, premiumOrder, premiumSize,
-  hasBulkDiscount, bulkDiscountAmount,
   allowBoxSelection,
   customBoxOptions[]{ id, name, desc, price, isActive, "imageUrl": image.asset->url },
-  coupons[]{ code, discountType, discountValue, minOrderAmount, isActive, description }
+  hasCoupons, coupons[]{ code, discountValue }
 }`;
 
 export const SINGLE_PRODUCT_QUERY = `*[_type == "product" && slug.current == $slug][0]{
   _id, name, "slug": slug.current, description,
   category->{ name },
   variants[] {
-    modelName, colorName, "colorSwatch": colorSwatch.hex, price, discountPrice, stock,
+    modelName, colorName, price, discountPrice, inStock,
     images[]{ asset->{ url } }
   },
   isPremium, premiumOrder, premiumSize,
-  hasBulkDiscount, bulkDiscountAmount,
   allowBoxSelection,
   customBoxOptions[]{ id, name, desc, price, isActive, "imageUrl": image.asset->url },
-  coupons[]{ code, discountType, discountValue, minOrderAmount, isActive, description },
+  hasCoupons, coupons[]{ code, discountValue },
   reviews[]{ name, rating, text, date, isActive, "photoUrl": photo.asset->url }
 }`;
 
 export const SETTINGS_QUERY = `*[_type == "siteSettings"][0]{
+  bulkDiscountPerUnit,
   "metroSchedule": {
     "stations": metroSchedule[]{
       name,
@@ -56,13 +55,12 @@ export function mapSanityProduct(raw: any): Product {
   const variants = (raw.variants || []).map((v: any) => ({
     modelName: v.modelName || '',
     colorName: v.colorName || '',
-    colorSwatch: v.colorSwatch || undefined,
     images: (v.images || [])
       .map((img: any) => (img?.asset?.url ? img.asset.url : typeof img === 'string' ? img : ''))
       .filter(Boolean),
     price: v.price ?? 0,
     discountPrice: v.discountPrice ?? undefined,
-    stock: v.stock ?? 0,
+    inStock: v.inStock !== false,
   }));
   return {
     id: raw._id,
@@ -74,8 +72,6 @@ export function mapSanityProduct(raw: any): Product {
     isPremium: raw.isPremium || false,
     premiumOrder: raw.premiumOrder,
     premiumSize: raw.premiumSize,
-    hasBulkDiscount: raw.hasBulkDiscount || false,
-    bulkDiscountAmount: raw.bulkDiscountAmount ?? 0,
     allowBoxSelection: raw.allowBoxSelection !== false,
     customBoxOptions: (raw.customBoxOptions || [])
       .filter((b: any) => b.isActive !== false)
@@ -86,7 +82,8 @@ export function mapSanityProduct(raw: any): Product {
         price: b.price ?? 0,
         imageUrl: b.imageUrl || null,
       })),
-    coupons: (raw.coupons || []).filter((c: any) => c.isActive !== false),
+    hasCoupons: raw.hasCoupons || false,
+    coupons: raw.hasCoupons ? (raw.coupons || []) : [],
     reviews: (raw.reviews || [])
       .filter((r: any) => r.isActive !== false && r.name && r.text)
       .map((r: any) => ({

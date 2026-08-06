@@ -1,4 +1,5 @@
 import { Product, CartItem, Coupon } from '../types';
+import { BULK_DISCOUNT_PER_UNIT } from '../constants/defaults';
 
 /**
  * Səbətdə məhsulun sayı (quantity) birbaşa dəyişdirildikdə bütün qiymətə bağlı
@@ -16,11 +17,12 @@ export function recalcCartItemForQuantity(
   newQuantity: number,
   product: Product | undefined,
   coupons: Coupon[],
+  bulkDiscountPerUnit: number = BULK_DISCOUNT_PER_UNIT,
 ): CartItem {
   const q = Math.max(1, Math.floor(newQuantity) || 1);
 
   const baseUnit = item.discountPrice ?? item.price;
-  const bulkOff = q >= 2 ? (product?.bulkDiscountAmount ?? 1) : 0;
+  const bulkOff = q >= 2 ? bulkDiscountPerUnit : 0;
   const effectiveUnit = Math.max(0, baseUnit - bulkOff);
   const bulkDiscTotal = bulkOff * q;
 
@@ -32,12 +34,10 @@ export function recalcCartItemForQuantity(
   const couponBase = productSub - customerDisc;
 
   const coupon = item.couponCode
-    ? coupons.find((c) => c.code === item.couponCode && c.isActive)
+    ? coupons.find((c) => c.code === item.couponCode)
     : undefined;
   const couponDiscount = coupon
-    ? coupon.discountType === 'percent'
-      ? Math.round(couponBase * coupon.discountValue / 100 * 100) / 100
-      : Math.min(coupon.discountValue, couponBase)
+    ? Math.min(coupon.discountValue, couponBase)
     : 0;
 
   const finalPrice = Math.max(0, couponBase - couponDiscount);
@@ -55,15 +55,13 @@ export function recalcCartItemForQuantity(
 
 /**
  * Səbətdəki bir məhsul üçün icazə verilən maksimum say.
- * Konkret variantın stok sayı bəlludursa (0-dan böyükdürsə) onu tavan kimi
- * götürür; stok izlənmirsə (və ya məhsul kataloqdan silinibsə), fərz
- * ediləndən artıq təsadüfi rəqəm yazılmasının qarşısını almaq üçün
- * məntiqli təhlükəsiz tavan (99) tətbiq olunur.
+ * Stok say ilə deyil, sadə "stokda var/yox" açarı ilə izlənir: variant
+ * stokda deyilsə əlavə sifariş verilə bilməz (0), stokdadırsa təsadüfən
+ * həddindən artıq rəqəm yazılmasının qarşısını almaq üçün təhlükəsiz
+ * tavan (99) tətbiq olunur.
  */
 export function getMaxQuantityForItem(item: CartItem, product: Product | undefined): number {
   const variant = product?.variants?.[item.variantIndex];
-  if (variant && typeof variant.stock === 'number' && variant.stock > 0) {
-    return variant.stock;
-  }
+  if (variant && variant.inStock === false) return 0;
   return 99;
 }

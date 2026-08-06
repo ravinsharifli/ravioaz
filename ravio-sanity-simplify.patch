@@ -1,0 +1,829 @@
+From f9a29702c1dae98765f8969ebcbf8cf03de96b35 Mon Sep 17 00:00:00 2001
+From: "Claude (Ravio)" <claude@ravio.az>
+Date: Thu, 6 Aug 2026 03:10:03 +0000
+Subject: [PATCH] =?UTF-8?q?Sanity=20sad=C9=99l=C9=99=C5=9Fdirm=C9=99:=20st?=
+ =?UTF-8?q?ock->inStock,=20avtomatik=20bulk=20endirim=20(siteSettings),=20?=
+ =?UTF-8?q?sad=C9=99=20kupon=20on/off,=20r=C9=99ng=20siyah=C4=B1s=C4=B1=20?=
+ =?UTF-8?q?(hex=20se=C3=A7imi=20yoxdur)?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ App.tsx                       |   6 +-
+ components/ProductGrid.tsx    |  24 ++----
+ components/ProductPage.tsx    |  41 +++++----
+ components/pages/SlugPage.tsx |  11 ++-
+ constants/defaults.ts         |  35 ++++++++
+ lib/cartPricing.ts            |  22 +++--
+ lib/sanityProduct.ts          |  19 ++--
+ product.js                    | 157 ++++++++++++++--------------------
+ sanity.config.ts              |   2 -
+ siteSettings.js               |   9 ++
+ types.ts                      |  12 +--
+ 11 files changed, 164 insertions(+), 174 deletions(-)
+
+diff --git a/App.tsx b/App.tsx
+index 39f7409..3139f79 100644
+--- a/App.tsx
++++ b/App.tsx
+@@ -7,7 +7,7 @@ import { Product, CartItem, ReelPost } from './types';
+ import { PRODUCTS_QUERY, SETTINGS_QUERY, mapSanityProduct } from './lib/sanityProduct';
+ import { toCategorySlug } from './lib/categorySlug';
+ import { recalcCartItemForQuantity } from './lib/cartPricing';
+-import { DEFAULT_METRO } from './constants/defaults';
++import { DEFAULT_METRO, BULK_DISCOUNT_PER_UNIT } from './constants/defaults';
+ 
+ import Navbar from './components/Navbar';
+ import PWAInstallBanner from './components/PWAInstallBanner';
+@@ -97,6 +97,7 @@ function AppShell() {
+   const metroSchedule = settings?.metroSchedule || DEFAULT_METRO;
+   const reelPosts: ReelPost[] = settings?.reelPosts || [];
+   const heroSlides: any[] = settings?.heroSlides || [];
++  const bulkDiscountPerUnit: number = settings?.bulkDiscountPerUnit ?? BULK_DISCOUNT_PER_UNIT;
+ 
+   const categories = useMemo(
+     () => Array.from(new Set(products.map((p) => p.category).filter(Boolean))) as string[],
+@@ -130,7 +131,7 @@ function AppShell() {
+     setCart((prev) => prev.map((item) => {
+       if (item.cartId !== cartId) return item;
+       const product = products.find((p) => p.id === item.productId);
+-      return recalcCartItemForQuantity(item, quantity, product, allCoupons);
++      return recalcCartItemForQuantity(item, quantity, product, allCoupons, bulkDiscountPerUnit);
+     }));
+   }, [products, allCoupons]);
+ 
+@@ -245,6 +246,7 @@ function AppShell() {
+                 setActiveCategory={setActiveCategory}
+                 openProduct={openProduct}
+                 onAddToCart={handleProductAddToCart}
++                bulkDiscountPerUnit={bulkDiscountPerUnit}
+               />
+             }
+           />
+diff --git a/components/ProductGrid.tsx b/components/ProductGrid.tsx
+index 25578f1..95ee7b2 100644
+--- a/components/ProductGrid.tsx
++++ b/components/ProductGrid.tsx
+@@ -1,6 +1,6 @@
+ ﻿import React, { useState } from 'react';
+ import { C, F } from '../tokens';
+-import { ShoppingBag, Zap, ChevronLeft, ChevronRight } from 'lucide-react';
++import { ShoppingBag, ChevronLeft, ChevronRight } from 'lucide-react';
+ import { Product } from '../types';
+ import { toWebP, toSrcSet } from '../lib/image';
+ 
+@@ -56,9 +56,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart, onView
+   const fv = product.variants?.[0];
+   if (!fv) return null;
+   const { min, max, minOld, hasDiscount, pct } = getPriceInfo(product);
+-  const stock      = (product.variants || []).reduce((s, v) => s + (v.stock || 0), 0);
+-  const lowStock   = stock > 0 && stock <= 5;
+-  const outOfStock = stock === 0;
++  const outOfStock = (product.variants || []).every(v => v.inStock === false);
+   return (
+     <Card
+       key={product.id}
+@@ -67,7 +65,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart, onView
+       min={min} max={max} minOld={minOld}
+       hasDiscount={hasDiscount} pct={pct}
+       samePrice={min === max}
+-      lowStock={lowStock} outOfStock={outOfStock} stock={stock}
++      outOfStock={outOfStock}
+       onView={() => onViewProduct(product)}
+       onAdd={() => onAddToCart(product)}
+     />
+@@ -83,14 +81,14 @@ interface CardProps {
+   cardIndex: number;
+   min: number; max: number; minOld: number | null;
+   hasDiscount: boolean; pct: number; samePrice: boolean;
+-  lowStock: boolean; outOfStock: boolean; stock: number;
++  outOfStock: boolean;
+   onView: () => void; onAdd: () => void;
+ }
+ 
+ const Card: React.FC<CardProps> = ({
+   product, cardIndex, min, max, minOld,
+   hasDiscount, pct, samePrice,
+-  lowStock, outOfStock, stock,
++  outOfStock,
+   onView, onAdd,
+ }) => {
+   const [hovered, setHovered]       = useState(false);
+@@ -171,18 +169,6 @@ const Card: React.FC<CardProps> = ({
+           }}>−{pct}%</div>
+         )}
+ 
+-        {lowStock && (
+-          <div style={{
+-            position: 'absolute', top: 8, right: 8,
+-            background: C.primary, color: C.white,
+-            fontSize: 10, fontWeight: 700,
+-            padding: '3px 7px', borderRadius: 6,
+-            display: 'flex', alignItems: 'center', gap: 3,
+-          }}>
+-            <Zap size={9} fill={C.white} />Son {stock}
+-          </div>
+-        )}
+-
+         {outOfStock && (
+           <div style={{
+             position: 'absolute', inset: 0,
+diff --git a/components/ProductPage.tsx b/components/ProductPage.tsx
+index 0dfed07..c8cfa6a 100644
+--- a/components/ProductPage.tsx
++++ b/components/ProductPage.tsx
+@@ -5,6 +5,7 @@ import { Product, CartItem, Coupon } from '../types';
+ import ProductReviews from './ProductReviews';
+ import ZoomableImage from './ZoomableImage.tsx';
+ import { toWebP, toSrcSet } from '../lib/image';
++import { BULK_DISCOUNT_PER_UNIT, getColorHex } from '../constants/defaults';
+ 
+ const FONT = F.sans;
+ 
+@@ -62,12 +63,13 @@ interface ProductPageProps {
+   initialData?: CartItem;
+   boxes: BoxOption[];
+   coupons?: Coupon[];
++  bulkDiscountPerUnit?: number;
+   onBack: () => void;
+   onAddToCart: (item: CartItem) => void;
+ }
+ 
+ const ProductPage: React.FC<ProductPageProps> = ({
+-  product, initialData, boxes, coupons = [], onBack, onAddToCart,
++  product, initialData, boxes, coupons = [], bulkDiscountPerUnit = BULK_DISCOUNT_PER_UNIT, onBack, onAddToCart,
+ }) => {
+ 
+   const variants = product.variants || [];
+@@ -159,7 +161,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
+ 
+   function selectVariant(i: number) {
+     const v = variants[i];
+-    if (v.stock === 0) return;
++    if (v.inStock === false) return;
+     setVariantIdx(i);
+     const firstIdx = allImages.findIndex(img => img.vIdx === i);
+     setImgIdx(firstIdx >= 0 ? firstIdx : 0);
+@@ -168,8 +170,8 @@ const ProductPage: React.FC<ProductPageProps> = ({
+   function selectModel(modelName: string) {
+     // Bu modelin ilk mövcud (stokda olan, ya da ilk) variantına keç
+     const candidates = variants.map((v, i) => ({ v, i })).filter(({ v }) => (v.modelName || '').trim() === modelName);
+-    const inStock = candidates.find(({ v }) => v.stock !== 0);
+-    const target = inStock || candidates[0];
++    const available = candidates.find(({ v }) => v.inStock !== false);
++    const target = available || candidates[0];
+     if (target) selectVariant(target.i);
+   }
+ 
+@@ -180,7 +182,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
+   const isOnSale   = !!(salePrice && salePrice < origPrice);
+   const salePct    = isOnSale ? Math.round(((origPrice - baseUnit) / origPrice) * 100) : 0;
+ 
+-  const bulkOff       = qty >= 2 ? (product.bulkDiscountAmount ?? 1) : 0;
++  const bulkOff       = qty >= 2 ? bulkDiscountPerUnit : 0;
+   const effectiveUnit = Math.max(0, baseUnit - bulkOff);
+   const bulkDiscTotal = bulkOff * qty;
+   const showBulkNotice = qty >= 10 && !bulkNoticeDismissed;
+@@ -190,15 +192,13 @@ const ProductPage: React.FC<ProductPageProps> = ({
+   const boxFee = showBox ? (box?.price ?? 0) : 0;
+ 
+   // ── Endirim hesablamaları ──────────────────────────────────────
+-  const hasCouponAvailable = coupons.some(c => c.isActive);
++  const hasCouponAvailable = coupons.length > 0;
+   const discRate     = customerType === 'loyal' ? 20 : customerType === 'new' ? 10 : 0;
+   const productSub   = effectiveUnit * qty + boxFee;
+   const customerDisc = customerType ? Math.round(productSub * discRate / 100 * 100) / 100 : 0;
+   const couponBase   = productSub - customerDisc;
+   const couponDiscount = appliedCoupon
+-    ? appliedCoupon.discountType === 'percent'
+-      ? Math.round(couponBase * appliedCoupon.discountValue / 100 * 100) / 100
+-      : Math.min(appliedCoupon.discountValue, couponBase)
++    ? Math.min(appliedCoupon.discountValue, couponBase)
+     : 0;
+   const finalPrice = Math.max(0, couponBase - couponDiscount);
+ 
+@@ -209,8 +209,8 @@ const ProductPage: React.FC<ProductPageProps> = ({
+   const handleApplyCoupon = () => {
+     const trimmed = couponInput.trim().toUpperCase();
+     if (!trimmed) { setCouponError('Kupon kodu daxil edin'); return; }
+-    const found = coupons.find(c => c.code.toUpperCase() === trimmed && c.isActive);
+-    if (!found) { setCouponError('Bu kupon kodu tapılmadı və ya deaktivdir'); return; }
++    const found = coupons.find(c => c.code.toUpperCase() === trimmed);
++    if (!found) { setCouponError('Bu kupon kodu tapılmadı'); return; }
+     setCouponError('');
+     setAppliedCoupon(found);
+     setCouponInput('');
+@@ -604,7 +604,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
+                         const sel = currentModel === m;
+                         const modelOos = variants
+                           .filter(v => (v.modelName || '').trim() === m)
+-                          .every(v => v.stock === 0);
++                          .every(v => v.inStock === false);
+                         return (
+                           <button
+                             key={m}
+@@ -633,9 +633,9 @@ const ProductPage: React.FC<ProductPageProps> = ({
+                     <Label>Rəng: <span style={{ color: C.black, textTransform: 'none' as const, letterSpacing: 0, fontWeight: 600 }}>{variant.colorName || ''}</span></Label>
+                     <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 8 }}>
+                       {colorVariants.map(({ v, i }) => {
+-                        const oos = v.stock === 0;
++                        const oos = v.inStock === false;
+                         const sel = variantIdx === i;
+-                        const swatch = v.colorSwatch || '#D9D4CC';
++                        const swatch = getColorHex(v.colorName);
+                         return (
+                           <button
+                             key={i}
+@@ -697,25 +697,24 @@ const ProductPage: React.FC<ProductPageProps> = ({
+                     display: 'flex', alignItems: 'center', justifyContent: 'center',
+                     fontSize: 13, fontWeight: 700, background: C.white, color: C.black,
+                   }}>{qty}</div>
+-                  {/* maxQty: stok izlənirsə tavan kimi istifadə olunur, əks halda 99 —
+-                      təsadüfən həddindən artıq böyük ədəd yazılmasının qarşısını alır
++                  {/* maxQty: sadə tavan (99) — stok say ilə yox, on/off açarı ilə izlənir
+                       (bax: lib/cartPricing.ts-dəki eyni məntiq, səbətdəki input üçün) */}
+                   <button
+-                    onClick={() => setQty(q => Math.min(typeof variant.stock === 'number' && variant.stock > 0 ? variant.stock : 99, q + 1))}
+-                    disabled={typeof variant.stock === 'number' && variant.stock > 0 && qty >= variant.stock}
++                    onClick={() => setQty(q => Math.min(99, q + 1))}
++                    disabled={qty >= 99}
+                     aria-label="Sayı artır"
+                     style={{
+                       width: 32, height: 32, borderRadius: '0 6px 6px 0',
+                       border: `1px solid ${C.border}`, background: C.bg,
+-                      cursor: (typeof variant.stock === 'number' && variant.stock > 0 && qty >= variant.stock) ? 'default' : 'pointer',
+-                      opacity: (typeof variant.stock === 'number' && variant.stock > 0 && qty >= variant.stock) ? 0.4 : 1,
++                      cursor: qty >= 99 ? 'default' : 'pointer',
++                      opacity: qty >= 99 ? 0.4 : 1,
+                       display: 'flex', alignItems: 'center', justifyContent: 'center',
+                     }}
+                   ><Plus size={12} /></button>
+                 </div>
+ 
+                 {(() => {
+-                  const amount = product.bulkDiscountAmount ?? 1;
++                  const amount = BULK_DISCOUNT_PER_UNIT;
+                   const isActive = qty >= 2;
+                   const disc = Math.max(0, baseUnit - amount);
+                   return (
+diff --git a/components/pages/SlugPage.tsx b/components/pages/SlugPage.tsx
+index 03581d6..944f077 100644
+--- a/components/pages/SlugPage.tsx
++++ b/components/pages/SlugPage.tsx
+@@ -24,6 +24,7 @@ interface SlugPageProps {
+   setActiveCategory: React.Dispatch<React.SetStateAction<string | null>>;
+   openProduct: (p: Product) => void;
+   onAddToCart: (item: CartItem) => void;
++  bulkDiscountPerUnit?: number;
+ }
+ 
+ export default function SlugPage({
+@@ -33,6 +34,7 @@ export default function SlugPage({
+   setActiveCategory,
+   openProduct,
+   onAddToCart,
++  bulkDiscountPerUnit,
+ }: SlugPageProps) {
+   const { slug: rawSlug = '' } = useParams<{ slug: string }>();
+   const slug = decodeURIComponent(rawSlug).trim();
+@@ -159,9 +161,9 @@ export default function SlugPage({
+ 
+   const primaryImage = currentProduct?.variants?.[0]?.images?.[0] || '';
+   const { min, max } = currentProduct ? getProductPriceRange(currentProduct) : { min: 0, max: 0 };
+-  const totalStock = currentProduct
+-    ? (currentProduct.variants || []).reduce((sum, v) => sum + (v.stock || 0), 0)
+-    : 0;
++  const anyInStock = currentProduct
++    ? (currentProduct.variants || []).some(v => v.inStock !== false)
++    : false;
+   const productUrl = `${SITE_URL}/mehsullar/${slug}`;
+   const metaDesc = currentProduct ? getProductMetaDescription(currentProduct) : '';
+ 
+@@ -200,7 +202,7 @@ export default function SlugPage({
+           const priceMax = allPrices.length ? Math.max(...allPrices) : max;
+           const allImgs = currentProduct.variants.flatMap((v) => v.images || []).slice(0, 5);
+           const avail =
+-            totalStock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock';
++            anyInStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock';
+           const productSchema = {
+             '@context': 'https://schema.org',
+             '@type': 'Product',
+@@ -254,6 +256,7 @@ export default function SlugPage({
+           initialData={editItem?.productId === currentProduct.id ? editItem : undefined}
+           boxes={DEFAULT_BOXES}
+           coupons={currentProduct.coupons || []}
++          bulkDiscountPerUnit={bulkDiscountPerUnit}
+           onBack={() => navigate('/mehsullar')}
+           onAddToCart={onAddToCart}
+         />
+diff --git a/constants/defaults.ts b/constants/defaults.ts
+index 5b6338c..bff5983 100644
+--- a/constants/defaults.ts
++++ b/constants/defaults.ts
+@@ -1,6 +1,41 @@
+ import { MetroSchedule } from '../types';
+ import type { HeroSlide } from '../components/home/heroTypes';
+ 
++// Müştəri 2 və daha çox ədəd sifariş etdikdə hər ədəddən avtomatik endirim
++// olunan məbləğ (₼) — standart/ehtiyat dəyər. Əsl dəyər Sanity → Sayt
++// Tənzimləmələri → "2+ ədəddə endirim (₼)" sahəsindən oxunur; həmin sahə
++// boşdursa bu ehtiyat rəqəm işə düşür.
++export const BULK_DISCOUNT_PER_UNIT = 1;
++
++// Rəng adı → hex kod xəritəsi. Sanity-də artıq əl ilə hex seçilmir —
++// yalnız siyahıdan rəng adı seçilir, dəqiq həmin ada uyğun rəng buradan
++// avtomatik götürülür. Yeni rəng adı əlavə etsən, bura da bir sətir əlavə et.
++export const COLOR_HEX_MAP: Record<string, string> = {
++  'Qara': '#000000',
++  'Ağ': '#ffffff',
++  'Gümüşü': '#c0c0c0',
++  'Qızılı': '#ffd700',
++  'Qırmızı': '#b22222',
++  'Mavi': '#1e3a8a',
++  'Sarı': '#ffd400',
++  'Çəhrayı': '#ffc0cb',
++  'Bənövşəyi': '#6b21a8',
++  'Yaşıl': '#16a34a',
++  'Göy (Milyoner)': '#000080',
++  'Qara - Qızılı': '#000000',
++  'Ağ - Qızılı': '#ffd400',
++  'Ağ - Qara': '#ffffff',
++  'Qızılı - Qəhvəyi': '#ffd700',
++};
++
++// Siyahıda olmayan / köhnə sərbəst-mətn rəng adları üçün ehtiyat rəng.
++export const DEFAULT_COLOR_HEX = '#D9D4CC';
++
++export function getColorHex(colorName?: string): string {
++  if (!colorName) return DEFAULT_COLOR_HEX;
++  return COLOR_HEX_MAP[colorName.trim()] || DEFAULT_COLOR_HEX;
++}
++
+ export const DEFAULT_METRO: MetroSchedule = {
+   stations: [
+     {
+diff --git a/lib/cartPricing.ts b/lib/cartPricing.ts
+index 028ddea..3025000 100644
+--- a/lib/cartPricing.ts
++++ b/lib/cartPricing.ts
+@@ -1,4 +1,5 @@
+ import { Product, CartItem, Coupon } from '../types';
++import { BULK_DISCOUNT_PER_UNIT } from '../constants/defaults';
+ 
+ /**
+  * Səbətdə məhsulun sayı (quantity) birbaşa dəyişdirildikdə bütün qiymətə bağlı
+@@ -16,11 +17,12 @@ export function recalcCartItemForQuantity(
+   newQuantity: number,
+   product: Product | undefined,
+   coupons: Coupon[],
++  bulkDiscountPerUnit: number = BULK_DISCOUNT_PER_UNIT,
+ ): CartItem {
+   const q = Math.max(1, Math.floor(newQuantity) || 1);
+ 
+   const baseUnit = item.discountPrice ?? item.price;
+-  const bulkOff = q >= 2 ? (product?.bulkDiscountAmount ?? 1) : 0;
++  const bulkOff = q >= 2 ? bulkDiscountPerUnit : 0;
+   const effectiveUnit = Math.max(0, baseUnit - bulkOff);
+   const bulkDiscTotal = bulkOff * q;
+ 
+@@ -32,12 +34,10 @@ export function recalcCartItemForQuantity(
+   const couponBase = productSub - customerDisc;
+ 
+   const coupon = item.couponCode
+-    ? coupons.find((c) => c.code === item.couponCode && c.isActive)
++    ? coupons.find((c) => c.code === item.couponCode)
+     : undefined;
+   const couponDiscount = coupon
+-    ? coupon.discountType === 'percent'
+-      ? Math.round(couponBase * coupon.discountValue / 100 * 100) / 100
+-      : Math.min(coupon.discountValue, couponBase)
++    ? Math.min(coupon.discountValue, couponBase)
+     : 0;
+ 
+   const finalPrice = Math.max(0, couponBase - couponDiscount);
+@@ -55,15 +55,13 @@ export function recalcCartItemForQuantity(
+ 
+ /**
+  * Səbətdəki bir məhsul üçün icazə verilən maksimum say.
+- * Konkret variantın stok sayı bəlludursa (0-dan böyükdürsə) onu tavan kimi
+- * götürür; stok izlənmirsə (və ya məhsul kataloqdan silinibsə), fərz
+- * ediləndən artıq təsadüfi rəqəm yazılmasının qarşısını almaq üçün
+- * məntiqli təhlükəsiz tavan (99) tətbiq olunur.
++ * Stok say ilə deyil, sadə "stokda var/yox" açarı ilə izlənir: variant
++ * stokda deyilsə əlavə sifariş verilə bilməz (0), stokdadırsa təsadüfən
++ * həddindən artıq rəqəm yazılmasının qarşısını almaq üçün təhlükəsiz
++ * tavan (99) tətbiq olunur.
+  */
+ export function getMaxQuantityForItem(item: CartItem, product: Product | undefined): number {
+   const variant = product?.variants?.[item.variantIndex];
+-  if (variant && typeof variant.stock === 'number' && variant.stock > 0) {
+-    return variant.stock;
+-  }
++  if (variant && variant.inStock === false) return 0;
+   return 99;
+ }
+diff --git a/lib/sanityProduct.ts b/lib/sanityProduct.ts
+index cbc5171..ced10d2 100644
+--- a/lib/sanityProduct.ts
++++ b/lib/sanityProduct.ts
+@@ -4,32 +4,31 @@ export const PRODUCTS_QUERY = `*[_type == "product"] | order(name asc) {
+   _id, name, "slug": slug.current, description,
+   category->{ name },
+   variants[] {
+-    modelName, colorName, "colorSwatch": colorSwatch.hex, price, discountPrice, stock,
++    modelName, colorName, price, discountPrice, inStock,
+     images[]{ asset->{ url } }
+   },
+   isPremium, premiumOrder, premiumSize,
+-  hasBulkDiscount, bulkDiscountAmount,
+   allowBoxSelection,
+   customBoxOptions[]{ id, name, desc, price, isActive, "imageUrl": image.asset->url },
+-  coupons[]{ code, discountType, discountValue, minOrderAmount, isActive, description }
++  hasCoupons, coupons[]{ code, discountValue }
+ }`;
+ 
+ export const SINGLE_PRODUCT_QUERY = `*[_type == "product" && slug.current == $slug][0]{
+   _id, name, "slug": slug.current, description,
+   category->{ name },
+   variants[] {
+-    modelName, colorName, "colorSwatch": colorSwatch.hex, price, discountPrice, stock,
++    modelName, colorName, price, discountPrice, inStock,
+     images[]{ asset->{ url } }
+   },
+   isPremium, premiumOrder, premiumSize,
+-  hasBulkDiscount, bulkDiscountAmount,
+   allowBoxSelection,
+   customBoxOptions[]{ id, name, desc, price, isActive, "imageUrl": image.asset->url },
+-  coupons[]{ code, discountType, discountValue, minOrderAmount, isActive, description },
++  hasCoupons, coupons[]{ code, discountValue },
+   reviews[]{ name, rating, text, date, isActive, "photoUrl": photo.asset->url }
+ }`;
+ 
+ export const SETTINGS_QUERY = `*[_type == "siteSettings"][0]{
++  bulkDiscountPerUnit,
+   "metroSchedule": {
+     "stations": metroSchedule[]{
+       name,
+@@ -56,13 +55,12 @@ export function mapSanityProduct(raw: any): Product {
+   const variants = (raw.variants || []).map((v: any) => ({
+     modelName: v.modelName || '',
+     colorName: v.colorName || '',
+-    colorSwatch: v.colorSwatch || undefined,
+     images: (v.images || [])
+       .map((img: any) => (img?.asset?.url ? img.asset.url : typeof img === 'string' ? img : ''))
+       .filter(Boolean),
+     price: v.price ?? 0,
+     discountPrice: v.discountPrice ?? undefined,
+-    stock: v.stock ?? 0,
++    inStock: v.inStock !== false,
+   }));
+   return {
+     id: raw._id,
+@@ -74,8 +72,6 @@ export function mapSanityProduct(raw: any): Product {
+     isPremium: raw.isPremium || false,
+     premiumOrder: raw.premiumOrder,
+     premiumSize: raw.premiumSize,
+-    hasBulkDiscount: raw.hasBulkDiscount || false,
+-    bulkDiscountAmount: raw.bulkDiscountAmount ?? 0,
+     allowBoxSelection: raw.allowBoxSelection !== false,
+     customBoxOptions: (raw.customBoxOptions || [])
+       .filter((b: any) => b.isActive !== false)
+@@ -86,7 +82,8 @@ export function mapSanityProduct(raw: any): Product {
+         price: b.price ?? 0,
+         imageUrl: b.imageUrl || null,
+       })),
+-    coupons: (raw.coupons || []).filter((c: any) => c.isActive !== false),
++    hasCoupons: raw.hasCoupons || false,
++    coupons: raw.hasCoupons ? (raw.coupons || []) : [],
+     reviews: (raw.reviews || [])
+       .filter((r: any) => r.isActive !== false && r.name && r.text)
+       .map((r: any) => ({
+diff --git a/product.js b/product.js
+index 9ca33c8..03e91ae 100644
+--- a/product.js
++++ b/product.js
+@@ -51,7 +51,7 @@ export default {
+       name: 'variants',
+       title: '🎨 Variantlar (Model + Rəng + Şəkillər)',
+       type: 'array',
+-      description: 'Hər variant üçün model, rəng, 1-3 şəkil, qiymət və stok daxil edin.',
++      description: 'Hər variant üçün model, rəng, 1-3 şəkil, qiymət və stok (aç/bağla) daxil edin.',
+       validation: Rule => Rule.min(1).max(10).required(),
+       of: [
+         {
+@@ -64,15 +64,28 @@ export default {
+             },
+             {
+               name: 'colorName',
+-              title: 'Rəng adı (məcburi deyil)',
++              title: '🎨 Rəng',
++              description: 'Siyahıdan seç — dairə rəngi özü avtomatik təyin olunur, ayrıca hex seçməyə ehtiyac yoxdur. Siyahıda olmayan rəng lazımdırsa mənə yaz, siyahıya əlavə edim.',
+               type: 'string',
+-            },
+-            {
+-              name: 'colorSwatch',
+-              title: '🎨 Rəng nümunəsi (saytda dairə kimi görünür)',
+-              description: 'Bu rəngin saytda dairə şəklində görünəcək tonu. Naxışlı/qarışıq rənglər üçün ən yaxın tonu seçin (məs. naxışlı qızılı Zippo üçün qızılı ton).',
+-              type: 'color',
+-              options: { disableAlpha: true },
++              options: {
++                list: [
++                  { title: 'Qara', value: 'Qara' },
++                  { title: 'Ağ', value: 'Ağ' },
++                  { title: 'Gümüşü', value: 'Gümüşü' },
++                  { title: 'Qızılı', value: 'Qızılı' },
++                  { title: 'Qırmızı', value: 'Qırmızı' },
++                  { title: 'Mavi', value: 'Mavi' },
++                  { title: 'Sarı', value: 'Sarı' },
++                  { title: 'Çəhrayı', value: 'Çəhrayı' },
++                  { title: 'Bənövşəyi', value: 'Bənövşəyi' },
++                  { title: 'Yaşıl', value: 'Yaşıl' },
++                  { title: 'Göy (Milyoner)', value: 'Göy (Milyoner)' },
++                  { title: 'Qara - Qızılı', value: 'Qara - Qızılı' },
++                  { title: 'Ağ - Qızılı', value: 'Ağ - Qızılı' },
++                  { title: 'Ağ - Qara', value: 'Ağ - Qara' },
++                  { title: 'Qızılı - Qəhvəyi', value: 'Qızılı - Qəhvəyi' },
++                ],
++              },
+             },
+             {
+               name: 'images',
+@@ -100,29 +113,27 @@ export default {
+               validation: Rule => Rule.min(0),
+             },
+             {
+-              name: 'stock',
+-              title: 'Stok sayı',
+-              type: 'number',
+-              validation: Rule => Rule.min(0).integer().required(),
+-              initialValue: 0
++              name: 'inStock',
++              title: 'Stokda var?',
++              type: 'boolean',
++              description: 'Söndürsən — bu variant saytda "Bitib" kimi görünür və sifariş edilə bilməz.',
++              initialValue: true,
+             }
+           ],
+           preview: {
+             select: {
+               modelName: 'modelName',
+               colorName: 'colorName',
+-              colorSwatch: 'colorSwatch',
+-              stock: 'stock',
++              inStock: 'inStock',
+               price: 'price',
+               discountPrice: 'discountPrice',
+               costPrice: 'costPrice',
+               media: 'images.0'
+             },
+-            prepare({ modelName, colorName, colorSwatch, stock, price, discountPrice, costPrice, media }) {
++            prepare({ modelName, colorName, inStock, price, discountPrice, costPrice, media }) {
+               const model = modelName || '-';
+-              const swatchHex = colorSwatch?.hex;
+-              const color = colorName ? `${swatchHex ? '●' : ''} ${colorName}`.trim() : '-';
+-              const stockBadge = stock === 0 ? '❌ Bitib' : stock < 20 ? `⚠️ ${stock} əd` : `✅ ${stock} əd`;
++              const color = colorName ? `● ${colorName}` : '-';
++              const stockBadge = inStock === false ? '❌ Bitib' : '✅ Stokda';
+               const priceText = discountPrice ? `${discountPrice} AZN` : `${price} AZN`;
+               const effectivePrice = discountPrice || price;
+               const marginBadge = (costPrice != null && effectivePrice != null)
+@@ -139,24 +150,19 @@ export default {
+       ]
+     },
+ 
+-    // 💰 KƏMİYYƏT ENDİRİMİ (həmişə aktiv, 2+ ədəddə işə düşür)
++    // 🎟 MƏHSULA ÖZƏL ENDİRİM KODU (istəyəndə aç, məcburi deyil)
+     {
+-      name: 'bulkDiscountAmount',
+-      title: '💰 2+ ədəddə hər ədədə endirim məbləği (₼)',
+-      type: 'number',
+-      description: 'Bu endirim həmişə aktivdir. Müştəri 2 və daha çox ədəd sifariş etdikdə hər ədəddən bu məbləğ avtomatik endirim olunur. 10+ ədəddə əlavə olaraq əlaqə bildirişi göstərilir. Standart: 1₼.',
+-      initialValue: 1,
+-      validation: Rule => Rule.required().min(0),
++      name: 'hasCoupons',
++      title: '🎟 Bu məhsulda endirim kodu olsun?',
++      type: 'boolean',
++      initialValue: false,
++      description: 'Açsan aşağıda kod və məbləğ yaza bilərsən. Söndürsən — kupon sahəsi tamam gizlənir.',
+     },
+-
+-    // 🎟 MƏHSULA ÖZƏL ENDİRİM KODLARI
+     {
+       name: 'coupons',
+-      title: '🎟 Bu məhsula özəl endirim kodları',
++      title: '🎟 Endirim kodları',
+       type: 'array',
+-      description:
+-        'Bu məhsul üçün xüsusi endirim kodları. Hər kod yalnız bu məhsulda işləyəcək. ' +
+-        'Kodu müştəriyə WhatsApp/İnstagram ilə yolla.',
++      hidden: ({ parent }) => !parent?.hasCoupons,
+       of: [
+         {
+           type: 'object',
+@@ -167,70 +173,23 @@ export default {
+               name: 'code',
+               title: '🔑 Kupon kodu',
+               type: 'string',
+-              description: 'Məs: RAVIO10, HEDIYYE5 — böyük hərflər tövsiyə edilir',
+-              validation: Rule => Rule.required(),
+-            },
+-            {
+-              name: 'discountType',
+-              title: '📐 Endirim növü',
+-              type: 'string',
+-              options: {
+-                list: [
+-                  { title: '💰 Sabit məbləğ (₼)', value: 'fixed' },
+-                  { title: '📊 Faiz (%)',           value: 'percent' },
+-                ],
+-                layout: 'radio',
+-              },
+-              initialValue: 'fixed',
++              description: 'Məs: RAVIO10 — böyük hərflər tövsiyə edilir',
+               validation: Rule => Rule.required(),
+             },
+             {
+               name: 'discountValue',
+-              title: '💵 Endirim miqdarı',
++              title: '💵 Endirim məbləği (₼)',
+               type: 'number',
+-              description:
+-                'Sabit növ seçilsə: neçə manat (məs: 5 → 5₼ endirim). ' +
+-                'Faiz növü seçilsə: neçə faiz (məs: 10 → 10% endirim).',
++              description: 'Neçə manat endirim ediləcək.',
+               validation: Rule => Rule.required().min(1),
+             },
+-            {
+-              name: 'minOrderAmount',
+-              title: '🛒 Minimum sifariş məbləği (₼)',
+-              type: 'number',
+-              description: '0 qoysan — məbləğ limiti olmur.',
+-              initialValue: 0,
+-            },
+-            {
+-              name: 'isActive',
+-              title: '✅ Aktiv?',
+-              type: 'boolean',
+-              initialValue: true,
+-              description: 'Söndürsən — müştəri bu kodu istifadə edə bilməz',
+-            },
+-            {
+-              name: 'description',
+-              title: '📝 Qeyd (yalnız sənin üçün)',
+-              type: 'string',
+-              description: 'Məs: 5 manat endirim kodu, Dostuna göndərildi',
+-            },
+           ],
+           preview: {
+-            select: {
+-              code:          'code',
+-              discountType:  'discountType',
+-              discountValue: 'discountValue',
+-              isActive:      'isActive',
+-              minOrder:      'minOrderAmount',
+-            },
+-            prepare({ code, discountType, discountValue, isActive, minOrder }) {
+-              const amount =
+-                discountType === 'percent'
+-                  ? `${discountValue}% endirim`
+-                  : `${discountValue}₼ endirim`;
+-              const minStr = minOrder > 0 ? ` · Min: ${minOrder}₼` : '';
++            select: { code: 'code', discountValue: 'discountValue' },
++            prepare({ code, discountValue }) {
+               return {
+-                title:    `${isActive ? '✅' : '❌'} ${code || 'Kod'}`,
+-                subtitle: `${amount}${minStr}`,
++                title: code || 'Kod',
++                subtitle: `${discountValue ?? 0}₼ endirim`,
+               };
+             },
+           },
+@@ -241,26 +200,36 @@ export default {
+     // 🔑 AVTOMATLAŞDIRMA ÜÇÜN DAXİLİ AÇAR (Google Drive qovluq adı)
+     {
+       name: 'sourceKey',
+-      title: '🔑 Mənbə açarı (Drive qovluq adı) — toxunma',
++      title: 'Mənbə açarı (Drive qovluq adı)',
+       type: 'string',
+       description: 'Avtomatik doldurulur. Bu sahəni əl ilə dəyişməyin — Make.com bunu istifadə edərək eyni məhsulun rəng/model variantlarını tanıyır.',
+       readOnly: true,
++      fieldset: 'technical',
++    },
++  ],
++
++  fieldsets: [
++    {
++      name: 'technical',
++      title: '⚙️ Texniki (toxunma)',
++      options: { collapsible: true, collapsed: true },
+     },
+   ],
+   preview: {
+     select: {
+       title: 'name',
+-      bulkDiscountAmount: 'bulkDiscountAmount',
+       variants: 'variants',
+     },
+     prepare(selection) {
+-      const { title, bulkDiscountAmount, variants } = selection;
++      const { title, variants } = selection;
+       const variantList = variants && Array.isArray(variants) ? variants : [];
+-      const totalStock = variantList.reduce((sum, v) => sum + (v?.stock || 0), 0);
+-      const badges = bulkDiscountAmount > 0 ? '💰' : '';
++      const inStockCount = variantList.filter(v => v?.inStock !== false).length;
++      const subtitle = variantList.length
++        ? (inStockCount === 0 ? '❌ Hamısı bitib' : `✅ ${inStockCount}/${variantList.length} variant stokda`)
++        : 'Variant yoxdur';
+       return {
+-        title: `${badges ? badges + ' ' : ''}${title || 'Məhsul'}`,
+-        subtitle: `Ümumi stok: ${totalStock} əd`,
++        title: title || 'Məhsul',
++        subtitle,
+       }
+     },
+   },
+diff --git a/sanity.config.ts b/sanity.config.ts
+index 59be88d..d98ab27 100644
+--- a/sanity.config.ts
++++ b/sanity.config.ts
+@@ -1,6 +1,5 @@
+ import { defineConfig } from 'sanity'
+ import { structureTool } from 'sanity/structure'
+-import { colorInput } from '@sanity/color-input'
+ import { schemaTypes } from './schameTypes'
+ 
+ export default defineConfig({
+@@ -11,7 +10,6 @@ export default defineConfig({
+   dataset: 'production',
+ 
+   plugins: [
+-    colorInput(),
+     structureTool({
+       structure: (S) =>
+         S.list()
+diff --git a/siteSettings.js b/siteSettings.js
+index c06cf1b..389214d 100644
+--- a/siteSettings.js
++++ b/siteSettings.js
+@@ -28,6 +28,15 @@ export default {
+ 
+   fields: [
+ 
++    {
++      name: 'bulkDiscountPerUnit',
++      title: '💰 2+ ədəddə hər ədədə endirim (₼)',
++      type: 'number',
++      description: 'Sayt boyu bütün məhsullar üçün eyni qayda: müştəri 2 və daha çox ədəd sifariş etdikdə hər ədəddən bu qədər ₼ avtomatik endirim olunur. Dəyişmək üçün kodu toxunmağa ehtiyac yoxdur — birbaşa buradan dəyiş.',
++      initialValue: 1,
++      validation: Rule => Rule.required().min(0),
++    },
++
+     {
+       name: 'logo',
+       title: '🖼 Loqo',
+diff --git a/types.ts b/types.ts
+index 5f833ba..1d93d08 100644
+--- a/types.ts
++++ b/types.ts
+@@ -1,11 +1,10 @@
+ export interface Variant {
+   modelName?: string;
+   colorName?: string;
+-  colorSwatch?: string; // hex kodu, məs. "#C0C0C0" — rəng dairəsi üçün
+   images: string[];
+   price: number;
+   discountPrice?: number;
+-  stock: number;
++  inStock: boolean;
+ }
+ 
+ // ── Qutu seçimi ────────────────────────────────────────────────
+@@ -37,10 +36,9 @@ export interface Product {
+   isPremium?: boolean;
+   premiumOrder?: number;
+   premiumSize?: string;
+-  hasBulkDiscount?: boolean;
+-  bulkDiscountAmount?: number;
+   allowBoxSelection?: boolean;
+   customBoxOptions?: BoxOption[];
++  hasCoupons?: boolean;
+   coupons?: Coupon[];
+   reviews?: CustomerReview[];
+ }
+@@ -74,11 +72,7 @@ export interface ReelPost {
+ 
+ export interface Coupon {
+   code: string;
+-  discountType: 'fixed' | 'percent';
+-  discountValue: number;
+-  minOrderAmount: number;
+-  isActive: boolean;
+-  description?: string;
++  discountValue: number; // ₼ məbləği (sabit endirim)
+ }
+ 
+ export interface CartItem {
+-- 
+2.43.0
+

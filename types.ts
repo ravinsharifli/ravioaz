@@ -1,11 +1,10 @@
 export interface Variant {
   modelName?: string;
   colorName?: string;
-  colorSwatch?: string; // hex kodu, məs. "#C0C0C0" — rəng dairəsi üçün
   images: string[];
   price: number;
   discountPrice?: number;
-  stock: number;
+  inStock: boolean;
 }
 
 // ── Qutu seçimi ────────────────────────────────────────────────
@@ -37,10 +36,9 @@ export interface Product {
   isPremium?: boolean;
   premiumOrder?: number;
   premiumSize?: string;
-  hasBulkDiscount?: boolean;
-  bulkDiscountAmount?: number;
   allowBoxSelection?: boolean;
   customBoxOptions?: BoxOption[];
+  hasCoupons?: boolean;
   coupons?: Coupon[];
   reviews?: CustomerReview[];
 }
@@ -74,11 +72,7 @@ export interface ReelPost {
 
 export interface Coupon {
   code: string;
-  discountType: 'fixed' | 'percent';
-  discountValue: number;
-  minOrderAmount: number;
-  isActive: boolean;
-  description?: string;
+  discountValue: number; // ₼ məbləği (sabit endirim)
 }
 
 export interface CartItem {

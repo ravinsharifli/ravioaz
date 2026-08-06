@@ -1,6 +1,41 @@
 import { MetroSchedule } from '../types';
 import type { HeroSlide } from '../components/home/heroTypes';
 
+// Müştəri 2 və daha çox ədəd sifariş etdikdə hər ədəddən avtomatik endirim
+// olunan məbləğ (₼) — standart/ehtiyat dəyər. Əsl dəyər Sanity → Sayt
+// Tənzimləmələri → "2+ ədəddə endirim (₼)" sahəsindən oxunur; həmin sahə
+// boşdursa bu ehtiyat rəqəm işə düşür.
+export const BULK_DISCOUNT_PER_UNIT = 1;
+
+// Rəng adı → hex kod xəritəsi. Sanity-də artıq əl ilə hex seçilmir —
+// yalnız siyahıdan rəng adı seçilir, dəqiq həmin ada uyğun rəng buradan
+// avtomatik götürülür. Yeni rəng adı əlavə etsən, bura da bir sətir əlavə et.
+export const COLOR_HEX_MAP: Record<string, string> = {
+  'Qara': '#000000',
+  'Ağ': '#ffffff',
+  'Gümüşü': '#c0c0c0',
+  'Qızılı': '#ffd700',
+  'Qırmızı': '#b22222',
+  'Mavi': '#1e3a8a',
+  'Sarı': '#ffd400',
+  'Çəhrayı': '#ffc0cb',
+  'Bənövşəyi': '#6b21a8',
+  'Yaşıl': '#16a34a',
+  'Göy (Milyoner)': '#000080',
+  'Qara - Qızılı': '#000000',
+  'Ağ - Qızılı': '#ffd400',
+  'Ağ - Qara': '#ffffff',
+  'Qızılı - Qəhvəyi': '#ffd700',
+};
+
+// Siyahıda olmayan / köhnə sərbəst-mətn rəng adları üçün ehtiyat rəng.
+export const DEFAULT_COLOR_HEX = '#D9D4CC';
+
+export function getColorHex(colorName?: string): string {
+  if (!colorName) return DEFAULT_COLOR_HEX;
+  return COLOR_HEX_MAP[colorName.trim()] || DEFAULT_COLOR_HEX;
+}
+
 export const DEFAULT_METRO: MetroSchedule = {
   stations: [
     {

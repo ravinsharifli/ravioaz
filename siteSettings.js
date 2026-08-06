@@ -29,6 +29,15 @@ export default {
   fields: [
 
     {
+      name: 'bulkDiscountPerUnit',
+      title: '💰 2+ ədəddə hər ədədə endirim (₼)',
+      type: 'number',
+      description: 'Sayt boyu bütün məhsullar üçün eyni qayda: müştəri 2 və daha çox ədəd sifariş etdikdə hər ədəddən bu qədər ₼ avtomatik endirim olunur. Dəyişmək üçün kodu toxunmağa ehtiyac yoxdur — birbaşa buradan dəyiş.',
+      initialValue: 1,
+      validation: Rule => Rule.required().min(0),
+    },
+
+    {
       name: 'logo',
       title: '🖼 Loqo',
       type: 'image',

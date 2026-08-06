@@ -5,6 +5,7 @@ import { Product, CartItem, Coupon } from '../types';
 import ProductReviews from './ProductReviews';
 import ZoomableImage from './ZoomableImage.tsx';
 import { toWebP, toSrcSet } from '../lib/image';
+import { BULK_DISCOUNT_PER_UNIT, getColorHex } from '../constants/defaults';
 
 const FONT = F.sans;
 
@@ -62,12 +63,13 @@ interface ProductPageProps {
   initialData?: CartItem;
   boxes: BoxOption[];
   coupons?: Coupon[];
+  bulkDiscountPerUnit?: number;
   onBack: () => void;
   onAddToCart: (item: CartItem) => void;
 }
 
 const ProductPage: React.FC<ProductPageProps> = ({
-  product, initialData, boxes, coupons = [], onBack, onAddToCart,
+  product, initialData, boxes, coupons = [], bulkDiscountPerUnit = BULK_DISCOUNT_PER_UNIT, onBack, onAddToCart,
 }) => {
 
   const variants = product.variants || [];
@@ -159,7 +161,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
 
   function selectVariant(i: number) {
     const v = variants[i];
-    if (v.stock === 0) return;
+    if (v.inStock === false) return;
     setVariantIdx(i);
     const firstIdx = allImages.findIndex(img => img.vIdx === i);
     setImgIdx(firstIdx >= 0 ? firstIdx : 0);
@@ -168,8 +170,8 @@ const ProductPage: React.FC<ProductPageProps> = ({
   function selectModel(modelName: string) {
     // Bu modelin ilk mövcud (stokda olan, ya da ilk) variantına keç
     const candidates = variants.map((v, i) => ({ v, i })).filter(({ v }) => (v.modelName || '').trim() === modelName);
-    const inStock = candidates.find(({ v }) => v.stock !== 0);
-    const target = inStock || candidates[0];
+    const available = candidates.find(({ v }) => v.inStock !== false);
+    const target = available || candidates[0];
     if (target) selectVariant(target.i);
   }
 
@@ -180,7 +182,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
   const isOnSale   = !!(salePrice && salePrice < origPrice);
   const salePct    = isOnSale ? Math.round(((origPrice - baseUnit) / origPrice) * 100) : 0;
 
-  const bulkOff       = qty >= 2 ? (product.bulkDiscountAmount ?? 1) : 0;
+  const bulkOff       = qty >= 2 ? bulkDiscountPerUnit : 0;
   const effectiveUnit = Math.max(0, baseUnit - bulkOff);
   const bulkDiscTotal = bulkOff * qty;
   const showBulkNotice = qty >= 10 && !bulkNoticeDismissed;
@@ -190,15 +192,13 @@ const ProductPage: React.FC<ProductPageProps> = ({
   const boxFee = showBox ? (box?.price ?? 0) : 0;
 
   // ── Endirim hesablamaları ──────────────────────────────────────
-  const hasCouponAvailable = coupons.some(c => c.isActive);
+  const hasCouponAvailable = coupons.length > 0;
   const discRate     = customerType === 'loyal' ? 20 : customerType === 'new' ? 10 : 0;
   const productSub   = effectiveUnit * qty + boxFee;
   const customerDisc = customerType ? Math.round(productSub * discRate / 100 * 100) / 100 : 0;
   const couponBase   = productSub - customerDisc;
   const couponDiscount = appliedCoupon
-    ? appliedCoupon.discountType === 'percent'
-      ? Math.round(couponBase * appliedCoupon.discountValue / 100 * 100) / 100
-      : Math.min(appliedCoupon.discountValue, couponBase)
+    ? Math.min(appliedCoupon.discountValue, couponBase)
     : 0;
   const finalPrice = Math.max(0, couponBase - couponDiscount);
 
@@ -209,8 +209,8 @@ const ProductPage: React.FC<ProductPageProps> = ({
   const handleApplyCoupon = () => {
     const trimmed = couponInput.trim().toUpperCase();
     if (!trimmed) { setCouponError('Kupon kodu daxil edin'); return; }
-    const found = coupons.find(c => c.code.toUpperCase() === trimmed && c.isActive);
-    if (!found) { setCouponError('Bu kupon kodu tapılmadı və ya deaktivdir'); return; }
+    const found = coupons.find(c => c.code.toUpperCase() === trimmed);
+    if (!found) { setCouponError('Bu kupon kodu tapılmadı'); return; }
     setCouponError('');
     setAppliedCoupon(found);
     setCouponInput('');
@@ -604,7 +604,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
                         const sel = currentModel === m;
                         const modelOos = variants
                           .filter(v => (v.modelName || '').trim() === m)
-                          .every(v => v.stock === 0);
+                          .every(v => v.inStock === false);
                         return (
                           <button
                             key={m}
@@ -633,9 +633,9 @@ const ProductPage: React.FC<ProductPageProps> = ({
                     <Label>Rəng: <span style={{ color: C.black, textTransform: 'none' as const, letterSpacing: 0, fontWeight: 600 }}>{variant.colorName || ''}</span></Label>
                     <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 8 }}>
                       {colorVariants.map(({ v, i }) => {
-                        const oos = v.stock === 0;
+                        const oos = v.inStock === false;
                         const sel = variantIdx === i;
-                        const swatch = v.colorSwatch || '#D9D4CC';
+                        const swatch = getColorHex(v.colorName);
                         return (
                           <button
                             key={i}
@@ -697,25 +697,24 @@ const ProductPage: React.FC<ProductPageProps> = ({
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: 13, fontWeight: 700, background: C.white, color: C.black,
                   }}>{qty}</div>
-                  {/* maxQty: stok izlənirsə tavan kimi istifadə olunur, əks halda 99 —
-                      təsadüfən həddindən artıq böyük ədəd yazılmasının qarşısını alır
+                  {/* maxQty: sadə tavan (99) — stok say ilə yox, on/off açarı ilə izlənir
                       (bax: lib/cartPricing.ts-dəki eyni məntiq, səbətdəki input üçün) */}
                   <button
-                    onClick={() => setQty(q => Math.min(typeof variant.stock === 'number' && variant.stock > 0 ? variant.stock : 99, q + 1))}
-                    disabled={typeof variant.stock === 'number' && variant.stock > 0 && qty >= variant.stock}
+                    onClick={() => setQty(q => Math.min(99, q + 1))}
+                    disabled={qty >= 99}
                     aria-label="Sayı artır"
                     style={{
                       width: 32, height: 32, borderRadius: '0 6px 6px 0',
                       border: `1px solid ${C.border}`, background: C.bg,
-                      cursor: (typeof variant.stock === 'number' && variant.stock > 0 && qty >= variant.stock) ? 'default' : 'pointer',
-                      opacity: (typeof variant.stock === 'number' && variant.stock > 0 && qty >= variant.stock) ? 0.4 : 1,
+                      cursor: qty >= 99 ? 'default' : 'pointer',
+                      opacity: qty >= 99 ? 0.4 : 1,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                     }}
                   ><Plus size={12} /></button>
                 </div>
 
                 {(() => {
-                  const amount = product.bulkDiscountAmount ?? 1;
+                  const amount = BULK_DISCOUNT_PER_UNIT;
                   const isActive = qty >= 2;
                   const disc = Math.max(0, baseUnit - amount);
                   return (

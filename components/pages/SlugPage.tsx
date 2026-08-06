@@ -24,6 +24,7 @@ interface SlugPageProps {
   setActiveCategory: React.Dispatch<React.SetStateAction<string | null>>;
   openProduct: (p: Product) => void;
   onAddToCart: (item: CartItem) => void;
+  bulkDiscountPerUnit?: number;
 }
 
 export default function SlugPage({
@@ -33,6 +34,7 @@ export default function SlugPage({
   setActiveCategory,
   openProduct,
   onAddToCart,
+  bulkDiscountPerUnit,
 }: SlugPageProps) {
   const { slug: rawSlug = '' } = useParams<{ slug: string }>();
   const slug = decodeURIComponent(rawSlug).trim();
@@ -159,9 +161,9 @@ export default function SlugPage({
 
   const primaryImage = currentProduct?.variants?.[0]?.images?.[0] || '';
   const { min, max } = currentProduct ? getProductPriceRange(currentProduct) : { min: 0, max: 0 };
-  const totalStock = currentProduct
-    ? (currentProduct.variants || []).reduce((sum, v) => sum + (v.stock || 0), 0)
-    : 0;
+  const anyInStock = currentProduct
+    ? (currentProduct.variants || []).some(v => v.inStock !== false)
+    : false;
   const productUrl = `${SITE_URL}/mehsullar/${slug}`;
   const metaDesc = currentProduct ? getProductMetaDescription(currentProduct) : '';
 
@@ -200,7 +202,7 @@ export default function SlugPage({
           const priceMax = allPrices.length ? Math.max(...allPrices) : max;
           const allImgs = currentProduct.variants.flatMap((v) => v.images || []).slice(0, 5);
           const avail =
-            totalStock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock';
+            anyInStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock';
           const productSchema = {
             '@context': 'https://schema.org',
             '@type': 'Product',
@@ -254,6 +256,7 @@ export default function SlugPage({
           initialData={editItem?.productId === currentProduct.id ? editItem : undefined}
           boxes={DEFAULT_BOXES}
           coupons={currentProduct.coupons || []}
+          bulkDiscountPerUnit={bulkDiscountPerUnit}
           onBack={() => navigate('/mehsullar')}
           onAddToCart={onAddToCart}
         />

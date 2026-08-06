@@ -51,7 +51,7 @@ export default {
       name: 'variants',
       title: '🎨 Variantlar (Model + Rəng + Şəkillər)',
       type: 'array',
-      description: 'Hər variant üçün model, rəng, 1-3 şəkil, qiymət və stok daxil edin.',
+      description: 'Hər variant üçün model, rəng, 1-3 şəkil, qiymət və stok (aç/bağla) daxil edin.',
       validation: Rule => Rule.min(1).max(10).required(),
       of: [
         {
@@ -64,15 +64,28 @@ export default {
             },
             {
               name: 'colorName',
-              title: 'Rəng adı (məcburi deyil)',
+              title: '🎨 Rəng',
+              description: 'Siyahıdan seç — dairə rəngi özü avtomatik təyin olunur, ayrıca hex seçməyə ehtiyac yoxdur. Siyahıda olmayan rəng lazımdırsa mənə yaz, siyahıya əlavə edim.',
               type: 'string',
-            },
-            {
-              name: 'colorSwatch',
-              title: '🎨 Rəng nümunəsi (saytda dairə kimi görünür)',
-              description: 'Bu rəngin saytda dairə şəklində görünəcək tonu. Naxışlı/qarışıq rənglər üçün ən yaxın tonu seçin (məs. naxışlı qızılı Zippo üçün qızılı ton).',
-              type: 'color',
-              options: { disableAlpha: true },
+              options: {
+                list: [
+                  { title: 'Qara', value: 'Qara' },
+                  { title: 'Ağ', value: 'Ağ' },
+                  { title: 'Gümüşü', value: 'Gümüşü' },
+                  { title: 'Qızılı', value: 'Qızılı' },
+                  { title: 'Qırmızı', value: 'Qırmızı' },
+                  { title: 'Mavi', value: 'Mavi' },
+                  { title: 'Sarı', value: 'Sarı' },
+                  { title: 'Çəhrayı', value: 'Çəhrayı' },
+                  { title: 'Bənövşəyi', value: 'Bənövşəyi' },
+                  { title: 'Yaşıl', value: 'Yaşıl' },
+                  { title: 'Göy (Milyoner)', value: 'Göy (Milyoner)' },
+                  { title: 'Qara - Qızılı', value: 'Qara - Qızılı' },
+                  { title: 'Ağ - Qızılı', value: 'Ağ - Qızılı' },
+                  { title: 'Ağ - Qara', value: 'Ağ - Qara' },
+                  { title: 'Qızılı - Qəhvəyi', value: 'Qızılı - Qəhvəyi' },
+                ],
+              },
             },
             {
               name: 'images',
@@ -100,29 +113,27 @@ export default {
               validation: Rule => Rule.min(0),
             },
             {
-              name: 'stock',
-              title: 'Stok sayı',
-              type: 'number',
-              validation: Rule => Rule.min(0).integer().required(),
-              initialValue: 0
+              name: 'inStock',
+              title: 'Stokda var?',
+              type: 'boolean',
+              description: 'Söndürsən — bu variant saytda "Bitib" kimi görünür və sifariş edilə bilməz.',
+              initialValue: true,
             }
           ],
           preview: {
             select: {
               modelName: 'modelName',
               colorName: 'colorName',
-              colorSwatch: 'colorSwatch',
-              stock: 'stock',
+              inStock: 'inStock',
               price: 'price',
               discountPrice: 'discountPrice',
               costPrice: 'costPrice',
               media: 'images.0'
             },
-            prepare({ modelName, colorName, colorSwatch, stock, price, discountPrice, costPrice, media }) {
+            prepare({ modelName, colorName, inStock, price, discountPrice, costPrice, media }) {
               const model = modelName || '-';
-              const swatchHex = colorSwatch?.hex;
-              const color = colorName ? `${swatchHex ? '●' : ''} ${colorName}`.trim() : '-';
-              const stockBadge = stock === 0 ? '❌ Bitib' : stock < 20 ? `⚠️ ${stock} əd` : `✅ ${stock} əd`;
+              const color = colorName ? `● ${colorName}` : '-';
+              const stockBadge = inStock === false ? '❌ Bitib' : '✅ Stokda';
               const priceText = discountPrice ? `${discountPrice} AZN` : `${price} AZN`;
               const effectivePrice = discountPrice || price;
               const marginBadge = (costPrice != null && effectivePrice != null)
@@ -139,24 +150,19 @@ export default {
       ]
     },
 
-    // 💰 KƏMİYYƏT ENDİRİMİ (həmişə aktiv, 2+ ədəddə işə düşür)
+    // 🎟 MƏHSULA ÖZƏL ENDİRİM KODU (istəyəndə aç, məcburi deyil)
     {
-      name: 'bulkDiscountAmount',
-      title: '💰 2+ ədəddə hər ədədə endirim məbləği (₼)',
-      type: 'number',
-      description: 'Bu endirim həmişə aktivdir. Müştəri 2 və daha çox ədəd sifariş etdikdə hər ədəddən bu məbləğ avtomatik endirim olunur. 10+ ədəddə əlavə olaraq əlaqə bildirişi göstərilir. Standart: 1₼.',
-      initialValue: 1,
-      validation: Rule => Rule.required().min(0),
+      name: 'hasCoupons',
+      title: '🎟 Bu məhsulda endirim kodu olsun?',
+      type: 'boolean',
+      initialValue: false,
+      description: 'Açsan aşağıda kod və məbləğ yaza bilərsən. Söndürsən — kupon sahəsi tamam gizlənir.',
     },
-
-    // 🎟 MƏHSULA ÖZƏL ENDİRİM KODLARI
     {
       name: 'coupons',
-      title: '🎟 Bu məhsula özəl endirim kodları',
+      title: '🎟 Endirim kodları',
       type: 'array',
-      description:
-        'Bu məhsul üçün xüsusi endirim kodları. Hər kod yalnız bu məhsulda işləyəcək. ' +
-        'Kodu müştəriyə WhatsApp/İnstagram ilə yolla.',
+      hidden: ({ parent }) => !parent?.hasCoupons,
       of: [
         {
           type: 'object',
@@ -167,70 +173,23 @@ export default {
               name: 'code',
               title: '🔑 Kupon kodu',
               type: 'string',
-              description: 'Məs: RAVIO10, HEDIYYE5 — böyük hərflər tövsiyə edilir',
-              validation: Rule => Rule.required(),
-            },
-            {
-              name: 'discountType',
-              title: '📐 Endirim növü',
-              type: 'string',
-              options: {
-                list: [
-                  { title: '💰 Sabit məbləğ (₼)', value: 'fixed' },
-                  { title: '📊 Faiz (%)',           value: 'percent' },
-                ],
-                layout: 'radio',
-              },
-              initialValue: 'fixed',
+              description: 'Məs: RAVIO10 — böyük hərflər tövsiyə edilir',
               validation: Rule => Rule.required(),
             },
             {
               name: 'discountValue',
-              title: '💵 Endirim miqdarı',
+              title: '💵 Endirim məbləği (₼)',
               type: 'number',
-              description:
-                'Sabit növ seçilsə: neçə manat (məs: 5 → 5₼ endirim). ' +
-                'Faiz növü seçilsə: neçə faiz (məs: 10 → 10% endirim).',
+              description: 'Neçə manat endirim ediləcək.',
               validation: Rule => Rule.required().min(1),
-            },
-            {
-              name: 'minOrderAmount',
-              title: '🛒 Minimum sifariş məbləği (₼)',
-              type: 'number',
-              description: '0 qoysan — məbləğ limiti olmur.',
-              initialValue: 0,
-            },
-            {
-              name: 'isActive',
-              title: '✅ Aktiv?',
-              type: 'boolean',
-              initialValue: true,
-              description: 'Söndürsən — müştəri bu kodu istifadə edə bilməz',
-            },
-            {
-              name: 'description',
-              title: '📝 Qeyd (yalnız sənin üçün)',
-              type: 'string',
-              description: 'Məs: 5 manat endirim kodu, Dostuna göndərildi',
             },
           ],
           preview: {
-            select: {
-              code:          'code',
-              discountType:  'discountType',
-              discountValue: 'discountValue',
-              isActive:      'isActive',
-              minOrder:      'minOrderAmount',
-            },
-            prepare({ code, discountType, discountValue, isActive, minOrder }) {
-              const amount =
-                discountType === 'percent'
-                  ? `${discountValue}% endirim`
-                  : `${discountValue}₼ endirim`;
-              const minStr = minOrder > 0 ? ` · Min: ${minOrder}₼` : '';
+            select: { code: 'code', discountValue: 'discountValue' },
+            prepare({ code, discountValue }) {
               return {
-                title:    `${isActive ? '✅' : '❌'} ${code || 'Kod'}`,
-                subtitle: `${amount}${minStr}`,
+                title: code || 'Kod',
+                subtitle: `${discountValue ?? 0}₼ endirim`,
               };
             },
           },
@@ -241,26 +200,36 @@ export default {
     // 🔑 AVTOMATLAŞDIRMA ÜÇÜN DAXİLİ AÇAR (Google Drive qovluq adı)
     {
       name: 'sourceKey',
-      title: '🔑 Mənbə açarı (Drive qovluq adı) — toxunma',
+      title: 'Mənbə açarı (Drive qovluq adı)',
       type: 'string',
       description: 'Avtomatik doldurulur. Bu sahəni əl ilə dəyişməyin — Make.com bunu istifadə edərək eyni məhsulun rəng/model variantlarını tanıyır.',
       readOnly: true,
+      fieldset: 'technical',
+    },
+  ],
+
+  fieldsets: [
+    {
+      name: 'technical',
+      title: '⚙️ Texniki (toxunma)',
+      options: { collapsible: true, collapsed: true },
     },
   ],
   preview: {
     select: {
       title: 'name',
-      bulkDiscountAmount: 'bulkDiscountAmount',
       variants: 'variants',
     },
     prepare(selection) {
-      const { title, bulkDiscountAmount, variants } = selection;
+      const { title, variants } = selection;
       const variantList = variants && Array.isArray(variants) ? variants : [];
-      const totalStock = variantList.reduce((sum, v) => sum + (v?.stock || 0), 0);
-      const badges = bulkDiscountAmount > 0 ? '💰' : '';
+      const inStockCount = variantList.filter(v => v?.inStock !== false).length;
+      const subtitle = variantList.length
+        ? (inStockCount === 0 ? '❌ Hamısı bitib' : `✅ ${inStockCount}/${variantList.length} variant stokda`)
+        : 'Variant yoxdur';
       return {
-        title: `${badges ? badges + ' ' : ''}${title || 'Məhsul'}`,
-        subtitle: `Ümumi stok: ${totalStock} əd`,
+        title: title || 'Məhsul',
+        subtitle,
       }
     },
   },
