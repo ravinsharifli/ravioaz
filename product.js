@@ -197,6 +197,165 @@ export default {
       ],
     },
 
+    // 📦 QUTU SEÇİMLƏRİ — hər məhsul üçün ayrıca (boyunbağı qutusu ≠ üzük qutusu)
+    {
+      name: 'allowBoxSelection',
+      title: '📦 Fərqli qutu seçimi aktivdir?',
+      type: 'boolean',
+      initialValue: false,
+      fieldset: 'boxOptions',
+      description: 'Aşağıda bu məhsula ən azı 1 qutu əlavə etsən, saytda "Əlavə ödənişlə fərqli qutu istəyirsiz?" sualı avtomatik görünəcək. Qutu siyahısı boşdursa, bu aç/bağla nə olursa olsun sualı görünmür.',
+    },
+    {
+      name: 'customBoxOptions',
+      title: '📦 Qutu variantları',
+      type: 'array',
+      fieldset: 'boxOptions',
+      of: [
+        {
+          type: 'object',
+          name: 'boxOption',
+          title: 'Qutu',
+          fields: [
+            {
+              name: 'id',
+              title: 'ID (məcburi deyil, boş saxlaya bilərsən)',
+              type: 'string',
+            },
+            {
+              name: 'name',
+              title: 'Ad',
+              type: 'string',
+              validation: Rule => Rule.required(),
+            },
+            {
+              name: 'desc',
+              title: 'Qısa açıqlama (məcburi deyil)',
+              type: 'string',
+            },
+            {
+              name: 'price',
+              title: 'Əlavə qiymət (₼) — 0 yazsan "Pulsuz" görünür',
+              type: 'number',
+              validation: Rule => Rule.required().min(0),
+            },
+            {
+              name: 'image',
+              title: 'Qutunun şəkli',
+              type: 'image',
+              options: { hotspot: true },
+            },
+            {
+              name: 'isActive',
+              title: 'Saytda göstər?',
+              type: 'boolean',
+              initialValue: true,
+            },
+          ],
+          preview: {
+            select: { title: 'name', price: 'price', media: 'image', isActive: 'isActive' },
+            prepare({ title, price, media, isActive }) {
+              return {
+                title: title || 'Qutu',
+                subtitle: `${price ?? 0} ₼${isActive === false ? ' · ❌ Deaktiv' : ''}`,
+                media,
+              };
+            },
+          },
+        },
+      ],
+    },
+
+    // ⭐ PREMİUM GÖSTƏRİM (ana səhifədə xüsusi sıralama/ölçü)
+    {
+      name: 'isPremium',
+      title: '⭐ Premium məhsuldur?',
+      type: 'boolean',
+      initialValue: false,
+      fieldset: 'premium',
+    },
+    {
+      name: 'premiumOrder',
+      title: '⭐ Sıralama nömrəsi (kiçik rəqəm = daha öndə)',
+      type: 'number',
+      fieldset: 'premium',
+      hidden: ({ parent }) => !parent?.isPremium,
+    },
+    {
+      name: 'premiumSize',
+      title: '⭐ Görünüş ölçüsü',
+      type: 'string',
+      fieldset: 'premium',
+      hidden: ({ parent }) => !parent?.isPremium,
+      options: {
+        list: [
+          { title: 'Normal', value: 'normal' },
+          { title: 'Böyük', value: 'large' },
+        ],
+      },
+    },
+
+    // 💬 MÜŞTƏRİ RƏYLƏRİ (məhsul səhifəsində göstərilir)
+    {
+      name: 'reviews',
+      title: '💬 Rəylər',
+      type: 'array',
+      fieldset: 'reviewsField',
+      of: [
+        {
+          type: 'object',
+          name: 'review',
+          title: 'Rəy',
+          fields: [
+            {
+              name: 'name',
+              title: 'Müştərinin adı',
+              type: 'string',
+              validation: Rule => Rule.required(),
+            },
+            {
+              name: 'rating',
+              title: 'Reytinq (1-5)',
+              type: 'number',
+              validation: Rule => Rule.min(1).max(5),
+            },
+            {
+              name: 'text',
+              title: 'Rəy mətni',
+              type: 'text',
+              validation: Rule => Rule.required(),
+            },
+            {
+              name: 'date',
+              title: 'Tarix (məcburi deyil, sərbəst mətn)',
+              type: 'string',
+            },
+            {
+              name: 'photo',
+              title: 'Müştəri şəkli (məcburi deyil)',
+              type: 'image',
+            },
+            {
+              name: 'isActive',
+              title: 'Saytda göstər?',
+              type: 'boolean',
+              initialValue: true,
+            },
+          ],
+          preview: {
+            select: { title: 'name', rating: 'rating', text: 'text', media: 'photo' },
+            prepare({ title, rating, text, media }) {
+              return {
+                title: `${title || 'Müştəri'} ${rating ? `(${rating}★)` : ''}`,
+                subtitle: text,
+                media,
+              };
+            },
+          },
+        },
+      ],
+    },
+
     // 🔑 AVTOMATLAŞDIRMA ÜÇÜN DAXİLİ AÇAR (Google Drive qovluq adı)
     {
       name: 'sourceKey',
@@ -209,6 +368,22 @@ export default {
   ],
 
   fieldsets: [
+    {
+      name: 'boxOptions',
+      title: '📦 Qutu Seçimləri',
+      description: 'Yalnız bu məhsula uyğun qutuları əlavə et (boyunbağı qutusu üzük qutusu ilə eyni olmaya bilər). Boş saxlasan, saytda heç bir qutu sualı göstərilmir.',
+      options: { collapsible: true, collapsed: false },
+    },
+    {
+      name: 'premium',
+      title: '⭐ Premium göstərim',
+      options: { collapsible: true, collapsed: true },
+    },
+    {
+      name: 'reviewsField',
+      title: '💬 Rəylər',
+      options: { collapsible: true, collapsed: true },
+    },
     {
       name: 'technical',
       title: '⚙️ Texniki (toxunma)',

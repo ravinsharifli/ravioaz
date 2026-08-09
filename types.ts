@@ -88,6 +88,7 @@ export interface CartItem {
   quantity: number;
   specialRequest?: string;
   customText?: string;
+  printFontId?: 'script' | 'classic' | 'elegant';
   customerName: string;
   phone: string;
   birthDate: string;

@@ -1,6 +1,24 @@
 import { MetroSchedule } from '../types';
 import type { HeroSlide } from '../components/home/heroTypes';
 
+// Lazer yazı forması seçimləri (ProductPage-də canlı önizləmə, CartDrawer-də göstərim
+// üçün). Hər ikisi Sanity-yə YOX, birbaşa saytın öz self-hosted fontlarına işarə edir
+// (fonts.google.com-dan yox — "ə" hərfi bir çox dekorativ fontda dəstəklənmir, ona görə
+// yalnız yoxlanılıb Azərbaycan hərflərini 100% dəstəkləyən 2 font seçilib və
+// /public/fonts altında subset olunaraq saxlanılıb, Inter ilə eyni üsulla).
+export interface FontStyleOption {
+  id: 'script' | 'classic' | 'elegant';
+  label: string;
+  family: string;
+  italic?: boolean;
+}
+
+export const FONT_STYLES: FontStyleOption[] = [
+  { id: 'script',  label: 'Zərif əlyazma', family: `'Ravio Script', cursive` },
+  { id: 'classic', label: 'Klassik',       family: `'Times New Roman', Times, 'Noto Serif', serif`, italic: true },
+  { id: 'elegant', label: 'Lüks zərif',    family: `'Ravio Elegant', 'Playfair Display', serif`, italic: true },
+];
+
 // Müştəri 2 və daha çox ədəd sifariş etdikdə hər ədəddən avtomatik endirim
 // olunan məbləğ (₼) — standart/ehtiyat dəyər. Əsl dəyər Sanity → Sayt
 // Tənzimləmələri → "2+ ədəddə endirim (₼)" sahəsindən oxunur; həmin sahə

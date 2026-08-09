@@ -5,7 +5,7 @@ import { Product, CartItem, Coupon } from '../types';
 import ProductReviews from './ProductReviews';
 import ZoomableImage from './ZoomableImage.tsx';
 import { toWebP, toSrcSet } from '../lib/image';
-import { BULK_DISCOUNT_PER_UNIT, getColorHex } from '../constants/defaults';
+import { BULK_DISCOUNT_PER_UNIT, getColorHex, FONT_STYLES } from '../constants/defaults';
 
 const FONT = F.sans;
 
@@ -108,11 +108,20 @@ const ProductPage: React.FC<ProductPageProps> = ({
   const [couponFocused, setCouponFocused] = useState(false);
   const [bulkNoticeDismissed, setBulkNoticeDismissed] = useState(false);
 
-  const effectiveBoxes: BoxOption[] = (product as any).customBoxOptions?.length > 0
-    ? (product as any).customBoxOptions
-    : boxes;
-  const [boxId, setBoxId] = useState<string>(
-    initialData?.boxType ?? effectiveBoxes[0]?.id ?? 'simple'
+  // YALNIZ bu məhsula Sanity-də əlavə olunmuş qutular istifadə olunur.
+  // Ümumi/default qutu siyahısına (DEFAULT_BOXES) HEÇ VAXT geri qayıtmır —
+  // konkret məhsulda qutu şəkli/qiyməti yüklənməyibsə, sual heç göstərilmir.
+  const effectiveBoxes: BoxOption[] = (product as any).customBoxOptions || [];
+  const [boxId, setBoxId] = useState<string>(initialData?.boxType ?? effectiveBoxes[0]?.id ?? '');
+  const [wantsDifferentBox, setWantsDifferentBox] = useState<boolean>(
+    !!initialData?.boxType && initialData.boxType !== effectiveBoxes[0]?.id
+  );
+
+  // Lazer çap seçimi: yazı və/və ya şəkil. Hər ikisi seçilə bilər (2 tərəfli çap).
+  const [wantsText,  setWantsText]  = useState<boolean>(!!initialData?.customText);
+  const [wantsImage, setWantsImage] = useState<boolean>(!!initialData?.specialRequest);
+  const [fontStyle, setFontStyle] = useState<'script' | 'classic' | 'elegant'>(
+    initialData?.printFontId ?? 'script'
   );
 
   // view_item — məhsul səhifəsi açıldıqda GA4 + Meta-ya göndər
@@ -187,7 +196,8 @@ const ProductPage: React.FC<ProductPageProps> = ({
   const bulkDiscTotal = bulkOff * qty;
   const showBulkNotice = qty >= 10 && !bulkNoticeDismissed;
 
-  const showBox = product.allowBoxSelection !== false;
+  const boxAvailable = effectiveBoxes.length > 0;
+  const showBox = boxAvailable && wantsDifferentBox;
   const box    = showBox ? (effectiveBoxes.find((b: BoxOption) => b.id === boxId) ?? effectiveBoxes[0]) : null;
   const boxFee = showBox ? (box?.price ?? 0) : 0;
 
@@ -261,6 +271,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
       discountPrice:        variant.discountPrice,
       quantity:             qty,
       customText:           printText,
+      printFontId:          printText.trim() ? fontStyle : undefined,
       specialRequest:       uploadedImgUrl ? `Müştəri şəkli: ${uploadedImgUrl}` : '',
       customerName:         '',
       phone:                '',
@@ -751,15 +762,64 @@ const ProductPage: React.FC<ProductPageProps> = ({
               )}
             </Sec>
 
-            {/* Xüsusi yazı */}
+            {/* Lazer çap seçimi — əvvəlcə yazı/şəkil seçilir, sonra müvafiq bölmə açılır */}
             <Sec>
-              <Label>Məhsul üzərinə yazı / Əlavə qeyd</Label>
+              <Label>Məhsul üzərində nə istəyirsiniz?</Label>
+              <div style={{ display: 'flex', gap: 10 }}>
+                <button
+                  type="button"
+                  aria-pressed={wantsText}
+                  onClick={() => setWantsText(v => !v)}
+                  style={{
+                    flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                    padding: '12px 10px', borderRadius: 10, cursor: 'pointer', fontFamily: FONT,
+                    border: `1.5px solid ${wantsText ? C.black : C.border}`,
+                    background: wantsText ? C.black : C.white,
+                    color: wantsText ? C.white : C.black,
+                    fontSize: 13, fontWeight: 600, transition: 'all 0.15s',
+                  }}
+                >
+                  ✍️ Yazı
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={wantsImage}
+                  onClick={() => setWantsImage(v => !v)}
+                  style={{
+                    flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                    padding: '12px 10px', borderRadius: 10, cursor: 'pointer', fontFamily: FONT,
+                    border: `1.5px solid ${wantsImage ? C.black : C.border}`,
+                    background: wantsImage ? C.black : C.white,
+                    color: wantsImage ? C.white : C.black,
+                    fontSize: 13, fontWeight: 600, transition: 'all 0.15s',
+                  }}
+                >
+                  🖼️ Şəkil
+                </button>
+              </div>
+              {(wantsText && wantsImage) && (
+                <p style={{ margin: '10px 0 0', fontSize: 12, color: C.gray }}>
+                  ✓ İki tərəfli çap: həm yazı, həm şəkil məhsula işlənəcək.
+                </p>
+              )}
+            </Sec>
+
+            {/* Xüsusi yazı — yalnız "Yazı" seçilibsə görünür */}
+            {wantsText && (
+            <Sec>
+              <Label>Yazınızı daxil edin</Label>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 5, marginBottom: 8 }}>
+                <span style={{ color: C.orange, fontSize: 13, lineHeight: '18px' }}>★</span>
+                <span style={{ fontSize: 12, color: C.gray, lineHeight: 1.5 }}>
+                  Yazı və ya məhsula dair əlavə istəyiniz varsa, elə bura qeyd edin
+                </span>
+              </div>
               <textarea
                 value={printText}
                 onChange={e => setPrintText(e.target.value)}
                 maxLength={300}
                 rows={3}
-                placeholder="Məhsul üzərinə yazı və ya sifarişlə əlaqəli qeydinizi yazın..."
+                placeholder="Məs: Aysu &amp; Elvin, 14.02.2024"
                 style={{
                   width: '100%', background: C.white, border: `1px solid ${C.border}`,
                   borderRadius: 8, padding: '11px 14px', color: C.black, fontFamily: FONT,
@@ -772,9 +832,57 @@ const ProductPage: React.FC<ProductPageProps> = ({
               <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 5 }}>
                 <span style={{ fontSize: 11, color: C.grayLt }}>{printText.length}/300</span>
               </div>
-            </Sec>
 
-            {/* Şəkil yüklə */}
+              {/* Yazı forması — müştəri öz mətnini 3 fərqli şriftdə görüb seçir */}
+              <div style={{ marginTop: 16, paddingTop: 14, borderTop: `1px solid ${C.border}` }}>
+                <p style={{ margin: '0 0 9px', fontSize: 12, fontWeight: 600, color: C.gray }}>
+                  Yazı hansı formada olsun?
+                </p>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+                  {FONT_STYLES.map((f) => {
+                    const active = fontStyle === f.id;
+                    const preview = printText.trim() || 'Ailəmə';
+                    return (
+                      <button
+                        key={f.id}
+                        type="button"
+                        aria-pressed={active}
+                        onClick={() => setFontStyle(f.id)}
+                        style={{
+                          display: 'flex', flexDirection: 'column' as const, alignItems: 'center',
+                          justifyContent: 'center', gap: 5, minHeight: 64,
+                          padding: '10px 6px', borderRadius: 10, cursor: 'pointer',
+                          border: `1.5px solid ${active ? C.black : C.border}`,
+                          background: active ? '#FAFAF8' : C.white,
+                          transition: 'border-color 0.15s',
+                        }}
+                      >
+                        <span style={{
+                          fontFamily: f.family,
+                          fontStyle: f.italic ? 'italic' : 'normal',
+                          fontSize: f.id === 'script' ? 19 : 16,
+                          color: C.black,
+                          lineHeight: 1.25,
+                          maxWidth: '100%',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap' as const,
+                        }}>
+                          {preview}
+                        </span>
+                        <span style={{ fontSize: 10, color: active ? C.black : C.grayLt, fontFamily: FONT, fontWeight: active ? 700 : 400 }}>
+                          {f.label}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </Sec>
+            )}
+
+            {/* Şəkil yüklə — yalnız "Şəkil" seçilibsə görünür */}
+            {wantsImage && (
             <Sec>
               <Label>
                 Şəkil əlavə et{' '}
@@ -828,11 +936,37 @@ const ProductPage: React.FC<ProductPageProps> = ({
 
               {uploadError && <p style={{ fontSize: 12, color: C.red, margin: '6px 0 0' }}>{uploadError}</p>}
             </Sec>
+            )}
 
-            {/* Qablaşdırma */}
-            {effectiveBoxes.length > 0 && product.allowBoxSelection !== false && (
+            {/* Qablaşdırma — YALNIZ bu məhsul üçün Sanity-də qutu təyin olunubsa görünür */}
+            {boxAvailable && (
               <Sec last>
-                <Label>Qablaşdırma</Label>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: C.black, fontFamily: FONT }}>
+                    Əlavə ödənişlə fərqli qutu istəyirsiz?
+                  </span>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={wantsDifferentBox}
+                    aria-label="Əlavə ödənişlə fərqli qutu istəyirsiz?"
+                    onClick={() => setWantsDifferentBox(v => !v)}
+                    style={{
+                      flexShrink: 0, width: 44, height: 26, borderRadius: 13, border: 'none',
+                      background: wantsDifferentBox ? C.green : C.border, position: 'relative',
+                      cursor: 'pointer', transition: 'background 0.15s', padding: 0,
+                    }}
+                  >
+                    <span style={{
+                      position: 'absolute', top: 3, left: wantsDifferentBox ? 21 : 3,
+                      width: 20, height: 20, borderRadius: '50%', background: C.white,
+                      transition: 'left 0.15s', boxShadow: '0 1px 2px rgba(0,0,0,0.2)',
+                    }} />
+                  </button>
+                </div>
+
+                {wantsDifferentBox && (
+                <div style={{ marginTop: 14 }}>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))', gap: 10 }}>
                   {effectiveBoxes.map((b: BoxOption) => {
                     const sel = boxId === b.id;
@@ -873,6 +1007,8 @@ const ProductPage: React.FC<ProductPageProps> = ({
                   })}
                 </div>
                 {box?.desc && <p style={{ margin: '10px 0 0', fontSize: 12, color: C.grayLt }}>{box.desc}</p>}
+                </div>
+                )}
               </Sec>
             )}
 

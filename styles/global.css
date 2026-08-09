@@ -33,6 +33,26 @@
   src: url('/fonts/Inter-ExtraBold.woff2') format('woff2');
 }
 
+/* Ravio Script / Ravio Elegant — məhsul üzərinə lazer yazı önizləməsi üçün.
+   Google Fonts "Great Vibes" və "Playfair Display Italic" əsasında, YALNIZ
+   Azərbaycan hərflərini ("ə", "Ə" daxil — çoxlu dekorativ fontda bu hərf heç
+   yoxdur, yoxlanılıb) və latın əlifbasını ehtiva edən subset. Eyni Inter
+   məntiqi: tək fayl, bütün hərflər həmişə mövcuddur. */
+@font-face {
+  font-family: 'Ravio Script';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/RavioScript-Regular.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Ravio Elegant';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/RavioElegantItalic-Regular.woff2') format('woff2');
+}
+
 :root {
   --clr-primary: #ff6a00;
   --clr-primary-dark: #e55a00;

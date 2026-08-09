@@ -3,6 +3,7 @@ import { X, Trash2, ShoppingBag, ArrowRight, Edit3, ChevronLeft, Minus, Plus } f
 import { CartItem, MetroSchedule, Coupon, Product } from '../types';
 import { F } from '../tokens';
 import { WHATSAPP_NUMBER } from '../constants';
+import { FONT_STYLES } from '../constants/defaults';
 import { toWebP } from '../lib/image';
 import { getMaxQuantityForItem } from '../lib/cartPricing';
 import '../styles/cart-drawer.css';
@@ -244,6 +245,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
         `- Say: ${item.quantity} ədəd`,
         item.boxType && item.boxType !== 'simple' ? `- Qablaşdırma: ${item.boxType}` : '',
         item.customText ? `- Yazı/Qeyd: ${item.customText}` : '',
+        item.customText && item.printFontId ? `- Yazı forması: ${FONT_STYLES.find(f => f.id === item.printFontId)?.label ?? ''}` : '',
         item.specialRequest ? `- Xüsusi istək: ${item.specialRequest}` : '',
         imageUrl ? `- Məhsul şəkli: ${imageUrl}` : '',
       ].filter(Boolean).join('\n');
@@ -429,11 +431,17 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                       <div style={{ fontSize: 12, color: C.gray, marginBottom: 6 }}>
                         {[item.modelName, item.colorName].filter(Boolean).join(' · ')}
                       </div>
-                      {item.customText && (
-                        <div style={{ fontSize: 11, color: C.blue, background: '#EFF6FF', borderRadius: 6, padding: '4px 8px', display: 'inline-block', marginBottom: 6 }}>
-                          {item.customText}
-                        </div>
-                      )}
+                      {item.customText && (() => {
+                        const f = FONT_STYLES.find(fs => fs.id === item.printFontId);
+                        return (
+                          <div style={{ fontSize: 11, color: C.blue, background: '#EFF6FF', borderRadius: 6, padding: '4px 8px', display: 'inline-block', marginBottom: 6 }}>
+                            <span style={{ fontFamily: f?.family, fontStyle: f?.italic ? 'italic' : 'normal', fontSize: 13 }}>
+                              {item.customText}
+                            </span>
+                            {f && <span style={{ opacity: 0.7 }}> · {f.label}</span>}
+                          </div>
+                        );
+                      })()}
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' as const, gap: 8 }}>
                         {(() => {
                           const product = products?.find((p) => p.id === item.productId);
