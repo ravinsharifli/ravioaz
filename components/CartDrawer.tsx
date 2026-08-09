@@ -82,6 +82,18 @@ function openWhatsAppMessage(message: string) {
   window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`, '_blank');
 }
 
+// Sanity CDN linkini ravio.az üzərindən keçən "təmiz" linkə çevirir. Bunsuz
+// WhatsApp mesajında layihə ID-si ("w7scii42") 2 dəfə görünürdü: həm avtomatik
+// link-önizləmə kartında, həm mesajın öz mətnində. İndi hər ikisində YALNIZ
+// "ravio.az" görünür, cdn.sanity.io/layihə ID-si heç görünmür. /api/img
+// serverless funksiyası əsl Sanity linkinə 302 ilə yönləndirir (bax: api/img.js).
+function toCleanImageUrl(sanityUrl: string | undefined): string {
+  if (!sanityUrl) return '';
+  const match = sanityUrl.match(/\/production\/([a-f0-9]+-\d+x\d+\.\w+)$/i);
+  if (!match) return sanityUrl; // Format tanınmadı, orijinal linki saxla (heç vaxt sındırma)
+  return `https://ravio.az/api/img?f=${match[1]}`;
+}
+
 const Label: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <p style={{ fontSize: 11, fontWeight: 700, color: C.gray, margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: 0.4 }}>
     {children}
@@ -236,7 +248,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
 
   function buildMessage(orderNumber: string) {
     const fullItemsText = items.map((item, index) => {
-      const imageUrl = item.images?.[0] ?? '';
+      const imageUrl = toCleanImageUrl(item.images?.[0]);
       return [
         `MƏHSUL ${index + 1}`,
         `- Ad: ${item.productName}`,
@@ -244,8 +256,9 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
         `- Rəng: ${item.colorName}`,
         `- Say: ${item.quantity} ədəd`,
         item.boxType && item.boxType !== 'simple' ? `- Qablaşdırma: ${item.boxType}` : '',
-        item.customText ? `- Yazı/Qeyd: ${item.customText}` : '',
-        item.customText && item.printFontId ? `- Yazı forması: ${FONT_STYLES.find(f => f.id === item.printFontId)?.label ?? ''}` : '',
+        item.customText ? `- Yazı: ${item.customText}` : '',
+        item.customText && item.printFontId ? `- Yazı forması: ${FONT_STYLES.find(f => f.id === item.printFontId)?.name ?? ''}` : '',
+        item.printNote ? `- Əlavə qeyd: ${item.printNote}` : '',
         item.specialRequest ? `- Xüsusi istək: ${item.specialRequest}` : '',
         imageUrl ? `- Məhsul şəkli: ${imageUrl}` : '',
       ].filter(Boolean).join('\n');
@@ -438,10 +451,15 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                             <span style={{ fontFamily: f?.family, fontStyle: f?.italic ? 'italic' : 'normal', fontSize: 13 }}>
                               {item.customText}
                             </span>
-                            {f && <span style={{ opacity: 0.7 }}> · {f.label}</span>}
+                            {f && <span style={{ opacity: 0.7 }}> · {f.name}</span>}
                           </div>
                         );
                       })()}
+                      {item.printNote && (
+                        <div style={{ fontSize: 11, color: C.gray, marginBottom: 6 }}>
+                          ★ {item.printNote}
+                        </div>
+                      )}
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' as const, gap: 8 }}>
                         {(() => {
                           const product = products?.find((p) => p.id === item.productId);

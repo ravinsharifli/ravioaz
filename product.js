@@ -266,35 +266,6 @@ export default {
       ],
     },
 
-    // ⭐ PREMİUM GÖSTƏRİM (ana səhifədə xüsusi sıralama/ölçü)
-    {
-      name: 'isPremium',
-      title: '⭐ Premium məhsuldur?',
-      type: 'boolean',
-      initialValue: false,
-      fieldset: 'premium',
-    },
-    {
-      name: 'premiumOrder',
-      title: '⭐ Sıralama nömrəsi (kiçik rəqəm = daha öndə)',
-      type: 'number',
-      fieldset: 'premium',
-      hidden: ({ parent }) => !parent?.isPremium,
-    },
-    {
-      name: 'premiumSize',
-      title: '⭐ Görünüş ölçüsü',
-      type: 'string',
-      fieldset: 'premium',
-      hidden: ({ parent }) => !parent?.isPremium,
-      options: {
-        list: [
-          { title: 'Normal', value: 'normal' },
-          { title: 'Böyük', value: 'large' },
-        ],
-      },
-    },
-
     // 💬 MÜŞTƏRİ RƏYLƏRİ (məhsul səhifəsində göstərilir)
     {
       name: 'reviews',
@@ -373,11 +344,6 @@ export default {
       title: '📦 Qutu Seçimləri',
       description: 'Yalnız bu məhsula uyğun qutuları əlavə et (boyunbağı qutusu üzük qutusu ilə eyni olmaya bilər). Boş saxlasan, saytda heç bir qutu sualı göstərilmir.',
       options: { collapsible: true, collapsed: false },
-    },
-    {
-      name: 'premium',
-      title: '⭐ Premium göstərim',
-      options: { collapsible: true, collapsed: true },
     },
     {
       name: 'reviewsField',

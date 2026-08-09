@@ -123,6 +123,8 @@ const ProductPage: React.FC<ProductPageProps> = ({
   const [fontStyle, setFontStyle] = useState<'script' | 'classic' | 'elegant'>(
     initialData?.printFontId ?? 'script'
   );
+  const selectedFont = FONT_STYLES.find(f => f.id === fontStyle) ?? FONT_STYLES[0];
+  const [printNote, setPrintNote] = useState<string>(initialData?.printNote ?? '');
 
   // view_item — məhsul səhifəsi açıldıqda GA4 + Meta-ya göndər
   // NOT: Bu useEffect mütləq conditional return-dan ƏVVƏL gəlməlidir (React Hooks qaydası)
@@ -272,6 +274,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
       quantity:             qty,
       customText:           printText,
       printFontId:          printText.trim() ? fontStyle : undefined,
+      printNote:            printNote.trim() || undefined,
       specialRequest:       uploadedImgUrl ? `Müştəri şəkli: ${uploadedImgUrl}` : '',
       customerName:         '',
       phone:                '',
@@ -808,40 +811,39 @@ const ProductPage: React.FC<ProductPageProps> = ({
             {wantsText && (
             <Sec>
               <Label>Yazınızı daxil edin</Label>
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 5, marginBottom: 8 }}>
-                <span style={{ color: C.orange, fontSize: 13, lineHeight: '18px' }}>★</span>
-                <span style={{ fontSize: 12, color: C.gray, lineHeight: 1.5 }}>
-                  Yazı və ya məhsula dair əlavə istəyiniz varsa, elə bura qeyd edin
-                </span>
-              </div>
               <textarea
                 value={printText}
                 onChange={e => setPrintText(e.target.value)}
                 maxLength={300}
                 rows={3}
-                placeholder="Məs: Aysu &amp; Elvin, 14.02.2024"
+                placeholder="Məs: Aysu & Elvin, 14.02.2024"
                 style={{
                   width: '100%', background: C.white, border: `1px solid ${C.border}`,
-                  borderRadius: 8, padding: '11px 14px', color: C.black, fontFamily: FONT,
+                  borderRadius: 8, padding: '11px 14px', color: C.black,
+                  fontFamily: selectedFont.family,
+                  fontStyle: selectedFont.italic ? 'italic' : 'normal',
                   outline: 'none', boxSizing: 'border-box' as const,
-                  resize: 'vertical' as const, minHeight: 80, fontSize: 16,
+                  resize: 'vertical' as const, minHeight: 90,
+                  fontSize: fontStyle === 'script' ? 22 : 18,
+                  lineHeight: 1.4,
                 } as React.CSSProperties}
                 onFocus={e => e.currentTarget.style.borderColor = C.blue}
                 onBlur={e => e.currentTarget.style.borderColor = C.border}
               />
               <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 5 }}>
-                <span style={{ fontSize: 11, color: C.grayLt }}>{printText.length}/300</span>
+                <span style={{ fontSize: 11, color: C.grayLt, fontFamily: FONT }}>{printText.length}/300</span>
               </div>
 
-              {/* Yazı forması — müştəri öz mətnini 3 fərqli şriftdə görüb seçir */}
+              {/* Yazı forması — hər düymə öz şriftinin ADINI öz şriftində göstərir.
+                  Bu üsul seçildikdə mətnin ÖZÜ yuxarıdakı sahədə canlı dəyişir —
+                  uzun yazılarda kiçik kartlarda kəsilmə problemi olmur. */}
               <div style={{ marginTop: 16, paddingTop: 14, borderTop: `1px solid ${C.border}` }}>
-                <p style={{ margin: '0 0 9px', fontSize: 12, fontWeight: 600, color: C.gray }}>
-                  Yazı hansı formada olsun?
+                <p style={{ margin: '0 0 9px', fontSize: 12, fontWeight: 600, color: C.gray, fontFamily: FONT }}>
+                  Yazı forması hansı olsun?
                 </p>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
                   {FONT_STYLES.map((f) => {
                     const active = fontStyle === f.id;
-                    const preview = printText.trim() || 'Ailəmə';
                     return (
                       <button
                         key={f.id}
@@ -850,7 +852,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
                         onClick={() => setFontStyle(f.id)}
                         style={{
                           display: 'flex', flexDirection: 'column' as const, alignItems: 'center',
-                          justifyContent: 'center', gap: 5, minHeight: 64,
+                          justifyContent: 'center', gap: 4, minHeight: 56,
                           padding: '10px 6px', borderRadius: 10, cursor: 'pointer',
                           border: `1.5px solid ${active ? C.black : C.border}`,
                           background: active ? '#FAFAF8' : C.white,
@@ -860,24 +862,51 @@ const ProductPage: React.FC<ProductPageProps> = ({
                         <span style={{
                           fontFamily: f.family,
                           fontStyle: f.italic ? 'italic' : 'normal',
-                          fontSize: f.id === 'script' ? 19 : 16,
+                          fontSize: f.id === 'script' ? 18 : 14,
                           color: C.black,
-                          lineHeight: 1.25,
-                          maxWidth: '100%',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap' as const,
+                          lineHeight: 1.2,
                         }}>
-                          {preview}
+                          {f.id === 'script' ? 'Ravio' : f.name.split(' ')[0]}
                         </span>
-                        <span style={{ fontSize: 10, color: active ? C.black : C.grayLt, fontFamily: FONT, fontWeight: active ? 700 : 400 }}>
-                          {f.label}
+                        <span style={{ fontSize: 10, color: active ? C.black : C.grayLt, fontFamily: FONT, fontWeight: active ? 700 : 400, textAlign: 'center' as const }}>
+                          {f.name}
                         </span>
                       </button>
                     );
                   })}
                 </div>
               </div>
+            </Sec>
+            )}
+
+            {/* Əlavə qeyd — Yazı VƏ ya Şəkil seçilibsə görünür. QƏSDƏN yazı sahəsindən
+                AYRI saxlanılıb: yazı sahəsi seçilən şriftlə (məs. kursiv əlyazma)
+                göstərilir, amma qeyd sahəsi HƏMİŞƏ adi, oxunaqlı şriftdədir — çünki
+                bura yazılan "ölçünü kiçildin", "sağa tərəf yazın" kimi qeydlər
+                istehsalçı üçündür, bəzəkli şriftdə çətin oxunardı. */}
+            {(wantsText || wantsImage) && (
+            <Sec>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 5, marginBottom: 8 }}>
+                <span style={{ color: C.orange, fontSize: 13, lineHeight: '18px' }}>★</span>
+                <span style={{ fontSize: 12, color: C.gray, lineHeight: 1.5, fontFamily: FONT }}>
+                  Yazı və ya məhsula dair əlavə istəyiniz varsa, bura qeyd edin
+                </span>
+              </div>
+              <textarea
+                value={printNote}
+                onChange={e => setPrintNote(e.target.value)}
+                maxLength={200}
+                rows={2}
+                placeholder="Məs: hərflər bir az kiçik olsun"
+                style={{
+                  width: '100%', background: C.white, border: `1px solid ${C.border}`,
+                  borderRadius: 8, padding: '11px 14px', color: C.black, fontFamily: FONT,
+                  outline: 'none', boxSizing: 'border-box' as const,
+                  resize: 'vertical' as const, minHeight: 60, fontSize: 16,
+                } as React.CSSProperties}
+                onFocus={e => e.currentTarget.style.borderColor = C.blue}
+                onBlur={e => e.currentTarget.style.borderColor = C.border}
+              />
             </Sec>
             )}
 

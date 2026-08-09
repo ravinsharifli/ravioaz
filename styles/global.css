@@ -34,10 +34,11 @@
 }
 
 /* Ravio Script / Ravio Elegant — məhsul üzərinə lazer yazı önizləməsi üçün.
-   Google Fonts "Great Vibes" və "Playfair Display Italic" əsasında, YALNIZ
-   Azərbaycan hərflərini ("ə", "Ə" daxil — çoxlu dekorativ fontda bu hərf heç
-   yoxdur, yoxlanılıb) və latın əlifbasını ehtiva edən subset. Eyni Inter
-   məntiqi: tək fayl, bütün hərflər həmişə mövcuddur. */
+   Google Fonts "Great Vibes" (Monotype Corsiva-ya bənzər) və "EB Garamond Italic"
+   (Garamond-un veb versiyası) əsasında, YALNIZ Azərbaycan hərflərini ("ə", "Ə"
+   daxil — çoxlu dekorativ fontda bu hərf heç yoxdur, yoxlanılıb) və latın
+   əlifbasını ehtiva edən subset. Eyni Inter məntiqi: tək fayl, bütün hərflər
+   həmişə mövcuddur. */
 @font-face {
   font-family: 'Ravio Script';
   font-style: normal;

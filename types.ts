@@ -33,9 +33,6 @@ export interface Product {
   category?: string;
   description?: string;
   variants: Variant[];
-  isPremium?: boolean;
-  premiumOrder?: number;
-  premiumSize?: string;
   allowBoxSelection?: boolean;
   customBoxOptions?: BoxOption[];
   hasCoupons?: boolean;
@@ -89,6 +86,7 @@ export interface CartItem {
   specialRequest?: string;
   customText?: string;
   printFontId?: 'script' | 'classic' | 'elegant';
+  printNote?: string;
   customerName: string;
   phone: string;
   birthDate: string;

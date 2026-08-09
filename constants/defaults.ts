@@ -1,22 +1,29 @@
 import { MetroSchedule } from '../types';
 import type { HeroSlide } from '../components/home/heroTypes';
 
-// Lazer yazı forması seçimləri (ProductPage-də canlı önizləmə, CartDrawer-də göstərim
-// üçün). Hər ikisi Sanity-yə YOX, birbaşa saytın öz self-hosted fontlarına işarə edir
-// (fonts.google.com-dan yox — "ə" hərfi bir çox dekorativ fontda dəstəklənmir, ona görə
-// yalnız yoxlanılıb Azərbaycan hərflərini 100% dəstəkləyən 2 font seçilib və
-// /public/fonts altında subset olunaraq saxlanılıb, Inter ilə eyni üsulla).
+// Lazer yazı forması seçimləri (ProductPage-də canlı önizləmə, CartDrawer-də göstərim,
+// WhatsApp sifariş mesajında istehsalçıya göndərilən ad üçün). Hər üçü EYNİ, KONKRET
+// şrift adını göstərir ("Klassik", "Zərif əlyazma" kimi ümumi adlar YOX) — çünki
+// istehsalçı bu adı görüb məhz həmin şriftlə yazmalıdır.
+//
+// Texniki qeyd: 'name' sahəsi istehsalçıya tanış olan REAL şrift adıdır (Monotype
+// Corsiva, Times New Roman, Garamond — bunlar demək olar bütün Windows dizayn
+// proqramlarında hazır mövcuddur). 'family' isə saytda göstərmək üçün self-hosted
+// veb-fontdur: fonts.google.com-dan YOX (bir çox dekorativ fontda Azərbaycan "ə"
+// hərfi heç yoxdur — yoxlanılıb), yalnız "ə/Ə" daxil bütün AZ hərflərini 100%
+// dəstəklədiyi təsdiqlənmiş 2 font seçilib. Times New Roman özü onsuz da demək olar
+// bütün cihazlarda (Windows/Mac/iOS) real sistem fontu kimi mövcuddur.
 export interface FontStyleOption {
   id: 'script' | 'classic' | 'elegant';
-  label: string;
+  name: string;
   family: string;
   italic?: boolean;
 }
 
 export const FONT_STYLES: FontStyleOption[] = [
-  { id: 'script',  label: 'Zərif əlyazma', family: `'Ravio Script', cursive` },
-  { id: 'classic', label: 'Klassik',       family: `'Times New Roman', Times, 'Noto Serif', serif`, italic: true },
-  { id: 'elegant', label: 'Lüks zərif',    family: `'Ravio Elegant', 'Playfair Display', serif`, italic: true },
+  { id: 'script',  name: 'Monotype Corsiva',      family: `'Ravio Script', cursive` },
+  { id: 'classic', name: 'Times New Roman İtalic', family: `'Times New Roman', Times, 'Noto Serif', serif`, italic: true },
+  { id: 'elegant', name: 'Garamond İtalic',        family: `'Ravio Elegant', 'EB Garamond', serif`, italic: true },
 ];
 
 // Müştəri 2 və daha çox ədəd sifariş etdikdə hər ədəddən avtomatik endirim

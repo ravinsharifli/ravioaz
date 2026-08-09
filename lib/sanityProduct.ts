@@ -7,7 +7,6 @@ export const PRODUCTS_QUERY = `*[_type == "product"] | order(name asc) {
     modelName, colorName, price, discountPrice, inStock,
     images[]{ asset->{ url } }
   },
-  isPremium, premiumOrder, premiumSize,
   allowBoxSelection,
   customBoxOptions[]{ id, name, desc, price, isActive, "imageUrl": image.asset->url },
   hasCoupons, coupons[]{ code, discountValue }
@@ -20,7 +19,6 @@ export const SINGLE_PRODUCT_QUERY = `*[_type == "product" && slug.current == $sl
     modelName, colorName, price, discountPrice, inStock,
     images[]{ asset->{ url } }
   },
-  isPremium, premiumOrder, premiumSize,
   allowBoxSelection,
   customBoxOptions[]{ id, name, desc, price, isActive, "imageUrl": image.asset->url },
   hasCoupons, coupons[]{ code, discountValue },
@@ -69,9 +67,6 @@ export function mapSanityProduct(raw: any): Product {
     category: raw.category?.name || '',
     description: raw.description || '',
     variants,
-    isPremium: raw.isPremium || false,
-    premiumOrder: raw.premiumOrder,
-    premiumSize: raw.premiumSize,
     allowBoxSelection: raw.allowBoxSelection !== false,
     customBoxOptions: (raw.customBoxOptions || [])
       .filter((b: any) => b.isActive !== false)
