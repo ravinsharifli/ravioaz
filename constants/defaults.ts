@@ -47,18 +47,51 @@ export const COLOR_HEX_MAP: Record<string, string> = {
   'Bənövşəyi': '#6b21a8',
   'Yaşıl': '#16a34a',
   'Göy (Milyoner)': '#000080',
-  'Qara - Qızılı': '#000000',
-  'Ağ - Qızılı': '#ffd400',
-  'Ağ - Qara': '#ffffff',
-  'Qızılı - Qəhvəyi': '#ffd700',
 };
 
 // Siyahıda olmayan / köhnə sərbəst-mətn rəng adları üçün ehtiyat rəng.
 export const DEFAULT_COLOR_HEX = '#D9D4CC';
 
-export function getColorHex(colorName?: string): string {
+// Rəng adı → hər hansı böyük/kiçik hərflə uyğunlaşdırmaq üçün normallaşdırılmış xəritə.
+// ("Qara" və "qara" eyni nəticəni verməlidir — mövcud Sanity datasında hər ikisi var.)
+const NORMALIZED_COLOR_MAP: Record<string, string> = Object.fromEntries(
+  Object.entries(COLOR_HEX_MAP).map(([name, hex]) => [name.trim().toLowerCase(), hex])
+);
+
+function lookupColor(name: string): string | null {
+  return NORMALIZED_COLOR_MAP[name.trim().toLowerCase()] ?? null;
+}
+
+// Bir rəng adına uyğun CSS "background" dəyərini qaytarır. Adi tək rəng üçün
+// flat hex ("#000000"), "Rəng1 - Rəng2" formatlı 2-rəngli adlar üçün isə
+// "/" formalı diaqonal bölünmüş dairə (linear-gradient) qaytarır — heç bir
+// Sanity sxem dəyişikliyi tələb olunmur, mövcud "Ağ - Qara" tərzi adlar
+// avtomatik tanınır. Hər iki hissə tanınan rəng olmalıdır (əks halda, məs.
+// "Tünd - qırmızı" kimi hallarda, "Tünd" rəng deyil sifətdir — bu halda tək
+// tanınan rəngə keçir; heç biri tanınmırsa əvvəlki kimi boz fallback qalır).
+export function getColorSwatchBackground(colorName?: string): string {
   if (!colorName) return DEFAULT_COLOR_HEX;
-  return COLOR_HEX_MAP[colorName.trim()] || DEFAULT_COLOR_HEX;
+  const trimmed = colorName.trim();
+
+  const parts = trimmed.split(/\s*-\s*/).filter(Boolean);
+  if (parts.length === 2) {
+    const c1 = lookupColor(parts[0]);
+    const c2 = lookupColor(parts[1]);
+    if (c1 && c2) {
+      // "/" görünüşü: yuxarı-sol = 1-ci rəng, aşağı-sağ = 2-ci rəng.
+      return `linear-gradient(135deg, ${c1} 50%, ${c2} 50%)`;
+    }
+    // Yalnız biri tanınırsa, heç olmasa onu tək rəng kimi göstər (boz fallback-dan yaxşıdır).
+    if (c1) return c1;
+    if (c2) return c2;
+  }
+
+  return lookupColor(trimmed) ?? DEFAULT_COLOR_HEX;
+}
+
+/** @deprecated getColorSwatchBackground istifadə et — 2-rəngli adları da düzgün göstərir. */
+export function getColorHex(colorName?: string): string {
+  return getColorSwatchBackground(colorName);
 }
 
 export const DEFAULT_METRO: MetroSchedule = {

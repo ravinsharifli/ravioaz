@@ -5,7 +5,7 @@ import { Product, CartItem, Coupon } from '../types';
 import ProductReviews from './ProductReviews';
 import ZoomableImage from './ZoomableImage.tsx';
 import { toWebP, toSrcSet } from '../lib/image';
-import { BULK_DISCOUNT_PER_UNIT, getColorHex, FONT_STYLES } from '../constants/defaults';
+import { BULK_DISCOUNT_PER_UNIT, getColorSwatchBackground, FONT_STYLES } from '../constants/defaults';
 
 const FONT = F.sans;
 
@@ -649,7 +649,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
                       {colorVariants.map(({ v, i }) => {
                         const oos = v.inStock === false;
                         const sel = variantIdx === i;
-                        const swatch = getColorHex(v.colorName);
+                        const swatch = getColorSwatchBackground(v.colorName);
                         return (
                           <button
                             key={i}
