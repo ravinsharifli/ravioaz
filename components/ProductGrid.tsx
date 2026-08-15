@@ -265,7 +265,7 @@ const Card: React.FC<CardProps> = ({
           <div>
             {hasDiscount && minOld !== null && (
               <span style={{
-                fontSize: 10, color: '#BBBBBB',
+                fontSize: 10, color: '#757575',
                 textDecoration: 'line-through',
                 display: 'block', lineHeight: 1, marginBottom: 2,
                 fontFamily: F.sans,
