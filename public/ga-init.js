@@ -35,9 +35,9 @@ function loadGAScript() {
 // Real istifadəçidə adətən 1 saniyədən az müddətdə işə düşür, çünki brauzer
 // tez boşalır; maksimum 8 saniyə gözlənilir (timeout) — "əbədi" gözləmə olmur.
 if ('requestIdleCallback' in window) {
-  requestIdleCallback(loadGAScript, { timeout: 8000 });
+  requestIdleCallback(loadGAScript, { timeout: 12000 });
 } else {
-  setTimeout(loadGAScript, 4000);
+  setTimeout(loadGAScript, 10000);
 }
 
 // Digər komponentlər hadisə göndərə bilər

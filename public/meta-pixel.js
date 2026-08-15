@@ -29,7 +29,7 @@ function initPixel() {
 // İnteraksiya olmasa: brauzer boş qaldığı an yüklə (requestIdleCallback, max 8s).
 // ga-init.js ilə eyni məntiq.
 if ('requestIdleCallback' in window) {
-  requestIdleCallback(initPixel, { timeout: 8000 });
+  requestIdleCallback(initPixel, { timeout: 12000 });
 } else {
-  setTimeout(initPixel, 4000);
+  setTimeout(initPixel, 10000);
 }
