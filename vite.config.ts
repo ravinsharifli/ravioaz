@@ -15,7 +15,11 @@ export default defineConfig({
   },
   build: {
     cssCodeSplit: true,
-    minify: 'esbuild',
+    minify: 'terser',
+    terserOptions: {
+      compress: { drop_console: true, drop_debugger: true },
+      format: { comments: false }
+    },
     target: 'es2017',
     reportCompressedSize: false,
     rollupOptions: {

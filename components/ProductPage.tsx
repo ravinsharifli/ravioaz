@@ -396,13 +396,13 @@ const ProductPage: React.FC<ProductPageProps> = ({
                     aspectRatio: '1/1',
                   }}>
                   <ZoomableImage
+                    fetchPriority="high"
                     src={toWebP(allImages[imgIdx]?.url ?? '', 720, 80)}
                     srcSet={toSrcSet(allImages[imgIdx]?.url ?? '', [240, 480, 720], 80)}
                     sizes="(max-width: 640px) 90vw, (max-width: 1280px) 50vw, 640px"
                     zoomSrc={toWebP(allImages[imgIdx]?.url ?? '', 1400, 85)}
                     alt={product.name}
                     loading="eager"
-                    fetchPriority="high"
                     onError={e => { (e.target as HTMLImageElement).src = 'https://placehold.co/600x600/F5F2EC/AAAAAA?text=Şəkil+yoxdur'; }}
                   />
 
@@ -1024,7 +1024,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
                         }}>
                         <div style={{ aspectRatio: '1/1', background: C.bg, overflow: 'hidden' }}>
                           {b.imageUrl ? (
-                            <img src={toWebP(b.imageUrl, 200)} alt={b.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} loading="lazy" />
+                            <img src={toWebP(b.imageUrl, 200)} alt={b.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} loading="lazy" decoding="async" fetchPriority="low" />
                           ) : (
                             <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28 }}>📦</div>
                           )}

@@ -165,7 +165,7 @@ const Card: React.FC<CardProps> = ({
            alt={`${displayName} — ${t('productGrid.altSuffix')} | Ravio`}
            loading={cardIndex < 4 ? 'eager' : 'lazy'}
            fetchPriority={cardIndex === 0 ? 'high' : 'auto'}
-           decoding={cardIndex < 4 ? 'sync' : 'async'}
+           decoding="async"
            style={{
            width: '100%', height: '100%', objectFit: 'cover', display: 'block',
            transition: 'transform 0.5s ease',
