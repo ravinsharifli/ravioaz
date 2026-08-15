@@ -1,22 +1,25 @@
 ﻿import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { C } from '../../tokens';
 
 export default function InfoStrips() {
+  const { t } = useTranslation();
+
   const strips = [
     {
       icon: '🚚',
-      title: 'Bütün Azərbaycana ödənişsiz',
-      desc: 'Kuryer, metro, poçt — tamamilə ödənişsiz',
+      title: t('home.infoStrips.delivery.title'),
+      desc: t('home.infoStrips.delivery.desc'),
     },
     {
       icon: '🐾',
-      title: 'Satışın 5%-i küçə heyvanlarına',
-      desc: 'Hər alışınla bir həyat xilas edilir',
+      title: t('home.infoStrips.charity.title'),
+      desc: t('home.infoStrips.charity.desc'),
     },
     {
       icon: '✍️',
-      title: 'Hər hədiyyə sənin adınla',
-      desc: 'Lazer yazı — dəyişilməz, unudulmaz',
+      title: t('home.infoStrips.engraving.title'),
+      desc: t('home.infoStrips.engraving.desc'),
     },
   ];
 

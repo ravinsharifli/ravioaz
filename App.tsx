@@ -111,6 +111,19 @@ function AppShell() {
   const heroSlides: any[] = settings?.heroSlides || [];
   const bulkDiscountPerUnit: number = settings?.bulkDiscountPerUnit ?? BULK_DISCOUNT_PER_UNIT;
 
+  // Kateqoriya adlarının Azərbaycanca → İngiliscə xəritəsi (/en səhifələrində
+  // sidebar, filtr düymələri və breadcrumb-larda göstərmək üçün). Tərcüməsi
+  // hələ Sanity-də doldurulmayan kateqoriyalar üçün boş sətir filtr olunur —
+  // bu, localizedCategoryName-in Azərbaycanca ada geri düşməsini təmin edir.
+  const categoryNameMap = useMemo(() => {
+    const raw = (settings?.categoryTranslations || []) as { name?: string; nameEn?: string }[];
+    return Object.fromEntries(
+      raw
+        .filter((c) => c.name && c.nameEn && c.nameEn.trim())
+        .map((c) => [c.name as string, (c.nameEn as string).trim()])
+    );
+  }, [settings]);
+
   const categories = useMemo(
     () => Array.from(new Set(products.map((p) => p.category).filter(Boolean))) as string[],
     [products]
@@ -229,6 +242,7 @@ function AppShell() {
                 reelPosts={reelPosts}
                 heroSlides={heroSlides}
                 categories={categories}
+                categoryNameMap={categoryNameMap}
                 filteredProducts={filteredProducts}
                 loading={loading}
                 activeCategory={activeCategory}
@@ -243,6 +257,7 @@ function AppShell() {
             element={
               <ProductsPage
                 categories={categories}
+                categoryNameMap={categoryNameMap}
                 products={products}
                 loading={loading}
                 openProduct={openProduct}
@@ -256,6 +271,7 @@ function AppShell() {
                 products={products}
                 loading={loading}
                 categories={categories}
+                categoryNameMap={categoryNameMap}
                 setActiveCategory={setActiveCategory}
                 openProduct={openProduct}
                 onAddToCart={handleProductAddToCart}
@@ -269,7 +285,8 @@ function AppShell() {
 
           {/* ── İngiliscə (/en prefiksli) — eyni komponentlər, ayrı URL ──
               Sanity-də nameEn/descriptionEn dolduruqca məhsul adları/təsvirləri
-              avtomatik İngiliscə görünəcək (bax: lib/sanityProduct.ts coalesce məntiqi). */}
+              avtomatik İngiliscə görünəcək (bax: lib/productLocale.ts coalesce
+              məntiqi — lib/sanityProduct.ts sorğu ilə çəkir, productLocale seçir). */}
           <Route
             path="/en"
             element={
@@ -278,6 +295,7 @@ function AppShell() {
                 reelPosts={reelPosts}
                 heroSlides={heroSlides}
                 categories={categories}
+                categoryNameMap={categoryNameMap}
                 filteredProducts={filteredProducts}
                 loading={loading}
                 activeCategory={activeCategory}
@@ -292,6 +310,7 @@ function AppShell() {
             element={
               <ProductsPage
                 categories={categories}
+                categoryNameMap={categoryNameMap}
                 products={products}
                 loading={loading}
                 openProduct={openProduct}
@@ -305,6 +324,7 @@ function AppShell() {
                 products={products}
                 loading={loading}
                 categories={categories}
+                categoryNameMap={categoryNameMap}
                 setActiveCategory={setActiveCategory}
                 openProduct={openProduct}
                 onAddToCart={handleProductAddToCart}

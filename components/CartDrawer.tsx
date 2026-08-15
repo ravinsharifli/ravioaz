@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { X, Trash2, ShoppingBag, ArrowRight, Edit3, ChevronLeft, Minus, Plus } from 'lucide-react';
 import { CartItem, MetroSchedule, Coupon, Product } from '../types';
 import { F } from '../tokens';
@@ -7,6 +8,8 @@ import { FONT_STYLES } from '../constants/defaults';
 import { toWebP } from '../lib/image';
 import { getMaxQuantityForItem } from '../lib/cartPricing';
 import { useTranslation } from 'react-i18next';
+import { getLangFromPath } from '../i18n/useLocalizedNav';
+import { localizedProductName } from '../lib/productLocale';
 import '../styles/cart-drawer.css';
 
 const FONT = F.sans;
@@ -170,6 +173,16 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
   metroSchedule,
 }) => {
   const { t } = useTranslation();
+  const location = useLocation();
+  const lang = getLangFromPath(location.pathname);
+  // Yalnız SƏBƏTİN GÖRÜNTÜSÜ üçün — WhatsApp mesajı və Meta CAPI item_name
+  // isə həmişə item.productName (Azərbaycanca, sifariş zamanı çəkilmiş ad)
+  // istifadə etməyə davam edir, çünki sifarişlər birbaşa istehsalçıya gedir
+  // və orda dəqiq Azərbaycanca ad lazımdır.
+  const displayProductName = (item: CartItem): string => {
+    const linked = products?.find((p) => p.id === item.productId);
+    return linked ? localizedProductName(linked, lang) : item.productName;
+  };
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -436,13 +449,13 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                     {item.images?.[0] && (
                       <img
                         src={toWebP(item.images[0], 128)}
-                        alt={item.productName}
+                        alt={displayProductName(item)}
                         style={{ width: 64, height: 64, objectFit: 'cover', borderRadius: 8, border: `1px solid ${C.border}`, flexShrink: 0 }}
                         loading="lazy"
                       />
                     )}
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 14, fontWeight: 700, color: C.black, marginBottom: 3 }}>{item.productName}</div>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: C.black, marginBottom: 3 }}>{displayProductName(item)}</div>
                       <div style={{ fontSize: 12, color: C.gray, marginBottom: 6 }}>
                         {[item.modelName, item.colorName].filter(Boolean).join(' · ')}
                       </div>
@@ -490,7 +503,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                                 value={item.quantity}
                                 min={1}
                                 max={maxQty}
-                                aria-label={`${item.productName} ${t('cartDrawer.itemQtyLabel')}`}
+                                aria-label={`${displayProductName(item)} ${t('cartDrawer.itemQtyLabel')}`}
                                 onChange={(event) => {
                                   const raw = parseInt(event.target.value, 10);
                                   if (Number.isNaN(raw)) return;
@@ -730,7 +743,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                 <Label>{t('cartDrawer.orderSummary')}</Label>
                 {items.map((item) => (
                   <div key={item.cartId} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontSize: 13 }}>
-                    <span style={{ color: C.gray }}>{item.productName} ×{item.quantity}</span>
+                    <span style={{ color: C.gray }}>{displayProductName(item)} ×{item.quantity}</span>
                     <span style={{ color: C.grayLt, textDecoration: hasAnyDiscount ? 'line-through' : 'none' }}>
                       {money(item.price * item.quantity + (item.boxPrice ?? 0))}
                     </span>

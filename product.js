@@ -45,6 +45,18 @@ export default {
       title: 'Məhsul haqqında',
       type: 'text',
     },
+    {
+      name: 'nameEn',
+      title: '🇬🇧 Name (English)',
+      type: 'string',
+      description: 'İngilis versiyasında (ravio.az/en) göstərilir. Boş qalarsa, Azərbaycanca ad göstərilir.',
+    },
+    {
+      name: 'descriptionEn',
+      title: '🇬🇧 Description (English)',
+      type: 'text',
+      description: 'İngilis versiyasında (ravio.az/en) göstərilir. Boş qalarsa, Azərbaycanca təsvir göstərilir.',
+    },
 
     // 🎨 VARİANTLAR
     {

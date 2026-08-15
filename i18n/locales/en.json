@@ -32,25 +32,67 @@
     "title": "Across Azerbaijan. Free.",
     "intro": "Delivery anywhere in Azerbaijan is completely free. Courier, metro meetup, Azerpost — it doesn't matter, there's never an extra charge. Because your gift should arrive on time.",
     "options": {
-      "courier": { "title": "Courier delivery", "badge": "Free", "desc": "Delivered within Baku, Absheron and Sumgait. Orders are prepared and delivered within 3 days." },
-      "metro": { "title": "Metro station meetup", "badge": "Free", "desc": "Delivered to any Baku metro station — completely free. A dedicated time slot is arranged for you, on the day and hour that suits you." },
-      "regions": { "title": "Azerpost (Regions)", "badge": "Free", "desc": "Delivered to any region of Azerbaijan via Azerpost — completely free." }
+      "courier": {
+        "title": "Courier delivery",
+        "badge": "Free",
+        "desc": "Delivered within Baku, Absheron and Sumgait. Orders are prepared and delivered within 3 days."
+      },
+      "metro": {
+        "title": "Metro station meetup",
+        "badge": "Free",
+        "desc": "Delivered to any Baku metro station — completely free. A dedicated time slot is arranged for you, on the day and hour that suits you."
+      },
+      "regions": {
+        "title": "Azerpost (Regions)",
+        "badge": "Free",
+        "desc": "Delivered to any region of Azerbaijan via Azerpost — completely free."
+      }
     },
     "processTitle": "How we prepare your order",
     "steps": {
-      "s1": { "title": "Order received", "desc": "Confirmed within 24 hours" },
-      "s2": { "title": "Laser engraving", "desc": "Precise, high-quality work" },
-      "s3": { "title": "Quality check", "desc": "Every item is checked before shipping" },
-      "s4": { "title": "Delivery", "desc": "1–3 business days" }
+      "s1": {
+        "title": "Order received",
+        "desc": "Confirmed within 24 hours"
+      },
+      "s2": {
+        "title": "Laser engraving",
+        "desc": "Precise, high-quality work"
+      },
+      "s3": {
+        "title": "Quality check",
+        "desc": "Every item is checked before shipping"
+      },
+      "s4": {
+        "title": "Delivery",
+        "desc": "1–3 business days"
+      }
     },
     "faqTitle": "Frequently asked questions",
     "faqs": {
-      "f1": { "q": "Is delivery free?", "a": "Yes, every delivery method is completely free. Courier (Baku, Absheron and Sumgait), metro station meetup (any station), and Azerpost (all regions) — all free of charge." },
-      "f2": { "q": "When does the courier deliver?", "a": "The courier delivers your order on your chosen day. The exact time is set based on order sequence for that day. For example, if you choose August 12th, it will be delivered that same day." },
-      "f3": { "q": "What is a metro station meetup?", "a": "Delivery to any Baku metro station — completely free. A dedicated time slot is arranged for you, on the day and hour that suits you." },
-      "f4": { "q": "How does delivery to the regions work?", "a": "Everything outside Baku is shipped via Azerpost. Delivery is completely free. You'll receive a notification to pick it up from your local post office." },
-      "f5": { "q": "How long does an order take to prepare?", "a": "Preparation takes 1 business day. On day 2 it's packaged and handed to the courier. Delivery happens on day 3, or on the day you choose. You'll be notified once your order is ready." },
-      "f6": { "q": "Can I cancel my order?", "a": "Cancellation is possible before laser engraving begins. Once engraving has started, cancellation isn't possible — a personalized item can't be resold to another customer." }
+      "f1": {
+        "q": "Is delivery free?",
+        "a": "Yes, every delivery method is completely free. Courier (Baku, Absheron and Sumgait), metro station meetup (any station), and Azerpost (all regions) — all free of charge."
+      },
+      "f2": {
+        "q": "When does the courier deliver?",
+        "a": "The courier delivers your order on your chosen day. The exact time is set based on order sequence for that day. For example, if you choose August 12th, it will be delivered that same day."
+      },
+      "f3": {
+        "q": "What is a metro station meetup?",
+        "a": "Delivery to any Baku metro station — completely free. A dedicated time slot is arranged for you, on the day and hour that suits you."
+      },
+      "f4": {
+        "q": "How does delivery to the regions work?",
+        "a": "Everything outside Baku is shipped via Azerpost. Delivery is completely free. You'll receive a notification to pick it up from your local post office."
+      },
+      "f5": {
+        "q": "How long does an order take to prepare?",
+        "a": "Preparation takes 1 business day. On day 2 it's packaged and handed to the courier. Delivery happens on day 3, or on the day you choose. You'll be notified once your order is ready."
+      },
+      "f6": {
+        "q": "Can I cancel my order?",
+        "a": "Cancellation is possible before laser engraving begins. Once engraving has started, cancellation isn't possible — a personalized item can't be resold to another customer."
+      }
     }
   },
   "contact": {
@@ -60,10 +102,22 @@
     "title": "Get in touch",
     "intro": "For questions, orders, or information, message us on WhatsApp, Instagram, or TikTok.",
     "items": {
-      "whatsapp": { "label": "WhatsApp", "cta": "Order now" },
-      "instagram": { "label": "Instagram", "cta": "Follow" },
-      "tiktok": { "label": "TikTok", "cta": "Follow" },
-      "call": { "label": "Call", "cta": "Call now" }
+      "whatsapp": {
+        "label": "WhatsApp",
+        "cta": "Order now"
+      },
+      "instagram": {
+        "label": "Instagram",
+        "cta": "Follow"
+      },
+      "tiktok": {
+        "label": "TikTok",
+        "cta": "Follow"
+      },
+      "call": {
+        "label": "Call",
+        "cta": "Call now"
+      }
     }
   },
   "about": {
@@ -76,18 +130,51 @@
     "pillarsEyebrow": "Our 3 principles",
     "pillarsTitle": "Why Ravio?",
     "pillars": {
-      "p1": { "label": "Delivery philosophy", "title": "Free across Azerbaijan", "body": "We don't charge for delivery — not in Baku, not in Sumgait, not anywhere in the country. Courier, metro meetup, Azerpost — three channels, all free. Because choosing a gift and then facing a delivery fee takes away the joy of that gift.", "stat1": "delivery channels", "stat2": "delivery fee" },
-      "p2": { "label": "Animal welfare philosophy", "title": "5% of every sale to stray animals", "body": "5% of every gift you buy automatically goes toward feeding, treating, and sheltering stray animals. This isn't a promotion — it's built into how our business works. When you buy a gift for someone you love, you're also doing good for someone else.", "stat1": "of every sale", "stat2": "ongoing commitment" },
-      "p3": { "label": "Personalization philosophy", "title": "Every gift, in your name", "body": "Using laser technology, we engrave a name, date, message, even coordinates onto every item. What you buy doesn't look like it came from a store — it looks like it came from your heart. Nothing is mass-produced — every order is made, checked, and packaged individually.", "stat1": "days to prepare", "stat2": "personalized" }
+      "p1": {
+        "label": "Delivery philosophy",
+        "title": "Free across Azerbaijan",
+        "body": "We don't charge for delivery — not in Baku, not in Sumgait, not anywhere in the country. Courier, metro meetup, Azerpost — three channels, all free. Because choosing a gift and then facing a delivery fee takes away the joy of that gift.",
+        "stat1": "delivery channels",
+        "stat2": "delivery fee"
+      },
+      "p2": {
+        "label": "Animal welfare philosophy",
+        "title": "5% of every sale to stray animals",
+        "body": "5% of every gift you buy automatically goes toward feeding, treating, and sheltering stray animals. This isn't a promotion — it's built into how our business works. When you buy a gift for someone you love, you're also doing good for someone else.",
+        "stat1": "of every sale",
+        "stat2": "ongoing commitment"
+      },
+      "p3": {
+        "label": "Personalization philosophy",
+        "title": "Every gift, in your name",
+        "body": "Using laser technology, we engrave a name, date, message, even coordinates onto every item. What you buy doesn't look like it came from a store — it looks like it came from your heart. Nothing is mass-produced — every order is made, checked, and packaged individually.",
+        "stat1": "days to prepare",
+        "stat2": "personalized"
+      }
     },
     "processEyebrow": "Process",
     "processTitle": "From order to delivery",
     "steps": {
-      "s1": { "title": "Choose your item", "desc": "Bracelet, prayer beads, dominoes — browse our catalog." },
-      "s2": { "title": "Tell us what to engrave", "desc": "A name, date, message, even coordinates — anything you'd like." },
-      "s3": { "title": "Place your order", "desc": "Complete your order via WhatsApp in about 2 minutes." },
-      "s4": { "title": "We prepare it", "desc": "Laser-engraved, checked, and packaged — 1–3 business days." },
-      "s5": { "title": "It reaches your door", "desc": "Courier, metro, Azerpost — all completely free." }
+      "s1": {
+        "title": "Choose your item",
+        "desc": "Bracelet, prayer beads, dominoes — browse our catalog."
+      },
+      "s2": {
+        "title": "Tell us what to engrave",
+        "desc": "A name, date, message, even coordinates — anything you'd like."
+      },
+      "s3": {
+        "title": "Place your order",
+        "desc": "Complete your order via WhatsApp in about 2 minutes."
+      },
+      "s4": {
+        "title": "We prepare it",
+        "desc": "Laser-engraved, checked, and packaged — 1–3 business days."
+      },
+      "s5": {
+        "title": "It reaches your door",
+        "desc": "Courier, metro, Azerpost — all completely free."
+      }
     },
     "ctaTitle": "Order your first gift",
     "ctaBody": "Free delivery · Laser engraving · Every purchase helps animals in need",
@@ -227,5 +314,77 @@
     "addedToCart": "Added to cart!",
     "uploadingShort": "⏳ Uploading image...",
     "addToCartButton": "🛒 Add to cart"
+  },
+  "home": {
+    "infoStrips": {
+      "delivery": {
+        "title": "Free delivery across Azerbaijan",
+        "desc": "Courier, metro, post — completely free"
+      },
+      "charity": {
+        "title": "5% of every sale helps street animals",
+        "desc": "Every purchase helps save a life"
+      },
+      "engraving": {
+        "title": "Every gift, personally yours",
+        "desc": "Laser engraving — permanent, unforgettable"
+      }
+    },
+    "meta": {
+      "title": "Ravio — Personalized Gifts, Made for You | Baku",
+      "description": "Laser-engraved bracelets, personalized prayer beads, dominoes and gift boxes. Every piece is made specially for you. Free delivery across Azerbaijan, 1–3 business days."
+    },
+    "featuredBadge": "Featured products",
+    "ourProducts": "Our Products",
+    "viewAll": "View all →",
+    "allCategories": "All",
+    "seeMore": "See more products ({{count}}+)",
+    "howItWorks": "How it works",
+    "threeSteps": "Order in 3 steps",
+    "step1": {
+      "title": "Choose a product",
+      "desc": "Pick your favorite from the catalog and choose a variant"
+    },
+    "step2": {
+      "title": "Add a name or message",
+      "desc": "Tell us what you'd like laser-engraved"
+    },
+    "step3": {
+      "title": "We deliver",
+      "desc": "Free delivery across Azerbaijan in 1–3 days"
+    },
+    "seoH1": "Laser-Engraved Bracelets & Personalized Gifts in Baku — Ravio"
+  },
+  "productsPage": {
+    "meta": {
+      "title": "All Products | Ravio",
+      "description": "All of Ravio's personalized gifts — laser-engraved bracelets, prayer beads, dominoes, gift boxes. Free delivery across Azerbaijan, 1–3 business days."
+    },
+    "title": "All Products",
+    "loading": "Loading...",
+    "countSuffix": "{{count}} products · Free delivery"
+  },
+  "catalog": {
+    "categories": "Categories",
+    "all": "All"
+  },
+  "productGrid": {
+    "noProducts": "No products in this category",
+    "outOfStock": "OUT OF STOCK",
+    "orderNow": "Order now",
+    "variantsShort": "opt.",
+    "freeDelivery": "Free delivery",
+    "altSuffix": "personalized gift, Baku"
+  },
+  "slugPage": {
+    "breadcrumbHome": "Home",
+    "breadcrumbProducts": "Products",
+    "defaultTitle": "Products | Ravio",
+    "categoryDescSuffix": "Personally made gifts from Ravio. Free delivery across Azerbaijan."
+  },
+  "heroCarousel": {
+    "prevSlide": "Previous slide",
+    "nextSlide": "Next slide",
+    "slideLabel": "Slide {{n}}"
   }
 }

@@ -25,3 +25,21 @@ export function localizedProductDescription(
   }
   return product.description || '';
 }
+
+/**
+ * Kateqoriya adını cari dilə görə qaytarır. `categoryMap` Azərbaycanca adı
+ * İngiliscəyə xəritələyir (bax: siteSettings.js → categoryTranslations,
+ * App.tsx-də quraşdırılır). Xəritə yoxdursa və ya həmin kateqoriya üçün
+ * tərcümə hələ yoxdursa, Azərbaycanca ada geri düşür.
+ */
+export function localizedCategoryName(
+  azName: string,
+  lang: 'az' | 'en',
+  categoryMap?: Record<string, string>
+): string {
+  if (lang === 'en' && categoryMap) {
+    const translated = categoryMap[azName];
+    if (translated && translated.trim()) return translated.trim();
+  }
+  return azName;
+}

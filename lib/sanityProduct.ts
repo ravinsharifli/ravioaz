@@ -27,6 +27,7 @@ export const SINGLE_PRODUCT_QUERY = `*[_type == "product" && slug.current == $sl
 
 export const SETTINGS_QUERY = `*[_type == "siteSettings"][0]{
   bulkDiscountPerUnit,
+  "categoryTranslations": *[_type == "category"]{ name, nameEn },
   "metroSchedule": {
     "stations": metroSchedule[]{
       name,

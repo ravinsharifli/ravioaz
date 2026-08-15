@@ -1,9 +1,12 @@
 import React from 'react';
 import { Helmet } from 'react-helmet-async';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { C, F } from '../../tokens';
 import { Product, ReelPost } from '../../types';
 import { OG_IMAGE, SITE_URL } from '../../constants/seo';
+import { getLangFromPath, withLangPrefix } from '../../i18n/useLocalizedNav';
+import { localizedCategoryName } from '../../lib/productLocale';
 import InfoStrips from '../home/InfoStrips';
 import UnifiedHeroCarousel from '../home/UnifiedHeroCarousel';
 import ProductGrid from '../ProductGrid';
@@ -14,6 +17,7 @@ interface HomePageProps {
   reelPosts: ReelPost[];
   heroSlides: any[];
   categories: string[];
+  categoryNameMap?: Record<string, string>;
   filteredProducts: Product[];
   loading: boolean;
   activeCategory: string | null;
@@ -27,6 +31,7 @@ export default function HomePage({
   reelPosts,
   heroSlides,
   categories,
+  categoryNameMap,
   filteredProducts,
   loading,
   activeCategory,
@@ -35,6 +40,13 @@ export default function HomePage({
   openProduct,
 }: HomePageProps) {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { t } = useTranslation();
+  const lang = getLangFromPath(location.pathname);
+
+  const metaTitle = t('home.meta.title');
+  const metaDescription = t('home.meta.description');
+  const canonicalUrl = `${SITE_URL}${withLangPrefix('/', lang)}`;
 
   return (
     <div
@@ -45,28 +57,19 @@ export default function HomePage({
       }}
     >
       <Helmet>
-        <title>Ravio — Sizə Özəl Hədiyyələr | Bakı</title>
-        <meta
-          name="description"
-          content="Lazer yazılı qolbaq, fərdi təsbeh, domino və giftbox. Hər məhsul sizin üçün özəl hazırlanır. Bütün Azərbaycana ödənişsiz çatdırılma, 1–3 iş günü."
-        />
+        <title>{metaTitle}</title>
+        <meta name="description" content={metaDescription} />
         <meta property="og:type" content="website" />
-        <meta property="og:title" content="Ravio — Sizə Özəl Hədiyyələr | Bakı" />
-        <meta
-          property="og:description"
-          content="Lazer yazılı qolbaq, fərdi təsbeh, domino və giftbox. Bütün Azərbaycana ödənişsiz çatdırılma, 1–3 iş günü."
-        />
-        <meta property="og:url" content={`${SITE_URL}/`} />
+        <meta property="og:title" content={metaTitle} />
+        <meta property="og:description" content={metaDescription} />
+        <meta property="og:url" content={canonicalUrl} />
         <meta property="og:image" content={OG_IMAGE} />
-        <meta property="og:locale" content="az_AZ" />
+        <meta property="og:locale" content={lang === 'en' ? 'en_US' : 'az_AZ'} />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Ravio — Sizə Özəl Hədiyyələr | Bakı" />
-        <meta
-          name="twitter:description"
-          content="Lazer yazılı qolbaq, fərdi təsbeh, domino və giftbox. Bütün Azərbaycana ödənişsiz çatdırılma, 1–3 iş günü."
-        />
+        <meta name="twitter:title" content={metaTitle} />
+        <meta name="twitter:description" content={metaDescription} />
         <meta name="twitter:image" content={OG_IMAGE} />
-        <link rel="canonical" href={`${SITE_URL}/`} />
+        <link rel="canonical" href={canonicalUrl} />
         <script type="application/ld+json">
           {JSON.stringify({
             '@context': 'https://schema.org',
@@ -74,11 +77,11 @@ export default function HomePage({
             name: 'Ravio',
             url: SITE_URL,
             logo: OG_IMAGE,
-            description: 'Bakıda fərdi hədiyyələr — lazer yazılı qolbaq, təsbeh, domino, giftbox.',
+            description: metaDescription,
             contactPoint: {
               '@type': 'ContactPoint',
               contactType: 'customer service',
-              availableLanguage: 'Azerbaijani',
+              availableLanguage: ['Azerbaijani', 'English'],
             },
             areaServed: { '@type': 'Country', name: 'Azerbaijan' },
           })}
@@ -98,7 +101,7 @@ export default function HomePage({
           border: 0,
         }}
       >
-        Lazer Yazılı Qolbaq və Fərdi Hədiyyələr Bakıda — Ravio
+        {t('home.seoH1')}
       </h1>
 
       {/*<UnifiedHeroCarousel
@@ -137,7 +140,7 @@ export default function HomePage({
                 marginBottom: 8,
               }}
             >
-              Seçilmiş məhsullar
+              {t('home.featuredBadge')}
             </span>
             <h2
               style={{
@@ -148,7 +151,7 @@ export default function HomePage({
                 letterSpacing: '-0.3px',
               }}
             >
-              Məhsullarımız
+              {t('home.ourProducts')}
             </h2>
           </div>
           <button
@@ -174,7 +177,7 @@ export default function HomePage({
               e.currentTarget.style.color = C.black;
             }}
           >
-            Hamısına bax →
+            {t('home.viewAll')}
           </button>
         </div>
 
@@ -208,7 +211,7 @@ export default function HomePage({
                 whiteSpace: 'nowrap',
               }}
             >
-              Hamısı
+              {t('home.allCategories')}
             </button>
             {categories.map((cat) => (
               <button
@@ -228,7 +231,7 @@ export default function HomePage({
                   whiteSpace: 'nowrap',
                 }}
               >
-                {cat}
+                {localizedCategoryName(cat, lang, categoryNameMap)}
               </button>
             ))}
           </div>
@@ -241,6 +244,7 @@ export default function HomePage({
             products={filteredProducts.slice(0, 8)}
             onAddToCart={openProduct}
             onViewProduct={openProduct}
+            categoryNameMap={categoryNameMap}
           />
         )}
 
@@ -261,7 +265,7 @@ export default function HomePage({
                 boxShadow: '0 4px 16px rgba(255,106,0,0.3)',
               }}
             >
-              Daha çox məhsul gör ({filteredProducts.length - 8}+)
+              {t('home.seeMore', { count: filteredProducts.length - 8 })}
             </button>
           </div>
         )}
@@ -280,7 +284,7 @@ export default function HomePage({
                 margin: '0 0 12px',
               }}
             >
-              Necə işləyir
+              {t('home.howItWorks')}
             </p>
             <h2
               style={{
@@ -291,14 +295,14 @@ export default function HomePage({
                 letterSpacing: '-0.5px',
               }}
             >
-              3 addımda sifariş
+              {t('home.threeSteps')}
             </h2>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 2 }}>
             {[
-              { n: '01', icon: '🛍️', title: 'Məhsul seç', desc: 'Kataloqdan bəyəndiyini seç, variantı müəyyən et' },
-              { n: '02', icon: '✍️', title: 'Ad / mesaj yaz', desc: 'Lazer yazısı üçün istədiyini əlavə et' },
-              { n: '03', icon: '⚡', title: 'Biz çatdırırıq', desc: 'Bütün Azərbaycana ödənişsiz, 1–3 günə' },
+              { n: '01', icon: '🛍️', title: t('home.step1.title'), desc: t('home.step1.desc') },
+              { n: '02', icon: '✍️', title: t('home.step2.title'), desc: t('home.step2.desc') },
+              { n: '03', icon: '⚡', title: t('home.step3.title'), desc: t('home.step3.desc') },
             ].map((s, i) => (
               <div
                 key={s.n}

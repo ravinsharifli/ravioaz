@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { F } from '../../tokens';
 import { ReelPost } from '../../types';
 import { toWebP, toSrcSet } from '../../lib/image';
@@ -15,6 +16,7 @@ export default function UnifiedHeroCarousel({
   onShopClick: () => void;
   onProductClick: (slug: string) => void;
 }) {
+  const { t: translate } = useTranslation();
   const slides = useMemo(
     () => buildHeroSlides(reelPosts, sanityHeroSlides),
     [reelPosts, sanityHeroSlides],
@@ -257,7 +259,7 @@ export default function UnifiedHeroCarousel({
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 10, marginTop: 24 }}>
           <button
             onClick={() => setCurrent(c => (c - 1 + slides.length) % slides.length)}
-            aria-label="Əvvəlki slayd"
+            aria-label={translate('heroCarousel.prevSlide')}
             style={arrowBtn}
           >&#8249;</button>
 
@@ -267,7 +269,7 @@ export default function UnifiedHeroCarousel({
                 <button
                   key={i}
                   onClick={() => setCurrent(i)}
-                  aria-label={`${i + 1}-ci slayd`}
+                  aria-label={translate('heroCarousel.slideLabel', { n: i + 1 })}
                   style={{
                     width: i === safeIdx ? 20 : 6, height: 6, borderRadius: 3,
                     background: i === safeIdx ? '#FF6A00' : 'rgba(255,255,255,0.25)',
@@ -285,7 +287,7 @@ export default function UnifiedHeroCarousel({
 
           <button
             onClick={() => setCurrent(c => (c + 1) % slides.length)}
-            aria-label="Növbəti slayd"
+            aria-label={translate('heroCarousel.nextSlide')}
             style={arrowBtn}
           >&#8250;</button>
         </div>

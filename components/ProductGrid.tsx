@@ -1,16 +1,25 @@
 ﻿import React, { useState } from 'react';
+import { useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { C, F } from '../tokens';
 import { ShoppingBag, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Product } from '../types';
 import { toWebP, toSrcSet } from '../lib/image';
+import { getLangFromPath } from '../i18n/useLocalizedNav';
+import { localizedProductName, localizedCategoryName } from '../lib/productLocale';
 
 interface ProductGridProps {
   products: Product[];
   onAddToCart: (product: Product) => void;
   onViewProduct: (product: Product) => void;
+  categoryNameMap?: Record<string, string>;
 }
 
-const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart, onViewProduct }) => {
+const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart, onViewProduct, categoryNameMap }) => {
+  const { t } = useTranslation();
+  const location = useLocation();
+  const lang = getLangFromPath(location.pathname);
+
   const getPriceInfo = (product: Product) => {
     const variants = product.variants || [];
     if (!variants.length) return { min: 0, max: 0, minOld: null, hasDiscount: false, pct: 0 };
@@ -28,7 +37,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart, onView
     return (
       <div style={{ textAlign: 'center' as const, padding: '80px 24px', color: '#999' }}>
         <ShoppingBag size={40} strokeWidth={1} style={{ marginBottom: 12, opacity: 0.3 }} />
-        <p style={{ fontSize: 15, fontFamily: F.sans }}>Bu kateqoriyada məhsul yoxdur</p>
+        <p style={{ fontSize: 15, fontFamily: F.sans }}>{t('productGrid.noProducts')}</p>
       </div>
     );
   }
@@ -62,6 +71,8 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart, onView
       key={product.id}
       product={product}
       cardIndex={index}
+      lang={lang}
+      categoryNameMap={categoryNameMap}
       min={min} max={max} minOld={minOld}
       hasDiscount={hasDiscount} pct={pct}
       samePrice={min === max}
@@ -79,6 +90,8 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart, onView
 interface CardProps {
   product: Product;
   cardIndex: number;
+  lang: 'az' | 'en';
+  categoryNameMap?: Record<string, string>;
   min: number; max: number; minOld: number | null;
   hasDiscount: boolean; pct: number; samePrice: boolean;
   outOfStock: boolean;
@@ -86,14 +99,20 @@ interface CardProps {
 }
 
 const Card: React.FC<CardProps> = ({
-  product, cardIndex, min, max, minOld,
+  product, cardIndex, lang, categoryNameMap, min, max, minOld,
   hasDiscount, pct, samePrice,
   outOfStock,
   onView, onAdd,
 }) => {
+  const { t } = useTranslation();
   const [hovered, setHovered]       = useState(false);
   const [imgIdx, setImgIdx]         = useState(0);
   const [touchStart, setTouchStart] = useState<number | null>(null);
+
+  const displayName = localizedProductName(product, lang);
+  const displayCategory = product.category
+    ? localizedCategoryName(product.category, lang, categoryNameMap)
+    : '';
 
   const allImages = (product.variants || []).flatMap(v => v.images || []).filter(Boolean);
   const images    = allImages.length > 0 ? allImages : [];
@@ -143,7 +162,7 @@ const Card: React.FC<CardProps> = ({
            src={toWebP(images[imgIdx], 360, 70)}
            srcSet={toSrcSet(images[imgIdx], [240, 360, 480], 70)}
            sizes="(max-width: 400px) 45vw, (max-width: 900px) 45vw, (max-width: 1200px) 30vw, 25vw"
-           alt={`${product.name} — fərdi hədiyyə, Bakı | Ravio`}
+           alt={`${displayName} — ${t('productGrid.altSuffix')} | Ravio`}
            loading={cardIndex < 4 ? 'eager' : 'lazy'}
            fetchPriority={cardIndex === 0 ? 'high' : 'auto'}
            decoding={cardIndex < 4 ? 'sync' : 'async'}
@@ -174,7 +193,7 @@ const Card: React.FC<CardProps> = ({
             background: 'rgba(255,255,255,0.75)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
-            <span style={{ fontSize: 11, fontWeight: 700, color: '#999', letterSpacing: 1 }}>STOKDA YOX</span>
+            <span style={{ fontSize: 11, fontWeight: 700, color: '#999', letterSpacing: 1 }}>{t('productGrid.outOfStock')}</span>
           </div>
         )}
 
@@ -234,7 +253,7 @@ const Card: React.FC<CardProps> = ({
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
               }}
             >
-              <ShoppingBag size={12} /> Sifariş et
+              <ShoppingBag size={12} /> {t('productGrid.orderNow')}
             </button>
           </div>
         )}
@@ -242,13 +261,13 @@ const Card: React.FC<CardProps> = ({
 
       {/* Card body */}
       <div style={{ padding: '10px 10px 12px' }}>
-        {product.category && (
+        {displayCategory && (
           <span style={{
             fontSize: 11, fontWeight: 600, color: '#6B6B6B',
             letterSpacing: 0.8, textTransform: 'uppercase' as const,
             display: 'block', marginBottom: 4,
             fontFamily: F.sans,
-          }}>{product.category}</span>
+          }}>{displayCategory}</span>
         )}
 
         <h3 style={{
@@ -258,7 +277,7 @@ const Card: React.FC<CardProps> = ({
           display: '-webkit-box' as any,
           WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as any,
           overflow: 'hidden',
-        }}>{product.name}</h3>
+        }}>{displayName}</h3>
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 4, flexWrap: 'wrap' as const }}>
           <div>
@@ -286,7 +305,7 @@ const Card: React.FC<CardProps> = ({
               background: C.bg, borderRadius: 6,
               padding: '3px 6px', fontWeight: 500,
               fontFamily: F.sans, flexShrink: 0,
-            }}>{product.variants.length} var.</span>
+            }}>{product.variants.length} {t('productGrid.variantsShort')}</span>
           )}
         </div>
 
@@ -296,7 +315,7 @@ const Card: React.FC<CardProps> = ({
           fontFamily: F.sans,
         }}>
           <span style={{ color: '#16A34A', fontWeight: 700 }}>✓</span>
-          Ödənişsiz çatdırılma
+          {t('productGrid.freeDelivery')}
         </div>
       </div>
 

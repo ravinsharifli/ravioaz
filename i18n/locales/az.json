@@ -32,25 +32,67 @@
     "title": "Bütün Azərbaycana. Ödənişsiz.",
     "intro": "Bütün Azərbaycana çatdırılma tamamilə ödənişsizdir. Kuryer, metrodaxili çatdırılma, Azərpoçt — fərqi yoxdur, heç bir əlavə ödəniş tutulmur. Çünki hədiyyəniz zamanında çatmalıdır.",
     "options": {
-      "courier": { "title": "Kuryer çatdırılması", "badge": "Ödənişsiz", "desc": "Bakı, Abşeron və Sumqayıt ərazisinə çatdırılır. Sifariş 3 gün ərzində hazırlanır və çatdırılır." },
-      "metro": { "title": "Özəl metrodaxili çatdırılma", "badge": "Ödənişsiz", "desc": "Bakı metrosunun istənilən stansiyasına çatdırılır — tamamilə ödənişsiz. Sizin üçün xüsusi vaxt ayrılır, istədiyiniz gün və saatda." },
-      "regions": { "title": "Azərpoçt (Bölgələr)", "badge": "Ödənişsiz", "desc": "Azərpoçt vasitəsilə Azərbaycanın istənilən bölgəsinə çatdırılır — tamamilə ödənişsizdir." }
+      "courier": {
+        "title": "Kuryer çatdırılması",
+        "badge": "Ödənişsiz",
+        "desc": "Bakı, Abşeron və Sumqayıt ərazisinə çatdırılır. Sifariş 3 gün ərzində hazırlanır və çatdırılır."
+      },
+      "metro": {
+        "title": "Özəl metrodaxili çatdırılma",
+        "badge": "Ödənişsiz",
+        "desc": "Bakı metrosunun istənilən stansiyasına çatdırılır — tamamilə ödənişsiz. Sizin üçün xüsusi vaxt ayrılır, istədiyiniz gün və saatda."
+      },
+      "regions": {
+        "title": "Azərpoçt (Bölgələr)",
+        "badge": "Ödənişsiz",
+        "desc": "Azərpoçt vasitəsilə Azərbaycanın istənilən bölgəsinə çatdırılır — tamamilə ödənişsizdir."
+      }
     },
     "processTitle": "Hazırlıq prosesi",
     "steps": {
-      "s1": { "title": "Sifariş qəbul", "desc": "24 saat ərzində təsdiq edilir" },
-      "s2": { "title": "Lazer yazı", "desc": "Dəqiq və keyfiyyətli işləmə" },
-      "s3": { "title": "Yoxlama", "desc": "Hər məhsul göndərilməzdən yoxlanılır" },
-      "s4": { "title": "Çatdırılma", "desc": "1–3 iş günü" }
+      "s1": {
+        "title": "Sifariş qəbul",
+        "desc": "24 saat ərzində təsdiq edilir"
+      },
+      "s2": {
+        "title": "Lazer yazı",
+        "desc": "Dəqiq və keyfiyyətli işləmə"
+      },
+      "s3": {
+        "title": "Yoxlama",
+        "desc": "Hər məhsul göndərilməzdən yoxlanılır"
+      },
+      "s4": {
+        "title": "Çatdırılma",
+        "desc": "1–3 iş günü"
+      }
     },
     "faqTitle": "Tez-tez soruşulan suallar",
     "faqs": {
-      "f1": { "q": "Çatdırılma ödənişsizdir?", "a": "Bəli, bütün çatdırılma növləri tamamilə ödənişsizdir. Kuryer (Bakı, Abşeron və Sumqayıt), metrodaxili çatdırılma (istənilən stansiya) və Azərpoçt (bütün bölgələr) — hamısı ödənişsizdir." },
-      "f2": { "q": "Kuryer nə vaxt çatdırır?", "a": "Kuryer sifarişinizi seçilən gün ərzində çatdırır. Dəqiq vaxt növbə əsasında sifariş vaxtına görə müəyyənləşdirilir. Misal üçün, 12 avqust seçsəniz, həmin gün daxilində çatdırılır." },
-      "f3": { "q": "Metrodaxili çatdırılma nədir?", "a": "Bakı metrosunun istənilən stansiyasına çatdırılır — tamamilə ödənişsiz. Sizin üçün xüsusi vaxt ayrılır, istədiyiniz gün və saatda." },
-      "f4": { "q": "Bölgələrə çatdırılma necədir?", "a": "Bakı xaricindəki bütün bölgələrə Azərpoçt vasitəsilə göndərilir. Çatdırılma tamamilə ödənişsizdir. Poçt şöbəsindən götürmə üçün bildiriş alacaqsınız." },
-      "f5": { "q": "Sifariş nə qədər müddətdə hazır olur?", "a": "1 iş günü ərzində hazırlanır. 2-ci gün paketlənir və kuryerə təhvil verilir. 3-cü gün və ya sizin təyin etdiyiniz gün çatdırılma edilir. Sifariş hazır olduqdan sonra sizə məlumat verilir." },
-      "f6": { "q": "Sifarişi ləğv etmək olurmu?", "a": "Lazer yazısı başlamazdan əvvəl ləğv mümkündür. Başlandıqdan sonra ləğv qəbul edilmir. Çünki özəl hazırlanan məhsul başqa müştərilərə satıla bilməz." }
+      "f1": {
+        "q": "Çatdırılma ödənişsizdir?",
+        "a": "Bəli, bütün çatdırılma növləri tamamilə ödənişsizdir. Kuryer (Bakı, Abşeron və Sumqayıt), metrodaxili çatdırılma (istənilən stansiya) və Azərpoçt (bütün bölgələr) — hamısı ödənişsizdir."
+      },
+      "f2": {
+        "q": "Kuryer nə vaxt çatdırır?",
+        "a": "Kuryer sifarişinizi seçilən gün ərzində çatdırır. Dəqiq vaxt növbə əsasında sifariş vaxtına görə müəyyənləşdirilir. Misal üçün, 12 avqust seçsəniz, həmin gün daxilində çatdırılır."
+      },
+      "f3": {
+        "q": "Metrodaxili çatdırılma nədir?",
+        "a": "Bakı metrosunun istənilən stansiyasına çatdırılır — tamamilə ödənişsiz. Sizin üçün xüsusi vaxt ayrılır, istədiyiniz gün və saatda."
+      },
+      "f4": {
+        "q": "Bölgələrə çatdırılma necədir?",
+        "a": "Bakı xaricindəki bütün bölgələrə Azərpoçt vasitəsilə göndərilir. Çatdırılma tamamilə ödənişsizdir. Poçt şöbəsindən götürmə üçün bildiriş alacaqsınız."
+      },
+      "f5": {
+        "q": "Sifariş nə qədər müddətdə hazır olur?",
+        "a": "1 iş günü ərzində hazırlanır. 2-ci gün paketlənir və kuryerə təhvil verilir. 3-cü gün və ya sizin təyin etdiyiniz gün çatdırılma edilir. Sifariş hazır olduqdan sonra sizə məlumat verilir."
+      },
+      "f6": {
+        "q": "Sifarişi ləğv etmək olurmu?",
+        "a": "Lazer yazısı başlamazdan əvvəl ləğv mümkündür. Başlandıqdan sonra ləğv qəbul edilmir. Çünki özəl hazırlanan məhsul başqa müştərilərə satıla bilməz."
+      }
     }
   },
   "contact": {
@@ -60,10 +102,22 @@
     "title": "Bizimlə əlaqə",
     "intro": "Sual, sifariş və ya məlumat üçün WhatsApp, Instagram və ya TikTok üzərindən yazın.",
     "items": {
-      "whatsapp": { "label": "WhatsApp", "cta": "Sifariş et" },
-      "instagram": { "label": "Instagram", "cta": "İzlə" },
-      "tiktok": { "label": "TikTok", "cta": "İzlə" },
-      "call": { "label": "Zəng", "cta": "Zəng et" }
+      "whatsapp": {
+        "label": "WhatsApp",
+        "cta": "Sifariş et"
+      },
+      "instagram": {
+        "label": "Instagram",
+        "cta": "İzlə"
+      },
+      "tiktok": {
+        "label": "TikTok",
+        "cta": "İzlə"
+      },
+      "call": {
+        "label": "Zəng",
+        "cta": "Zəng et"
+      }
     }
   },
   "about": {
@@ -76,18 +130,51 @@
     "pillarsEyebrow": "Bizim 3 prinsipimiz",
     "pillarsTitle": "Niyə məhz Ravio?",
     "pillars": {
-      "p1": { "label": "Çatdırılma strategiyası", "title": "Bütün Azərbaycana ödənişsiz", "body": "Çatdırılma haqqı almırıq — nə Bakıda, nə Sumqayıtda, nə də ölkənin hər hansı guşəsində. Kuryer, metro görüşü, Azərpoçt — üç kanal, hamısı ödənişsiz. Çünki bir hədiyyə seçib sonra çatdırılma haqqıyla üzləşmək həmin hədiyyənin sevincini əlindən alır.", "stat1": "çatdırılma kanalı", "stat2": "çatdırılma haqqı" },
-      "p2": { "label": "Heyvan qayğısı strategiyası", "title": "Satışın 5%-i küçə heyvanlarına", "body": "Hər aldığın hədiyyənin 5%-i avtomatik olaraq küçə heyvanlarının yemlənməsinə, müalicəsinə və sığınacağına yönəlir. Bu şərt deyil, reklam deyil — biznesmizin quruluşuna işlənmiş bir öhdəlikdir. Sənin sevdiyinə hədiyyə alarkən bir başqasına da yaxşılıq etmiş olursan.", "stat1": "hər satışdan", "stat2": "davamlı öhdəlik" },
-      "p3": { "label": "Fərdi hədiyyə strategiyası", "title": "Hər hədiyyə sənin adınla", "body": "Lazer texnologiyası ilə hər məhsula ad, tarix, mesaj, hətta koordinat yazırıq. Satın aldığın əşya mağazadan deyil, sənin ürəyindən gəlmiş kimi görünür. Kütləvi istehsal yoxdur — hər sifariş ayrıca hazırlanır, ayrıca yoxlanılır, ayrıca paketlənir.", "stat1": "gün ərzində hazır", "stat2": "fərdi hazırlıq" }
+      "p1": {
+        "label": "Çatdırılma strategiyası",
+        "title": "Bütün Azərbaycana ödənişsiz",
+        "body": "Çatdırılma haqqı almırıq — nə Bakıda, nə Sumqayıtda, nə də ölkənin hər hansı guşəsində. Kuryer, metro görüşü, Azərpoçt — üç kanal, hamısı ödənişsiz. Çünki bir hədiyyə seçib sonra çatdırılma haqqıyla üzləşmək həmin hədiyyənin sevincini əlindən alır.",
+        "stat1": "çatdırılma kanalı",
+        "stat2": "çatdırılma haqqı"
+      },
+      "p2": {
+        "label": "Heyvan qayğısı strategiyası",
+        "title": "Satışın 5%-i küçə heyvanlarına",
+        "body": "Hər aldığın hədiyyənin 5%-i avtomatik olaraq küçə heyvanlarının yemlənməsinə, müalicəsinə və sığınacağına yönəlir. Bu şərt deyil, reklam deyil — biznesmizin quruluşuna işlənmiş bir öhdəlikdir. Sənin sevdiyinə hədiyyə alarkən bir başqasına da yaxşılıq etmiş olursan.",
+        "stat1": "hər satışdan",
+        "stat2": "davamlı öhdəlik"
+      },
+      "p3": {
+        "label": "Fərdi hədiyyə strategiyası",
+        "title": "Hər hədiyyə sənin adınla",
+        "body": "Lazer texnologiyası ilə hər məhsula ad, tarix, mesaj, hətta koordinat yazırıq. Satın aldığın əşya mağazadan deyil, sənin ürəyindən gəlmiş kimi görünür. Kütləvi istehsal yoxdur — hər sifariş ayrıca hazırlanır, ayrıca yoxlanılır, ayrıca paketlənir.",
+        "stat1": "gün ərzində hazır",
+        "stat2": "fərdi hazırlıq"
+      }
     },
     "processEyebrow": "Proses",
     "processTitle": "Sifarişdən çatdırılmaya",
     "steps": {
-      "s1": { "title": "Məhsulu seç", "desc": "Qolbaq, təsbeh, domino — kataloqumuzdan seç." },
-      "s2": { "title": "Yazını bildir", "desc": "Ad, tarix, mesaj, hətta koordinat — istədiyin hər şeyi yaz." },
-      "s3": { "title": "Sifarişi ver", "desc": "WhatsApp üzərindən 2 dəqiqədə sifariş tamamlanır." },
-      "s4": { "title": "Biz hazırlayırıq", "desc": "Lazer ilə yazılır, yoxlanılır, paketlənir — 1–3 iş günü." },
-      "s5": { "title": "Qapınıza gəlir", "desc": "Kuryer, metro, Azərpoçt — tamamilə ödənişsiz." }
+      "s1": {
+        "title": "Məhsulu seç",
+        "desc": "Qolbaq, təsbeh, domino — kataloqumuzdan seç."
+      },
+      "s2": {
+        "title": "Yazını bildir",
+        "desc": "Ad, tarix, mesaj, hətta koordinat — istədiyin hər şeyi yaz."
+      },
+      "s3": {
+        "title": "Sifarişi ver",
+        "desc": "WhatsApp üzərindən 2 dəqiqədə sifariş tamamlanır."
+      },
+      "s4": {
+        "title": "Biz hazırlayırıq",
+        "desc": "Lazer ilə yazılır, yoxlanılır, paketlənir — 1–3 iş günü."
+      },
+      "s5": {
+        "title": "Qapınıza gəlir",
+        "desc": "Kuryer, metro, Azərpoçt — tamamilə ödənişsiz."
+      }
     },
     "ctaTitle": "İlk hədiyyəni sifariş et",
     "ctaBody": "Ödənişsiz çatdırılma · Lazer yazı · Hər alışda heyvanlara yaxşılıq",
@@ -227,5 +314,77 @@
     "addedToCart": "Səbətə əlavə edildi!",
     "uploadingShort": "⏳ Şəkil yüklənir...",
     "addToCartButton": "🛒 Səbətə əlavə et"
+  },
+  "home": {
+    "infoStrips": {
+      "delivery": {
+        "title": "Bütün Azərbaycana ödənişsiz",
+        "desc": "Kuryer, metro, poçt — tamamilə ödənişsiz"
+      },
+      "charity": {
+        "title": "Satışın 5%-i küçə heyvanlarına",
+        "desc": "Hər alışınla bir həyat xilas edilir"
+      },
+      "engraving": {
+        "title": "Hər hədiyyə sənin adınla",
+        "desc": "Lazer yazı — dəyişilməz, unudulmaz"
+      }
+    },
+    "meta": {
+      "title": "Ravio — Sizə Özəl Hədiyyələr | Bakı",
+      "description": "Lazer yazılı qolbaq, fərdi təsbeh, domino və giftbox. Hər məhsul sizin üçün özəl hazırlanır. Bütün Azərbaycana ödənişsiz çatdırılma, 1–3 iş günü."
+    },
+    "featuredBadge": "Seçilmiş məhsullar",
+    "ourProducts": "Məhsullarımız",
+    "viewAll": "Hamısına bax →",
+    "allCategories": "Hamısı",
+    "seeMore": "Daha çox məhsul gör ({{count}}+)",
+    "howItWorks": "Necə işləyir",
+    "threeSteps": "3 addımda sifariş",
+    "step1": {
+      "title": "Məhsul seç",
+      "desc": "Kataloqdan bəyəndiyini seç, variantı müəyyən et"
+    },
+    "step2": {
+      "title": "Ad / mesaj yaz",
+      "desc": "Lazer yazısı üçün istədiyini əlavə et"
+    },
+    "step3": {
+      "title": "Biz çatdırırıq",
+      "desc": "Bütün Azərbaycana ödənişsiz, 1–3 günə"
+    },
+    "seoH1": "Lazer Yazılı Qolbaq və Fərdi Hədiyyələr Bakıda — Ravio"
+  },
+  "productsPage": {
+    "meta": {
+      "title": "Bütün Məhsullar | Ravio",
+      "description": "Ravio-nun bütün fərdi hədiyyələri — lazer yazılı qolbaq, təsbeh, domino, giftbox. Bütün Azərbaycana ödənişsiz çatdırılma, 1–3 iş günü."
+    },
+    "title": "Bütün məhsullar",
+    "loading": "Yüklənir...",
+    "countSuffix": "{{count}} məhsul · Ödənişsiz çatdırılma"
+  },
+  "catalog": {
+    "categories": "Kateqoriyalar",
+    "all": "Hamısı"
+  },
+  "productGrid": {
+    "noProducts": "Bu kateqoriyada məhsul yoxdur",
+    "outOfStock": "STOKDA YOX",
+    "orderNow": "Sifariş et",
+    "variantsShort": "var.",
+    "freeDelivery": "Ödənişsiz çatdırılma",
+    "altSuffix": "fərdi hədiyyə, Bakı"
+  },
+  "slugPage": {
+    "breadcrumbHome": "Ana Səhifə",
+    "breadcrumbProducts": "Məhsullar",
+    "defaultTitle": "Məhsullar | Ravio",
+    "categoryDescSuffix": "Ravio-da fərdi hazırlanmış hədiyyələr. Bütün Azərbaycana ödənişsiz çatdırılma."
+  },
+  "heroCarousel": {
+    "prevSlide": "Əvvəlki slayd",
+    "nextSlide": "Növbəti slayd",
+    "slideLabel": "{{n}}-ci slayd"
   }
 }

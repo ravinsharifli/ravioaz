@@ -12,6 +12,12 @@ const category = {
       type: 'string',
     },
     {
+      name: 'nameEn',
+      title: '🇬🇧 Category name (English)',
+      type: 'string',
+      description: 'İngilis versiyasında (ravio.az/en) göstərilir. Boş qalarsa, Azərbaycanca ad göstərilir.',
+    },
+    {
       name: 'slug',
       title: 'Slug',
       type: 'slug',

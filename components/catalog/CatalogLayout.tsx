@@ -1,8 +1,10 @@
 ﻿import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { C, F } from '../../tokens';
 import { Product } from '../../types';
 import { toCategorySlug } from '../../lib/categorySlug';
+import { useLocalizedNav } from '../../i18n/useLocalizedNav';
+import { localizedCategoryName } from '../../lib/productLocale';
 import ProductGrid from '../ProductGrid';
 import LoadingGrid from './LoadingGrid';
 
@@ -10,6 +12,7 @@ export default function CatalogLayout({
   activeSlug,
   activeCategory,
   categories,
+  categoryNameMap,
   products,
   filteredProducts,
   loading,
@@ -18,12 +21,18 @@ export default function CatalogLayout({
   activeSlug: string | null;
   activeCategory: string | null;
   categories: string[];
+  categoryNameMap?: Record<string, string>;
   products: Product[];
   filteredProducts: Product[];
   loading: boolean;
   openProduct: (p: Product) => void;
 }) {
-  const navigate = useNavigate();
+  const { t } = useTranslation();
+  // useLocalizedNav (useNavigate əvəzinə): /en altında olanda kateqoriya
+  // keçidləri /en prefiksini itirmirdi — əvvəllər useNavigate birbaşa
+  // işlədildiyi üçün /en/mehsullar/... səhifəsindən "Hamısı" düyməsinə
+  // basanda istifadəçi sükutla Azərbaycanca versiyaya atılırdı.
+  const { navigate, lang } = useLocalizedNav();
 
   return (
     <div style={{ display: 'flex', gap: 32, alignItems: 'flex-start' }}>
@@ -50,7 +59,7 @@ export default function CatalogLayout({
             margin: '0 0 12px',
           }}
         >
-          Kateqoriyalar
+          {t('catalog.categories')}
         </p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           <button
@@ -72,7 +81,7 @@ export default function CatalogLayout({
               alignItems: 'center',
             }}
           >
-            <span>Hamısı</span>
+            <span>{t('catalog.all')}</span>
             <span style={{ fontSize: 11, opacity: 0.55 }}>{products.length}</span>
           </button>
           {categories.map((cat) => {
@@ -100,7 +109,7 @@ export default function CatalogLayout({
                   alignItems: 'center',
                 }}
               >
-                <span>{cat}</span>
+                <span>{localizedCategoryName(cat, lang, categoryNameMap)}</span>
                 <span style={{ fontSize: 11, opacity: 0.55 }}>{count}</span>
               </button>
             );
@@ -137,7 +146,7 @@ export default function CatalogLayout({
                 fontFamily: F.sans,
               }}
             >
-              Hamısı
+              {t('catalog.all')}
             </button>
             {categories.map((cat) => {
               const slug = toCategorySlug(cat);
@@ -159,7 +168,7 @@ export default function CatalogLayout({
                     fontFamily: F.sans,
                   }}
                 >
-                  {cat}
+                  {localizedCategoryName(cat, lang, categoryNameMap)}
                 </button>
               );
             })}
@@ -169,7 +178,12 @@ export default function CatalogLayout({
         {loading ? (
           <LoadingGrid />
         ) : (
-          <ProductGrid products={filteredProducts} onAddToCart={openProduct} onViewProduct={openProduct} />
+          <ProductGrid
+            products={filteredProducts}
+            onAddToCart={openProduct}
+            onViewProduct={openProduct}
+            categoryNameMap={categoryNameMap}
+          />
         )}
       </div>
     </div>
