@@ -91,14 +91,14 @@ export default function UnifiedHeroCarousel({
             background: slide.imageUrl ? '#1a1a1a' : (slide.bg || '#FF6A00'),
             cursor: 'pointer',
             boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
-            animation: 'ravio-fadein 0.4s ease',
+            animation: safeIdx === 0 ? 'none' : 'ravio-fadein 0.3s ease',
           }}
         >
           {/* ── Arxa plan ── */}
           {slide.imageUrl ? (
             <img
-              src={toWebP(slide.imageUrl, 640)}
-              srcSet={toSrcSet(slide.imageUrl, [400, 640, 900])}
+              src={toWebP(slide.imageUrl, 480, 70)}
+              srcSet={toSrcSet(slide.imageUrl, [360, 480, 640], 70)}
               sizes="(max-width: 640px) 100vw, (max-width: 1280px) 45vw, 420px"
               alt={slide.title}
               style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}

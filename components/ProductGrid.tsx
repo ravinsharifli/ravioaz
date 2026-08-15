@@ -140,19 +140,18 @@ const Card: React.FC<CardProps> = ({
       >
         {images.length > 0 ? (
           <img
-          src={toWebP(images[imgIdx], 480)}
-          srcSet={toSrcSet(images[imgIdx], [240, 480, 720])}
-          sizes="(max-width: 400px) 45vw, (max-width: 900px) 45vw, (max-width: 1200px) 30vw, 25vw"
-          alt={`${product.name} — fərdi hədiyyə, Bakı | Ravio`}
-          loading={cardIndex < 6 ? 'eager' : 'lazy'}
-          fetchPriority={cardIndex === 0 ? 'high' : 'auto'}
-          decoding={cardIndex < 4 ? 'sync' : 'async'}
-            style={{
-              width: '100%', height: '100%', objectFit: 'cover', display: 'block',
-              transition: 'transform 0.5s ease',
-              transform: hovered ? 'scale(1.05)' : 'scale(1)',
-              contentVisibility: cardIndex < 8 ? 'auto' : 'auto',
-            }}
+           src={toWebP(images[imgIdx], 360, 70)}
+           srcSet={toSrcSet(images[imgIdx], [240, 360, 480], 70)}
+           sizes="(max-width: 400px) 45vw, (max-width: 900px) 45vw, (max-width: 1200px) 30vw, 25vw"
+           alt={`${product.name} — fərdi hədiyyə, Bakı | Ravio`}
+           loading={cardIndex < 4 ? 'eager' : 'lazy'}
+           fetchPriority={cardIndex === 0 ? 'high' : 'auto'}
+           decoding={cardIndex < 4 ? 'sync' : 'async'}
+           style={{
+           width: '100%', height: '100%', objectFit: 'cover', display: 'block',
+           transition: 'transform 0.5s ease',
+           transform: hovered ? 'scale(1.05)' : 'scale(1)',
+          }}
           />
         ) : (
           <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

@@ -12,7 +12,7 @@
  * avtomatik ən optimal formatı seçir (AVIF → WebP → JPEG), köhnə brauzerlər
  * belə həmişə etibarlı fallback alır.
  */
-export function toWebP(url: string, width: number = 600, quality: number = 80): string {
+export function toWebP(url: string, width: number = 600, quality: number = 70): string {
   if (!url || !url.includes('cdn.sanity.io')) return url;
   try {
     const u = new URL(url);
