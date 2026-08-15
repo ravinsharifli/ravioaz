@@ -101,12 +101,12 @@ export default function HomePage({
         Lazer Yazılı Qolbaq və Fərdi Hədiyyələr Bakıda — Ravio
       </h1>
 
-      <UnifiedHeroCarousel
+      {/*<UnifiedHeroCarousel
         reelPosts={reelPosts}
         heroSlides={heroSlides}
         onShopClick={() => goToProducts(null)}
         onProductClick={(productSlug) => navigate(`/mehsullar/${productSlug}`)}
-      />
+      />*/}
 
       <section
         id="mehsullar"
