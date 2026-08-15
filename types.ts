@@ -29,9 +29,11 @@ export interface CustomerReview {
 export interface Product {
   id: string;
   name: string;
+  nameEn?: string;
   slug?: string;
   category?: string;
   description?: string;
+  descriptionEn?: string;
   variants: Variant[];
   allowBoxSelection?: boolean;
   customBoxOptions?: BoxOption[];

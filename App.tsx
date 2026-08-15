@@ -1,6 +1,6 @@
 import React, { useState, useEffect, Suspense, useCallback, useMemo, startTransition } from 'react';
 import { C, F } from './tokens';
-import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { client } from './sanityclient';
 import { Analytics } from '@vercel/analytics/react';
 import { Product, CartItem, ReelPost } from './types';
@@ -8,6 +8,9 @@ import { PRODUCTS_QUERY, SETTINGS_QUERY, mapSanityProduct } from './lib/sanityPr
 import { toCategorySlug } from './lib/categorySlug';
 import { recalcCartItemForQuantity } from './lib/cartPricing';
 import { DEFAULT_METRO, BULK_DISCOUNT_PER_UNIT } from './constants/defaults';
+import { useTranslation } from 'react-i18next';
+import './i18n/config';
+import { useLocalizedNav, getLangFromPath } from './i18n/useLocalizedNav';
 
 import Navbar from './components/Navbar';
 import PWAInstallBanner from './components/PWAInstallBanner';
@@ -24,8 +27,17 @@ const NotFound    = React.lazy(() => import('./components/pages/NotFound'));
 const CartDrawer = React.lazy(() => import('./components/CartDrawer'));
 
 function AppShell() {
-  const navigate = useNavigate();
+  const { navigate, lang } = useLocalizedNav();
   const location = useLocation();
+  const { i18n: i18nInstance, t } = useTranslation();
+
+  // URL-dəki dil prefiksi ilə i18next dilini sinxronlaşdırır.
+  // Məs: /en/mehsullar-a keçəndə bütün UI mətnləri avtomatik İngiliscəyə keçir.
+  useEffect(() => {
+    if (i18nInstance.language !== lang) {
+      i18nInstance.changeLanguage(lang);
+    }
+  }, [lang, i18nInstance]);
 
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -190,7 +202,7 @@ function AppShell() {
           e.currentTarget.style.top = '-999px';
         }}
       >
-        Əsas məzmuna keç
+        {t('common.skipToContent')}
       </a>
 
       <Navbar
@@ -208,6 +220,7 @@ function AppShell() {
       <main id="main-content">
       <Suspense fallback={<div style={{minHeight:'60vh'}} />}>
         <Routes>
+          {/* ── Azərbaycanca (default, prefikssiz) ── */}
           <Route
             path="/"
             element={
@@ -253,6 +266,56 @@ function AppShell() {
           <Route path="/haqqimizda" element={<AboutUs />} />
           <Route path="/elaqe" element={<Contact />} />
           <Route path="/catdirilma" element={<DeliveryInfo />} />
+
+          {/* ── İngiliscə (/en prefiksli) — eyni komponentlər, ayrı URL ──
+              Sanity-də nameEn/descriptionEn dolduruqca məhsul adları/təsvirləri
+              avtomatik İngiliscə görünəcək (bax: lib/sanityProduct.ts coalesce məntiqi). */}
+          <Route
+            path="/en"
+            element={
+              <HomePage
+                visible={visible}
+                reelPosts={reelPosts}
+                heroSlides={heroSlides}
+                categories={categories}
+                filteredProducts={filteredProducts}
+                loading={loading}
+                activeCategory={activeCategory}
+                setActiveCategory={setActiveCategory}
+                goToProducts={goToProducts}
+                openProduct={openProduct}
+              />
+            }
+          />
+          <Route
+            path="/en/mehsullar"
+            element={
+              <ProductsPage
+                categories={categories}
+                products={products}
+                loading={loading}
+                openProduct={openProduct}
+              />
+            }
+          />
+          <Route
+            path="/en/mehsullar/:slug"
+            element={
+              <SlugPage
+                products={products}
+                loading={loading}
+                categories={categories}
+                setActiveCategory={setActiveCategory}
+                openProduct={openProduct}
+                onAddToCart={handleProductAddToCart}
+                bulkDiscountPerUnit={bulkDiscountPerUnit}
+              />
+            }
+          />
+          <Route path="/en/haqqimizda" element={<AboutUs />} />
+          <Route path="/en/elaqe" element={<Contact />} />
+          <Route path="/en/catdirilma" element={<DeliveryInfo />} />
+
           <Route path="*" element={<NotFound onHome={() => navigate('/')} />} />
         </Routes>
         </Suspense>

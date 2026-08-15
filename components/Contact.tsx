@@ -2,6 +2,9 @@ import React from 'react';
 import { F } from '../tokens';
 import { Helmet } from 'react-helmet-async';
 import { WHATSAPP_NUMBER, PHONE_DISPLAY } from '../constants';
+import { useTranslation } from 'react-i18next';
+import { useLocation } from 'react-router-dom';
+import { getLangFromPath } from '../i18n/useLocalizedNav';
 
 const FONT = F.sans;
 const C = {
@@ -19,48 +22,52 @@ interface ContactItem {
   href: string;
   emoji?: string;
   isTikTok?: boolean;
-  label: string;
+  labelKey: 'whatsapp' | 'instagram' | 'tiktok' | 'call';
   value: string;
-  cta: string;
   highlight?: boolean;
 }
 
 const Contact: React.FC = () => {
+  const { t } = useTranslation();
+  const location = useLocation();
+  const lang = getLangFromPath(location.pathname);
+  const canonicalPath = lang === 'en' ? '/en/elaqe' : '/elaqe';
+
   const items: ContactItem[] = [
-    { href: `https://wa.me/${WHATSAPP_NUMBER}`, emoji: '💬', label: 'WhatsApp',  value: PHONE_DISPLAY, cta: 'Sifariş et', highlight: true },
-    { href: 'https://instagram.com/ravio.az', emoji: '📷',  label: 'Instagram', value: '@ravio.az',         cta: 'İzlə' },
-    { href: 'https://tiktok.com/@ravio.az',   isTikTok: true, label: 'TikTok',    value: '@ravio.az',         cta: 'İzlə' },
-    { href: `tel:+${WHATSAPP_NUMBER}`,        emoji: '📞',  label: 'Zəng',      value: PHONE_DISPLAY, cta: 'Zəng et' },
+    { href: `https://wa.me/${WHATSAPP_NUMBER}`, emoji: '💬', labelKey: 'whatsapp',  value: PHONE_DISPLAY, highlight: true },
+    { href: 'https://instagram.com/ravio.az', emoji: '📷',  labelKey: 'instagram', value: '@ravio.az' },
+    { href: 'https://tiktok.com/@ravio.az',   isTikTok: true, labelKey: 'tiktok',    value: '@ravio.az' },
+    { href: `tel:+${WHATSAPP_NUMBER}`,        emoji: '📞',  labelKey: 'call',      value: PHONE_DISPLAY },
   ];
 
   return (
     <div style={{ maxWidth: 1280, margin: '0 auto', padding: 'clamp(48px,6vw,80px) 32px', fontFamily: FONT }}>
       <Helmet>
-        <title>Əlaqə | Ravio</title>
-        <meta name="description" content="Ravio ilə əlaqə saxlayın. WhatsApp, Instagram və ya telefon ilə sifariş verin. Bütün Azərbaycana ödənişsiz çatdırılma, 1–3 iş günündə hazır." />
+        <title>{t('contact.seoTitle')}</title>
+        <meta name="description" content={t('contact.seoDesc')} />
         <meta property="og:type"        content="website" />
-        <meta property="og:title"       content="Əlaqə | Ravio" />
-        <meta property="og:description" content="WhatsApp, Instagram və ya telefon ilə sifariş verin. Bütün Azərbaycana ödənişsiz çatdırılma." />
-        <meta property="og:url"         content="https://ravio.az/elaqe" />
+        <meta property="og:title"       content={t('contact.seoTitle')} />
+        <meta property="og:description" content={t('contact.seoDesc')} />
+        <meta property="og:url"         content={`https://ravio.az${canonicalPath}`} />
         <meta property="og:image"       content="https://ravio.az/og-ravio.png" />
         <meta name="twitter:card"       content="summary_large_image" />
-        <link rel="canonical" href="https://ravio.az/elaqe" />
+        <link rel="canonical" href={`https://ravio.az${canonicalPath}`} />
       </Helmet>
 
       <p style={{ fontSize: 11, fontWeight: 700, color: C.orange, letterSpacing: 1.5, textTransform: 'uppercase' as const, margin: '0 0 8px' }}>
-        Əlaqə
+        {t('contact.eyebrow')}
       </p>
       <h1 style={{ fontSize: 'clamp(28px,5vw,48px)', fontWeight: 800, color: C.black, margin: '0 0 16px', letterSpacing: '-0.5px', lineHeight: 1.15 }}>
-        Bizimlə əlaqə
+        {t('contact.title')}
       </h1>
       <p style={{ fontSize: 16, color: C.gray, lineHeight: 1.75, margin: '0 0 48px', maxWidth: 580 }}>
-        Sual, sifariş və ya məlumat üçün WhatsApp, Instagram və ya TikTok üzərindən yazın.
+        {t('contact.intro')}
       </p>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
         {items.map(item => (
           <a
-            key={item.label}
+            key={item.labelKey}
             href={item.href}
             target="_blank"
             rel="noreferrer"
@@ -101,7 +108,7 @@ const Contact: React.FC = () => {
                 margin: '0 0 4px', fontSize: 11, fontWeight: 700,
                 letterSpacing: 1.5, textTransform: 'uppercase' as const,
                 color: item.highlight ? 'rgba(255,255,255,0.7)' : C.grayLt,
-              }}>{item.label}</p>
+              }}>{t(`contact.items.${item.labelKey}.label`)}</p>
               <p style={{
                 margin: 0, fontSize: 18, fontWeight: 800,
                 color: item.highlight ? C.white : C.black,
@@ -111,7 +118,7 @@ const Contact: React.FC = () => {
             <div style={{
               fontSize: 12, fontWeight: 600,
               color: item.highlight ? C.white : C.orange,
-            }}>{item.cta} →</div>
+            }}>{t(`contact.items.${item.labelKey}.cta`)} →</div>
           </a>
         ))}
       </div>

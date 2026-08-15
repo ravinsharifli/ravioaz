@@ -6,6 +6,7 @@ import { WHATSAPP_NUMBER } from '../constants';
 import { FONT_STYLES } from '../constants/defaults';
 import { toWebP } from '../lib/image';
 import { getMaxQuantityForItem } from '../lib/cartPricing';
+import { useTranslation } from 'react-i18next';
 import '../styles/cart-drawer.css';
 
 const FONT = F.sans;
@@ -168,6 +169,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
   onClearCart,
   metroSchedule,
 }) => {
+  const { t } = useTranslation();
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -379,7 +381,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
       <div
         role="dialog"
         aria-modal="true"
-        aria-label="Alış-veriş səbəti"
+        aria-label={t('cartDrawer.ariaLabel')}
         className="ravio-cart-drawer"
         style={{ background: C.bg }}
       >
@@ -389,18 +391,18 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
               {isCheckingOut && (
                 <button
                   onClick={() => setIsCheckingOut(false)}
-                  aria-label="Geri qayıt"
+                  aria-label={t('cartDrawer.back')}
                   style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, display: 'flex', alignItems: 'center', color: C.gray }}
                 >
                   <ChevronLeft size={20} />
                 </button>
               )}
               <h2 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: C.black }}>
-                {isCheckingOut ? 'Sifarişi tamamla' : `Səbətim (${items.length})`}
+                {isCheckingOut ? t('cartDrawer.checkoutButton') : `${t('cartDrawer.title')} (${items.length})`}
               </h2>
             </div>
             <button
-              aria-label="Səbəti bağla"
+              aria-label={t('cartDrawer.close')}
               onClick={() => {
                 onClose();
                 setIsCheckingOut(false);
@@ -415,12 +417,12 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
         {items.length === 0 && (
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, padding: 32 }}>
             <ShoppingBag size={48} color={C.grayLt} />
-            <p style={{ fontSize: 15, color: C.gray, margin: 0, textAlign: 'center' }}>Səbətiniz boşdur</p>
+            <p style={{ fontSize: 15, color: C.gray, margin: 0, textAlign: 'center' }}>{t('cartDrawer.emptyText')}</p>
             <button
               onClick={onGoToProducts}
               style={{ padding: '12px 28px', background: C.orange, color: C.white, border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: FONT }}
             >
-              Məhsullara bax
+              {t('cartDrawer.browseCta')}
             </button>
           </div>
         )}
@@ -472,7 +474,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                                 type="button"
                                 onClick={() => onUpdateQuantity?.(item.cartId, item.quantity - 1)}
                                 disabled={atMin}
-                                aria-label="Sayı azalt"
+                                aria-label={t('cartDrawer.decreaseQty')}
                                 style={{
                                   width: 28, height: 28, borderRadius: '6px 0 0 6px',
                                   border: `1px solid ${C.border}`, background: C.bg,
@@ -488,7 +490,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                                 value={item.quantity}
                                 min={1}
                                 max={maxQty}
-                                aria-label={`${item.productName} sayı`}
+                                aria-label={`${item.productName} ${t('cartDrawer.itemQtyLabel')}`}
                                 onChange={(event) => {
                                   const raw = parseInt(event.target.value, 10);
                                   if (Number.isNaN(raw)) return;
@@ -508,7 +510,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                                 type="button"
                                 onClick={() => onUpdateQuantity?.(item.cartId, item.quantity + 1)}
                                 disabled={atMax}
-                                aria-label="Sayı artır"
+                                aria-label={t('cartDrawer.increaseQty')}
                                 style={{
                                   width: 28, height: 28, borderRadius: '0 6px 6px 0',
                                   border: `1px solid ${C.border}`, background: C.bg,
@@ -519,7 +521,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                                 <Plus size={11} />
                               </button>
                               {maxQty <= 10 && (
-                                <span style={{ fontSize: 11, color: C.grayLt, marginLeft: 8 }}>maks. {maxQty}</span>
+                                <span style={{ fontSize: 11, color: C.grayLt, marginLeft: 8 }}>{t('cartDrawer.maxQty')} {maxQty}</span>
                               )}
                             </div>
                           );
@@ -533,13 +535,13 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                       onClick={() => onEdit(item)}
                       style={{ flex: 1, padding: 9, borderRadius: 8, background: C.bg, border: `1px solid ${C.border}`, color: C.gray, fontSize: 12, cursor: 'pointer', fontFamily: FONT, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}
                     >
-                      <Edit3 size={13} /> Düzəlt
+                      <Edit3 size={13} /> {t('cartDrawer.edit')}
                     </button>
                     <button
                       onClick={() => onRemove(item.cartId)}
                       style={{ flex: 1, padding: 9, borderRadius: 8, background: '#FFF5F5', border: '1px solid #FFC9C9', color: C.red, fontSize: 12, cursor: 'pointer', fontFamily: FONT, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}
                     >
-                      <Trash2 size={13} /> Sil
+                      <Trash2 size={13} /> {t('cartDrawer.remove')}
                     </button>
                   </div>
                 </div>
@@ -548,7 +550,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
 
             <div style={{ padding: '14px 20px 28px', background: C.white, borderTop: `1px solid ${C.border}`, flexShrink: 0 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
-                <span style={{ fontSize: 14, color: C.gray }}>{items.length} məhsul</span>
+                <span style={{ fontSize: 14, color: C.gray }}>{items.length} {t('cartDrawer.itemsCount')}</span>
                 <span style={{ fontSize: 16, fontWeight: 800, color: C.black }}>{money(baseTotal)}</span>
               </div>
               <button
@@ -578,7 +580,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                 }}
                 style={{ width: '100%', padding: 15, borderRadius: 8, border: 'none', background: C.orange, color: C.white, fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: FONT, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
               >
-                Sifarişi tamamla <ArrowRight size={18} />
+                {t('cartDrawer.checkoutButton')} <ArrowRight size={18} />
               </button>
             </div>
           </>
@@ -588,12 +590,12 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
           <>
             <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px 20px' }}>
               <Section>
-                <Label>Çatdırılma üsulu</Label>
+                <Label>{t('cartDrawer.deliveryMethod')}</Label>
                 <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
                   {([
-                    { id: 'kuryer' as const, label: 'Kuryer', icon: '🛵', note: 'Bakı və ətrafı' },
-                    { id: 'metro' as const,  label: 'Metro',  icon: '🚇', note: 'İstənilən stansiya' },
-                    { id: 'post' as const,   label: 'Poçt',   icon: '📮', note: 'Bütün Azərbaycan' },
+                    { id: 'kuryer' as const, label: t('cartDrawer.courier'), icon: '🛵', note: t('cartDrawer.courierNote') },
+                    { id: 'metro' as const,  label: t('cartDrawer.metro'),   icon: '🚇', note: t('cartDrawer.metroNote') },
+                    { id: 'post' as const,   label: t('cartDrawer.post'),    icon: '📮', note: t('cartDrawer.postNote') },
                   ] as const).map((opt) => {
                     const active = delivery === opt.id;
                     return (
@@ -617,7 +619,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                 </div>
                 <div style={{ fontSize: 12, color: '#16A34A', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5 }}>
                   <span>✓</span>
-                  <span>Ödənişsiz çatdırılma — ünvandan asılı olmayaraq</span>
+                  <span>{t('cartDrawer.freeDeliveryNote')}</span>
                 </div>
               </Section>
 
@@ -625,37 +627,37 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                 <Section>
                   {delivery === 'kuryer' && (
                     <p style={{ fontSize: 12, color: C.grayLt, margin: '0 0 12px', lineHeight: 1.55 }}>
-                      🛵 Bakı, Abşeron və Sumqayıt ərazisinə çatdırılır. Tamamilə ödənişsizdir.
+                      {t('cartDrawer.courierDesc')}
                     </p>
                   )}
                   {delivery === 'post' && (
                     <p style={{ fontSize: 12, color: C.grayLt, margin: '0 0 12px', lineHeight: 1.55 }}>
-                      📮 Azərpoçt vasitəsilə Azərbaycanın istənilən bölgəsinə. Ödənişsiz.
+                      {t('cartDrawer.postDesc')}
                     </p>
                   )}
-                  <Label>{delivery === 'post' ? 'Şəhər və ünvan' : 'Çatdırılma ünvanı'}</Label>
+                  <Label>{delivery === 'post' ? t('cartDrawer.cityAndAddress') : t('cartDrawer.deliveryAddress')}</Label>
                   <Input
                     value={address}
-                    aria-label="Çatdırılma ünvanı"
+                    aria-label={t('cartDrawer.deliveryAddress')}
                     onChange={(event) => setAddress(event.target.value)}
-                    placeholder={delivery === 'post' ? 'Şəhər, poçt indeksi, ünvan' : 'Məhəllə, küçə, bina nömrəsi'}
+                    placeholder={delivery === 'post' ? t('cartDrawer.postAddressPlaceholder') : t('cartDrawer.streetAddressPlaceholder')}
                     autoComplete="street-address"
                     style={{ marginBottom: 10 }}
                   />
-                  <Label>Çatdırılma günü</Label>
+                  <Label>{t('cartDrawer.deliveryDay')}</Label>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1fr', gap: 8 }}>
-                    <Select value={kurDay} onChange={setKurDay} options={DAYS_LIST} placeholder="Gün" />
-                    <Select value={kurMonth} onChange={setKurMonth} options={MONTHS_AZ} placeholder="Ay" />
-                    <Select value={kurYear} onChange={setKurYear} options={ORDER_YEARS} placeholder="İl" />
+                    <Select value={kurDay} onChange={setKurDay} options={DAYS_LIST} placeholder={t('cartDrawer.day')} />
+                    <Select value={kurMonth} onChange={setKurMonth} options={MONTHS_AZ} placeholder={t('cartDrawer.month')} />
+                    <Select value={kurYear} onChange={setKurYear} options={ORDER_YEARS} placeholder={t('cartDrawer.year')} />
                   </div>
                   {kurDay && kurMonth && kurYear && !deliveryDateValid && (
                     <p style={{ fontSize: 12, color: C.red, margin: '8px 0 0' }}>
-                      Ən erkən çatdırılma tarixi: {minDateDisplay}
+                      {t('cartDrawer.earliestDate', { date: minDateDisplay })}
                     </p>
                   )}
                   {!kurDay && !kurMonth && (
                     <p style={{ fontSize: 12, color: C.grayLt, margin: '8px 0 0' }}>
-                      Ən erkən tarix: {minDateDisplay}
+                      {t('cartDrawer.earliestDateHint', { date: minDateDisplay })}
                     </p>
                   )}
                 </Section>
@@ -663,10 +665,10 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
 
               {delivery === 'metro' && (
                 <Section>
-                  <Label>Metro stansiyası</Label>
+                  <Label>{t('cartDrawer.metroStation')}</Label>
                   <select
                     value={metro}
-                    aria-label="Metro stansiyası seçin"
+                    aria-label={t('cartDrawer.selectMetroStation')}
                     onChange={(event) => {
                       setMetro(event.target.value);
                       setMetroDay('');
@@ -674,36 +676,36 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                     }}
                     style={{ width: '100%', background: C.white, border: `1px solid ${C.border}`, borderRadius: 8, padding: 12, marginBottom: 10, fontFamily: FONT }}
                   >
-                    <option value="">Metro seçin</option>
+                    <option value="">{t('cartDrawer.selectMetro')}</option>
                     {stations.map((station) => (
                       <option key={station.name} value={station.name}>{station.name}</option>
                     ))}
                   </select>
 
-                  <Label>Gün</Label>
+                  <Label>{t('cartDrawer.day')}</Label>
                   <select
                     value={metroDay}
-                    aria-label="Çatdırılma günü seçin"
+                    aria-label={t('cartDrawer.selectDay')}
                     onChange={(event) => {
                       setMetroDay(event.target.value);
                       setMetroTime('');
                     }}
                     style={{ width: '100%', background: C.white, border: `1px solid ${C.border}`, borderRadius: 8, padding: 12, marginBottom: 10, fontFamily: FONT }}
                   >
-                    <option value="">Gün seçin</option>
+                    <option value="">{t('cartDrawer.selectDay')}</option>
                     {metroDays.map((day) => (
                       <option key={day} value={day}>{day}</option>
                     ))}
                   </select>
 
-                  <Label>Saat</Label>
+                  <Label>{t('cartDrawer.hour')}</Label>
                   <select
                     value={metroTime}
-                    aria-label="Çatdırılma saatı seçin"
+                    aria-label={t('cartDrawer.selectHour')}
                     onChange={(event) => setMetroTime(event.target.value)}
                     style={{ width: '100%', background: C.white, border: `1px solid ${C.border}`, borderRadius: 8, padding: 12, fontFamily: FONT }}
                   >
-                    <option value="">Saat seçin</option>
+                    <option value="">{t('cartDrawer.selectHour')}</option>
                     {metroTimes.map((time) => (
                       <option key={time} value={time}>{time}</option>
                     ))}
@@ -712,20 +714,20 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
               )}
 
               <Section>
-                <Label>Əlaqə məlumatları</Label>
-                <Input value={custName} aria-label="Adınız" onChange={(event) => setCustName(event.target.value)} placeholder="Adınız" autoComplete="name" style={{ marginBottom: 10 }} />
-                <Input value={phone} aria-label="Telefon nömrəsi" onChange={(event) => setPhone(event.target.value)} placeholder="Telefon (+994 50 xxx xx xx)" type="tel" autoComplete="tel" style={{ marginBottom: 10 }} />
-                <Label>Doğum tarixi</Label>
-                <p style={{ margin: '0 0 8px', fontSize: 11, color: 'var(--clr-text-muted)', lineHeight: 1.5 }}>Doğum günündə sürpriz hədiyyə göndərə bilək :) </p>
+                <Label>{t('cartDrawer.contactInfo')}</Label>
+                <Input value={custName} aria-label={t('cartDrawer.yourName')} onChange={(event) => setCustName(event.target.value)} placeholder={t('cartDrawer.yourName')} autoComplete="name" style={{ marginBottom: 10 }} />
+                <Input value={phone} aria-label={t('cartDrawer.phoneNumber')} onChange={(event) => setPhone(event.target.value)} placeholder={t('cartDrawer.phonePlaceholder')} type="tel" autoComplete="tel" style={{ marginBottom: 10 }} />
+                <Label>{t('cartDrawer.birthDate')}</Label>
+                <p style={{ margin: '0 0 8px', fontSize: 11, color: 'var(--clr-text-muted)', lineHeight: 1.5 }}>{t('cartDrawer.birthdayNote')}</p>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1fr', gap: 8 }}>
-                  <Select value={bdDay} onChange={setBdDay} options={DAYS_LIST} placeholder="Gün" />
-                  <Select value={bdMonth} onChange={setBdMonth} options={MONTHS_AZ} placeholder="Ay" />
-                  <Select value={bdYear} onChange={setBdYear} options={BIRTH_YEARS} placeholder="İl" />
+                  <Select value={bdDay} onChange={setBdDay} options={DAYS_LIST} placeholder={t('cartDrawer.day')} />
+                  <Select value={bdMonth} onChange={setBdMonth} options={MONTHS_AZ} placeholder={t('cartDrawer.month')} />
+                  <Select value={bdYear} onChange={setBdYear} options={BIRTH_YEARS} placeholder={t('cartDrawer.year')} />
                 </div>
               </Section>
 
               <Section>
-                <Label>Sifariş xülasəsi</Label>
+                <Label>{t('cartDrawer.orderSummary')}</Label>
                 {items.map((item) => (
                   <div key={item.cartId} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontSize: 13 }}>
                     <span style={{ color: C.gray }}>{item.productName} ×{item.quantity}</span>
@@ -738,7 +740,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                 <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 10, marginTop: 8 }}>
                   {/* İlkin qiymət */}
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontSize: 13 }}>
-                    <span style={{ color: C.gray }}>İlkin qiymət</span>
+                    <span style={{ color: C.gray }}>{t('cartDrawer.initialPrice')}</span>
                     <span style={{ color: hasAnyDiscount ? C.grayLt : C.black, textDecoration: hasAnyDiscount ? 'line-through' : 'none' }}>
                       {money(originalTotal)}
                     </span>
@@ -747,7 +749,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                   {/* Satış endirimi */}
                   {totalSaleDiscount > 0 && (
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontSize: 13, color: C.green }}>
-                      <span>− Satış endirimi</span>
+                      <span>{t('cartDrawer.saleDiscount')}</span>
                       <span>−{money(totalSaleDiscount)}</span>
                     </div>
                   )}
@@ -755,7 +757,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                   {/* Toplu endirim */}
                   {totalBulkDiscount > 0 && (
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontSize: 13, color: C.green }}>
-                      <span>− Toplu endirim</span>
+                      <span>{t('cartDrawer.bulkDiscount')}</span>
                       <span>−{money(totalBulkDiscount)}</span>
                     </div>
                   )}
@@ -763,7 +765,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                   {/* Müştəri endirimi */}
                   {totalCustomerDiscount > 0 && (
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontSize: 13, color: C.green }}>
-                      <span>− {customerTypeLabel || 'Müştəri endirimi'}</span>
+                      <span>− {customerTypeLabel || t('cartDrawer.customerDiscountLabel')}</span>
                       <span>−{money(totalCustomerDiscount)}</span>
                     </div>
                   )}
@@ -771,14 +773,14 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                   {/* Kupon endirimi */}
                   {totalCouponDiscount > 0 && (
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontSize: 13, color: C.green }}>
-                      <span>− Kupon{couponCodeLabel ? ` (${couponCodeLabel})` : ''}</span>
+                      <span>{t('cartDrawer.couponLabel')}{couponCodeLabel ? ` (${couponCodeLabel})` : ''}</span>
                       <span>−{money(totalCouponDiscount)}</span>
                     </div>
                   )}
 
                   {deliveryFee > 0 && (
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontSize: 13 }}>
-                      <span style={{ color: C.gray }}>Çatdırılma</span>
+                      <span style={{ color: C.gray }}>{t('cartDrawer.delivery')}</span>
                       <span>{money(deliveryFee)}</span>
                     </div>
                   )}
@@ -786,11 +788,11 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                   {/* Yekun məbləğ */}
                   <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 10, marginTop: 6 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                      <span style={{ fontWeight: 700 }}>Yekun məbləğ</span>
+                      <span style={{ fontWeight: 700 }}>{t('cartDrawer.grandTotal')}</span>
                       <strong style={{ fontSize: 16, color: hasAnyDiscount ? C.green : C.black }}>{money(grandTotal)}</strong>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', color: C.orange }}>
-                      <span>Beh (50%)</span>
+                      <span>{t('cartDrawer.deposit')}</span>
                       <strong>{money(deposit)}</strong>
                     </div>
                   </div>
@@ -802,7 +804,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
             <div style={{ padding: '14px 20px 28px', background: C.white, borderTop: `1px solid ${C.border}`, flexShrink: 0 }}>
               {!checkoutValid && (
                 <p style={{ fontSize: 12, color: C.grayLt, textAlign: 'center', margin: '0 0 10px' }}>
-                  Bütün məcburi xanaları doldurun
+                  {t('cartDrawer.fillRequiredFields')}
                 </p>
               )}
               <button
@@ -821,7 +823,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                   fontFamily: FONT,
                 }}
               >
-                WhatsApp ilə göndər
+                {t('cartDrawer.sendViaWhatsApp')}
               </button>
             </div>
           </>

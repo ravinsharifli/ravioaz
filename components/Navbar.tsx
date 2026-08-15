@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import '../styles/navbar.css';
 import { C, F } from '../tokens';
-import { ShoppingBag, Search, X, Menu } from 'lucide-react';
+import { ShoppingBag, Search, X, Menu, Globe } from 'lucide-react';
 import { Product } from '../types';
 import { toWebP } from '../lib/image';
+import { useTranslation } from 'react-i18next';
+import { getLangFromPath, withLangPrefix } from '../i18n/useLocalizedNav';
 
 interface NavbarProps {
   cartCount: number;
@@ -19,10 +21,14 @@ interface NavbarProps {
 }
 
 const Navbar: React.FC<NavbarProps> = ({
-  cartCount, onLogoClick, onCartClick,
-  onAboutClick, onContactClick, onDeliveryClick, onProductsClick,
-  products = [], onViewProduct,
+  cartCount, onCartClick,
+  products = [],
 }) => {
+  const { t } = useTranslation();
+  const location = useLocation();
+  const lang = getLangFromPath(location.pathname);
+  const otherLang = lang === 'az' ? 'en' : 'az';
+
   const [scrolled, setScrolled]     = useState(false);
   const [menuOpen, setMenuOpen]     = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -31,8 +37,6 @@ const Navbar: React.FC<NavbarProps> = ({
   const inputRef  = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    // passive:true — brauzer scroll-u blok edilmədən davam etdirir (daha az reflow)
-    // requestAnimationFrame — hər frame-də bir dəfə state dəyişir, burst-ləri batches edir
     let raf: number | null = null;
     const fn = () => {
       if (raf) cancelAnimationFrame(raf);
@@ -74,11 +78,18 @@ const Navbar: React.FC<NavbarProps> = ({
     : [];
 
   const navLinks = [
-    { label: 'Məhsullar',  href: '/mehsullar' },
-    { label: 'Çatdırılma', href: '/catdirilma' },
-    { label: 'Haqqımızda', href: '/haqqimizda' },
-    { label: 'Əlaqə',      href: '/elaqe' },
+    { label: t('nav.products'), href: withLangPrefix('/mehsullar', lang) },
+    { label: t('nav.delivery'), href: withLangPrefix('/catdirilma', lang) },
+    { label: t('nav.about'),    href: withLangPrefix('/haqqimizda', lang) },
+    { label: t('nav.contact'),  href: withLangPrefix('/elaqe', lang) },
   ];
+
+  // Cari yolu digər dilə çevirir. Məhsul detalı (/mehsullar/:slug) səhifəsində
+  // slug dəyişmir — yalnız /en prefiksi əlavə/silinir.
+  const otherLangPath = (() => {
+    const stripped = lang === 'en' ? (location.pathname.replace(/^\/en/, '') || '/') : location.pathname;
+    return withLangPrefix(stripped, otherLang) + location.search;
+  })();
 
   const NAV_H = 60;
 
@@ -97,7 +108,7 @@ const Navbar: React.FC<NavbarProps> = ({
           justifyContent: 'space-between', gap: 16,
         }}>
           {/* Logo */}
-          <Link to="/" aria-label="Ana səhifəyə qayıt" style={{
+          <Link to={withLangPrefix('/', lang)} aria-label="Ana səhifəyə qayıt" style={{
             background: 'none', border: 'none', cursor: 'pointer',
             padding: 0, flexShrink: 0,
             display: 'flex', alignItems: 'center', gap: 8,
@@ -134,9 +145,27 @@ const Navbar: React.FC<NavbarProps> = ({
 
           {/* Right icons */}
           <div ref={searchRef} style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, position: 'relative' }}>
+            {/* Language switcher */}
+            <Link
+              to={otherLangPath}
+              aria-label={otherLang === 'en' ? 'Switch to English' : 'Azərbaycan dilinə keç'}
+              style={{
+                background: 'none', border: '1px solid #E5E1DB', cursor: 'pointer',
+                height: 32, borderRadius: 8, padding: '0 10px',
+                display: 'flex', alignItems: 'center', gap: 6,
+                color: '#444444', fontFamily: F.sans, fontSize: 12, fontWeight: 700,
+                textDecoration: 'none', transition: 'color 0.15s, border-color 0.15s',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.color = C.primary; e.currentTarget.style.borderColor = C.primary; }}
+              onMouseLeave={e => { e.currentTarget.style.color = '#444444'; e.currentTarget.style.borderColor = '#E5E1DB'; }}
+            >
+              <Globe size={13} />
+              {otherLang === 'en' ? 'EN' : 'AZ'}
+            </Link>
+
             {/* Search button */}
             <button onClick={() => { setSearchOpen(v => !v); setQuery(''); }}
-              aria-label={searchOpen ? "Axtarışı bağla" : "Axtarış"}
+              aria-label={searchOpen ? "Axtarışı bağla" : t('nav.search')}
               aria-expanded={searchOpen}
               style={{
                 background: 'none', border: 'none', cursor: 'pointer',
@@ -167,8 +196,8 @@ const Navbar: React.FC<NavbarProps> = ({
                     ref={inputRef}
                     value={query}
                     onChange={e => setQuery(e.target.value)}
-                    placeholder="Məhsul axtar..."
-                    aria-label="Məhsul axtar"
+                    placeholder={t('nav.searchPlaceholder')}
+                    aria-label={t('nav.searchPlaceholder')}
                     style={{
                       flex: 1, border: 'none', outline: 'none',
                       fontSize: 15, color: C.black,
@@ -189,7 +218,7 @@ const Navbar: React.FC<NavbarProps> = ({
                     {results.map(p => (
                       <li key={p.id}>
                         <Link
-                          to={`/mehsullar/${p.slug}`}
+                          to={withLangPrefix(`/mehsullar/${p.slug}`, lang)}
                           onClick={() => { setSearchOpen(false); setQuery(''); }}
                           style={{
                             width: '100%', display: 'flex', alignItems: 'center', gap: 12,
@@ -310,7 +339,19 @@ const Navbar: React.FC<NavbarProps> = ({
               >{link.label}</Link>
             ))}
             <Link
-              to="/mehsullar"
+              to={otherLangPath}
+              onClick={() => setMenuOpen(false)}
+              style={{
+                width: '100%', display: 'flex', alignItems: 'center', gap: 8,
+                padding: '15px 8px', textAlign: 'left' as const,
+                fontSize: 16, fontWeight: 500, color: C.black,
+                fontFamily: F.sans,
+                borderBottom: '1px solid #F5F2EC',
+                textDecoration: 'none',
+              }}
+            ><Globe size={16} /> {otherLang === 'en' ? 'English' : 'Azərbaycan dili'}</Link>
+            <Link
+              to={withLangPrefix('/mehsullar', lang)}
               onClick={() => setMenuOpen(false)}
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,

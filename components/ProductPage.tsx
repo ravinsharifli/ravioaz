@@ -6,6 +6,10 @@ import ProductReviews from './ProductReviews';
 import ZoomableImage from './ZoomableImage.tsx';
 import { toWebP, toSrcSet } from '../lib/image';
 import { BULK_DISCOUNT_PER_UNIT, getColorSwatchBackground, FONT_STYLES } from '../constants/defaults';
+import { useTranslation } from 'react-i18next';
+import { useLocation } from 'react-router-dom';
+import { getLangFromPath } from '../i18n/useLocalizedNav';
+import { localizedProductName, localizedProductDescription } from '../lib/productLocale';
 
 const FONT = F.sans;
 
@@ -71,6 +75,11 @@ interface ProductPageProps {
 const ProductPage: React.FC<ProductPageProps> = ({
   product, initialData, boxes, coupons = [], bulkDiscountPerUnit = BULK_DISCOUNT_PER_UNIT, onBack, onAddToCart,
 }) => {
+  const { t } = useTranslation();
+  const location = useLocation();
+  const lang = getLangFromPath(location.pathname);
+  const displayName = localizedProductName(product, lang);
+  const displayDescription = localizedProductDescription(product, lang);
 
   const variants = product.variants || [];
 
@@ -415,7 +424,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
 
                   {totalImgs > 1 && (
                     <>
-                      <button onClick={prevImg} aria-label="Əvvəlki şəkil" style={{
+                      <button onClick={prevImg} aria-label={t('productPage.prevImage')} style={{
                         position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)',
                         background: 'rgba(255,255,255,0.95)', border: `1px solid ${C.border}`,
                         borderRadius: '50%', width: 40, height: 40, cursor: 'pointer',
@@ -423,7 +432,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
                         boxShadow: '0 2px 8px rgba(0,0,0,0.12)', zIndex: 2,
                       }}><ChevronLeft size={20} color={C.black} /></button>
 
-                      <button onClick={nextImg} aria-label="Növbəti şəkil" style={{
+                      <button onClick={nextImg} aria-label={t('productPage.nextImage')} style={{
                         position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
                         background: 'rgba(255,255,255,0.95)', border: `1px solid ${C.border}`,
                         borderRadius: '50%', width: 40, height: 40, cursor: 'pointer',
@@ -471,7 +480,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
                 background: C.white, borderRadius: 16, border: `1px solid ${C.border}`,
                 aspectRatio: '1/1', display: 'flex', alignItems: 'center', justifyContent: 'center',
                 color: C.grayLt, fontSize: 14,
-              }}>Şəkil yoxdur</div>
+              }}>{t('productPage.noImage')}</div>
             )}
           </div>
 
@@ -486,23 +495,23 @@ const ProductPage: React.FC<ProductPageProps> = ({
                 </span>
               )}
               <h1 style={{ margin: '0 0 8px', fontSize: 'clamp(22px,3vw,30px)', fontWeight: 800, color: C.black, lineHeight: 1.25, letterSpacing: '-0.3px' }}>
-                {product.name}
+                {displayName}
               </h1>
             </div>
 
-            {product.description && (
+            {displayDescription && (
               <Sec>
-                <p style={{ margin: 0, fontSize: 13, color: C.gray, lineHeight: 1.65 }}>{product.description}</p>
+                <p style={{ margin: 0, fontSize: 13, color: C.gray, lineHeight: 1.65 }}>{displayDescription}</p>
               </Sec>
             )}
 
             {/* Müştəri növü */}
             <Sec>
-              <Label>Müştəri növü</Label>
+              <Label>{t('productPage.customerType')}</Label>
               <div style={{ display: 'flex', gap: 8 }}>
                 {([
-                  { id: 'new'   as const, label: 'Yeni müştəri',  sub: 'İlk sifarişimdir' },
-                  { id: 'loyal' as const, label: 'Daimi müştəri', sub: 'Əvvəl sifariş vermişəm' },
+                  { id: 'new'   as const, label: t('productPage.newCustomer'),  sub: t('productPage.newCustomerSub') },
+                  { id: 'loyal' as const, label: t('productPage.loyalCustomer'), sub: t('productPage.loyalCustomerSub') },
                 ] as const).map(opt => {
                   const sel = customerType === opt.id;
                   return (
@@ -538,7 +547,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
               </div>
               {customerType && (
                 <div style={{ marginTop: 8, padding: '8px 12px', background: C.blueBg, border: `1px solid ${C.blueBd}`, borderRadius: 8, fontSize: 12, color: C.blue, fontWeight: 600 }}>
-                  ✓ {discRate}% endirim tətbiq ediləcək — {customerDisc.toFixed(2)} ₼ qənaət
+                  ✓ {discRate}% {t('productPage.discountApplied')} — {customerDisc.toFixed(2)} ₼ {t('productPage.savings')}
                 </div>
               )}
             </Sec>
@@ -546,7 +555,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
             {/* Endirim kodu — yalnız Sanity-dən aktiv kupon varsa göstər */}
             {hasCouponAvailable && (
               <Sec>
-                <Label>🎟 Endirim kodu</Label>
+                <Label>{t('productPage.couponLabel')}</Label>
                 {appliedCoupon ? (
                   <div style={{
                     background: C.greenBg, border: `1.5px solid #BBF7D0`,
@@ -558,11 +567,11 @@ const ProductPage: React.FC<ProductPageProps> = ({
                       <div>
                         <div style={{ fontSize: 13, fontWeight: 700, color: C.green }}>{appliedCoupon.code}</div>
                         <div style={{ fontSize: 11, color: '#166534', marginTop: 1 }}>
-                          −{couponDiscount.toFixed(2)} ₼ endirim tətbiq edildi
+                          −{couponDiscount.toFixed(2)} ₼ {t('productPage.couponDiscountApplied')}
                         </div>
                       </div>
                     </div>
-                    <button onClick={() => setAppliedCoupon(null)} aria-label="Kuponu sil" style={{
+                    <button onClick={() => setAppliedCoupon(null)} aria-label={t('productPage.couponRemove')} style={{
                       background: 'none', border: 'none', cursor: 'pointer',
                       color: C.gray, padding: 4, display: 'flex', alignItems: 'center',
                     }}><X size={16} /></button>
@@ -574,10 +583,10 @@ const ProductPage: React.FC<ProductPageProps> = ({
                         <Tag size={14} style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)', color: C.grayLt, pointerEvents: 'none' }} />
                         <input
                           value={couponInput}
-                          aria-label="Kupon kodu"
+                          aria-label={t('productPage.couponCodeLabel')}
                           onChange={e => { setCouponInput(e.target.value.toUpperCase()); setCouponError(''); }}
                           onKeyDown={e => e.key === 'Enter' && handleApplyCoupon()}
-                          placeholder="Kupon kodunu daxil edin"
+                          placeholder={t('productPage.couponPlaceholder')}
                           onFocus={() => setCouponFocused(true)}
                           onBlur={() => setCouponFocused(false)}
                           style={{
@@ -597,7 +606,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
                           border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600,
                           cursor: 'pointer', fontFamily: FONT, whiteSpace: 'nowrap' as const, flexShrink: 0,
                         }}
-                      >Tətbiq et</button>
+                      >{t('productPage.applyButton')}</button>
                     </div>
                     {couponError && (
                       <p style={{ margin: '6px 0 0', fontSize: 12, color: C.red }}>{couponError}</p>
@@ -612,7 +621,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
               <Sec>
                 {hasMultipleModels && (
                   <div style={{ marginBottom: hasMultipleColors ? 14 : 0 }}>
-                    <Label>Model</Label>
+                    <Label>{t('productPage.model')}</Label>
                     <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 6 }}>
                       {uniqueModels.map((m) => {
                         const sel = currentModel === m;
@@ -634,7 +643,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
                               fontSize: 13, fontWeight: sel ? 600 : 500, fontFamily: FONT,
                             }}
                           >
-                            {m}{modelOos && ' · Bitib'}
+                            {m}{modelOos && t('productPage.outOfStockSuffix')}
                           </button>
                         );
                       })}
@@ -644,7 +653,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
 
                 {hasMultipleColors && (
                   <div>
-                    <Label>Rəng: <span style={{ color: C.black, textTransform: 'none' as const, letterSpacing: 0, fontWeight: 600 }}>{variant.colorName || ''}</span></Label>
+                    <Label>{t('productPage.color')}<span style={{ color: C.black, textTransform: 'none' as const, letterSpacing: 0, fontWeight: 600 }}>{variant.colorName || ''}</span></Label>
                     <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 8 }}>
                       {colorVariants.map(({ v, i }) => {
                         const oos = v.inStock === false;
@@ -656,7 +665,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
                             type="button"
                             onClick={() => !oos && selectVariant(i)}
                             disabled={oos}
-                            aria-label={v.colorName || `Rəng ${i + 1}`}
+                            aria-label={v.colorName || `${t('productPage.colorAriaFallback')} ${i + 1}`}
                             aria-pressed={sel}
                             title={v.colorName || ''}
                             style={{
@@ -697,10 +706,10 @@ const ProductPage: React.FC<ProductPageProps> = ({
 
             {/* Say */}
             <Sec>
-              <Label>Say</Label>
+              <Label>{t('productPage.quantity')}</Label>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' as const }}>
                 <div style={{ display: 'flex', alignItems: 'center' }}>
-                  <button onClick={() => setQty(q => Math.max(1, q - 1))} aria-label="Sayı azalt" style={{
+                  <button onClick={() => setQty(q => Math.max(1, q - 1))} aria-label={t('productPage.decreaseQty')} style={{
                     width: 32, height: 32, borderRadius: '6px 0 0 6px',
                     border: `1px solid ${C.border}`, background: C.bg,
                     cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -716,7 +725,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
                   <button
                     onClick={() => setQty(q => Math.min(99, q + 1))}
                     disabled={qty >= 99}
-                    aria-label="Sayı artır"
+                    aria-label={t('productPage.increaseQty')}
                     style={{
                       width: 32, height: 32, borderRadius: '0 6px 6px 0',
                       border: `1px solid ${C.border}`, background: C.bg,
@@ -733,7 +742,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
                   const disc = Math.max(0, baseUnit - amount);
                   return (
                     <span style={{ fontSize: 12, fontWeight: 600, color: isActive ? C.green : C.grayLt }}>
-                      2+ əd → {disc.toFixed(2)} ₼/əd
+                      {t('productPage.bulkPricePerUnit', { price: disc.toFixed(2) })}
                     </span>
                   );
                 })()}
@@ -746,14 +755,14 @@ const ProductPage: React.FC<ProductPageProps> = ({
                   borderRadius: 8,
                 }}>
                   <span style={{ fontSize: 12, color: '#7C2D12', lineHeight: 1.5, flex: 1 }}>
-                    10+ ədəd toplu sifarişdir — əlavə endirimdən yararlanmaq üçün bizimlə əlaqə saxlayın:{' '}
+                    {t('productPage.bulkNotice')}{' '}
                     <a href="tel:0519831483" style={{ color: C.orange, fontWeight: 700, textDecoration: 'none' }}>
                       051 983 14 83
                     </a>
                   </span>
                   <button
                     onClick={() => setBulkNoticeDismissed(true)}
-                    aria-label="Bildirişi bağla"
+                    aria-label={t('productPage.dismissNotice')}
                     style={{
                       background: 'none', border: 'none', cursor: 'pointer',
                       color: '#7C2D12', flexShrink: 0, display: 'flex', padding: 2,
@@ -767,7 +776,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
 
             {/* Lazer çap seçimi — əvvəlcə yazı/şəkil seçilir, sonra müvafiq bölmə açılır */}
             <Sec>
-              <Label>Məhsul üzərində nə istəyirsiniz?</Label>
+              <Label>{t('productPage.customizationQuestion')}</Label>
               <div style={{ display: 'flex', gap: 10 }}>
                 <button
                   type="button"
@@ -782,7 +791,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
                     fontSize: 13, fontWeight: 600, transition: 'all 0.15s',
                   }}
                 >
-                  ✍️ Yazı
+                  {t('productPage.wantsTextBtn')}
                 </button>
                 <button
                   type="button"
@@ -797,12 +806,12 @@ const ProductPage: React.FC<ProductPageProps> = ({
                     fontSize: 13, fontWeight: 600, transition: 'all 0.15s',
                   }}
                 >
-                  🖼️ Şəkil
+                  {t('productPage.wantsImageBtn')}
                 </button>
               </div>
               {(wantsText && wantsImage) && (
                 <p style={{ margin: '10px 0 0', fontSize: 12, color: C.gray }}>
-                  ✓ İki tərəfli çap: həm yazı, həm şəkil məhsula işlənəcək.
+                  {t('productPage.twoSidedNote')}
                 </p>
               )}
             </Sec>
@@ -810,13 +819,13 @@ const ProductPage: React.FC<ProductPageProps> = ({
             {/* Xüsusi yazı — yalnız "Yazı" seçilibsə görünür */}
             {wantsText && (
             <Sec>
-              <Label>Yazınızı daxil edin</Label>
+              <Label>{t('productPage.enterYourText')}</Label>
               <textarea
                 value={printText}
                 onChange={e => setPrintText(e.target.value)}
                 maxLength={300}
                 rows={3}
-                placeholder="Məs: Aysu & Elvin, 14.02.2024"
+                placeholder={t('productPage.textPlaceholder')}
                 style={{
                   width: '100%', background: C.white, border: `1px solid ${C.border}`,
                   borderRadius: 8, padding: '11px 14px', color: C.black,
@@ -839,7 +848,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
                   uzun yazılarda kiçik kartlarda kəsilmə problemi olmur. */}
               <div style={{ marginTop: 16, paddingTop: 14, borderTop: `1px solid ${C.border}` }}>
                 <p style={{ margin: '0 0 9px', fontSize: 12, fontWeight: 600, color: C.gray, fontFamily: FONT }}>
-                  Yazı forması hansı olsun?
+                  {t('productPage.fontStyleQuestion')}
                 </p>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
                   {FONT_STYLES.map((f) => {
@@ -889,7 +898,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 5, marginBottom: 8 }}>
                 <span style={{ color: C.orange, fontSize: 13, lineHeight: '18px' }}>★</span>
                 <span style={{ fontSize: 12, color: C.gray, lineHeight: 1.5, fontFamily: FONT }}>
-                  Yazı və ya məhsula dair əlavə istəyiniz varsa, bura qeyd edin
+                  {t('productPage.additionalNoteLabel')}
                 </span>
               </div>
               <textarea
@@ -897,7 +906,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
                 onChange={e => setPrintNote(e.target.value)}
                 maxLength={200}
                 rows={2}
-                placeholder="Məs: hərflər bir az kiçik olsun"
+                placeholder={t('productPage.additionalNotePlaceholder')}
                 style={{
                   width: '100%', background: C.white, border: `1px solid ${C.border}`,
                   borderRadius: 8, padding: '11px 14px', color: C.black, fontFamily: FONT,
@@ -914,13 +923,13 @@ const ProductPage: React.FC<ProductPageProps> = ({
             {wantsImage && (
             <Sec>
               <Label>
-                Şəkil əlavə et{' '}
+                {t('productPage.addImageLabel')}{' '}
                 <span style={{ fontWeight: 400, textTransform: 'none' as const, letterSpacing: 0, color: C.grayLt, fontSize: 10 }}>
-                  — ödənişsiz
+                  {t('productPage.freeLabel')}
                 </span>
               </Label>
               <div style={{ background: C.blueBg, border: `1px solid ${C.blueBd}`, borderRadius: 8, padding: '10px 13px', marginBottom: 12, fontSize: 12, color: '#1E40AF', lineHeight: 1.65 }}>
-                Portret, eskiz, logo və ya QR kod üçün şəkil göndərin — məhsula çap ediləcək.
+                {t('productPage.imageUploadHint')}
               </div>
 
               {!uploadedImgPreview && !uploadLoading && (
@@ -929,8 +938,8 @@ const ProductPage: React.FC<ProductPageProps> = ({
                   padding: '20px', border: `1.5px dashed ${C.border}`, borderRadius: 10, cursor: 'pointer', background: C.bg,
                 }}>
                   <Upload size={20} color={C.grayLt} />
-                  <span style={{ fontSize: 13, color: C.gray }}>Şəkil seçmək üçün bura basın</span>
-                  <span style={{ fontSize: 11, color: C.grayLt }}>JPG, PNG, WEBP · Maks. 5 MB</span>
+                  <span style={{ fontSize: 13, color: C.gray }}>{t('productPage.clickToChooseImage')}</span>
+                  <span style={{ fontSize: 11, color: C.grayLt }}>{t('productPage.imageFormatHint')}</span>
                   <input type="file" accept="image/jpeg,image/png,image/webp" style={{ display: 'none' }} onChange={handleImageUpload} />
                 </label>
               )}
@@ -945,7 +954,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
                       <circle cx="9" cy="9" r="7" fill="none" stroke={C.blueBd} strokeWidth="2.5" />
                       <path d="M9 2 A7 7 0 0 1 16 9" fill="none" stroke={C.blue} strokeWidth="2.5" strokeLinecap="round" />
                     </svg>
-                    <span style={{ fontSize: 13, color: C.blue, fontWeight: 600 }}>Şəkil yüklənir...</span>
+                    <span style={{ fontSize: 13, color: C.blue, fontWeight: 600 }}>{t('productPage.uploading')}</span>
                   </div>
                 </div>
               )}
@@ -958,7 +967,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
                   </button>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 8, padding: '8px 12px', background: C.greenBg, border: '1px solid #BBF7D0', borderRadius: 8 }}>
                     <Check size={14} color={C.green} strokeWidth={2.5} />
-                    <span style={{ fontSize: 12, color: C.green, fontWeight: 600 }}>Şəkil hazırdır — sifariş ilə birlikdə göndəriləcək</span>
+                    <span style={{ fontSize: 12, color: C.green, fontWeight: 600 }}>{t('productPage.imageReady')}</span>
                   </div>
                 </div>
               )}
@@ -972,13 +981,13 @@ const ProductPage: React.FC<ProductPageProps> = ({
               <Sec last>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
                   <span style={{ fontSize: 13, fontWeight: 600, color: C.black, fontFamily: FONT }}>
-                    Əlavə ödənişlə fərqli qutu istəyirsiz?
+                    {t('productPage.boxQuestion')}
                   </span>
                   <button
                     type="button"
                     role="switch"
                     aria-checked={wantsDifferentBox}
-                    aria-label="Əlavə ödənişlə fərqli qutu istəyirsiz?"
+                    aria-label={t('productPage.boxQuestion')}
                     onClick={() => setWantsDifferentBox(v => !v)}
                     style={{
                       flexShrink: 0, width: 44, height: 26, borderRadius: 13, border: 'none',
@@ -1023,7 +1032,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
                         <div style={{ padding: '7px 8px' }}>
                           <div style={{ fontSize: 11, fontWeight: 600, color: sel ? C.black : C.gray, marginBottom: 2 }}>{b.name}</div>
                           <div style={{ fontSize: 11, fontWeight: 700, color: sel ? C.orange : b.price > 0 ? C.orange : C.green }}>
-                            {b.price === 0 ? 'Pulsuz' : `+${b.price.toFixed(2)} ₼`}
+                            {b.price === 0 ? t('productPage.free') : `+${b.price.toFixed(2)} ₼`}
                           </div>
                         </div>
                         {sel && (
@@ -1052,7 +1061,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
                 <span style={{ fontSize: 13, color: C.gray }}>
-                  {qty} əd{boxFee > 0 ? ` + ${box?.name}` : ''}
+                  {qty} {t('productPage.unitSuffix')}{boxFee > 0 ? ` + ${box?.name}` : ''}
                 </span>
                 {hasAnyDiscount ? (
                   <div style={{ textAlign: 'right' as const }}>
@@ -1071,11 +1080,11 @@ const ProductPage: React.FC<ProductPageProps> = ({
               </div>
               {(bulkDiscTotal > 0 || customerDisc > 0 || couponDiscount > 0) && (
                 <div style={{ fontSize: 11, color: C.green, fontWeight: 600, textAlign: 'right' as const, marginBottom: 8 }}>
-                  {bulkDiscTotal > 0 && `✓ Say endirimi: ${bulkDiscTotal.toFixed(2)} ₼ qənaət`}
+                  {bulkDiscTotal > 0 && t('productPage.quantityDiscount', { amount: bulkDiscTotal.toFixed(2) })}
                   {bulkDiscTotal > 0 && (customerDisc > 0 || couponDiscount > 0) && ' · '}
-                  {customerDisc > 0 && `−${customerDisc.toFixed(2)} ₼ müştəri endirimi`}
+                  {customerDisc > 0 && t('productPage.customerDiscount', { amount: customerDisc.toFixed(2) })}
                   {customerDisc > 0 && couponDiscount > 0 && ' · '}
-                  {couponDiscount > 0 && `−${couponDiscount.toFixed(2)} ₼ kupon`}
+                  {couponDiscount > 0 && t('productPage.couponDiscount', { amount: couponDiscount.toFixed(2) })}
                 </div>
               )}
               <button
@@ -1094,10 +1103,10 @@ const ProductPage: React.FC<ProductPageProps> = ({
                 }}
               >
                 {addedToCart
-                  ? <><Check size={18} /> Səbətə əlavə edildi!</>
+                  ? <><Check size={18} /> {t('productPage.addedToCart')}</>
                   : uploadLoading
-                    ? '⏳ Şəkil yüklənir...'
-                    : '🛒 Səbətə əlavə et'}
+                    ? t('productPage.uploadingShort')
+                    : t('productPage.addToCartButton')}
               </button>
             </div>
 

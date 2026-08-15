@@ -1,8 +1,10 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { C, F } from '../tokens';
 import { Instagram, Phone, MapPin } from 'lucide-react';
 import { PHONE_DISPLAY } from '../constants';
+import { useTranslation } from 'react-i18next';
+import { getLangFromPath, withLangPrefix } from '../i18n/useLocalizedNav';
 
 interface FooterProps {
   onProductsClick?: () => void;
@@ -18,6 +20,10 @@ const TikTokIcon = () => (
 );
 
 const Footer: React.FC<FooterProps> = () => {
+  const { t } = useTranslation();
+  const location = useLocation();
+  const lang = getLangFromPath(location.pathname);
+
   return (
     <footer style={{ background: C.black, color: C.white, padding: 'clamp(48px,6vw,72px) clamp(16px,3vw,32px) 32px', fontFamily: F.sans }}>
       <div style={{ maxWidth: 1280, margin: '0 auto' }}>
@@ -33,7 +39,7 @@ const Footer: React.FC<FooterProps> = () => {
               />
             </div>
             <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.65)', lineHeight: 1.8, margin: '0 0 24px', maxWidth: 220 }}>
-              Lazer yazı, fərdi təsbeh, polad qolbaq. Hər məhsul yalnız sənin üçün hazırlanır.
+              {t('footer.tagline')}
             </p>
             <div style={{ display: 'flex', gap: 8 }}>
               {[
@@ -57,12 +63,12 @@ const Footer: React.FC<FooterProps> = () => {
           {/* Links */}
           <div>
             <h4 style={{ fontSize: 11, fontWeight: 700, color: C.primary, letterSpacing: 1.5, textTransform: 'uppercase' as const, margin: '0 0 20px' }}>
-              Keçidlər
+              {t('footer.linksTitle')}
             </h4>
             {[
-              { label: 'Məhsullar',  href: '/mehsullar' },
-              { label: 'Çatdırılma', href: '/catdirilma' },
-              { label: 'Haqqımızda', href: '/haqqimizda' },
+              { label: t('nav.products'),  href: withLangPrefix('/mehsullar', lang) },
+              { label: t('nav.delivery'), href: withLangPrefix('/catdirilma', lang) },
+              { label: t('nav.about'), href: withLangPrefix('/haqqimizda', lang) },
             ].map((link, i) => (
               <div key={i} style={{ marginBottom: 12 }}>
                 <Link to={link.href} style={{
@@ -81,13 +87,13 @@ const Footer: React.FC<FooterProps> = () => {
           {/* Delivery info */}
           <div>
             <h4 style={{ fontSize: 11, fontWeight: 700, color: C.primary, letterSpacing: 1.5, textTransform: 'uppercase' as const, margin: '0 0 20px' }}>
-              Çatdırılma
+              {t('footer.deliveryTitle')}
             </h4>
             {[
-              { icon: '🚇', text: 'Metrodaxili — Ödənişsiz' },
-              { icon: '🛵', text: 'Bakı, Abşeron və Sumqayıt — Ödənişsiz' },
-              { icon: '📮', text: 'Regionlara Azərpoçt ilə — Ödənişsiz' },
-              { icon: '⚡', text: '1–3 günə hazırlanır və çatdırılır' },
+              { icon: '🚇', text: t('footer.deliveryMetro') },
+              { icon: '🛵', text: t('footer.deliveryCity') },
+              { icon: '📮', text: t('footer.deliveryRegions') },
+              { icon: '⚡', text: t('footer.deliverySpeed') },
             ].map((item, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
                 <span style={{ fontSize: 14 }}>{item.icon}</span>
@@ -99,18 +105,18 @@ const Footer: React.FC<FooterProps> = () => {
           {/* Contact */}
           <div>
             <h4 style={{ fontSize: 11, fontWeight: 700, color: C.primary, letterSpacing: 1.5, textTransform: 'uppercase' as const, margin: '0 0 20px' }}>
-              Əlaqə
+              {t('footer.contactTitle')}
             </h4>
             {[
               { icon: <Phone size={13} />, text: PHONE_DISPLAY },
-              { icon: <MapPin size={13} />, text: 'Bakı, Azərbaycan' },
+              { icon: <MapPin size={13} />, text: t('footer.contactAddress') },
             ].map((item, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 13 }}>
                 <span style={{ color: C.primary, flexShrink: 0 }}>{item.icon}</span>
                 <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.65)' }}>{item.text}</span>
               </div>
             ))}
-            <Link to="/elaqe" style={{
+            <Link to={withLangPrefix('/elaqe', lang)} style={{
               marginTop: 8, padding: '10px 20px', display: 'inline-block',
               background: 'transparent', border: '1px solid rgba(255,255,255,0.15)',
               borderRadius: 8, color: 'rgba(255,255,255,0.6)', fontSize: 13,
@@ -119,12 +125,12 @@ const Footer: React.FC<FooterProps> = () => {
             }}
               onMouseEnter={e => { e.currentTarget.style.borderColor = C.primary; e.currentTarget.style.color = C.primary; }}
               onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)'; e.currentTarget.style.color = 'rgba(255,255,255,0.6)'; }}
-            >Əlaqə səhifəsi →</Link>
+            >{t('footer.contactPageLink')}</Link>
           </div>
         </div>
 
         <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' as const, gap: 12 }}>
-          <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)' }}>© 2026 Ravio. Bütün hüquqlar qorunur.</span>
+          <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)' }}>{t('footer.copyright')}</span>
           <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.55)', letterSpacing: 2, textTransform: 'uppercase' as const }}>@ravio.az</span>
         </div>
       </div>

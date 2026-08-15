@@ -1,7 +1,7 @@
 import { Product } from '../types';
 
 export const PRODUCTS_QUERY = `*[_type == "product"] | order(name asc) {
-  _id, name, "slug": slug.current, description,
+  _id, name, nameEn, "slug": slug.current, description, descriptionEn,
   category->{ name },
   variants[] {
     modelName, colorName, price, discountPrice, inStock,
@@ -13,7 +13,7 @@ export const PRODUCTS_QUERY = `*[_type == "product"] | order(name asc) {
 }`;
 
 export const SINGLE_PRODUCT_QUERY = `*[_type == "product" && slug.current == $slug][0]{
-  _id, name, "slug": slug.current, description,
+  _id, name, nameEn, "slug": slug.current, description, descriptionEn,
   category->{ name },
   variants[] {
     modelName, colorName, price, discountPrice, inStock,
@@ -63,9 +63,11 @@ export function mapSanityProduct(raw: any): Product {
   return {
     id: raw._id,
     name: raw.name,
+    nameEn: raw.nameEn || undefined,
     slug: (raw.slug || '').trim().toLowerCase(),
     category: raw.category?.name || '',
     description: raw.description || '',
+    descriptionEn: raw.descriptionEn || undefined,
     variants,
     allowBoxSelection: raw.allowBoxSelection !== false,
     customBoxOptions: (raw.customBoxOptions || [])
