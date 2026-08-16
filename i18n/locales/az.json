@@ -10,7 +10,16 @@
     "contact": "Əlaqə",
     "search": "Axtar",
     "searchPlaceholder": "Məhsul axtar...",
-    "cart": "Səbət"
+    "cart": "Səbət",
+    "tagline": "Sizə Özəl Hədiyyələr",
+    "homeAriaLabel": "Ana səhifəyə qayıt",
+    "closeSearch": "Axtarışı bağla",
+    "noResults": "Nəticə tapılmadı",
+    "cartAriaLabel": "Alış-veriş səbəti",
+    "cartItemsSuffix": "{{count}} məhsul",
+    "closeMenu": "Menyu bağla",
+    "openMenu": "Menyu aç",
+    "startOrder": "Sifarişə başla"
   },
   "footer": {
     "tagline": "Lazer yazı, fərdi təsbeh, polad qolbaq. Hər məhsul yalnız sənin üçün hazırlanır.",

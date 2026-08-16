@@ -9,7 +9,7 @@ import { BULK_DISCOUNT_PER_UNIT, getColorSwatchBackground, FONT_STYLES } from '.
 import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
 import { getLangFromPath } from '../i18n/useLocalizedNav';
-import { localizedProductName, localizedProductDescription } from '../lib/productLocale';
+import { localizedProductName, localizedProductDescription, localizedColorName } from '../lib/productLocale';
 
 const FONT = F.sans;
 
@@ -87,7 +87,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
     (v.images || []).map((url) => ({
       url,
       vIdx,
-      label: [v.modelName, v.colorName].filter(Boolean).join(' · ') || `Variant ${vIdx + 1}`,
+      label: [v.modelName, localizedColorName(v.colorName, lang)].filter(Boolean).join(' · ') || `Variant ${vIdx + 1}`,
     }))
   );
 
@@ -396,13 +396,13 @@ const ProductPage: React.FC<ProductPageProps> = ({
                     aspectRatio: '1/1',
                   }}>
                   <ZoomableImage
-                    fetchPriority="high"
                     src={toWebP(allImages[imgIdx]?.url ?? '', 720, 80)}
                     srcSet={toSrcSet(allImages[imgIdx]?.url ?? '', [240, 480, 720], 80)}
                     sizes="(max-width: 640px) 90vw, (max-width: 1280px) 50vw, 640px"
                     zoomSrc={toWebP(allImages[imgIdx]?.url ?? '', 1400, 85)}
                     alt={product.name}
                     loading="eager"
+                    fetchPriority="high"
                     onError={e => { (e.target as HTMLImageElement).src = 'https://placehold.co/600x600/F5F2EC/AAAAAA?text=Şəkil+yoxdur'; }}
                   />
 
@@ -653,7 +653,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
 
                 {hasMultipleColors && (
                   <div>
-                    <Label>{t('productPage.color')}<span style={{ color: C.black, textTransform: 'none' as const, letterSpacing: 0, fontWeight: 600 }}>{variant.colorName || ''}</span></Label>
+                    <Label>{t('productPage.color')}<span style={{ color: C.black, textTransform: 'none' as const, letterSpacing: 0, fontWeight: 600 }}>{localizedColorName(variant.colorName, lang)}</span></Label>
                     <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 8 }}>
                       {colorVariants.map(({ v, i }) => {
                         const oos = v.inStock === false;
@@ -665,9 +665,9 @@ const ProductPage: React.FC<ProductPageProps> = ({
                             type="button"
                             onClick={() => !oos && selectVariant(i)}
                             disabled={oos}
-                            aria-label={v.colorName || `${t('productPage.colorAriaFallback')} ${i + 1}`}
+                            aria-label={localizedColorName(v.colorName, lang) || `${t('productPage.colorAriaFallback')} ${i + 1}`}
                             aria-pressed={sel}
-                            title={v.colorName || ''}
+                            title={localizedColorName(v.colorName, lang)}
                             style={{
                               width: 24, height: 24, borderRadius: '50%', padding: 0,
                               cursor: oos ? 'not-allowed' : 'pointer',
@@ -1024,7 +1024,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
                         }}>
                         <div style={{ aspectRatio: '1/1', background: C.bg, overflow: 'hidden' }}>
                           {b.imageUrl ? (
-                            <img src={toWebP(b.imageUrl, 200)} alt={b.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} loading="lazy" decoding="async" fetchPriority="low" />
+                            <img src={toWebP(b.imageUrl, 200)} alt={b.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} loading="lazy" />
                           ) : (
                             <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28 }}>📦</div>
                           )}

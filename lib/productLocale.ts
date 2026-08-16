@@ -1,6 +1,37 @@
 import { Product } from '../types';
 
 /**
+ * Rəng adları Sanity sxemində qapalı (fixed) siyahıdır — 15 dəyər.
+ * Sxem dəyişikliyi tələb etmədən sadə lüğət ilə tərcümə edirik.
+ */
+const COLOR_NAME_EN: Record<string, string> = {
+  'Qara': 'Black',
+  'Ağ': 'White',
+  'Gümüşü': 'Silver',
+  'Qızılı': 'Gold',
+  'Qırmızı': 'Red',
+  'Mavi': 'Blue',
+  'Sarı': 'Yellow',
+  'Çəhrayı': 'Pink',
+  'Bənövşəyi': 'Purple',
+  'Yaşıl': 'Green',
+  'Göy (Milyoner)': 'Sky Blue (Millionaire)',
+  'Qara - Qızılı': 'Black & Gold',
+  'Ağ - Qızılı': 'White & Gold',
+  'Ağ - Qara': 'White & Black',
+  'Qızılı - Qəhvəyi': 'Gold & Brown',
+};
+
+export function localizedColorName(azColorName: string | undefined | null, lang: 'az' | 'en'): string {
+  if (!azColorName) return '';
+  if (lang === 'en') {
+    const translated = COLOR_NAME_EN[azColorName.trim()];
+    if (translated) return translated;
+  }
+  return azColorName;
+}
+
+/**
  * Məhsulun adını cari dilə görə qaytarır.
  * İngiliscə tərcümə hələ Sanity-də doldurulmayıbsa, Azərbaycanca ada
  * geri düşür (fallback) — beləcə İngiliscə səhifədə boş məhsul adı

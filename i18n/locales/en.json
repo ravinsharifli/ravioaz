@@ -10,7 +10,16 @@
     "contact": "Contact",
     "search": "Search",
     "searchPlaceholder": "Search products...",
-    "cart": "Cart"
+    "cart": "Cart",
+    "tagline": "Personalized Gifts For You",
+    "homeAriaLabel": "Go to homepage",
+    "closeSearch": "Close search",
+    "noResults": "No results found",
+    "cartAriaLabel": "Shopping cart",
+    "cartItemsSuffix": "{{count}} items",
+    "closeMenu": "Close menu",
+    "openMenu": "Open menu",
+    "startOrder": "Start an order"
   },
   "footer": {
     "tagline": "Laser engraving, personalized prayer beads, steel bracelets. Every piece is made just for you.",

@@ -108,7 +108,7 @@ const Navbar: React.FC<NavbarProps> = ({
           justifyContent: 'space-between', gap: 16,
         }}>
           {/* Logo */}
-          <Link to={withLangPrefix('/', lang)} aria-label="Ana səhifəyə qayıt" style={{
+          <Link to={withLangPrefix('/', lang)} aria-label={t('nav.homeAriaLabel')} style={{
             background: 'none', border: 'none', cursor: 'pointer',
             padding: 0, flexShrink: 0,
             display: 'flex', alignItems: 'center', gap: 8,
@@ -123,7 +123,7 @@ const Navbar: React.FC<NavbarProps> = ({
               }}
             />
             <span className="ravio-nav-brand-text" style={{ fontFamily: F.sans, fontSize: 18, fontWeight: 800, color: C.black, letterSpacing: '-0.5px' }}>
-              Sizə Özəl Hədiyyələr
+              {t('nav.tagline')}
             </span>
           </Link>
 
@@ -165,7 +165,7 @@ const Navbar: React.FC<NavbarProps> = ({
 
             {/* Search button */}
             <button onClick={() => { setSearchOpen(v => !v); setQuery(''); }}
-              aria-label={searchOpen ? "Axtarışı bağla" : t('nav.search')}
+              aria-label={searchOpen ? t('nav.closeSearch') : t('nav.search')}
               aria-expanded={searchOpen}
               style={{
                 background: 'none', border: 'none', cursor: 'pointer',
@@ -258,7 +258,7 @@ const Navbar: React.FC<NavbarProps> = ({
                   </ul>
                 ) : query.trim().length > 1 ? (
                   <div style={{ padding: '24px', textAlign: 'center' as const, color: '#999', fontSize: 13 }}>
-                    🔍 Nəticə tapılmadı
+                    🔍 {t('nav.noResults')}
                   </div>
                 ) : (
                   <div style={{ padding: '16px', textAlign: 'center' as const, color: '#767676', fontSize: 12 }}>
@@ -270,7 +270,7 @@ const Navbar: React.FC<NavbarProps> = ({
 
             {/* Cart */}
             <button onClick={onCartClick}
-              aria-label={`Alış-veriş səbəti${cartCount > 0 ? ` (${cartCount} məhsul)` : ''}`}
+              aria-label={`${t('nav.cartAriaLabel')}${cartCount > 0 ? ` (${t('nav.cartItemsSuffix', { count: cartCount })})` : ''}`}
               style={{
                 position: 'relative', background: 'none', border: 'none', cursor: 'pointer',
                 width: 40, height: 40, borderRadius: 8,
@@ -292,7 +292,7 @@ const Navbar: React.FC<NavbarProps> = ({
             {/* Mobile hamburger */}
             <button
               className="r-mobile-menu-btn"
-              aria-label={menuOpen ? "Menyu bağla" : "Menyu aç"}
+              aria-label={menuOpen ? t('nav.closeMenu') : t('nav.openMenu')}
               aria-expanded={menuOpen}
               onClick={() => setMenuOpen(v => !v)}
               style={{
@@ -363,7 +363,7 @@ const Navbar: React.FC<NavbarProps> = ({
                 cursor: 'pointer',
                 textDecoration: 'none',
               }}
-            >🛍️ Sifarişə başla</Link>
+            >🛍️ {t('nav.startOrder')}</Link>
           </div>
         )}
       </nav>
