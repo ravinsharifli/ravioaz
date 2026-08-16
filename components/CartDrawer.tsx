@@ -9,7 +9,7 @@ import { toWebP } from '../lib/image';
 import { getMaxQuantityForItem } from '../lib/cartPricing';
 import { useTranslation } from 'react-i18next';
 import { getLangFromPath } from '../i18n/useLocalizedNav';
-import { localizedProductName } from '../lib/productLocale';
+import { localizedProductName, localizedColorName } from '../lib/productLocale';
 import '../styles/cart-drawer.css';
 
 const FONT = F.sans;
@@ -40,6 +40,25 @@ const MONTHS_AZ = [
   'Oktyabr',
   'Noyabr',
   'Dekabr',
+];
+
+// MONTHS_AZ ilə eyni indeks sırası — Select-də göstərilən etiket üçün.
+// Saxlanan DƏYƏR (kurMonth/bdMonth state) həmişə Azərbaycanca qalır ki,
+// MONTHS_AZ.indexOf() və WhatsApp sifariş mesajı toxunulmaz işləsin;
+// yalnız istifadəçiyə göstərilən mətn dilə görə dəyişir.
+const MONTHS_EN = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
 ];
 
 const DAYS_LIST = Array.from({ length: 31 }, (_, i) => String(i + 1).padStart(2, '0'));
@@ -129,7 +148,8 @@ const Select: React.FC<{
   options: string[];
   placeholder: string;
   ariaLabel?: string;
-}> = ({ value, onChange, options, placeholder, ariaLabel }) => (
+  getLabel?: (option: string) => string;
+}> = ({ value, onChange, options, placeholder, ariaLabel, getLabel }) => (
   <select
     value={value}
     aria-label={ariaLabel || placeholder}
@@ -149,7 +169,7 @@ const Select: React.FC<{
   >
     <option value="" disabled>{placeholder}</option>
     {options.map((option) => (
-      <option key={option} value={option}>{option}</option>
+      <option key={option} value={option}>{getLabel ? getLabel(option) : option}</option>
     ))}
   </select>
 );
@@ -183,6 +203,11 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
     const linked = products?.find((p) => p.id === item.productId);
     return linked ? localizedProductName(linked, lang) : item.productName;
   };
+  // Saxlanan dəyər (kurMonth/bdMonth) həmişə Azərbaycanca ay adıdır — yalnız
+  // dropdown-da göstərilən mətni dilə görə dəyişirik, WhatsApp mesajı və
+  // MONTHS_AZ.indexOf() məntiqi toxunulmaz qalır.
+  const monthLabel = (azMonth: string): string =>
+    lang === 'en' ? (MONTHS_EN[MONTHS_AZ.indexOf(azMonth)] ?? azMonth) : azMonth;
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -457,7 +482,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 14, fontWeight: 700, color: C.black, marginBottom: 3 }}>{displayProductName(item)}</div>
                       <div style={{ fontSize: 12, color: C.gray, marginBottom: 6 }}>
-                        {[item.modelName, item.colorName].filter(Boolean).join(' · ')}
+                        {[item.modelName, localizedColorName(item.colorName, lang)].filter(Boolean).join(' · ')}
                       </div>
                       {item.customText && (() => {
                         const f = FONT_STYLES.find(fs => fs.id === item.printFontId);
@@ -660,7 +685,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                   <Label>{t('cartDrawer.deliveryDay')}</Label>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1fr', gap: 8 }}>
                     <Select value={kurDay} onChange={setKurDay} options={DAYS_LIST} placeholder={t('cartDrawer.day')} />
-                    <Select value={kurMonth} onChange={setKurMonth} options={MONTHS_AZ} placeholder={t('cartDrawer.month')} />
+                    <Select value={kurMonth} onChange={setKurMonth} options={MONTHS_AZ} getLabel={monthLabel} placeholder={t('cartDrawer.month')} />
                     <Select value={kurYear} onChange={setKurYear} options={ORDER_YEARS} placeholder={t('cartDrawer.year')} />
                   </div>
                   {kurDay && kurMonth && kurYear && !deliveryDateValid && (
@@ -734,7 +759,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                 <p style={{ margin: '0 0 8px', fontSize: 11, color: 'var(--clr-text-muted)', lineHeight: 1.5 }}>{t('cartDrawer.birthdayNote')}</p>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1fr', gap: 8 }}>
                   <Select value={bdDay} onChange={setBdDay} options={DAYS_LIST} placeholder={t('cartDrawer.day')} />
-                  <Select value={bdMonth} onChange={setBdMonth} options={MONTHS_AZ} placeholder={t('cartDrawer.month')} />
+                  <Select value={bdMonth} onChange={setBdMonth} options={MONTHS_AZ} getLabel={monthLabel} placeholder={t('cartDrawer.month')} />
                   <Select value={bdYear} onChange={setBdYear} options={BIRTH_YEARS} placeholder={t('cartDrawer.year')} />
                 </div>
               </Section>
