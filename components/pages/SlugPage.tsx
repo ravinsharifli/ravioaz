@@ -175,6 +175,10 @@ export default function SlugPage({
   const productUrl = `${SITE_URL}${withLangPrefix(`/mehsullar/${slug}`, lang)}`;
   const metaDesc = currentProduct ? getProductMetaDescription(currentProduct, lang) : '';
   const displayProductName = currentProduct ? localizedProductName(currentProduct, lang) : '';
+const cleanProductName = displayProductName
+  .replace(/\s*\|\s*Ravio\s*$/i, '')
+  .trim();
+const productTitle = `${cleanProductName} | Ravio`;
 
   if (pageLoading) {
     return (
@@ -191,14 +195,14 @@ export default function SlugPage({
   return (
     <>
       <Helmet>
-        <title>{`${displayProductName} | Ravio`}</title>
+        <title>{productTitle}</title>
         <meta name="description" content={metaDesc} />
         <meta property="og:type" content="product" />
-        <meta property="og:title" content={`${displayProductName} | Ravio`} />
+        <meta property="og:title" content={productTitle} />
         <meta property="og:description" content={metaDesc} />
         <meta property="og:url" content={productUrl} />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={`${displayProductName} | Ravio`} />
+        <meta name="twitter:title" content={productTitle} />
         <meta name="twitter:description" content={metaDesc} />
         <link rel="canonical" href={productUrl} />
         {primaryImage && <meta property="og:image" content={primaryImage} />}
@@ -215,9 +219,9 @@ export default function SlugPage({
           const productSchema = {
             '@context': 'https://schema.org',
             '@type': 'Product',
-            name: displayProductName,
+            name: cleanProductName,
             image: allImgs,
-            description: metaDesc || `${displayProductName} - Ravio`,
+            description: metaDesc || `${cleanProductName} - Ravio`,
             sku: currentProduct.id,
             brand: { '@type': 'Brand', name: 'Ravio' },
             offers:

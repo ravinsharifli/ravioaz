@@ -26,11 +26,38 @@ const client = createClient({
 
 /** HTML xüsusi simvollarını escape et */
 function esc(str) {
-  return (str || '')
+  return String(str || '')
     .replace(/&/g, '&amp;')
     .replace(/"/g, '&quot;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
+}
+
+/** Məhsul adının sonunda Ravio iki dəfə yazılmasın */
+function cleanBrandSuffix(value) {
+  return String(value || '')
+    .replace(/\s*\|\s*Ravio\s*$/i, '')
+    .trim();
+}
+
+/** Title üçün brend adı yalnız bir dəfə əlavə olunur */
+function brandTitle(value) {
+  return `${cleanBrandSuffix(value)} | Ravio`;
+}
+
+/** Description sözün ortasında kəsilməsin */
+function shortDescription(value) {
+  const text = String(value || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (text.length <= 155) return text;
+
+  const cut = text.slice(0, 155);
+  const lastSpace = cut.lastIndexOf(' ');
+  const safeCut = lastSpace > 100 ? cut.slice(0, lastSpace) : cut;
+
+  return `${safeCut}…`;
 }
 
 /** Sanity asset URL-inə ölçü parametrləri əlavə et */
@@ -111,7 +138,7 @@ function injectProductSchema(html, product) {
   const schema = {
     '@context': 'https://schema.org',
     '@type': 'Product',
-    name: product.name,
+    name: cleanBrandSuffix(product.name),
     description: product.desc,
     image: product.image,
     url: product.url,
@@ -333,10 +360,11 @@ async function run() {
   // 4. Hər məhsul üçün ayrı HTML yarat
   for (const p of products) {
     try {
-      const title = `${p.name} | Ravio`;
+      const cleanName = cleanBrandSuffix(p.name);
+      const title = brandTitle(cleanName);
       const rawDesc = p.description
-        ? p.description.slice(0, 155)
-        : `${p.name} — Ravio-dan fərdi hədiyyə. Bütün Azərbaycana ödənişsiz çatdırılma.`;
+      ? shortDescription(p.description)
+      : `${cleanName} — Ravio-dan fərdi hədiyyə. Bütün Azərbaycana ödənişsiz çatdırılma.`;
       const pageUrl  = `https://ravio.az/mehsullar/${p.slug}`;
       const image    = ogImage(p.firstImageUrl);
 
@@ -348,7 +376,7 @@ async function run() {
       });
 
       html = injectProductSchema(html, {
-        name: p.name,
+        name: cleanName,
         desc: rawDesc,
         url: pageUrl,
         image,
