@@ -93,12 +93,85 @@ function sanityWebP(url, width, quality = 80) {
  * hər ikisinə "high" versək, brauzer bant genişliyini bölür və HEÇ BİRİ tez
  * bitmir. Ona görə yalnız real LCP namizədinə "high" veririk, digərinə "auto".
  */
-function lcpPreloadTag(imageUrl, sizes = '(max-width: 400px) 45vw, (max-width: 900px) 45vw, (max-width: 1200px) 30vw, 25vw', widths = [240, 480, 720], fetchPriority = 'high') {
-  if (!imageUrl) return '';
-  const srcset = widths
-    .map(w => `${sanityWebP(imageUrl, w)} ${w}w`)
-    .join(', ');
-  return `  <link rel="preload" as="image" imagesrcset="${srcset}" imagesizes="${sizes}" fetchpriority="${fetchPriority}" />`;
+/**
+ * Google üçün ilkin HTML məzmunu root-a əlavə edir.
+ * React yükləndikdən sonra bu məzmun createRoot tərəfindən əvəz olunur.
+ */
+function injectStaticRoot(html, content) {
+  return html.replace(
+    '<div id="root"></div>',
+    `<div id="root" data-seo-shell>${content}</div>`,
+  );
+}
+
+/** Ana səhifənin Google bot üçün ilkin məzmunu */
+function homeSeoContent() {
+  return `
+    <main style="max-width:1280px;margin:0 auto;padding:32px 16px;font-family:Inter,Arial,sans-serif">
+      <h1>Lazer Yazılı Qolbaq və Fərdi Hədiyyələr Bakıda — Ravio</h1>
+      <p>
+        Ravio-da lazer yazılı qolbaq, fərdi təsbeh, domino və hədiyyəlik qutular
+        sifariş edə bilərsiniz. Hər məhsul sizin üçün özəl hazırlanır.
+        Bütün Azərbaycana ödənişsiz çatdırılma və 1–3 iş günündə hazırlıq.
+      </p>
+      <nav aria-label="Məhsul kateqoriyaları">
+        <a href="/mehsullar/qolbaqlar">Lazer yazılı qolbaqlar</a> ·
+        <a href="/mehsullar/tesbehler">Fərdi təsbehlər</a> ·
+        <a href="/mehsullar/domino">Hədiyyəlik domino dəstləri</a> ·
+        <a href="/mehsullar/hediyelik_qutular">Hədiyyəlik qutular</a>
+      </nav>
+    </main>
+  `;
+}
+
+/** Məhsul səhifəsinin Google bot üçün ilkin məzmunu */
+function productSeoContent({ name, desc, image, price, slug }) {
+  const imageHtml = image
+    ? `
+      <img
+        src="${esc(sanityWebP(image, 900))}"
+        alt="${esc(name)} — fərdi hədiyyə, Bakı"
+        style="max-width:420px;width:100%;height:auto"
+      />
+    `
+    : '';
+
+  const priceHtml = price
+    ? `<p><strong>Qiymət: ${esc(price)} AZN</strong></p>`
+    : '';
+
+  return `
+    <main style="max-width:1280px;margin:0 auto;padding:32px 16px;font-family:Inter,Arial,sans-serif">
+      <nav aria-label="Breadcrumb">
+        <a href="/">Ana səhifə</a> /
+        <a href="/mehsullar">Məhsullar</a> /
+        <span>${esc(name)}</span>
+      </nav>
+
+      <article>
+        <h1>${esc(name)}</h1>
+        ${imageHtml}
+        <p>${esc(desc)}</p>
+        ${priceHtml}
+        <p>
+          Ravio-da fərdi sifarişlə hazırlanır. Bütün Azərbaycana
+          ödənişsiz çatdırılma.
+        </p>
+        <a href="/mehsullar/${esc(slug)}">Məhsula bax və sifariş et</a>
+      </article>
+    </main>
+  `;
+}
+
+/** Kateqoriya və məhsullar səhifəsi üçün ilkin məzmun */
+function simpleSeoContent({ h1, desc }) {
+  return `
+    <main style="max-width:1280px;margin:0 auto;padding:32px 16px;font-family:Inter,Arial,sans-serif">
+      <h1>${esc(h1)}</h1>
+      <p>${esc(desc)}</p>
+      <a href="/mehsullar">Bütün məhsullara bax</a>
+    </main>
+  `;
 }
 
 /** HTML template-dəki meta tagları məhsula uyğun dəyişdir */
@@ -297,7 +370,7 @@ async function run() {
       );
     }
 
-    let homeHtml = template;
+    let homeHtml = injectStaticRoot(template, homeSeoContent());
 
     if (preloadTags.length) {
       homeHtml = homeHtml.replace('</head>', `${preloadTags.join('\n')}\n</head>`);
@@ -375,13 +448,16 @@ async function run() {
         image,
       });
 
-      html = injectProductSchema(html, {
-        name: cleanName,
-        desc: rawDesc,
-        url: pageUrl,
-        image,
-        price: p.price,
-      });
+      html = injectStaticRoot(
+  html,
+  productSeoContent({
+    name: cleanName,
+    desc: rawDesc,
+    image: p.firstImageUrl,
+    price: p.price,
+    slug: p.slug,
+  }),
+);
 
       // Məhsul səhifəsinin LCP şəkli — məhsulun öz şəklidir.
       // Sizes: mobil 90vw, tablet/desktop 50vw | max 640px
@@ -406,12 +482,19 @@ async function run() {
 
   // 5. /mehsullar siyahı səhifəsi üçün HTML
   try {
-    const html = injectMeta(template, {
+    let html = injectMeta(template, {
       title: 'Bütün Məhsullar | Ravio',
       desc:  'Ravio-nun bütün fərdi hədiyyələri — lazer yazılı qolbaq, təsbeh, domino, giftbox. Bütün Azərbaycana ödənişsiz çatdırılma, 1–3 iş günü.',
       url:   'https://ravio.az/mehsullar',
       image: 'https://ravio.az/og-ravio.png',
     });
+    html = injectStaticRoot(
+  html,
+  simpleSeoContent({
+    h1: 'Fərdi Hədiyyələr və Lazer Yazılı Məhsullar',
+    desc: 'Ravio-da lazer yazılı qolbaq, fərdi təsbeh, domino və hədiyyəlik qutular. Bütün Azərbaycana ödənişsiz çatdırılma və 1–3 iş günündə hazırlıq.',
+  }),
+);
     mkdirSync('dist/mehsullar', { recursive: true });
     writeFileSync('dist/mehsullar/index.html', html, 'utf-8');
     console.log(`  ✅ /mehsullar (siyahı səhifəsi)`);
@@ -458,6 +541,13 @@ async function run() {
         url:   catUrl,
         image: 'https://ravio.az/og-ravio.png',
       });
+      html = injectStaticRoot(
+  html,
+  simpleSeoContent({
+    h1: cat.h1,
+    desc: cat.desc,
+  }),
+);
 
       // Kateqoriya üçün BreadcrumbList + CollectionPage schema
       const schema = {

@@ -22,7 +22,10 @@ if (!rootElement) {
 
 // react-snap prerender zamanı hydrateRoot işlədir,
 // normal brauzer yükləməsində createRoot işlədir.
-if (rootElement.hasChildNodes()) {
+if (
+  rootElement.hasChildNodes() &&
+  !rootElement.hasAttribute('data-seo-shell')
+) {
   hydrateRoot(
     rootElement,
     <React.StrictMode>
