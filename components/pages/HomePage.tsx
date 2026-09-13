@@ -9,6 +9,7 @@ import { getLangFromPath, withLangPrefix } from '../../i18n/useLocalizedNav';
 import { localizedCategoryName } from '../../lib/productLocale';
 import InfoStrips from '../home/InfoStrips';
 import UnifiedHeroCarousel from '../home/UnifiedHeroCarousel';
+import PromoRow, { CampaignBannerData } from '../home/PromoRow';
 import ProductGrid from '../ProductGrid';
 import LoadingGrid from '../catalog/LoadingGrid';
 
@@ -24,6 +25,9 @@ interface HomePageProps {
   setActiveCategory: React.Dispatch<React.SetStateAction<string | null>>;
   goToProducts: (cat?: string | null) => void;
   openProduct: (p: Product) => void;
+  campaignBanner?: CampaignBannerData | null;
+  featuredProduct?: Product | null;
+  featuredProductBadge?: string;
 }
 
 export default function HomePage({
@@ -38,6 +42,9 @@ export default function HomePage({
   setActiveCategory,
   goToProducts,
   openProduct,
+  campaignBanner,
+  featuredProduct,
+  featuredProductBadge,
 }: HomePageProps) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -115,71 +122,16 @@ export default function HomePage({
         id="mehsullar"
         style={{ maxWidth: 1280, margin: '0 auto', padding: 'clamp(32px,5vw,56px) clamp(16px,3vw,32px)' }}
       >
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
-            gap: 12,
-            marginBottom: 28,
-          }}
-        >
-          <div>
-            <span
-              style={{
-                display: 'inline-block',
-                background: '#111111',
-                color: '#ffffff',
-                fontSize: 10,
-                fontWeight: 700,
-                letterSpacing: 1.8,
-                textTransform: 'uppercase' as const,
-                padding: '4px 10px',
-                borderRadius: 6,
-                marginBottom: 8,
-              }}
-            >
-              {t('home.featuredBadge')}
-            </span>
-            <h2
-              style={{
-                fontSize: 'clamp(22px,3.5vw,32px)',
-                fontWeight: 800,
-                color: C.black,
-                margin: 0,
-                letterSpacing: '-0.3px',
-              }}
-            >
-              {t('home.ourProducts')}
-            </h2>
-          </div>
-          <button
-            onClick={() => goToProducts(null)}
-            style={{
-              padding: '10px 22px',
-              background: 'transparent',
-              border: '1.5px solid #D5D0C8',
-              borderRadius: 8,
-              fontSize: 13,
-              fontWeight: 600,
-              color: C.black,
-              cursor: 'pointer',
-              fontFamily: F.sans,
-              transition: 'border-color 0.15s, background 0.15s',
-            }}
-            onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => {
-              e.currentTarget.style.borderColor = C.primary;
-              e.currentTarget.style.color = C.primary;
-            }}
-            onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => {
-              e.currentTarget.style.borderColor = C.borderMid;
-              e.currentTarget.style.color = C.black;
-            }}
-          >
-            {t('home.viewAll')}
-          </button>
-        </div>
+        <PromoRow
+          campaignBanner={campaignBanner}
+          featuredProduct={featuredProduct}
+          featuredBadgeText={featuredProductBadge}
+          defaultBadge={t('home.featuredBadge')}
+          defaultHeading={t('home.ourProducts')}
+          viewAllText={t('home.viewAll')}
+          onShopClick={() => goToProducts(null)}
+          onProductClick={(slug) => navigate(`/mehsullar/${slug}`)}
+        />
 
         {categories.length > 0 && (
           <div

@@ -47,6 +47,15 @@ export const SETTINGS_QUERY = `*[_type == "siteSettings"][0]{
   "heroSlides": heroSlides[isActive != false]{
     label, title, subtitle, ctaText,
     "imageUrl": image.asset->url
+  },
+  "campaignBanner": campaignBanner{
+    isActive, title, subtitle, ctaText,
+    "imageUrl": image.asset->url,
+    "linkedProductSlug": linkedProduct->slug.current
+  },
+  "featuredProduct": featuredProduct{
+    isActive, badgeText,
+    "productSlug": product->slug.current
   }
 }`;
 

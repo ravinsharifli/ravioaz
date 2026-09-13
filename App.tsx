@@ -111,6 +111,19 @@ function AppShell() {
   const heroSlides: any[] = settings?.heroSlides || [];
   const bulkDiscountPerUnit: number = settings?.bulkDiscountPerUnit ?? BULK_DISCOUNT_PER_UNIT;
 
+  // ── Ana səhifə: Kampaniya banneri + Seçilmiş məhsul kartı ─────────────────
+  // Hər ikisi siteSettings-də "isActive" olanda görünür, olmayanda adi başlıq qalır.
+  const campaignBanner = settings?.campaignBanner ?? null;
+  const featuredProductSlug: string | null =
+    settings?.featuredProduct?.isActive && settings.featuredProduct.productSlug
+      ? settings.featuredProduct.productSlug
+      : null;
+  const featuredProductBadge: string = settings?.featuredProduct?.badgeText || '';
+  const featuredProduct = useMemo(
+    () => (featuredProductSlug ? products.find((p) => p.slug === featuredProductSlug) || null : null),
+    [products, featuredProductSlug]
+  );
+
   // Kateqoriya adlarının Azərbaycanca → İngiliscə xəritəsi (/en səhifələrində
   // sidebar, filtr düymələri və breadcrumb-larda göstərmək üçün). Tərcüməsi
   // hələ Sanity-də doldurulmayan kateqoriyalar üçün boş sətir filtr olunur —
@@ -249,6 +262,9 @@ function AppShell() {
                 setActiveCategory={setActiveCategory}
                 goToProducts={goToProducts}
                 openProduct={openProduct}
+                campaignBanner={campaignBanner}
+                featuredProduct={featuredProduct}
+                featuredProductBadge={featuredProductBadge}
               />
             }
           />
@@ -302,6 +318,9 @@ function AppShell() {
                 setActiveCategory={setActiveCategory}
                 goToProducts={goToProducts}
                 openProduct={openProduct}
+                campaignBanner={campaignBanner}
+                featuredProduct={featuredProduct}
+                featuredProductBadge={featuredProductBadge}
               />
             }
           />

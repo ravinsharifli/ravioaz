@@ -266,5 +266,112 @@ export default {
       ],
     },
 
+    // ── KAMPANİYA BANNERİ (Ana səhifə) ────────────────────────────────────────
+    // Black Friday, 8 Mart, 8 Noyabr kimi kampaniya dönəmlərində ana səhifənin
+    // "Məhsullarımız" başlığının yerinə çıxan banner. "Aktiv" söndürüləndə heç
+    // nə dəyişmir — adi başlıq öz yerində qalır, sıfır risk.
+    {
+      name: 'campaignBanner',
+      title: '📢 Kampaniya Banneri (Ana səhifə)',
+      type: 'object',
+      description:
+        'Kampaniya dövründə (Black Friday, 8 Mart və s.) ana səhifədə "Məhsullarımız" ' +
+        'başlığının yerinə çıxan banner. "Aktiv" söndürüləndə köhnə adi başlıq görünməyə davam edir.',
+      fields: [
+        {
+          name: 'isActive',
+          title: '✅ Aktiv (saytda göstər)?',
+          type: 'boolean',
+          initialValue: false,
+          description: 'Kampaniya bitəndə söndür — məlumatı silməyə ehtiyac yoxdur, növbəti dəfə yenə aça bilərsən.',
+        },
+        {
+          name: 'image',
+          title: '🖼 Şəkil',
+          type: 'image',
+          options: { hotspot: true },
+        },
+        {
+          name: 'title',
+          title: '📝 Başlıq',
+          type: 'string',
+          description: 'Məs: Black Friday — bütün məhsullarda endirim',
+        },
+        {
+          name: 'subtitle',
+          title: '💬 Alt mətn',
+          type: 'string',
+          description: 'Məs: 24 Noyabra qədər',
+        },
+        {
+          name: 'ctaText',
+          title: '🔘 Düymə mətni',
+          type: 'string',
+          initialValue: 'İndi bax →',
+        },
+        {
+          name: 'linkedProduct',
+          title: '🔗 Bağlı məhsul (boş buraxsan → bütün məhsullar açılır)',
+          type: 'reference',
+          to: [{ type: 'product' }],
+          description:
+            'Kampaniya konkret bir məhsula aiddirsə seç — düymə həmin məhsula aparacaq. ' +
+            'Ümumi kampaniyadırsa (məs. Black Friday, endirim hamıya aiddir) boş burax — düymə bütün məhsullara aparacaq.',
+        },
+      ],
+      preview: {
+        select: { title: 'title', isActive: 'isActive', media: 'image' },
+        prepare({ title, isActive, media }) {
+          return {
+            title: `${isActive ? '✅' : '❌'} ${title || 'Başlıq yoxdur'}`,
+            subtitle: isActive ? 'Saytda aktivdir' : 'Deaktiv',
+            media,
+          };
+        },
+      },
+    },
+
+    // ── SEÇİLMİŞ MƏHSUL KARTI (Ana səhifə) ────────────────────────────────────
+    // Kampaniya bannerinin yanında görünən tək məhsul vurğusu (məs. premium/bahalı
+    // bir hədiyyə). Şəkil, ad və qiymət avtomatik seçdiyin məhsuldan götürülür.
+    {
+      name: 'featuredProduct',
+      title: '⭐ Seçilmiş Məhsul Kartı (Ana səhifə)',
+      type: 'object',
+      description:
+        'Ana səhifədə kampaniya bannerinin yanında görünən tək məhsul kartı. ' +
+        'Klik edəndə seçdiyin məhsulun səhifəsi açılır. İstədiyin vaxt hansı məhsul olduğunu dəyişə bilərsən.',
+      fields: [
+        {
+          name: 'isActive',
+          title: '✅ Aktiv (saytda göstər)?',
+          type: 'boolean',
+          initialValue: false,
+        },
+        {
+          name: 'product',
+          title: '🔗 Məhsul',
+          type: 'reference',
+          to: [{ type: 'product' }],
+          description: 'Şəkil, ad və qiymət avtomatik bu məhsuldan götürülür — ayrıca yükləməyə ehtiyac yoxdur.',
+        },
+        {
+          name: 'badgeText',
+          title: '🏷 Etiket (kartın üstündə, ixtiyari)',
+          type: 'string',
+          description: 'Məs: Premium seçim · Ən çox satılan',
+        },
+      ],
+      preview: {
+        select: { title: 'product.name', isActive: 'isActive' },
+        prepare({ title, isActive }) {
+          return {
+            title: `${isActive ? '✅' : '❌'} ${title || 'Məhsul seçilməyib'}`,
+            subtitle: isActive ? 'Saytda aktivdir' : 'Deaktiv',
+          };
+        },
+      },
+    },
+
   ],
 };
