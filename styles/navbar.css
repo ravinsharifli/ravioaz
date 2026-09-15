@@ -10,12 +10,6 @@
   }
 }
 
-@media (max-width: 420px) {
-  .ravio-nav-brand-text {
-    display: none !important;
-  }
-}
-
 @media (max-width: 640px) {
   .ravio-search-panel {
     position: fixed !important;

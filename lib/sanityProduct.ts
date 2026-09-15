@@ -3,6 +3,7 @@ import { Product } from '../types';
 export const PRODUCTS_QUERY = `*[_type == "product"] | order(name asc) {
   _id, name, nameEn, "slug": slug.current, description, descriptionEn,
   category->{ name },
+  "audienceCategories": audienceCategories[]->slug.current,
   variants[] {
     modelName, colorName, price, discountPrice, inStock,
     images[]{ asset->{ url } }
@@ -15,6 +16,7 @@ export const PRODUCTS_QUERY = `*[_type == "product"] | order(name asc) {
 export const SINGLE_PRODUCT_QUERY = `*[_type == "product" && slug.current == $slug][0]{
   _id, name, nameEn, "slug": slug.current, description, descriptionEn,
   category->{ name },
+  "audienceCategories": audienceCategories[]->slug.current,
   variants[] {
     modelName, colorName, price, discountPrice, inStock,
     images[]{ asset->{ url } }
@@ -28,6 +30,9 @@ export const SINGLE_PRODUCT_QUERY = `*[_type == "product" && slug.current == $sl
 export const SETTINGS_QUERY = `*[_type == "siteSettings"][0]{
   bulkDiscountPerUnit,
   "categoryTranslations": *[_type == "category"]{ name, nameEn },
+  "audienceCategories": *[_type == "audienceCategory" && isActive != false] | order(order asc, name asc) {
+    name, nameEn, "slug": slug.current
+  },
   "metroSchedule": {
     "stations": metroSchedule[]{
       name,
@@ -76,6 +81,7 @@ export function mapSanityProduct(raw: any): Product {
     nameEn: raw.nameEn || undefined,
     slug: (raw.slug || '').trim().toLowerCase(),
     category: raw.category?.name || '',
+    audienceCategories: (raw.audienceCategories || []).filter(Boolean),
     description: raw.description || '',
     descriptionEn: raw.descriptionEn || undefined,
     variants,

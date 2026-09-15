@@ -3,7 +3,7 @@ import { C, F } from './tokens';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { client } from './sanityclient';
 import { Analytics } from '@vercel/analytics/react';
-import { Product, CartItem, ReelPost } from './types';
+import { Product, CartItem, ReelPost, AudienceCategory } from './types';
 import { PRODUCTS_QUERY, SETTINGS_QUERY, mapSanityProduct } from './lib/sanityProduct';
 import { toCategorySlug } from './lib/categorySlug';
 import { recalcCartItemForQuantity } from './lib/cartPricing';
@@ -22,6 +22,7 @@ const DeliveryInfo = React.lazy(() => import('./components/DeliveryInfo'));
 import Footer from './components/Footer';
 const ProductsPage = React.lazy(() => import('./components/pages/ProductsPage'));
 const SlugPage    = React.lazy(() => import('./components/pages/SlugPage'));
+const AudiencePage = React.lazy(() => import('./components/pages/AudiencePage'));
 const NotFound    = React.lazy(() => import('./components/pages/NotFound'));
 
 const CartDrawer = React.lazy(() => import('./components/CartDrawer'));
@@ -123,6 +124,9 @@ function AppShell() {
     () => (featuredProductSlug ? products.find((p) => p.slug === featuredProductSlug) || null : null),
     [products, featuredProductSlug]
   );
+
+  // ── "Kimə alırsan?" menyusu — Sanity-də audienceCategory sənədləri ────────
+  const audienceCategories: AudienceCategory[] = settings?.audienceCategories || [];
 
   // Kateqoriya adlarının Azərbaycanca → İngiliscə xəritəsi (/en səhifələrində
   // sidebar, filtr düymələri və breadcrumb-larda göstərmək üçün). Tərcüməsi
@@ -241,6 +245,7 @@ function AppShell() {
         onProductsClick={() => goToProducts(null)}
         products={products}
         onViewProduct={openProduct}
+        audienceCategories={audienceCategories}
       />
 
       <main id="main-content">
@@ -292,6 +297,17 @@ function AppShell() {
                 openProduct={openProduct}
                 onAddToCart={handleProductAddToCart}
                 bulkDiscountPerUnit={bulkDiscountPerUnit}
+              />
+            }
+          />
+          <Route
+            path="/kime/:slug"
+            element={
+              <AudiencePage
+                audienceCategories={audienceCategories}
+                products={products}
+                loading={loading}
+                openProduct={openProduct}
               />
             }
           />
@@ -348,6 +364,17 @@ function AppShell() {
                 openProduct={openProduct}
                 onAddToCart={handleProductAddToCart}
                 bulkDiscountPerUnit={bulkDiscountPerUnit}
+              />
+            }
+          />
+          <Route
+            path="/en/kime/:slug"
+            element={
+              <AudiencePage
+                audienceCategories={audienceCategories}
+                products={products}
+                loading={loading}
+                openProduct={openProduct}
               />
             }
           />

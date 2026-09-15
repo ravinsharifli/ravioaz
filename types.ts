@@ -32,6 +32,7 @@ export interface Product {
   nameEn?: string;
   slug?: string;
   category?: string;
+  audienceCategories?: string[];
   description?: string;
   descriptionEn?: string;
   variants: Variant[];
@@ -40,6 +41,13 @@ export interface Product {
   hasCoupons?: boolean;
   coupons?: Coupon[];
   reviews?: CustomerReview[];
+}
+
+// ── "Kimə alırsan?" bölməsi (Sanity-dən gəlir) ─────────────────
+export interface AudienceCategory {
+  name: string;
+  nameEn?: string;
+  slug: string;
 }
 
 // ── Metro cədvəli — hər günün öz saatları ──────────────────────

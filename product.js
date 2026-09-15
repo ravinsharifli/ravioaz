@@ -41,6 +41,16 @@ export default {
       to: [{type: 'category'}],
     },
     {
+      name: 'audienceCategories',
+      title: '🎯 Kimə aiddir?',
+      type: 'array',
+      of: [{ type: 'reference', to: [{ type: 'audienceCategory' }] }],
+      description:
+        'Bu məhsul "Kimə alırsan?" menyusundakı hansı bölmə(lər)də görünsün? ' +
+        'Bir məhsul birdən çox bölməyə aid ola bilər (məs. həm "Qadınlar üçün", həm "Sevgililər üçün cüt hədiyyə"). ' +
+        'Heç biri seçilməyibsə, məhsul "Kimə alırsan?" səhifələrində görünməyəcək — amma kateqoriyalarda olduğu kimi qalacaq.',
+    },
+    {
       name: 'description',
       title: 'Məhsul haqqında',
       type: 'text',

@@ -2,11 +2,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import '../styles/navbar.css';
 import { C, F } from '../tokens';
-import { ShoppingBag, Search, X, Menu, Globe } from 'lucide-react';
-import { Product } from '../types';
+import { ShoppingBag, Search, X, Menu, Globe, ChevronDown } from 'lucide-react';
+import { Product, AudienceCategory } from '../types';
 import { toWebP } from '../lib/image';
 import { useTranslation } from 'react-i18next';
 import { getLangFromPath, withLangPrefix } from '../i18n/useLocalizedNav';
+import { localizedAudienceName } from '../lib/productLocale';
+import AudienceDropdown from './AudienceDropdown';
 
 interface NavbarProps {
   cartCount: number;
@@ -18,11 +20,13 @@ interface NavbarProps {
   onProductsClick: () => void;
   products?: Product[];
   onViewProduct?: (product: Product) => void;
+  audienceCategories?: AudienceCategory[];
 }
 
 const Navbar: React.FC<NavbarProps> = ({
   cartCount, onCartClick,
   products = [],
+  audienceCategories = [],
 }) => {
   const { t } = useTranslation();
   const location = useLocation();
@@ -31,6 +35,7 @@ const Navbar: React.FC<NavbarProps> = ({
 
   const [scrolled, setScrolled]     = useState(false);
   const [menuOpen, setMenuOpen]     = useState(false);
+  const [audienceMenuOpen, setAudienceMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery]           = useState('');
   const searchRef = useRef<HTMLDivElement>(null);
@@ -107,28 +112,21 @@ const Navbar: React.FC<NavbarProps> = ({
           height: NAV_H, display: 'flex', alignItems: 'center',
           justifyContent: 'space-between', gap: 16,
         }}>
-          {/* Logo */}
+          {/* Logo — yalnız mətn, saytın öz rəngləri (C.black) */}
           <Link to={withLangPrefix('/', lang)} aria-label={t('nav.homeAriaLabel')} style={{
             background: 'none', border: 'none', cursor: 'pointer',
             padding: 0, flexShrink: 0,
-            display: 'flex', alignItems: 'center', gap: 8,
+            display: 'flex', alignItems: 'center',
             textDecoration: 'none',
           }}>
-            <img
-              src="/favicon.png"
-              alt="Ravio logo"
-              style={{
-                width: 38, height: 38, borderRadius: 8,
-                objectFit: 'cover', display: 'block',
-              }}
-            />
-            <span className="ravio-nav-brand-text" style={{ fontFamily: F.sans, fontSize: 18, fontWeight: 800, color: C.black, letterSpacing: '-0.5px' }}>
-              {t('nav.tagline')}
+            <span style={{ fontFamily: F.sans, fontSize: 23, fontWeight: 800, color: C.black, letterSpacing: '-0.5px' }}>
+              Ravio
             </span>
           </Link>
 
           {/* Desktop nav links */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 2 }} className="r-desktop-nav">
+            <AudienceDropdown items={audienceCategories} lang={lang} label={t('nav.whoFor')} />
             {navLinks.map(link => (
               <Link key={link.label} to={link.href} style={{
                 background: 'none', border: 'none', cursor: 'pointer',
@@ -326,6 +324,40 @@ const Navbar: React.FC<NavbarProps> = ({
             position: 'relative' as const,
             zIndex: 1001,
           }}>
+            {audienceCategories.length > 0 && (
+              <div style={{ borderBottom: '1px solid #F5F2EC' }}>
+                <button
+                  onClick={() => setAudienceMenuOpen(v => !v)}
+                  aria-expanded={audienceMenuOpen}
+                  style={{
+                    width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    padding: '15px 8px', background: 'none', border: 'none', cursor: 'pointer',
+                    fontSize: 16, fontWeight: 500, color: C.black, fontFamily: F.sans, textAlign: 'left' as const,
+                  }}
+                >
+                  {t('nav.whoFor')}
+                  <ChevronDown size={16} style={{ transform: audienceMenuOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
+                </button>
+                {audienceMenuOpen && (
+                  <div style={{ paddingBottom: 8 }}>
+                    {audienceCategories.map(it => (
+                      <Link
+                        key={it.slug}
+                        to={withLangPrefix(`/kime/${it.slug}`, lang)}
+                        onClick={() => { setMenuOpen(false); setAudienceMenuOpen(false); }}
+                        style={{
+                          display: 'block', padding: '12px 8px 12px 20px',
+                          fontSize: 14, fontWeight: 400, color: '#555555',
+                          fontFamily: F.sans, textDecoration: 'none',
+                        }}
+                      >
+                        {localizedAudienceName(it, lang)}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
             {navLinks.map(link => (
               <Link key={link.label} to={link.href} onClick={() => setMenuOpen(false)}
                 style={{

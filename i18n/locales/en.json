@@ -4,6 +4,7 @@
     "catalogCta": "Browse the catalog"
   },
   "nav": {
+    "whoFor": "Who's it for?",
     "products": "Categories",
     "delivery": "Delivery",
     "about": "About Us",
@@ -372,6 +373,13 @@
     "title": "All Products",
     "loading": "Loading...",
     "countSuffix": "{{count}} products · Free delivery"
+  },
+  "audiencePage": {
+    "metaTitleTemplate": "{{name}} — Gift Ideas | Ravio",
+    "metaDescriptionTemplate": "Personalized laser-engraved gifts for {{name}}. Free delivery across Azerbaijan, ready in 1–3 business days.",
+    "notFoundTitle": "Section not found",
+    "notFoundText": "The section you're looking for no longer exists or has been removed.",
+    "notFoundCta": "Browse all products"
   },
   "catalog": {
     "categories": "Categories",

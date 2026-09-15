@@ -4,6 +4,7 @@
     "catalogCta": "Kataloqa bax"
   },
   "nav": {
+    "whoFor": "Kimə alırsan?",
     "products": "Kateqoriyalar",
     "delivery": "Çatdırılma",
     "about": "Haqqımızda",
@@ -372,6 +373,13 @@
     "title": "Bütün məhsullar",
     "loading": "Yüklənir...",
     "countSuffix": "{{count}} məhsul · Ödənişsiz çatdırılma"
+  },
+  "audiencePage": {
+    "metaTitleTemplate": "{{name}} — Hədiyyə Seçimləri | Ravio",
+    "metaDescriptionTemplate": "{{name}} üçün fərdi lazer yazılı hədiyyələr. Bütün Azərbaycana ödənişsiz çatdırılma, 1–3 iş günündə hazır.",
+    "notFoundTitle": "Bölmə tapılmadı",
+    "notFoundText": "Axtardığınız bölmə artıq mövcud deyil və ya silinib.",
+    "notFoundCta": "Bütün məhsullara bax"
   },
   "catalog": {
     "categories": "Kateqoriyalar",

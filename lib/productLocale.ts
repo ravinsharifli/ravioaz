@@ -132,3 +132,18 @@ export function localizedCategoryName(
   }
   return azName;
 }
+
+/**
+ * "Kimə alırsan?" bölməsinin adını cari dilə görə qaytarır. Product/kateqoriyadan
+ * fərqli olaraq ayrıca xəritəyə ehtiyac yoxdur — audienceCategory sənədinin
+ * özündə həm Azərbaycanca, həm İngiliscə ad var.
+ */
+export function localizedAudienceName(
+  item: { name: string; nameEn?: string },
+  lang: 'az' | 'en'
+): string {
+  if (lang === 'en' && item.nameEn && item.nameEn.trim()) {
+    return item.nameEn.trim();
+  }
+  return item.name;
+}

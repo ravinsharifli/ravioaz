@@ -51,6 +51,15 @@ async function generateSitemap() {
   console.log(`✅ ${validProducts.length} məhsul tapıldı`);
   console.log(`🖼  ${withImages} məhsulun şəkli var`);
 
+  // ── "Kimə alırsan?" bölmələri — Sanity-dən dinamik (kod dəyişmədən yeni
+  // bölmə əlavə edildikdə növbəti build-də avtomatik sitemap-ə düşür) ───────
+  const audienceCategories = await client.fetch(
+    `*[_type == "audienceCategory" && isActive != false && defined(slug.current)]{
+      "slug": slug.current
+    }`
+  );
+  console.log(`🎯 ${audienceCategories.length} "Kimə alırsan?" bölməsi tapıldı`);
+
   // ── Statik səhifələr ───────────────────────────────────────────────────────
   const staticPages = [
     { url: '',             priority: '1.0', changefreq: 'weekly'  },
@@ -66,6 +75,14 @@ async function generateSitemap() {
     changefreq: 'weekly',
   }));
 
+  const audiencePages = audienceCategories
+    .filter(a => a.slug)
+    .map(a => ({
+      url:        `/kime/${a.slug}`,
+      priority:   '0.8',
+      changefreq: 'weekly',
+    }));
+
   const staticXml = staticPages.map(p => `  <url>
     <loc>${BASE_URL}${p.url}</loc>
     <lastmod>${TODAY}</lastmod>
@@ -74,6 +91,13 @@ async function generateSitemap() {
   </url>`).join('\n');
 
   const categoryXml = categoryPages.map(p => `  <url>
+    <loc>${BASE_URL}${p.url}</loc>
+    <lastmod>${TODAY}</lastmod>
+    <changefreq>${p.changefreq}</changefreq>
+    <priority>${p.priority}</priority>
+  </url>`).join('\n');
+
+  const audienceXml = audiencePages.map(p => `  <url>
     <loc>${BASE_URL}${p.url}</loc>
     <lastmod>${TODAY}</lastmod>
     <changefreq>${p.changefreq}</changefreq>
@@ -112,12 +136,13 @@ async function generateSitemap() {
   xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
 ${staticXml}
 ${categoryXml}
+${audienceXml}
 ${productXml}
 </urlset>`;
 
   writeFileSync('public/sitemap.xml', xml, 'utf-8');
 
-  const total = staticPages.length + categoryPages.length + validProducts.length;
+  const total = staticPages.length + categoryPages.length + audiencePages.length + validProducts.length;
   console.log(`✅ Sitemap yazıldı: ${total} URL (${withImages} məhsulda şəkil teqi var)`);
 }
 

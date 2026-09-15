@@ -1,5 +1,6 @@
 import product from './product'
 import siteSettings from './siteSettings'
+import audienceCategory from './audienceCategory'
 
 const category = {
   name: 'category',
@@ -38,4 +39,5 @@ export const schemaTypes = [
   category,
   product,
   siteSettings,
+  audienceCategory,
 ]

@@ -579,6 +579,57 @@ async function run() {
 
   console.log(`\n🎉 Tamamlandı: ${ok}/${products.length} məhsul + ${catOk}/${CATEGORIES.length} kateqoriya HTML-i yaradıldı`);
   if (fail > 0) console.warn(`⚠️  ${fail} məhsul zamanı xəta baş verdi`);
+
+  // ── "Kimə alırsan?" səhifələrini prerender et (Sanity-dən dinamik) ───────
+  // CATEGORIES-dən fərqli olaraq bu siyahı kod içində deyil — Ravio Sanity-də
+  // yeni bölmə əlavə edən kimi, növbəti build bunu avtomatik tapıb prerender edir.
+  const audienceCategories = await client.fetch(`
+    *[_type == "audienceCategory" && isActive != false && defined(slug.current)] | order(order asc, name asc) {
+      name, "slug": slug.current
+    }
+  `);
+
+  let audOk = 0;
+  for (const ac of audienceCategories) {
+    try {
+      const acUrl = `https://ravio.az/kime/${ac.slug}`;
+      const acTitle = `${ac.name} — Hədiyyə Seçimləri | Ravio`;
+      const acDesc = `${ac.name} üçün fərdi lazer yazılı hədiyyələr. Bütün Azərbaycana ödənişsiz çatdırılma, 1–3 iş günündə hazır.`;
+
+      let html = injectMeta(template, {
+        title: acTitle,
+        desc: acDesc,
+        url: acUrl,
+        image: 'https://ravio.az/og-ravio.png',
+      });
+      html = injectStaticRoot(html, simpleSeoContent({ h1: ac.name, desc: acDesc }));
+
+      const schema = {
+        '@context': 'https://schema.org',
+        '@type': 'CollectionPage',
+        name: ac.name,
+        description: acDesc,
+        url: acUrl,
+        breadcrumb: {
+          '@type': 'BreadcrumbList',
+          itemListElement: [
+            { '@type': 'ListItem', position: 1, name: 'Ravio', item: 'https://ravio.az' },
+            { '@type': 'ListItem', position: 2, name: ac.name, item: acUrl },
+          ],
+        },
+      };
+      const schemaTag = `\n  <script type="application/ld+json">${JSON.stringify(schema)}</script>`;
+      html = html.replace('</head>', `${schemaTag}\n</head>`);
+
+      mkdirSync(`dist/kime/${ac.slug}`, { recursive: true });
+      writeFileSync(`dist/kime/${ac.slug}/index.html`, html, 'utf-8');
+      audOk++;
+      console.log(`  ✅ /kime/${ac.slug}`);
+    } catch (err) {
+      console.error(`  ❌ /kime/${ac.slug} — ${err.message}`);
+    }
+  }
+  console.log(`🎯 ${audOk}/${audienceCategories.length} "Kimə alırsan?" bölməsi HTML-i yaradıldı`);
   console.log('');
 }
 
