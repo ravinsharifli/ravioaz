@@ -1,6 +1,6 @@
 import React, { useState, useEffect, Suspense, useCallback, useMemo, startTransition } from 'react';
 import { C, F } from './tokens';
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { client } from './sanityclient';
 import { Analytics } from '@vercel/analytics/react';
 import { Product, CartItem, ReelPost, AudienceCategory } from './types';
@@ -17,7 +17,8 @@ import PWAInstallBanner from './components/PWAInstallBanner';
 // ── Ana səhifə lazy deyil — birbaşa import: chunk yükləmə gözləməsi sıfırlanır ──
 import HomePage from './components/pages/HomePage';
 const AboutUs     = React.lazy(() => import('./components/AboutUs'));
-const Contact     = React.lazy(() => import('./components/Contact'));
+const BlogListPage = React.lazy(() => import('./components/pages/BlogListPage'));
+const BlogPostPage = React.lazy(() => import('./components/pages/BlogPostPage'));
 const DeliveryInfo = React.lazy(() => import('./components/DeliveryInfo'));
 import Footer from './components/Footer';
 const ProductsPage = React.lazy(() => import('./components/pages/ProductsPage'));
@@ -312,7 +313,9 @@ function AppShell() {
             }
           />
           <Route path="/haqqimizda" element={<AboutUs />} />
-          <Route path="/elaqe" element={<Contact />} />
+          <Route path="/elaqe" element={<Navigate to="/" replace />} />
+          <Route path="/blog" element={<BlogListPage />} />
+          <Route path="/blog/:slug" element={<BlogPostPage />} />
           <Route path="/catdirilma" element={<DeliveryInfo />} />
 
           {/* ── İngiliscə (/en prefiksli) — eyni komponentlər, ayrı URL ──
@@ -379,7 +382,9 @@ function AppShell() {
             }
           />
           <Route path="/en/haqqimizda" element={<AboutUs />} />
-          <Route path="/en/elaqe" element={<Contact />} />
+          <Route path="/en/elaqe" element={<Navigate to="/en" replace />} />
+          <Route path="/en/blog" element={<BlogListPage />} />
+          <Route path="/en/blog/:slug" element={<BlogPostPage />} />
           <Route path="/en/catdirilma" element={<DeliveryInfo />} />
 
           <Route path="*" element={<NotFound onHome={() => navigate('/')} />} />

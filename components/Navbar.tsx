@@ -86,7 +86,7 @@ const Navbar: React.FC<NavbarProps> = ({
     { label: t('nav.products'), href: withLangPrefix('/mehsullar', lang) },
     { label: t('nav.delivery'), href: withLangPrefix('/catdirilma', lang) },
     { label: t('nav.about'),    href: withLangPrefix('/haqqimizda', lang) },
-    { label: t('nav.contact'),  href: withLangPrefix('/elaqe', lang) },
+    { label: t('nav.blog'),      href: withLangPrefix('/blog', lang) },
   ];
 
   // Cari yolu digər dilə çevirir. Məhsul detalı (/mehsullar/:slug) səhifəsində

@@ -631,6 +631,54 @@ async function run() {
   }
   console.log(`🎯 ${audOk}/${audienceCategories.length} "Kimə alırsan?" bölməsi HTML-i yaradıldı`);
   console.log('');
+
+  // ── Blog yazılarını prerender et (Sanity-dən dinamik) ─────────────────────
+  const blogPosts = await client.fetch(`
+    *[_type == "blogPost" && defined(slug.current)] | order(publishedAt desc) {
+      title, "slug": slug.current, excerpt, seoTitle, seoDescription,
+      "coverImageUrl": coverImage.asset->url, publishedAt
+    }
+  `);
+
+  let blogOk = 0;
+  for (const post of blogPosts) {
+    try {
+      const postUrl = `https://ravio.az/blog/${post.slug}`;
+      const postTitle = post.seoTitle || `${post.title} | Ravio Blog`;
+      const postDesc = post.seoDescription || post.excerpt || '';
+
+      let html = injectMeta(template, {
+        title: postTitle,
+        desc: postDesc,
+        url: postUrl,
+        image: post.coverImageUrl || 'https://ravio.az/og-ravio.png',
+      });
+      html = injectStaticRoot(html, simpleSeoContent({ h1: post.title, desc: postDesc }));
+
+      const schema = {
+        '@context': 'https://schema.org',
+        '@type': 'Article',
+        headline: post.title,
+        description: postDesc,
+        image: post.coverImageUrl || 'https://ravio.az/og-ravio.png',
+        datePublished: post.publishedAt,
+        author: { '@type': 'Organization', name: 'Ravio' },
+        publisher: { '@type': 'Organization', name: 'Ravio', logo: { '@type': 'ImageObject', url: 'https://ravio.az/og-ravio.png' } },
+        mainEntityOfPage: postUrl,
+      };
+      const schemaTag = `\n  <script type="application/ld+json">${JSON.stringify(schema)}</script>`;
+      html = html.replace('</head>', `${schemaTag}\n</head>`);
+
+      mkdirSync(`dist/blog/${post.slug}`, { recursive: true });
+      writeFileSync(`dist/blog/${post.slug}/index.html`, html, 'utf-8');
+      blogOk++;
+      console.log(`  ✅ /blog/${post.slug}`);
+    } catch (err) {
+      console.error(`  ❌ /blog/${post.slug} — ${err.message}`);
+    }
+  }
+  console.log(`📰 ${blogOk}/${blogPosts.length} blog yazısı HTML-i yaradıldı`);
+  console.log('');
 }
 
 run().catch((err) => {

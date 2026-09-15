@@ -50,6 +50,25 @@ export interface AudienceCategory {
   slug: string;
 }
 
+// ── Blog ─────────────────────────────────────────────────────
+export interface BlogPostSummary {
+  id: string;
+  title: string;
+  titleEn?: string;
+  slug: string;
+  excerpt: string;
+  excerptEn?: string;
+  coverImageUrl: string;
+  publishedAt: string;
+}
+
+export interface BlogPostDetail extends BlogPostSummary {
+  body: any[];
+  bodyEn?: any[];
+  seoTitle?: string;
+  seoDescription?: string;
+}
+
 // ── Metro cədvəli — hər günün öz saatları ──────────────────────
 export interface DaySchedule {
   day: string;

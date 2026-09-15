@@ -9,6 +9,7 @@
     "delivery": "Çatdırılma",
     "about": "Haqqımızda",
     "contact": "Əlaqə",
+    "blog": "Blog",
     "search": "Axtar",
     "searchPlaceholder": "Məhsul axtar...",
     "cart": "Səbət",
@@ -380,6 +381,22 @@
     "notFoundTitle": "Bölmə tapılmadı",
     "notFoundText": "Axtardığınız bölmə artıq mövcud deyil və ya silinib.",
     "notFoundCta": "Bütün məhsullara bax"
+  },
+  "blogListPage": {
+    "meta": {
+      "title": "Blog | Ravio",
+      "description": "Ravio blogunda hədiyyə ideyaları, fərdiləşdirmə məsləhətləri və yeniliklər."
+    },
+    "title": "Blog",
+    "loading": "Yüklənir...",
+    "empty": "Hələ heç bir yazı yoxdur. Tezliklə burda olacaq!",
+    "readMore": "Oxu →"
+  },
+  "blogPostPage": {
+    "backToBlog": "← Bloga qayıt",
+    "notFoundTitle": "Yazı tapılmadı",
+    "notFoundText": "Axtardığınız yazı artıq mövcud deyil və ya silinib.",
+    "notFoundCta": "Bloga qayıt"
   },
   "catalog": {
     "categories": "Kateqoriyalar",

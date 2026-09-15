@@ -60,6 +60,14 @@ async function generateSitemap() {
   );
   console.log(`🎯 ${audienceCategories.length} "Kimə alırsan?" bölməsi tapıldı`);
 
+  const blogPosts = await client.fetch(
+    `*[_type == "blogPost" && defined(slug.current)]{
+      "slug": slug.current,
+      publishedAt
+    }`
+  );
+  console.log(`📰 ${blogPosts.length} blog yazısı tapıldı`);
+
   // ── Statik səhifələr ───────────────────────────────────────────────────────
   const staticPages = [
     { url: '',             priority: '1.0', changefreq: 'weekly'  },
@@ -83,6 +91,18 @@ async function generateSitemap() {
       changefreq: 'weekly',
     }));
 
+  const blogPages = [
+    { url: '/blog', priority: '0.7', changefreq: 'weekly' },
+    ...blogPosts
+      .filter(b => b.slug)
+      .map(b => ({
+        url:        `/blog/${b.slug}`,
+        priority:   '0.6',
+        changefreq: 'monthly',
+        lastmod:    b.publishedAt ? b.publishedAt.slice(0, 10) : TODAY,
+      })),
+  ];
+
   const staticXml = staticPages.map(p => `  <url>
     <loc>${BASE_URL}${p.url}</loc>
     <lastmod>${TODAY}</lastmod>
@@ -100,6 +120,13 @@ async function generateSitemap() {
   const audienceXml = audiencePages.map(p => `  <url>
     <loc>${BASE_URL}${p.url}</loc>
     <lastmod>${TODAY}</lastmod>
+    <changefreq>${p.changefreq}</changefreq>
+    <priority>${p.priority}</priority>
+  </url>`).join('\n');
+
+  const blogXml = blogPages.map(p => `  <url>
+    <loc>${BASE_URL}${p.url}</loc>
+    <lastmod>${p.lastmod || TODAY}</lastmod>
     <changefreq>${p.changefreq}</changefreq>
     <priority>${p.priority}</priority>
   </url>`).join('\n');
@@ -137,12 +164,13 @@ async function generateSitemap() {
 ${staticXml}
 ${categoryXml}
 ${audienceXml}
+${blogXml}
 ${productXml}
 </urlset>`;
 
   writeFileSync('public/sitemap.xml', xml, 'utf-8');
 
-  const total = staticPages.length + categoryPages.length + audiencePages.length + validProducts.length;
+  const total = staticPages.length + categoryPages.length + audiencePages.length + blogPages.length + validProducts.length;
   console.log(`✅ Sitemap yazıldı: ${total} URL (${withImages} məhsulda şəkil teqi var)`);
 }
 

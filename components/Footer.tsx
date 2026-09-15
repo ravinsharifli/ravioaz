@@ -69,6 +69,7 @@ const Footer: React.FC<FooterProps> = () => {
               { label: t('nav.products'),  href: withLangPrefix('/mehsullar', lang) },
               { label: t('nav.delivery'), href: withLangPrefix('/catdirilma', lang) },
               { label: t('nav.about'), href: withLangPrefix('/haqqimizda', lang) },
+              { label: t('nav.blog'), href: withLangPrefix('/blog', lang) },
             ].map((link, i) => (
               <div key={i} style={{ marginBottom: 12 }}>
                 <Link to={link.href} style={{
@@ -116,16 +117,6 @@ const Footer: React.FC<FooterProps> = () => {
                 <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.65)' }}>{item.text}</span>
               </div>
             ))}
-            <Link to={withLangPrefix('/elaqe', lang)} style={{
-              marginTop: 8, padding: '10px 20px', display: 'inline-block',
-              background: 'transparent', border: '1px solid rgba(255,255,255,0.15)',
-              borderRadius: 8, color: 'rgba(255,255,255,0.6)', fontSize: 13,
-              fontFamily: F.sans,
-              transition: 'all 0.15s', textDecoration: 'none',
-            }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = C.primary; e.currentTarget.style.color = C.primary; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)'; e.currentTarget.style.color = 'rgba(255,255,255,0.6)'; }}
-            >{t('footer.contactPageLink')}</Link>
           </div>
         </div>
 

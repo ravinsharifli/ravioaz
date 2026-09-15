@@ -9,6 +9,7 @@
     "delivery": "Delivery",
     "about": "About Us",
     "contact": "Contact",
+    "blog": "Blog",
     "search": "Search",
     "searchPlaceholder": "Search products...",
     "cart": "Cart",
@@ -380,6 +381,22 @@
     "notFoundTitle": "Section not found",
     "notFoundText": "The section you're looking for no longer exists or has been removed.",
     "notFoundCta": "Browse all products"
+  },
+  "blogListPage": {
+    "meta": {
+      "title": "Blog | Ravio",
+      "description": "Gift ideas, personalization tips, and updates from Ravio."
+    },
+    "title": "Blog",
+    "loading": "Loading...",
+    "empty": "No posts yet. Check back soon!",
+    "readMore": "Read →"
+  },
+  "blogPostPage": {
+    "backToBlog": "← Back to Blog",
+    "notFoundTitle": "Post not found",
+    "notFoundText": "The post you're looking for no longer exists or has been removed.",
+    "notFoundCta": "Back to Blog"
   },
   "catalog": {
     "categories": "Categories",

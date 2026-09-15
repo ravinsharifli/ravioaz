@@ -11,6 +11,7 @@
     "studio:deploy": "sanity deploy"
   },
   "dependencies": {
+    "@portabletext/react": "^3.2.4",
     "@sanity/client": "^7.14.1",
     "@sanity/color-input": "^6.0.20",
     "@vercel/analytics": "^1.5.0",
