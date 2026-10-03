@@ -9,7 +9,7 @@ import { fromCategorySlug, findProductBySlug } from '../../lib/categorySlug';
 import { CATEGORY_SEO } from '../../lib/categorySeo';
 import { SINGLE_PRODUCT_QUERY, mapSanityProduct } from '../../lib/sanityProduct';
 import { getProductPriceRange } from '../../lib/productPrice';
-import { getProductMetaDescription } from '../../lib/productMeta';
+import { getProductMetaDescription, getProductSeoTitle } from '../../lib/productMeta';
 import { localizedProductName, localizedCategoryName } from '../../lib/productLocale';
 import { DEFAULT_BOXES } from '../../constants/defaults';
 import { SITE_URL } from '../../constants/seo';
@@ -175,10 +175,10 @@ export default function SlugPage({
   const productUrl = `${SITE_URL}${withLangPrefix(`/mehsullar/${slug}`, lang)}`;
   const metaDesc = currentProduct ? getProductMetaDescription(currentProduct, lang) : '';
   const displayProductName = currentProduct ? localizedProductName(currentProduct, lang) : '';
-const cleanProductName = displayProductName
-  .replace(/\s*\|\s*Ravio\s*$/i, '')
-  .trim();
-const productTitle = `${cleanProductName} | Ravio`;
+  const cleanProductName = displayProductName
+    .replace(/\s*\|\s*Ravio\s*$/i, '')
+    .trim();
+  const productTitle = currentProduct ? getProductSeoTitle(currentProduct, lang) : `${cleanProductName} | Ravio`;
 
   if (pageLoading) {
     return (

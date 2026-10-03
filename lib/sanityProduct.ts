@@ -6,7 +6,7 @@ export const PRODUCTS_QUERY = `*[_type == "product"] | order(name asc) {
   "audienceCategories": audienceCategories[]->slug.current,
   variants[] {
     modelName, colorName, price, discountPrice, inStock,
-    images[]{ asset->{ url } }
+    images[]{ asset->{ url }, alt }
   },
   allowBoxSelection,
   customBoxOptions[]{ id, name, desc, price, isActive, "imageUrl": image.asset->url },
@@ -15,11 +15,12 @@ export const PRODUCTS_QUERY = `*[_type == "product"] | order(name asc) {
 
 export const SINGLE_PRODUCT_QUERY = `*[_type == "product" && slug.current == $slug][0]{
   _id, name, nameEn, "slug": slug.current, description, descriptionEn,
+  seoTitle, seoDescription, h1Override, material, giftOccasion,
   category->{ name },
   "audienceCategories": audienceCategories[]->slug.current,
   variants[] {
     modelName, colorName, price, discountPrice, inStock,
-    images[]{ asset->{ url } }
+    images[]{ asset->{ url }, alt }
   },
   allowBoxSelection,
   customBoxOptions[]{ id, name, desc, price, isActive, "imageUrl": image.asset->url },
@@ -71,6 +72,7 @@ export function mapSanityProduct(raw: any): Product {
     images: (v.images || [])
       .map((img: any) => (img?.asset?.url ? img.asset.url : typeof img === 'string' ? img : ''))
       .filter(Boolean),
+    imageAlts: (v.images || []).map((img: any) => img?.alt || ''),
     price: v.price ?? 0,
     discountPrice: v.discountPrice ?? undefined,
     inStock: v.inStock !== false,
@@ -84,6 +86,11 @@ export function mapSanityProduct(raw: any): Product {
     audienceCategories: (raw.audienceCategories || []).filter(Boolean),
     description: raw.description || '',
     descriptionEn: raw.descriptionEn || undefined,
+    seoTitle: raw.seoTitle || undefined,
+    seoDescription: raw.seoDescription || undefined,
+    h1Override: raw.h1Override || undefined,
+    material: raw.material || undefined,
+    giftOccasion: (raw.giftOccasion || []).filter(Boolean),
     variants,
     allowBoxSelection: raw.allowBoxSelection !== false,
     customBoxOptions: (raw.customBoxOptions || [])

@@ -13,6 +13,7 @@
 import { createClient } from '@sanity/client';
 import { readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { join } from 'path';
+import { CATEGORY_PAGES } from './seo-categories.mjs';
 
 // ── Sanity client ─────────────────────────────────────────────
 const client = createClient({
@@ -115,10 +116,10 @@ function homeSeoContent() {
         Bütün Azərbaycana ödənişsiz çatdırılma və 1–3 iş günündə hazırlıq.
       </p>
       <nav aria-label="Məhsul kateqoriyaları">
+        <a href="/mehsullar">Bütün məhsullar</a> ·
+        <a href="/mehsullar/boyunbagilar">Lazer yazılı boyunbağılar</a> ·
         <a href="/mehsullar/qolbaqlar">Lazer yazılı qolbaqlar</a> ·
-        <a href="/mehsullar/tesbehler">Fərdi təsbehlər</a> ·
-        <a href="/mehsullar/domino">Hədiyyəlik domino dəstləri</a> ·
-        <a href="/mehsullar/hediyelik_qutular">Hədiyyəlik qutular</a>
+        <a href="/mehsullar/tesbehler">Fərdi təsbehlər</a>
       </nav>
     </main>
   `;
@@ -218,39 +219,67 @@ function injectProductSchema(html, product) {
     brand: { '@type': 'Brand', name: 'Ravio' },
   };
 
-  schema.offers = {
-    '@type': 'Offer',
-    priceCurrency: 'AZN',
-    price: product.price ? String(product.price) : '0',
-    availability: 'https://schema.org/InStock',
-    url: product.url,
-    shippingDetails: {
-      '@type': 'OfferShippingDetails',
-      shippingRate: {
-        '@type': 'MonetaryAmount',
-        value: '0',
-        currency: 'AZN',
-      },
-      shippingDestination: {
-        '@type': 'DefinedRegion',
-        addressCountry: 'AZ',
-      },
-      deliveryTime: {
-        '@type': 'ShippingDeliveryTime',
-        handlingTime: {
-          '@type': 'QuantitativeValue',
-          minValue: 1,
-          maxValue: 3,
-          unitCode: 'DAY',
-        },
-      },
-    },
-    hasMerchantReturnPolicy: {
-      '@type': 'MerchantReturnPolicy',
-      applicableCountry: 'AZ',
-      returnPolicyCategory: 'https://schema.org/MerchantReturnNotPermitted',
+  // Hər variantın real qiyməti (endirimli qiymət varsa o) və stok vəziyyəti
+  const variants = Array.isArray(product.variantPrices) ? product.variantPrices : [];
+  const effectivePrices = variants
+    .map(v => (v.discountPrice ?? v.price))
+    .filter(p => typeof p === 'number' && p > 0);
+  const anyInStock = variants.length === 0 || variants.some(v => v.inStock !== false);
+  const availability = anyInStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock';
+
+  const shippingDetails = {
+    '@type': 'OfferShippingDetails',
+    shippingRate: { '@type': 'MonetaryAmount', value: '0', currency: 'AZN' },
+    shippingDestination: { '@type': 'DefinedRegion', addressCountry: 'AZ' },
+    deliveryTime: {
+      '@type': 'ShippingDeliveryTime',
+      handlingTime: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 3, unitCode: 'DAY' },
     },
   };
+  const returnPolicy = {
+    '@type': 'MerchantReturnPolicy',
+    applicableCountry: 'AZ',
+    returnPolicyCategory: 'https://schema.org/MerchantReturnNotPermitted',
+  };
+
+  if (effectivePrices.length === 0) {
+    // Variant məlumatı yoxdursa, ilk şəkil/qiymət fallback-ı ilə tək Offer
+    schema.offers = {
+      '@type': 'Offer',
+      priceCurrency: 'AZN',
+      price: product.price ? String(product.price) : '0',
+      availability,
+      url: product.url,
+      shippingDetails,
+      hasMerchantReturnPolicy: returnPolicy,
+    };
+  } else {
+    const min = Math.min(...effectivePrices);
+    const max = Math.max(...effectivePrices);
+    if (min === max) {
+      schema.offers = {
+        '@type': 'Offer',
+        priceCurrency: 'AZN',
+        price: String(min),
+        availability,
+        url: product.url,
+        shippingDetails,
+        hasMerchantReturnPolicy: returnPolicy,
+      };
+    } else {
+      schema.offers = {
+        '@type': 'AggregateOffer',
+        priceCurrency: 'AZN',
+        lowPrice: String(min),
+        highPrice: String(max),
+        offerCount: effectivePrices.length,
+        availability,
+        url: product.url,
+        shippingDetails,
+        hasMerchantReturnPolicy: returnPolicy,
+      };
+    }
+  }
 
   const tag = `\n  <script type="application/ld+json">${JSON.stringify(schema)}</script>`;
   return html.replace('</head>', `${tag}\n</head>`);
@@ -299,7 +328,8 @@ async function run() {
       "slug": slug.current,
       description,
       "firstImageUrl": variants[0].images[0].asset->url,
-      "price": coalesce(variants[0].discountPrice, variants[0].price)
+      "price": coalesce(variants[0].discountPrice, variants[0].price),
+      "variantPrices": variants[]{ price, discountPrice, inStock }
     }
   `);
 
@@ -469,6 +499,16 @@ async function run() {
         html = html.replace('</head>', `${prodPreload}\n</head>`);
       }
 
+      // Product schema.org JSON-LD — real qiymət aralığı və stok vəziyyəti ilə
+      html = injectProductSchema(html, {
+        name: cleanName,
+        desc: rawDesc,
+        image,
+        url: pageUrl,
+        price: p.price,
+        variantPrices: p.variantPrices,
+      });
+
       const dir = `dist/mehsullar/${p.slug}`;
       mkdirSync(dir, { recursive: true });
       writeFileSync(`${dir}/index.html`, html, 'utf-8');
@@ -503,35 +543,10 @@ async function run() {
   }
 
   // ── Kateqoriya səhifələrini prerender et ─────────────────────
-  const CATEGORIES = [
-    {
-      slug: 'qolbaqlar',
-      title: 'Lazer Yazılı Qolbaqlar — Fərdi Hədiyyə | Ravio Bakı',
-      desc:  'Bakıda fərdi lazer yazılı qolbaqlar. Ad, tarix, mesaj yazılır. Bütün Azərbaycana ödənişsiz çatdırılma, 1–3 iş günündə hazır.',
-      h1:   'Lazer Yazılı Qolbaqlar Bakıda',
-    },
-    {
-      slug: 'tesbehler',
-      title: 'Fərdi Qravürlü Təsbehlər | Ravio Bakı',
-      desc:  'Ağac və daş materiallardan lazer qravürlü fərdi təsbehlər. Bakıda özəl hədiyyə. Bütün Azərbaycana ödənişsiz çatdırılma.',
-      h1:   'Fərdi Qravürlü Təsbehlər',
-    },
-    {
-      slug: 'domino',
-      title: 'Hədiyyəlik Domino Dəsti — Lazer Yazılı | Ravio Bakı',
-      desc:  'Fərdi lazer yazılı domino dəstləri. Korporativ hədiyyə, ad günü üçün ideal. Bütün Azərbaycana ödənişsiz çatdırılma.',
-      h1:   'Hədiyyəlik Domino Dəsti',
-    },
-    {
-      slug: 'hediyelik_qutular',
-      title: 'Hədiyyəlik Qutular — Premium Qablaşdırma | Ravio Bakı',
-      desc:  'Ravio premium hədiyyəlik qutular. Lent, köpük yastıq, bağlama + qeyd kartı. Hər hədiyyəni özəl edir.',
-      h1:   'Hədiyyəlik Qutular',
-    },
-  ];
+  // (CATEGORY_PAGES — seo-categories.mjs-dən, tək mənbə)
 
   let catOk = 0;
-  for (const cat of CATEGORIES) {
+  for (const cat of CATEGORY_PAGES) {
     try {
       const catUrl = `https://ravio.az/mehsullar/${cat.slug}`;
 
@@ -577,7 +592,7 @@ async function run() {
     }
   }
 
-  console.log(`\n🎉 Tamamlandı: ${ok}/${products.length} məhsul + ${catOk}/${CATEGORIES.length} kateqoriya HTML-i yaradıldı`);
+  console.log(`\n🎉 Tamamlandı: ${ok}/${products.length} məhsul + ${catOk}/${CATEGORY_PAGES.length} kateqoriya HTML-i yaradıldı`);
   if (fail > 0) console.warn(`⚠️  ${fail} məhsul zamanı xəta baş verdi`);
 
   // ── "Kimə alırsan?" səhifələrini prerender et (Sanity-dən dinamik) ───────

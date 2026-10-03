@@ -2,6 +2,7 @@ export interface Variant {
   modelName?: string;
   colorName?: string;
   images: string[];
+  imageAlts?: string[];
   price: number;
   discountPrice?: number;
   inStock: boolean;
@@ -35,6 +36,11 @@ export interface Product {
   audienceCategories?: string[];
   description?: string;
   descriptionEn?: string;
+  seoTitle?: string;
+  seoDescription?: string;
+  h1Override?: string;
+  material?: string;
+  giftOccasion?: string[];
   variants: Variant[];
   allowBoxSelection?: boolean;
   customBoxOptions?: BoxOption[];

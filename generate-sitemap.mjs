@@ -39,6 +39,7 @@ async function generateSitemap() {
     `*[_type == "product" && defined(slug.current)]{
       "slug": slug.current,
       "name": name,
+      "updatedAt": _updatedAt,
       "imageUrls": variants[].images[0].asset->url
     }`
   );
@@ -74,7 +75,6 @@ async function generateSitemap() {
     { url: '/mehsullar',   priority: '0.9', changefreq: 'weekly'  },
     { url: '/catdirilma',  priority: '0.8', changefreq: 'monthly' },
     { url: '/haqqimizda',  priority: '0.7', changefreq: 'monthly' },
-    { url: '/elaqe',       priority: '0.6', changefreq: 'monthly' },
   ];
 
   const categoryPages = CATEGORY_PAGES.map(cat => ({
@@ -151,7 +151,7 @@ async function generateSitemap() {
 
     return `  <url>
     <loc>${BASE_URL}/mehsullar/${p.slug}</loc>
-    <lastmod>${TODAY}</lastmod>
+    <lastmod>${p.updatedAt ? p.updatedAt.slice(0, 10) : TODAY}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.85</priority>${imgTags}
   </url>`;

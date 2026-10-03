@@ -68,6 +68,58 @@ export default {
       description: 'İngilis versiyasında (ravio.az/en) göstərilir. Boş qalarsa, Azərbaycanca təsvir göstərilir.',
     },
 
+    // 🔍 SEO — doldurmasan da sayt işləyir, avtomatik yaranır
+    {
+      name: 'seoTitle',
+      title: '🔍 Qısa başlıq (Google-da görünən)',
+      type: 'string',
+      fieldset: 'seo',
+      description: 'Google axtarış nəticəsində görünən başlıq. Boş saxlasan, məhsulun adı işlənir. 50-60 hərf ideal (məs: "Polad Qolbaq – Qəpik Model, Lazer Yazılı").',
+      validation: Rule => Rule.max(70).warning('60 hərfdən uzun olsa Google-da kəsilə bilər'),
+    },
+    {
+      name: 'seoDescription',
+      title: '🔍 Qısa təsvir (başlığın altında)',
+      type: 'text',
+      rows: 2,
+      fieldset: 'seo',
+      description: 'Boş saxlasan, "Məhsul haqqında" mətnindən avtomatik yaranır. 150-160 hərf ideal.',
+      validation: Rule => Rule.max(200),
+    },
+    {
+      name: 'h1Override',
+      title: '📝 Uzun başlıq (səhifədə böyük başlıq)',
+      type: 'string',
+      fieldset: 'seo',
+      description: 'Saytda şəklin yanında böyük başlıq kimi görünür. Boş saxlasan, yuxarıdakı "Məhsulun Adı" işlənir.',
+    },
+    {
+      name: 'material',
+      title: '🧱 Material',
+      type: 'string',
+      fieldset: 'seo',
+      description: 'Məs: Paslanmayan Polad, 925 Gümüş. Google-a məhsulun nədən olduğunu bildirir.',
+    },
+    {
+      name: 'giftOccasion',
+      title: '🎁 Hədiyyə növü',
+      type: 'array',
+      fieldset: 'seo',
+      of: [{ type: 'string' }],
+      options: {
+        list: [
+          { title: 'Ad günü', value: 'Ad günü' },
+          { title: 'Sevgililər günü', value: 'Sevgililər günü' },
+          { title: 'Toy', value: 'Toy' },
+          { title: 'Məzuniyyət', value: 'Məzuniyyət' },
+          { title: 'Korporativ', value: 'Korporativ' },
+          { title: '8 Mart', value: '8 Mart' },
+          { title: 'Yeni il', value: 'Yeni il' },
+        ],
+      },
+      description: 'Bu məhsul hansı hədiyyə günləri üçün uyğundur? Bir neçəsini seçə bilərsən.',
+    },
+
     // 🎨 VARİANTLAR
     {
       name: 'variants',
@@ -106,6 +158,17 @@ export default {
                   { title: 'Ağ - Qızılı', value: 'Ağ - Qızılı' },
                   { title: 'Ağ - Qara', value: 'Ağ - Qara' },
                   { title: 'Qızılı - Qəhvəyi', value: 'Qızılı - Qəhvəyi' },
+                  { title: 'Gümüş', value: 'Gümüş' },
+                  { title: 'Qara mat', value: 'Qara mat' },
+                  { title: 'Qara parlaq', value: 'Qara parlaq' },
+                  { title: 'Ağ - gümüşü', value: 'Ağ - gümüşü' },
+                  { title: 'Qara - gümüşü', value: 'Qara - gümüşü' },
+                  { title: 'Sarı - yaşıl', value: 'Sarı - yaşıl' },
+                  { title: 'Mavi - bütün rənglər var', value: 'Mavi - bütün rənglər var' },
+                  { title: 'Göy milyoner', value: 'Göy milyoner' },
+                  { title: 'Qara - qızılı', value: 'Qara - qızılı' },
+                  { title: 'Ağ - qara', value: 'Ağ - qara' },
+                  { title: 'Qızılı - qəhvəyi', value: 'Qızılı - qəhvəyi' },
                 ],
               },
             },
@@ -114,7 +177,18 @@ export default {
               title: '📸 Şəkillər (1-3 ədəd)',
               type: 'array',
               validation: Rule => Rule.min(1).max(3).required(),
-              of: [{ type: 'image', options: { hotspot: true } }],
+              of: [{
+                type: 'image',
+                options: { hotspot: true },
+                fields: [
+                  {
+                    name: 'alt',
+                    title: 'Alt mətn (şəkil təsviri)',
+                    type: 'string',
+                    description: 'Google və səsli oxuyucular bunu istifadə edir. Boş saxlasan, məhsul adından avtomatik yaranır.',
+                  },
+                ],
+              }],
             },
             {
               name: 'price',
@@ -361,6 +435,12 @@ export default {
   ],
 
   fieldsets: [
+    {
+      name: 'seo',
+      title: '🔍 SEO (Google üçün)',
+      description: 'Doldurmasan da sayt işləyir — avtomatik yaranır. Doldursan Google-da daha dəqiq görünür.',
+      options: { collapsible: true, collapsed: true },
+    },
     {
       name: 'boxOptions',
       title: '📦 Qutu Seçimləri',

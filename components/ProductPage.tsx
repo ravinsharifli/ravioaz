@@ -10,6 +10,7 @@ import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
 import { getLangFromPath } from '../i18n/useLocalizedNav';
 import { localizedProductName, localizedProductDescription, localizedColorName } from '../lib/productLocale';
+import { getProductH1 } from '../lib/productMeta';
 
 const FONT = F.sans;
 
@@ -495,12 +496,15 @@ const ProductPage: React.FC<ProductPageProps> = ({
                 </span>
               )}
               <h1 style={{ margin: '0 0 8px', fontSize: 'clamp(22px,3vw,30px)', fontWeight: 800, color: C.black, lineHeight: 1.25, letterSpacing: '-0.3px' }}>
-                {displayName}
+                {getProductH1(product, lang)}
               </h1>
             </div>
 
             {displayDescription && (
               <Sec>
+                <h2 style={{ margin: '0 0 6px', fontSize: 11, fontWeight: 700, color: C.gray, textTransform: 'uppercase', letterSpacing: 0.8 }}>
+                  {t('product.aboutHeading', 'Məhsul haqqında')}
+                </h2>
                 <p style={{ margin: 0, fontSize: 13, color: C.gray, lineHeight: 1.65 }}>{displayDescription}</p>
               </Sec>
             )}
@@ -1114,6 +1118,13 @@ const ProductPage: React.FC<ProductPageProps> = ({
         </div>{/* /grid */}
       </div>
 
+      {product.reviews && product.reviews.length > 0 && (
+        <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 16px' }}>
+          <h2 style={{ margin: '24px 0 8px', fontSize: 11, fontWeight: 700, color: C.gray, textTransform: 'uppercase', letterSpacing: 0.8 }}>
+            {t('product.reviewsHeading', 'Rəylər')}
+          </h2>
+        </div>
+      )}
       {product.reviews && product.reviews.length > 0 && (
         <ProductReviews reviews={product.reviews} />
       )}

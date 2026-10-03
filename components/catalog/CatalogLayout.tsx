@@ -1,9 +1,10 @@
 ﻿import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
 import { C, F } from '../../tokens';
 import { Product } from '../../types';
 import { toCategorySlug } from '../../lib/categorySlug';
-import { useLocalizedNav } from '../../i18n/useLocalizedNav';
+import { useLocalizedNav, withLangPrefix } from '../../i18n/useLocalizedNav';
 import { localizedCategoryName } from '../../lib/productLocale';
 import ProductGrid from '../ProductGrid';
 import LoadingGrid from './LoadingGrid';
@@ -32,7 +33,7 @@ export default function CatalogLayout({
   // keçidləri /en prefiksini itirmirdi — əvvəllər useNavigate birbaşa
   // işlədildiyi üçün /en/mehsullar/... səhifəsindən "Hamısı" düyməsinə
   // basanda istifadəçi sükutla Azərbaycanca versiyaya atılırdı.
-  const { navigate, lang } = useLocalizedNav();
+  const { lang } = useLocalizedNav();
 
   return (
     <div style={{ display: 'flex', gap: 32, alignItems: 'flex-start' }}>
@@ -62,8 +63,8 @@ export default function CatalogLayout({
           {t('catalog.categories')}
         </p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <button
-            onClick={() => navigate('/mehsullar')}
+          <Link
+            to={withLangPrefix('/mehsullar', lang)}
             style={{
               padding: '10px 12px',
               borderRadius: 8,
@@ -79,19 +80,20 @@ export default function CatalogLayout({
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
+              textDecoration: 'none',
             }}
           >
             <span>{t('catalog.all')}</span>
             <span style={{ fontSize: 11, opacity: 0.55 }}>{products.length}</span>
-          </button>
+          </Link>
           {categories.map((cat) => {
             const count = products.filter((p) => p.category === cat).length;
             const slug = toCategorySlug(cat);
             const sel = activeSlug === slug;
             return (
-              <button
+              <Link
                 key={cat}
-                onClick={() => navigate(`/mehsullar/${slug}`)}
+                to={withLangPrefix(`/mehsullar/${slug}`, lang)}
                 style={{
                   padding: '10px 12px',
                   borderRadius: 8,
@@ -107,11 +109,12 @@ export default function CatalogLayout({
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
+                  textDecoration: 'none',
                 }}
               >
                 <span>{localizedCategoryName(cat, lang, categoryNameMap)}</span>
                 <span style={{ fontSize: 11, opacity: 0.55 }}>{count}</span>
-              </button>
+              </Link>
             );
           })}
         </div>
@@ -131,8 +134,8 @@ export default function CatalogLayout({
             }}
             className="r-mobile-nav"
           >
-            <button
-              onClick={() => navigate('/mehsullar')}
+            <Link
+              to={withLangPrefix('/mehsullar', lang)}
               style={{
                 padding: '7px 16px',
                 borderRadius: 100,
@@ -144,17 +147,19 @@ export default function CatalogLayout({
                 fontWeight: 600,
                 cursor: 'pointer',
                 fontFamily: F.sans,
+                textDecoration: 'none',
+                whiteSpace: 'nowrap',
               }}
             >
               {t('catalog.all')}
-            </button>
+            </Link>
             {categories.map((cat) => {
               const slug = toCategorySlug(cat);
               const sel = activeSlug === slug;
               return (
-                <button
+                <Link
                   key={cat}
-                  onClick={() => navigate(`/mehsullar/${slug}`)}
+                  to={withLangPrefix(`/mehsullar/${slug}`, lang)}
                   style={{
                     padding: '7px 16px',
                     borderRadius: 100,
@@ -166,10 +171,12 @@ export default function CatalogLayout({
                     fontWeight: 600,
                     cursor: 'pointer',
                     fontFamily: F.sans,
+                    textDecoration: 'none',
+                    whiteSpace: 'nowrap',
                   }}
                 >
                   {localizedCategoryName(cat, lang, categoryNameMap)}
-                </button>
+                </Link>
               );
             })}
           </div>
