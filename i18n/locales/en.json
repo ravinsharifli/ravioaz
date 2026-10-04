@@ -271,7 +271,9 @@
     "couponLabel": "− Coupon",
     "fillRequiredFields": "Please fill in all required fields",
     "sendViaWhatsApp": "Send via WhatsApp",
-    "deposit": "Deposit (50%)"
+    "deposit": "Deposit (50%)",
+    "customerLoyalLabel": "Returning customer (−20%)",
+    "customerNewLabel": "New customer (−10%)"
   },
   "productPage": {
     "prevImage": "Previous image",
@@ -324,7 +326,13 @@
     "couponDiscount": "−{{amount}} ₼ coupon",
     "addedToCart": "Added to cart!",
     "uploadingShort": "⏳ Uploading image...",
-    "addToCartButton": "🛒 Add to cart"
+    "addToCartButton": "🛒 Add to cart",
+    "couponEnterCode": "Enter a coupon code",
+    "couponNotFound": "This coupon code was not found",
+    "uploadTooLarge": "The image must be smaller than 20 MB",
+    "uploadFailed": "Image upload failed, please try again",
+    "previewAlt": "Preview",
+    "uploadedAlt": "Uploaded image"
   },
   "home": {
     "infoStrips": {

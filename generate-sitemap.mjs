@@ -1,7 +1,11 @@
-// generate-sitemap.mjs  — v2  (XML escape düzəldildi + bütün variant şəkilləri)
+// generate-sitemap.mjs — v3
+// Dəyişikliklər (v2 → v3):
+//  • AZ + EN URL-ləri, hər cütdə hreflang (xhtml:link) — İngilis səhifələr Google-a görünür
+//  • Məhsulu olmayan kateqoriyalar sitemap-ə düşmür (boş səhifə = zəif siqnal)
+//  • <lastmod> yalnız REAL tarixi olan URL-lərə yazılır (məhsul: _updatedAt, blog: publishedAt).
+//    Hər build-də "bu gün" yazmaq Google-un lastmod-a inamını azaldır.
 import { createClient } from '@sanity/client';
 import { writeFileSync } from 'fs';
-import { CATEGORY_PAGES } from './seo-categories.mjs';
 
 const client = createClient({
   projectId: 'w7scii42',
@@ -11,30 +15,64 @@ const client = createClient({
 });
 
 const BASE_URL = 'https://ravio.az';
-const TODAY    = new Date().toISOString().split('T')[0];
 
 // XML-də xüsusi simvolları escape et
 function escapeXml(str) {
   if (!str) return '';
-  return str
+  return String(str)
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
 }
 
-// Sanity CDN URL-ni Google Image üçün hazırla
-// DÜZƏLTMƏ: & → &amp;  (əvvəl & idi — bu invalid XML yaradırdı!)
+// Sanity CDN URL-ni Google Image üçün hazırla (& → &amp; — invalid XML olmasın)
 function buildImageUrl(url) {
   if (!url) return null;
   return `${url}?w=1200&amp;h=630&amp;fit=crop&amp;auto=format`;
 }
 
+/** lib/categorySlug.ts-dəki toCategorySlug ilə eyni qayda (kateqoriya adı → URL) */
+function toCategorySlug(name) {
+  return String(name || '')
+    .toLowerCase()
+    .replace(/ə/g, 'e').replace(/ö/g, 'o').replace(/ü/g, 'u')
+    .replace(/ı/g, 'i').replace(/ğ/g, 'g').replace(/ş/g, 's')
+    .replace(/ç/g, 'c').replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-]/g, '');
+}
+
+// p = Azərbaycanca yol ('' = ana səhifə, '/mehsullar', '/mehsullar/slug' ...)
+const locAz = (p) => `${BASE_URL}${p === '' ? '/' : p}`;
+const locEn = (p) => `${BASE_URL}${p === '' || p === '/' ? '/en' : `/en${p}`}`;
+
+function altLinks(p) {
+  return `
+    <xhtml:link rel="alternate" hreflang="az" href="${locAz(p)}" />
+    <xhtml:link rel="alternate" hreflang="en" href="${locEn(p)}" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="${locAz(p)}" />`;
+}
+
+function urlXml({ loc, p, lastmod, changefreq, priority, extra = '', bilingual = true }) {
+  return `  <url>
+    <loc>${loc}</loc>${lastmod ? `
+    <lastmod>${lastmod}</lastmod>` : ''}
+    <changefreq>${changefreq}</changefreq>
+    <priority>${priority}</priority>${bilingual ? altLinks(p) : ''}${extra}
+  </url>`;
+}
+
+/** Bir səhifənin AZ və EN URL bloklarını qaytarır (hər ikisi bütün alternativləri göstərir) */
+function pairXml({ p, lastmod, changefreq, priority, images = '' }) {
+  return [
+    urlXml({ loc: locAz(p), p, lastmod, changefreq, priority, extra: images }),
+    urlXml({ loc: locEn(p), p, lastmod, changefreq, priority }),
+  ].join('\n');
+}
+
 async function generateSitemap() {
   console.log('🗺  Sitemap generasiya edilir...');
 
-  // ─── GROQ düzəldildi ──────────────────────────────────────────────────────
-  // Əvvəl: variants[0].images[0].asset->url  →  yalnız 1-ci variantın 1-ci şəkli
-  // İndi:  variants[].images[0].asset->url   →  HƏR variantın 1-ci şəkli (array)
+  // HƏR variantın 1-ci şəkli (array) — Google Image üçün
   const products = await client.fetch(
     `*[_type == "product" && defined(slug.current)]{
       "slug": slug.current,
@@ -51,9 +89,25 @@ async function generateSitemap() {
 
   console.log(`✅ ${validProducts.length} məhsul tapıldı`);
   console.log(`🖼  ${withImages} məhsulun şəkli var`);
+  if (validProducts.length === 0) {
+    throw new Error('Sanity 0 məhsul qaytardı — boş sitemap yazılmadı, köhnə fayl saxlanıldı');
+  }
 
-  // ── "Kimə alırsan?" bölmələri — Sanity-dən dinamik (kod dəyişmədən yeni
-  // bölmə əlavə edildikdə növbəti build-də avtomatik sitemap-ə düşür) ───────
+  // Kateqoriyalar: yalnız ən azı 1 məhsulu olanlar
+  const categoryDocs = await client.fetch(
+    `*[_type == "category"]{
+      name,
+      "count": count(*[_type == "product" && references(^._id)])
+    }`
+  );
+  const categorySlugs = categoryDocs
+    .filter(c => c?.name && c.count > 0)
+    .map(c => toCategorySlug(c.name))
+    .filter(Boolean);
+  const emptyCats = categoryDocs.filter(c => c?.name && !(c.count > 0)).map(c => c.name);
+  console.log(`📂 ${categorySlugs.length} məhsullu kateqoriya` + (emptyCats.length ? ` (boş, çıxarıldı: ${emptyCats.join(', ')})` : ''));
+
+  // "Kimə alırsan?" bölmələri — Sanity-dən dinamik
   const audienceCategories = await client.fetch(
     `*[_type == "audienceCategory" && isActive != false && defined(slug.current)]{
       "slug": slug.current
@@ -69,75 +123,43 @@ async function generateSitemap() {
   );
   console.log(`📰 ${blogPosts.length} blog yazısı tapıldı`);
 
-  // ── Statik səhifələr ───────────────────────────────────────────────────────
+  const blocks = [];
+
+  // Statik səhifələr (AZ + EN)
   const staticPages = [
-    { url: '',             priority: '1.0', changefreq: 'weekly'  },
-    { url: '/mehsullar',   priority: '0.9', changefreq: 'weekly'  },
-    { url: '/catdirilma',  priority: '0.8', changefreq: 'monthly' },
-    { url: '/haqqimizda',  priority: '0.7', changefreq: 'monthly' },
+    { p: '',            priority: '1.0', changefreq: 'weekly'  },
+    { p: '/mehsullar',  priority: '0.9', changefreq: 'weekly'  },
+    { p: '/catdirilma', priority: '0.8', changefreq: 'monthly' },
+    { p: '/haqqimizda', priority: '0.7', changefreq: 'monthly' },
   ];
+  for (const sp of staticPages) blocks.push(pairXml(sp));
 
-  const categoryPages = CATEGORY_PAGES.map(cat => ({
-    url:        `/mehsullar/${cat.slug}`,
-    priority:   '0.9',
-    changefreq: 'weekly',
-  }));
+  // Kateqoriyalar
+  for (const slug of categorySlugs) {
+    blocks.push(pairXml({ p: `/mehsullar/${slug}`, priority: '0.9', changefreq: 'weekly' }));
+  }
 
-  const audiencePages = audienceCategories
-    .filter(a => a.slug)
-    .map(a => ({
-      url:        `/kime/${a.slug}`,
-      priority:   '0.8',
-      changefreq: 'weekly',
+  // "Kimə alırsan?"
+  for (const a of audienceCategories.filter(a => a.slug)) {
+    blocks.push(pairXml({ p: `/kime/${a.slug}`, priority: '0.8', changefreq: 'weekly' }));
+  }
+
+  // Blog: siyahı AZ+EN; yazılar yalnız AZ (məzmun Azərbaycancadır)
+  blocks.push(pairXml({ p: '/blog', priority: '0.7', changefreq: 'weekly' }));
+  for (const b of blogPosts.filter(b => b.slug)) {
+    blocks.push(urlXml({
+      loc: `${BASE_URL}/blog/${b.slug}`,
+      p: `/blog/${b.slug}`,
+      lastmod: b.publishedAt ? b.publishedAt.slice(0, 10) : undefined,
+      changefreq: 'monthly',
+      priority: '0.6',
+      bilingual: false,
     }));
+  }
 
-  const blogPages = [
-    { url: '/blog', priority: '0.7', changefreq: 'weekly' },
-    ...blogPosts
-      .filter(b => b.slug)
-      .map(b => ({
-        url:        `/blog/${b.slug}`,
-        priority:   '0.6',
-        changefreq: 'monthly',
-        lastmod:    b.publishedAt ? b.publishedAt.slice(0, 10) : TODAY,
-      })),
-  ];
-
-  const staticXml = staticPages.map(p => `  <url>
-    <loc>${BASE_URL}${p.url}</loc>
-    <lastmod>${TODAY}</lastmod>
-    <changefreq>${p.changefreq}</changefreq>
-    <priority>${p.priority}</priority>
-  </url>`).join('\n');
-
-  const categoryXml = categoryPages.map(p => `  <url>
-    <loc>${BASE_URL}${p.url}</loc>
-    <lastmod>${TODAY}</lastmod>
-    <changefreq>${p.changefreq}</changefreq>
-    <priority>${p.priority}</priority>
-  </url>`).join('\n');
-
-  const audienceXml = audiencePages.map(p => `  <url>
-    <loc>${BASE_URL}${p.url}</loc>
-    <lastmod>${TODAY}</lastmod>
-    <changefreq>${p.changefreq}</changefreq>
-    <priority>${p.priority}</priority>
-  </url>`).join('\n');
-
-  const blogXml = blogPages.map(p => `  <url>
-    <loc>${BASE_URL}${p.url}</loc>
-    <lastmod>${p.lastmod || TODAY}</lastmod>
-    <changefreq>${p.changefreq}</changefreq>
-    <priority>${p.priority}</priority>
-  </url>`).join('\n');
-
-  // ── Məhsul səhifələri — bütün variantların şəkilləri ──────────────────────
-  const productXml = validProducts.map(p => {
-    const imageUrls = Array.isArray(p.imageUrls)
-      ? p.imageUrls.filter(Boolean)
-      : [];
-
-    // Hər şəkil üçün <image:image> teqi (maks 5)
+  // Məhsullar — bütün variantların şəkilləri (AZ blokunda), real lastmod
+  for (const p of validProducts) {
+    const imageUrls = Array.isArray(p.imageUrls) ? p.imageUrls.filter(Boolean) : [];
     const imgTags = imageUrls.slice(0, 5).map(url => {
       const imgSrc = buildImageUrl(url);
       if (!imgSrc) return '';
@@ -149,32 +171,31 @@ async function generateSitemap() {
     </image:image>`;
     }).filter(Boolean).join('');
 
-    return `  <url>
-    <loc>${BASE_URL}/mehsullar/${p.slug}</loc>
-    <lastmod>${p.updatedAt ? p.updatedAt.slice(0, 10) : TODAY}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>${imgTags}
-  </url>`;
-  }).join('\n');
+    blocks.push(pairXml({
+      p: `/mehsullar/${p.slug}`,
+      lastmod: p.updatedAt ? p.updatedAt.slice(0, 10) : undefined,
+      priority: '0.85',
+      changefreq: 'weekly',
+      images: imgTags,
+    }));
+  }
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset
   xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-  xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
-${staticXml}
-${categoryXml}
-${audienceXml}
-${blogXml}
-${productXml}
+  xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml">
+${blocks.join('\n')}
 </urlset>`;
 
   writeFileSync('public/sitemap.xml', xml, 'utf-8');
 
-  const total = staticPages.length + categoryPages.length + audiencePages.length + blogPages.length + validProducts.length;
-  console.log(`✅ Sitemap yazıldı: ${total} URL (${withImages} məhsulda şəkil teqi var)`);
+  const total = (xml.match(/<url>/g) || []).length;
+  console.log(`✅ Sitemap yazıldı: ${total} URL (AZ+EN, ${withImages} məhsulda şəkil teqi var)`);
 }
 
 generateSitemap().catch((err) => {
-  console.error('⚠️  Sitemap generasiya uğursuz (build davam edir):', err.message || err);
+  // Build dayanmır (köhnə public/sitemap.xml qalır), amma xəta GÖRÜNMƏLİDİR
+  console.error('❌ Sitemap generasiya UĞURSUZ — köhnə public/sitemap.xml saxlanıldı:', err.message || err);
   process.exit(0);
 });

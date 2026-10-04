@@ -1,7 +1,7 @@
-// Ravio Service Worker v8 — Inter font self-hosted (Azərbaycan hərfləri sabit görünür)
-const CACHE_NAME    = 'ravio-v8';
-const IMG_CACHE     = 'ravio-img-v8';
-const SANITY_CACHE  = 'ravio-sanity-v8';
+// Ravio Service Worker v9 — naviqasiya uğursuz olanda ağ ekran əvəzinə keşlənmiş tətbiq qabığı göstərilir
+const CACHE_NAME    = 'ravio-v9';
+const IMG_CACHE     = 'ravio-img-v9';
+const SANITY_CACHE  = 'ravio-sanity-v9';
 
 const STATIC_SHELL = [
   '/',
@@ -116,7 +116,15 @@ async function networkFirst(request, cacheName, timeoutMs) {
   } catch {
     clearTimeout(timer);
     const cached = await caches.match(request);
-    return cached || new Response('', { status: 503 });
+    if (cached) return cached;
+    // Naviqasiya sorğusu (səhifə açılışı) uğursuz oldusa və BU URL keşdə yoxdursa, boş 503
+    // (ağ ekran) əvəzinə keşlənmiş tətbiq qabığını ("/") veririk — React marşrutu URL-ə görə
+    // özü açır. Zəif mobil şəbəkədə 4 saniyəlik timeout-dan sonra istifadəçi itmir.
+    if (request.mode === 'navigate') {
+      const shell = await caches.match('/');
+      if (shell) return shell;
+    }
+    return new Response('', { status: 503 });
   }
 }
 

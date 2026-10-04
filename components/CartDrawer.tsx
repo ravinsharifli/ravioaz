@@ -256,6 +256,9 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
   const hasAnyDiscount = totalSaleDiscount > 0 || totalBulkDiscount > 0 || totalCustomerDiscount > 0 || totalCouponDiscount > 0;
   const customerTypeLabel = items.find(i => i.customerType === 'loyal') ? 'Daimi müştəri (−20%)' :
                             items.find(i => i.customerType === 'new')   ? 'Yeni müştəri (−10%)'  : '';
+  // Səbətdə göstərilən etiket seçilmiş dildədir (yuxarıdakı customerTypeLabel isə WhatsApp mesajı üçün Azərbaycancadır)
+  const customerTypeLabelUi = items.find(i => i.customerType === 'loyal') ? t('cartDrawer.customerLoyalLabel') :
+                              items.find(i => i.customerType === 'new')   ? t('cartDrawer.customerNewLabel')   : '';
   const couponCodeLabel = items.map(i => i.couponCode).filter(Boolean).join(', ');
 
   const birthDate = bdDay && bdMonth && bdYear ? `${bdDay} ${bdMonth} ${bdYear}` : 'Bildirilməyib';
@@ -803,7 +806,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                   {/* Müştəri endirimi */}
                   {totalCustomerDiscount > 0 && (
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontSize: 13, color: C.green }}>
-                      <span>− {customerTypeLabel || t('cartDrawer.customerDiscountLabel')}</span>
+                      <span>− {customerTypeLabelUi || t('cartDrawer.customerDiscountLabel')}</span>
                       <span>−{money(totalCustomerDiscount)}</span>
                     </div>
                   )}

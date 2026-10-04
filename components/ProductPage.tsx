@@ -32,7 +32,32 @@ const C = {
   red:      '#DC2626',
 };
 
-const IMGBB_API_KEY = import.meta.env.VITE_IMGBB_API_KEY;
+/**
+ * Müştəri şəklini yükləmədən əvvəl brauzerdə kiçildir (max 2000px, JPEG ~85%).
+ * Telefon şəkilləri 5–12 MB olur; kiçildilmiş şəkil ~0.3–1 MB-dır → yükləmə sürətli olur
+ * və server funksiyasının limitinə (4.5 MB) sığır. Şəffaf PNG-nin arxa fonu ağ olur.
+ */
+async function compressImageToBase64(file: File, maxSide = 2000, quality = 0.85): Promise<string> {
+  const bitmap = await createImageBitmap(file);
+  try {
+    const scale = Math.min(1, maxSide / Math.max(bitmap.width, bitmap.height));
+    const width = Math.max(1, Math.round(bitmap.width * scale));
+    const height = Math.max(1, Math.round(bitmap.height * scale));
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('canvas unavailable');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, width, height);
+    ctx.drawImage(bitmap, 0, 0, width, height);
+    const base64 = canvas.toDataURL('image/jpeg', quality).split(',')[1];
+    if (!base64) throw new Error('empty image');
+    return base64;
+  } finally {
+    bitmap.close?.();
+  }
+}
 
 // Rəngin açıq/tünd olduğunu hesablayır ki, üzərindəki tik işarəsi (✓) həmişə oxunaqlı olsun
 function isLightColor(hex: string): boolean {
@@ -230,9 +255,9 @@ const ProductPage: React.FC<ProductPageProps> = ({
 
   const handleApplyCoupon = () => {
     const trimmed = couponInput.trim().toUpperCase();
-    if (!trimmed) { setCouponError('Kupon kodu daxil edin'); return; }
+    if (!trimmed) { setCouponError(t('productPage.couponEnterCode')); return; }
     const found = coupons.find(c => c.code.toUpperCase() === trimmed);
-    if (!found) { setCouponError('Bu kupon kodu tapılmadı'); return; }
+    if (!found) { setCouponError(t('productPage.couponNotFound')); return; }
     setCouponError('');
     setAppliedCoupon(found);
     setCouponInput('');
@@ -241,29 +266,27 @@ const ProductPage: React.FC<ProductPageProps> = ({
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) { setUploadError('Şəkil 5 MB-dan böyük olmamalıdır'); return; }
+    if (file.size > 20 * 1024 * 1024) { setUploadError(t('productPage.uploadTooLarge')); return; }
     setUploadError('');
     setUploadLoading(true);
     const localPreview = URL.createObjectURL(file);
     setUploadedImgPreview(localPreview);
     try {
-      const base64 = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = ev => { const result = ev.target?.result as string; resolve(result.split(',')[1]); };
-        reader.onerror = () => reject(new Error('Fayl oxunmadı'));
-        reader.readAsDataURL(file);
+      // Əvvəlcə brauzerdə kiçildirik, sonra ÖZ server funksiyamıza göndəririk (/api/upload-image).
+      // imgbb açarı artıq brauzerə düşmür.
+      const base64 = await compressImageToBase64(file);
+      const response = await fetch('/api/upload-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: base64 }),
       });
-      const formData = new FormData();
-      formData.append('image', base64);
-      formData.append('expiration', '604800');
-      const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: formData });
-      if (!response.ok) throw new Error('Yükləmə xətası');
+      if (!response.ok) throw new Error('upload failed');
       const data = await response.json();
-      if (data.success) { setUploadedImgUrl(data.data.url); setUploadLoading(false); }
-      else throw new Error('Şəkil yüklənmədi');
+      if (data?.ok && data.url) { setUploadedImgUrl(data.url); setUploadLoading(false); }
+      else throw new Error('upload failed');
     } catch {
       setUploadedImgPreview(null); setUploadedImgUrl(null);
-      setUploadLoading(false); setUploadError('Şəkil yüklənmədi, yenidən cəhd edin');
+      setUploadLoading(false); setUploadError(t('productPage.uploadFailed'));
     }
   };
 
@@ -951,7 +974,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
               {uploadLoading && (
                 <div style={{ display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', gap: 12, padding: '24px', border: `1.5px dashed ${C.blueBd}`, borderRadius: 10, background: C.blueBg }}>
                   {uploadedImgPreview && (
-                    <img src={uploadedImgPreview} alt="Önizləmə" style={{ width: '100%', maxHeight: 120, objectFit: 'contain', borderRadius: 8, opacity: 0.6 }} />
+                    <img src={uploadedImgPreview} alt={t('productPage.previewAlt')} style={{ width: '100%', maxHeight: 120, objectFit: 'contain', borderRadius: 8, opacity: 0.6 }} />
                   )}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <svg width="18" height="18" viewBox="0 0 18 18" style={{ animation: 'ravio-spin 0.8s linear infinite' }}>
@@ -965,7 +988,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
 
               {uploadedImgPreview && !uploadLoading && uploadedImgUrl && (
                 <div style={{ position: 'relative' }}>
-                  <img src={uploadedImgPreview} alt="Yüklənmiş" style={{ width: '100%', height: 160, objectFit: 'contain', borderRadius: 8, background: C.bg, border: `1px solid ${C.green}` }} />
+                  <img src={uploadedImgPreview} alt={t('productPage.uploadedAlt')} style={{ width: '100%', height: 160, objectFit: 'contain', borderRadius: 8, background: C.bg, border: `1px solid ${C.green}` }} />
                   <button onClick={handleRemoveImage} style={{ position: 'absolute', top: 8, right: 8, background: 'rgba(0,0,0,0.55)', border: 'none', borderRadius: '50%', width: 28, height: 28, color: C.white, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <X size={14} />
                   </button>

@@ -271,7 +271,9 @@
     "couponLabel": "− Kupon",
     "fillRequiredFields": "Bütün məcburi xanaları doldurun",
     "sendViaWhatsApp": "WhatsApp ilə göndər",
-    "deposit": "Beh (50%)"
+    "deposit": "Beh (50%)",
+    "customerLoyalLabel": "Daimi müştəri (−20%)",
+    "customerNewLabel": "Yeni müştəri (−10%)"
   },
   "productPage": {
     "prevImage": "Əvvəlki şəkil",
@@ -324,7 +326,13 @@
     "couponDiscount": "−{{amount}} ₼ kupon",
     "addedToCart": "Səbətə əlavə edildi!",
     "uploadingShort": "⏳ Şəkil yüklənir...",
-    "addToCartButton": "🛒 Səbətə əlavə et"
+    "addToCartButton": "🛒 Səbətə əlavə et",
+    "couponEnterCode": "Kupon kodu daxil edin",
+    "couponNotFound": "Bu kupon kodu tapılmadı",
+    "uploadTooLarge": "Şəkil 20 MB-dan böyük olmamalıdır",
+    "uploadFailed": "Şəkil yüklənmədi, yenidən cəhd edin",
+    "previewAlt": "Önizləmə",
+    "uploadedAlt": "Yüklənmiş şəkil"
   },
   "home": {
     "infoStrips": {

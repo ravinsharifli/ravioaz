@@ -12,7 +12,7 @@
 
 import { createClient } from '@sanity/client';
 import { readFileSync, writeFileSync, mkdirSync } from 'fs';
-import { join } from 'path';
+import { join, dirname } from 'path';
 import { CATEGORY_PAGES } from './seo-categories.mjs';
 
 // ── Sanity client ─────────────────────────────────────────────
@@ -94,6 +94,18 @@ function sanityWebP(url, width, quality = 80) {
  * hər ikisinə "high" versək, brauzer bant genişliyini bölür və HEÇ BİRİ tez
  * bitmir. Ona görə yalnız real LCP namizədinə "high" veririk, digərinə "auto".
  */
+function lcpPreloadTag(url, sizes, widths = [240, 480, 720], fetchPriority = 'high') {
+  if (!url) return '';
+  const srcset = widths.map((w) => `${sanityWebP(url, w)} ${w}w`).join(', ');
+  // href yalnız imagesrcset-i dəstəkləməyən köhnə brauzerlər üçün ehtiyatdır.
+  // DİQQƏT: default widths ProductPage.tsx-dəki əsl <img srcSet> ilə eynidir ([240, 480, 720]).
+  const href = sanityWebP(url, widths[Math.min(1, widths.length - 1)]);
+  return (
+    `<link rel="preload" as="image" href="${esc(href)}" ` +
+    `imagesrcset="${esc(srcset)}" imagesizes="${esc(sizes)}" fetchpriority="${esc(fetchPriority)}">`
+  );
+}
+
 /**
  * Google üçün ilkin HTML məzmunu root-a əlavə edir.
  * React yükləndikdən sonra bu məzmun createRoot tərəfindən əvəz olunur.
@@ -105,8 +117,48 @@ function injectStaticRoot(html, content) {
   );
 }
 
+/** Bot üçün ilkin HTML-də istifadə olunan sabit mətnlər (AZ + EN) */
+const SHELL_TEXT = {
+  az: {
+    home: 'Ana səhifə',
+    products: 'Məhsullar',
+    viewAll: 'Bütün məhsullara bax',
+    price: 'Qiymət',
+    orderCta: 'Məhsula bax və sifariş et',
+    madeToOrder: 'Ravio-da fərdi sifarişlə hazırlanır. Bütün Azərbaycana ödənişsiz çatdırılma.',
+    altSuffix: 'fərdi hədiyyə, Bakı',
+  },
+  en: {
+    home: 'Home',
+    products: 'Products',
+    viewAll: 'View all products',
+    price: 'Price',
+    orderCta: 'View product and order',
+    madeToOrder: 'Made to order at Ravio. Free delivery across Azerbaijan.',
+    altSuffix: 'personalized gift, Baku',
+  },
+};
+
 /** Ana səhifənin Google bot üçün ilkin məzmunu */
-function homeSeoContent() {
+function homeSeoContent(lang = 'az') {
+  if (lang === 'en') {
+    return `
+    <main style="max-width:1280px;margin:0 auto;padding:32px 16px;font-family:Inter,Arial,sans-serif">
+      <h1>Personalized Laser-Engraved Gifts in Baku — Ravio</h1>
+      <p>
+        At Ravio you can order laser-engraved bracelets, personalized prayer beads,
+        dominoes and gift boxes. Every piece is made specially for you.
+        Free delivery across Azerbaijan, ready in 1–3 business days.
+      </p>
+      <nav aria-label="Product categories">
+        <a href="/en/mehsullar">All products</a> ·
+        <a href="/en/mehsullar/boyunbagilar">Laser-engraved necklaces</a> ·
+        <a href="/en/mehsullar/qolbaqlar">Laser-engraved bracelets</a> ·
+        <a href="/en/mehsullar/tesbehler">Personalized prayer beads</a>
+      </nav>
+    </main>
+  `;
+  }
   return `
     <main style="max-width:1280px;margin:0 auto;padding:32px 16px;font-family:Inter,Arial,sans-serif">
       <h1>Lazer Yazılı Qolbaq və Fərdi Hədiyyələr Bakıda — Ravio</h1>
@@ -126,26 +178,27 @@ function homeSeoContent() {
 }
 
 /** Məhsul səhifəsinin Google bot üçün ilkin məzmunu */
-function productSeoContent({ name, desc, image, price, slug }) {
+function productSeoContent({ name, desc, image, price, slug, lang = 'az' }) {
+  const T = SHELL_TEXT[lang];
   const imageHtml = image
     ? `
       <img
         src="${esc(sanityWebP(image, 900))}"
-        alt="${esc(name)} — fərdi hədiyyə, Bakı"
+        alt="${esc(name)} — ${T.altSuffix}"
         style="max-width:420px;width:100%;height:auto"
       />
     `
     : '';
 
   const priceHtml = price
-    ? `<p><strong>Qiymət: ${esc(price)} AZN</strong></p>`
+    ? `<p><strong>${T.price}: ${esc(price)} AZN</strong></p>`
     : '';
 
   return `
     <main style="max-width:1280px;margin:0 auto;padding:32px 16px;font-family:Inter,Arial,sans-serif">
       <nav aria-label="Breadcrumb">
-        <a href="/">Ana səhifə</a> /
-        <a href="/mehsullar">Məhsullar</a> /
+        <a href="${pathFor('/', lang)}">${T.home}</a> /
+        <a href="${pathFor('/mehsullar', lang)}">${T.products}</a> /
         <span>${esc(name)}</span>
       </nav>
 
@@ -154,23 +207,20 @@ function productSeoContent({ name, desc, image, price, slug }) {
         ${imageHtml}
         <p>${esc(desc)}</p>
         ${priceHtml}
-        <p>
-          Ravio-da fərdi sifarişlə hazırlanır. Bütün Azərbaycana
-          ödənişsiz çatdırılma.
-        </p>
-        <a href="/mehsullar/${esc(slug)}">Məhsula bax və sifariş et</a>
+        <p>${T.madeToOrder}</p>
+        <a href="${pathFor(`/mehsullar/${slug}`, lang)}">${T.orderCta}</a>
       </article>
     </main>
   `;
 }
 
 /** Kateqoriya və məhsullar səhifəsi üçün ilkin məzmun */
-function simpleSeoContent({ h1, desc }) {
+function simpleSeoContent({ h1, desc, lang = 'az' }) {
   return `
     <main style="max-width:1280px;margin:0 auto;padding:32px 16px;font-family:Inter,Arial,sans-serif">
       <h1>${esc(h1)}</h1>
       <p>${esc(desc)}</p>
-      <a href="/mehsullar">Bütün məhsullara bax</a>
+      <a href="${pathFor('/mehsullar', lang)}">${SHELL_TEXT[lang].viewAll}</a>
     </main>
   `;
 }
@@ -317,16 +367,97 @@ function inlineMainCss(html, distDir = 'dist') {
   return result;
 }
 
+// ── Çoxdilli (AZ/EN) köməkçilər ───────────────────────────────
+const SITE = 'https://ravio.az';
+const LANGS = ['az', 'en'];
+const LOCALES = {
+  az: JSON.parse(readFileSync('i18n/locales/az.json', 'utf-8')),
+  en: JSON.parse(readFileSync('i18n/locales/en.json', 'utf-8')),
+};
+
+/** i18n/locales/*.json-dan mətn oxuyur ("home.meta.title" kimi). Açar tapılmasa build DAYANIR. */
+function tr(lang, path, vars = {}) {
+  const val = path.split('.').reduce((o, k) => (o && typeof o === 'object' ? o[k] : undefined), LOCALES[lang]);
+  if (typeof val !== 'string') throw new Error(`i18n açarı tapılmadı: ${lang}:${path}`);
+  return val.replace(/\{\{\s*(\w+)\s*\}\}/g, (_, k) => String(vars[k] ?? ''));
+}
+
+/** i18n/useLocalizedNav.ts-dəki withLangPrefix ilə EYNİ qayda: "/" → "/en", "/x" → "/en/x" */
+function pathFor(pathAz, lang) {
+  if (lang !== 'en') return pathAz;
+  return pathAz === '/' ? '/en' : `/en${pathAz}`;
+}
+function urlFor(pathAz, lang) {
+  return `${SITE}${pathFor(pathAz, lang)}`;
+}
+
+/** lib/categorySlug.ts-dəki toCategorySlug-un eynisi (kateqoriya adı → URL slug) */
+function toCategorySlug(name) {
+  return String(name || '')
+    .toLowerCase()
+    .replace(/ə/g, 'e').replace(/ö/g, 'o').replace(/ü/g, 'u')
+    .replace(/ı/g, 'i').replace(/ğ/g, 'g').replace(/ş/g, 's')
+    .replace(/ç/g, 'c').replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-]/g, '');
+}
+
+/** hreflang: hər dil səhifəsi digər dilin qarşılığına və x-default-a (AZ) işarə edir */
+function hreflangTags(pathAz) {
+  const az = urlFor(pathAz, 'az');
+  return [
+    `<link rel="alternate" hreflang="az" href="${az}" />`,
+    `<link rel="alternate" hreflang="en" href="${urlFor(pathAz, 'en')}" />`,
+    `<link rel="alternate" hreflang="x-default" href="${az}" />`,
+  ].join('\n  ');
+}
+
+/** İngilis səhifələrdə <html lang>, og:locale və WebSite inLanguage dəyişir */
+function applyLang(html, lang) {
+  if (lang !== 'en') return html;
+  return html
+    .replace('<html lang="az">', '<html lang="en">')
+    .replace(/(<meta property="og:locale" content=")[^"]*(")/, '$1en_US$2')
+    .replace('"inLanguage": "az"', '"inLanguage": "en"');
+}
+
+/** Bir səhifənin bütün dil-asılı meta-sını (title, description, canonical, og:*, hreflang) təyin edir */
+function finalizePage(html, { lang, pathAz, title, desc, image }) {
+  let out = injectMeta(html, {
+    title,
+    desc,
+    url: urlFor(pathAz, lang),
+    image: image || `${SITE}/og-ravio.png`,
+  });
+  out = applyLang(out, lang);
+  return out.replace('</head>', `  ${hreflangTags(pathAz)}\n</head>`);
+}
+
+function writePage(file, html) {
+  mkdirSync(dirname(file), { recursive: true });
+  writeFileSync(file, html, 'utf-8');
+}
+
+/** lang=az → dist/<parts>/index.html ; lang=en → dist/en/<parts>/index.html */
+function distFile(lang, ...parts) {
+  return join('dist', ...(lang === 'en' ? ['en'] : []), ...parts, 'index.html');
+}
+
+function jsonLdTag(schema) {
+  return `\n  <script type="application/ld+json">${JSON.stringify(schema)}</script>`;
+}
+
 // ── Əsas funksiya ─────────────────────────────────────────────
 async function run() {
   console.log('\n🚀 inject-seo: başladı...\n');
 
-  // 1. Sanity-dən məhsulları çək
+  // 1. Sanity-dən məhsulları çək (AZ + EN sahələri)
   const products = await client.fetch(`
     *[_type == "product" && defined(slug.current)] | order(_createdAt desc) {
       name,
+      nameEn,
       "slug": slug.current,
       description,
+      descriptionEn,
       "firstImageUrl": variants[0].images[0].asset->url,
       "price": coalesce(variants[0].discountPrice, variants[0].price),
       "variantPrices": variants[]{ price, discountPrice, inStock }
@@ -334,13 +465,35 @@ async function run() {
   `);
 
   console.log(`📦 ${products.length} məhsul tapıldı\n`);
+  const missingEn = products.filter((p) => !(p.nameEn && p.nameEn.trim()) || !(p.descriptionEn && p.descriptionEn.trim()));
+  if (missingEn.length) {
+    console.warn(`⚠️  ${missingEn.length} məhsulun İngilis tərcüməsi (nameEn/descriptionEn) yoxdur — EN səhifədə Azərbaycanca mətn görünəcək:`);
+    missingEn.slice(0, 15).forEach((p) => console.warn(`    - ${p.slug}`));
+  }
+  if (products.length === 0) {
+    throw new Error('Sanity 0 məhsul qaytardı — boş saytın dərc olunmaması üçün build dayandırıldı');
+  }
+
+  // 1a. Kateqoriyalar: ad + İngilis adı + məhsul sayı. Məhsulu olmayan kateqoriya
+  // nə prerender olunur, nə sitemap-ə düşür (boş/"thin" səhifə Google-a pis siqnaldır).
+  const categoryDocs = await client.fetch(`
+    *[_type == "category"]{
+      name,
+      nameEn,
+      "count": count(*[_type == "product" && references(^._id)])
+    }
+  `);
+  const activeCategories = categoryDocs
+    .filter((c) => c?.name && c.count > 0)
+    .map((c) => ({ slug: toCategorySlug(c.name), name: c.name, nameEn: c.nameEn || c.name }));
+  const emptyCategories = categoryDocs.filter((c) => c?.name && !(c.count > 0)).map((c) => c.name);
+  if (emptyCategories.length) {
+    console.log(`ℹ️  Boş kateqoriyalar atlandı: ${emptyCategories.join(', ')}\n`);
+  }
 
   // 1b. Ana səhifə LCP namizədləri: real PageSpeed testində (Moto G Power,
   // dar mobil viewport) LCP elementi HƏMIŞƏ hero yox, ProductGrid-in İLK kartının
-  // şəkli olaraq ölçülür — hero DOM-da əvvəl gəlsə də, mobil ekranda vizual
-  // sahəsi (piksel sahəsi) grid kartından kiçik qala bilir və Lighthouse
-  // böyük olanı seçir. Ona görə HƏR İKİSİNİ preload edirik: brauzer real
-  // LCP-ni hansı olursa seçsin, hər ikisi artıq HTML-də mövcud olur.
+  // şəkli olaraq ölçülür. Ona görə HƏR İKİSİNİ preload edirik.
   const heroSettings = await client.fetch(`
     *[_type == "siteSettings"][0]{
       "heroImage": heroSlides[isActive != false][0].image.asset->url
@@ -349,10 +502,11 @@ async function run() {
 
   // Ana səhifə grid-i bestSellerOrder asc sırası ilə göstərir (ProductGrid.tsx,
   // App.tsx PRODUCTS_QUERY) — grid-in İLK kartı budur.
-  const firstGridProduct = await client.fetch(`
+  const firstGridProductRaw = await client.fetch(`
     *[_type == "product"] | order(bestSellerOrder asc) [0]{
       "firstImageUrl": variants[0].images[0].asset->url,
-      name
+      name,
+      nameEn
     }
   `);
 
@@ -360,24 +514,27 @@ async function run() {
   let template = readFileSync('dist/index.html', 'utf-8');
 
   // Kritik CSS-i BÜTÜN prerender olunan səhifələr üçün İLK addım olaraq inline
-  // edirik (template hələ heç bir digər dəyişikliyə uğramamış) — beləliklə
-  // həm / (ana səhifə), həm /mehsullar/[slug] səhifələri render-blocking CSS
-  // sorğusundan azad olur.
+  // edirik — beləliklə bütün səhifələr render-blocking CSS sorğusundan azad olur.
   template = inlineMainCss(template);
 
-  // ── 3. Ana səhifə LCP preload ─────────────────────────────────
-  // Hero karusel ilk slaydı homepage-in ən böyük görünən elementidir (LCP).
-  // Widths/sizes UnifiedHeroCarousel.tsx-dəki əsl <img> ilə EYNİ olmalıdır,
-  // əks halda brauzer preload edilən şəkli yox, başqasını yükləyir.
-  // Build zamanı preload tag-ini dist/index.html-ə yazırıq ki,
-  // brauzer preload scanner JS-i gözləmədən şəkli tapıb yükləsin.
-  {
+  // ── 3. Ana səhifə: AZ → dist/index.html, EN → dist/en/index.html ──────────
+  // Widths/sizes UnifiedHeroCarousel.tsx və ProductGrid-dəki əsl <img> ilə EYNİ
+  // olmalıdır, əks halda brauzer preload edilən şəkli yox, başqasını yükləyir.
+  for (const homeLang of LANGS) {
+    const firstGridProduct = firstGridProductRaw
+      ? {
+          ...firstGridProductRaw,
+          name: homeLang === 'en'
+            ? (firstGridProductRaw.nameEn || firstGridProductRaw.name)
+            : firstGridProductRaw.name,
+        }
+      : null;
+
     const preloadTags = [];
 
     // Real PageSpeed ölçmələri (2026-07) göstərir ki, mobil LCP elementi
     // grid kartıdır, hero YOX — ona görə "high" prioritet BURAYA gedir,
-    // hero isə "auto" alır (yenə preload olunur, sadəcə bant genişliyi
-    // ilk növbədə əsl LCP elementinə ayrılır).
+    // hero isə "auto" alır.
     if (firstGridProduct?.firstImageUrl) {
       preloadTags.push(
         lcpPreloadTag(
@@ -400,7 +557,7 @@ async function run() {
       );
     }
 
-    let homeHtml = injectStaticRoot(template, homeSeoContent());
+    let homeHtml = injectStaticRoot(template, homeSeoContent(homeLang));
 
     if (preloadTags.length) {
       homeHtml = homeHtml.replace('</head>', `${preloadTags.join('\n')}\n</head>`);
@@ -451,201 +608,224 @@ async function run() {
       console.log(`  ok Statik LCP <img> -> #ravio-skeleton (${firstGridProduct.name})\n`);
     }
 
-    if (preloadTags.length || firstGridProduct?.firstImageUrl) {
-      writeFileSync('dist/index.html', homeHtml, 'utf-8');
-      console.log(`  ok LCP preload -> / (hero + ilk grid kartı, ${preloadTags.length} preload tag)\n`);
+    if (homeLang === 'en') {
+      homeHtml = finalizePage(homeHtml, {
+        lang: 'en',
+        pathAz: '/',
+        title: tr('en', 'home.meta.title'),
+        desc: tr('en', 'home.meta.description'),
+        image: `${SITE}/og-ravio.png`,
+      });
+    } else {
+      // AZ ana səhifə: meta index.html template-indən gəlir, yalnız hreflang əlavə olunur
+      homeHtml = homeHtml.replace('</head>', `  ${hreflangTags('/')}\n</head>`);
     }
+
+    const homeFile = distFile(homeLang);
+    writePage(homeFile, homeHtml);
+    console.log(`  ok Ana səhifə -> ${homeFile} (${preloadTags.length} LCP preload tag)\n`);
   }
 
   let ok = 0;
   let fail = 0;
 
-  // 4. Hər məhsul üçün ayrı HTML yarat
-  for (const p of products) {
-    try {
-      const cleanName = cleanBrandSuffix(p.name);
-      const title = brandTitle(cleanName);
-      const rawDesc = p.description
-      ? shortDescription(p.description)
-      : `${cleanName} — Ravio-dan fərdi hədiyyə. Bütün Azərbaycana ödənişsiz çatdırılma.`;
-      const pageUrl  = `https://ravio.az/mehsullar/${p.slug}`;
-      const image    = ogImage(p.firstImageUrl);
+  // 4. Hər məhsul üçün ayrı HTML — AZ və EN
+  for (const lang of LANGS) {
+    for (const p of products) {
+      try {
+        const cleanName = cleanBrandSuffix(lang === 'en' ? (p.nameEn || p.name) : p.name);
+        const title = brandTitle(cleanName);
+        const rawSource = lang === 'en' ? p.descriptionEn : p.description;
+        const rawDesc = rawSource
+          ? shortDescription(rawSource)
+          : lang === 'en'
+            ? `${cleanName} — personalized gift from Ravio. Free delivery across Azerbaijan.`
+            : `${cleanName} — Ravio-dan fərdi hədiyyə. Bütün Azərbaycana ödənişsiz çatdırılma.`;
+        const pathAz = `/mehsullar/${p.slug}`;
+        const pageUrl = urlFor(pathAz, lang);
+        const image = ogImage(p.firstImageUrl);
 
-      let html = injectMeta(template, {
-        title,
-        desc: rawDesc,
-        url: pageUrl,
-        image,
-      });
-
-      html = injectStaticRoot(
-  html,
-  productSeoContent({
-    name: cleanName,
-    desc: rawDesc,
-    image: p.firstImageUrl,
-    price: p.price,
-    slug: p.slug,
-  }),
-);
-
-      // Məhsul səhifəsinin LCP şəkli — məhsulun öz şəklidir.
-      // Sizes: mobil 90vw, tablet/desktop 50vw | max 640px
-      if (p.firstImageUrl) {
-        const prodPreload = lcpPreloadTag(
-          p.firstImageUrl,
-          '(max-width: 640px) 90vw, (max-width: 1280px) 50vw, 640px'
+        let html = injectStaticRoot(
+          template,
+          productSeoContent({
+            name: cleanName,
+            desc: rawDesc,
+            image: p.firstImageUrl,
+            price: p.price,
+            slug: p.slug,
+            lang,
+          }),
         );
-        html = html.replace('</head>', `${prodPreload}\n</head>`);
+        html = finalizePage(html, { lang, pathAz, title, desc: rawDesc, image });
+
+        // Məhsul səhifəsinin LCP şəkli — məhsulun öz şəklidir.
+        // Sizes: mobil 90vw, tablet/desktop 50vw | max 640px (widths: [240, 480, 720])
+        if (p.firstImageUrl) {
+          const prodPreload = lcpPreloadTag(
+            p.firstImageUrl,
+            '(max-width: 640px) 90vw, (max-width: 1280px) 50vw, 640px'
+          );
+          html = html.replace('</head>', `${prodPreload}\n</head>`);
+        }
+
+        // Product schema.org JSON-LD — real qiymət aralığı və stok vəziyyəti ilə
+        html = injectProductSchema(html, {
+          name: cleanName,
+          desc: rawDesc,
+          image,
+          url: pageUrl,
+          price: p.price,
+          variantPrices: p.variantPrices,
+        });
+
+        writePage(distFile(lang, 'mehsullar', p.slug), html);
+        ok++;
+        console.log(`  ✅ ${pathFor(pathAz, lang)}`);
+      } catch (err) {
+        fail++;
+        console.error(`  ❌ [${lang}] /mehsullar/${p.slug} — ${err.message}`);
       }
+    }
+  }
 
-      // Product schema.org JSON-LD — real qiymət aralığı və stok vəziyyəti ilə
-      html = injectProductSchema(html, {
-        name: cleanName,
-        desc: rawDesc,
-        image,
-        url: pageUrl,
-        price: p.price,
-        variantPrices: p.variantPrices,
-      });
-
-      const dir = `dist/mehsullar/${p.slug}`;
-      mkdirSync(dir, { recursive: true });
-      writeFileSync(`${dir}/index.html`, html, 'utf-8');
-      ok++;
-      console.log(`  ✅ /mehsullar/${p.slug}`);
+  // 5. /mehsullar siyahı səhifəsi — AZ və EN
+  for (const lang of LANGS) {
+    try {
+      const desc = tr(lang, 'productsPage.meta.description');
+      let html = injectStaticRoot(
+        template,
+        simpleSeoContent({
+          h1: lang === 'en'
+            ? 'Personalized Gifts and Laser-Engraved Products'
+            : 'Fərdi Hədiyyələr və Lazer Yazılı Məhsullar',
+          desc,
+          lang,
+        }),
+      );
+      html = finalizePage(html, { lang, pathAz: '/mehsullar', title: tr(lang, 'productsPage.meta.title'), desc });
+      writePage(distFile(lang, 'mehsullar'), html);
+      console.log(`  ✅ ${pathFor('/mehsullar', lang)} (siyahı səhifəsi)`);
     } catch (err) {
       fail++;
-      console.error(`  ❌ /mehsullar/${p.slug} — ${err.message}`);
+      console.error(`  ❌ [${lang}] /mehsullar — ${err.message}`);
     }
   }
 
-  // 5. /mehsullar siyahı səhifəsi üçün HTML
-  try {
-    let html = injectMeta(template, {
-      title: 'Bütün Məhsullar | Ravio',
-      desc:  'Ravio-nun bütün fərdi hədiyyələri — lazer yazılı qolbaq, təsbeh, domino, giftbox. Bütün Azərbaycana ödənişsiz çatdırılma, 1–3 iş günü.',
-      url:   'https://ravio.az/mehsullar',
-      image: 'https://ravio.az/og-ravio.png',
-    });
-    html = injectStaticRoot(
-  html,
-  simpleSeoContent({
-    h1: 'Fərdi Hədiyyələr və Lazer Yazılı Məhsullar',
-    desc: 'Ravio-da lazer yazılı qolbaq, fərdi təsbeh, domino və hədiyyəlik qutular. Bütün Azərbaycana ödənişsiz çatdırılma və 1–3 iş günündə hazırlıq.',
-  }),
-);
-    mkdirSync('dist/mehsullar', { recursive: true });
-    writeFileSync('dist/mehsullar/index.html', html, 'utf-8');
-    console.log(`  ✅ /mehsullar (siyahı səhifəsi)`);
-  } catch (err) {
-    console.error(`  ❌ /mehsullar — ${err.message}`);
-  }
-
-  // ── Kateqoriya səhifələrini prerender et ─────────────────────
-  // (CATEGORY_PAGES — seo-categories.mjs-dən, tək mənbə)
-
+  // ── Kateqoriya səhifələrini prerender et (AZ + EN) ───────────────────────
+  // AZ mətnləri seo-categories.mjs-dən (əl ilə yazılmış); orada olmayan yeni
+  // kateqoriya üçün runtime ilə (SlugPage.tsx) eyni ümumi şablon işlənir.
   let catOk = 0;
-  for (const cat of CATEGORY_PAGES) {
-    try {
-      const catUrl = `https://ravio.az/mehsullar/${cat.slug}`;
+  for (const lang of LANGS) {
+    for (const cat of activeCategories) {
+      try {
+        const pathAz = `/mehsullar/${cat.slug}`;
+        const catUrl = urlFor(pathAz, lang);
+        const seo = CATEGORY_PAGES.find((c) => c.slug === cat.slug);
+        const label = lang === 'en' ? cat.nameEn : cat.name;
+        const title = lang === 'az' && seo ? seo.title : `${label} | Ravio`;
+        const desc = lang === 'az' && seo ? seo.desc : `${label} — ${tr(lang, 'slugPage.categoryDescSuffix')}`;
+        const h1 = lang === 'az' && seo ? seo.h1 : label;
 
-      let html = injectMeta(template, {
-        title: cat.title,
-        desc:  cat.desc,
-        url:   catUrl,
-        image: 'https://ravio.az/og-ravio.png',
-      });
-      html = injectStaticRoot(
-  html,
-  simpleSeoContent({
-    h1: cat.h1,
-    desc: cat.desc,
-  }),
-);
+        let html = injectStaticRoot(template, simpleSeoContent({ h1, desc, lang }));
+        html = finalizePage(html, { lang, pathAz, title, desc });
 
-      // Kateqoriya üçün BreadcrumbList + CollectionPage schema
-      const schema = {
-        '@context': 'https://schema.org',
-        '@type': 'CollectionPage',
-        name: cat.h1,
-        description: cat.desc,
-        url: catUrl,
-        breadcrumb: {
-          '@type': 'BreadcrumbList',
-          itemListElement: [
-            { '@type': 'ListItem', position: 1, name: 'Ravio',     item: 'https://ravio.az' },
-            { '@type': 'ListItem', position: 2, name: 'Məhsullar', item: 'https://ravio.az/mehsullar' },
-            { '@type': 'ListItem', position: 3, name: cat.h1,      item: catUrl },
-          ],
-        },
-      };
-      const schemaTag = `\n  <script type="application/ld+json">${JSON.stringify(schema)}</script>`;
-      html = html.replace('</head>', `${schemaTag}\n</head>`);
+        // Kateqoriya üçün BreadcrumbList + CollectionPage schema
+        html = html.replace('</head>', `${jsonLdTag({
+          '@context': 'https://schema.org',
+          '@type': 'CollectionPage',
+          name: h1,
+          description: desc,
+          url: catUrl,
+          breadcrumb: {
+            '@type': 'BreadcrumbList',
+            itemListElement: [
+              { '@type': 'ListItem', position: 1, name: 'Ravio', item: lang === 'en' ? `${SITE}/en` : SITE },
+              { '@type': 'ListItem', position: 2, name: SHELL_TEXT[lang].products, item: urlFor('/mehsullar', lang) },
+              { '@type': 'ListItem', position: 3, name: h1, item: catUrl },
+            ],
+          },
+        })}\n</head>`);
 
-      mkdirSync(`dist/mehsullar/${cat.slug}`, { recursive: true });
-      writeFileSync(`dist/mehsullar/${cat.slug}/index.html`, html, 'utf-8');
-      catOk++;
-      console.log(`  ✅ /mehsullar/${cat.slug}`);
-    } catch (err) {
-      console.error(`  ❌ /mehsullar/${cat.slug} — ${err.message}`);
+        writePage(distFile(lang, 'mehsullar', cat.slug), html);
+        catOk++;
+        console.log(`  ✅ ${pathFor(pathAz, lang)}`);
+      } catch (err) {
+        console.error(`  ❌ [${lang}] /mehsullar/${cat.slug} — ${err.message}`);
+      }
     }
   }
 
-  console.log(`\n🎉 Tamamlandı: ${ok}/${products.length} məhsul + ${catOk}/${CATEGORY_PAGES.length} kateqoriya HTML-i yaradıldı`);
-  if (fail > 0) console.warn(`⚠️  ${fail} məhsul zamanı xəta baş verdi`);
+  console.log(`\n🎉 Tamamlandı: ${ok}/${products.length * LANGS.length} məhsul + ${catOk}/${activeCategories.length * LANGS.length} kateqoriya HTML-i yaradıldı`);
+  if (fail > 0) console.warn(`⚠️  ${fail} səhifə zamanı xəta baş verdi`);
 
-  // ── "Kimə alırsan?" səhifələrini prerender et (Sanity-dən dinamik) ───────
-  // CATEGORIES-dən fərqli olaraq bu siyahı kod içində deyil — Ravio Sanity-də
-  // yeni bölmə əlavə edən kimi, növbəti build bunu avtomatik tapıb prerender edir.
+  // ── "Kimə alırsan?" səhifələri (Sanity-dən dinamik, AZ + EN) ─────────────
   const audienceCategories = await client.fetch(`
     *[_type == "audienceCategory" && isActive != false && defined(slug.current)] | order(order asc, name asc) {
-      name, "slug": slug.current
+      name, nameEn, "slug": slug.current
     }
   `);
 
   let audOk = 0;
-  for (const ac of audienceCategories) {
-    try {
-      const acUrl = `https://ravio.az/kime/${ac.slug}`;
-      const acTitle = `${ac.name} — Hədiyyə Seçimləri | Ravio`;
-      const acDesc = `${ac.name} üçün fərdi lazer yazılı hədiyyələr. Bütün Azərbaycana ödənişsiz çatdırılma, 1–3 iş günündə hazır.`;
+  for (const lang of LANGS) {
+    for (const ac of audienceCategories) {
+      try {
+        const pathAz = `/kime/${ac.slug}`;
+        const acUrl = urlFor(pathAz, lang);
+        const acName = lang === 'en' ? (ac.nameEn || ac.name) : ac.name;
+        const acTitle = tr(lang, 'audiencePage.metaTitleTemplate', { name: acName });
+        const acDesc = tr(lang, 'audiencePage.metaDescriptionTemplate', { name: acName });
 
-      let html = injectMeta(template, {
-        title: acTitle,
-        desc: acDesc,
-        url: acUrl,
-        image: 'https://ravio.az/og-ravio.png',
-      });
-      html = injectStaticRoot(html, simpleSeoContent({ h1: ac.name, desc: acDesc }));
+        let html = injectStaticRoot(template, simpleSeoContent({ h1: acName, desc: acDesc, lang }));
+        html = finalizePage(html, { lang, pathAz, title: acTitle, desc: acDesc });
+        html = html.replace('</head>', `${jsonLdTag({
+          '@context': 'https://schema.org',
+          '@type': 'CollectionPage',
+          name: acName,
+          description: acDesc,
+          url: acUrl,
+          breadcrumb: {
+            '@type': 'BreadcrumbList',
+            itemListElement: [
+              { '@type': 'ListItem', position: 1, name: 'Ravio', item: lang === 'en' ? `${SITE}/en` : SITE },
+              { '@type': 'ListItem', position: 2, name: acName, item: acUrl },
+            ],
+          },
+        })}\n</head>`);
 
-      const schema = {
-        '@context': 'https://schema.org',
-        '@type': 'CollectionPage',
-        name: ac.name,
-        description: acDesc,
-        url: acUrl,
-        breadcrumb: {
-          '@type': 'BreadcrumbList',
-          itemListElement: [
-            { '@type': 'ListItem', position: 1, name: 'Ravio', item: 'https://ravio.az' },
-            { '@type': 'ListItem', position: 2, name: ac.name, item: acUrl },
-          ],
-        },
-      };
-      const schemaTag = `\n  <script type="application/ld+json">${JSON.stringify(schema)}</script>`;
-      html = html.replace('</head>', `${schemaTag}\n</head>`);
-
-      mkdirSync(`dist/kime/${ac.slug}`, { recursive: true });
-      writeFileSync(`dist/kime/${ac.slug}/index.html`, html, 'utf-8');
-      audOk++;
-      console.log(`  ✅ /kime/${ac.slug}`);
-    } catch (err) {
-      console.error(`  ❌ /kime/${ac.slug} — ${err.message}`);
+        writePage(distFile(lang, 'kime', ac.slug), html);
+        audOk++;
+        console.log(`  ✅ ${pathFor(pathAz, lang)}`);
+      } catch (err) {
+        console.error(`  ❌ [${lang}] /kime/${ac.slug} — ${err.message}`);
+      }
     }
   }
-  console.log(`🎯 ${audOk}/${audienceCategories.length} "Kimə alırsan?" bölməsi HTML-i yaradıldı`);
-  console.log('');
+  console.log(`🎯 ${audOk}/${audienceCategories.length * LANGS.length} "Kimə alırsan?" HTML-i yaradıldı\n`);
+
+  // ── Statik səhifələr (Haqqımızda, Çatdırılma, Blog siyahısı) — AZ + EN ──
+  // Əvvəl bu səhifələrə girişdə "/" səhifəsinin canonical-ı gəlirdi (yanlış siqnal).
+  const STATIC_PAGES = [
+    { pathAz: '/haqqimizda', titleKey: 'about.seoTitle', descKey: 'about.seoDesc', h1: { az: 'Haqqımızda', en: 'About Us' } },
+    { pathAz: '/catdirilma', titleKey: 'delivery.seoTitle', descKey: 'delivery.seoDesc', h1: { az: 'Çatdırılma', en: 'Delivery' } },
+    { pathAz: '/blog', titleKey: 'blogListPage.meta.title', descKey: 'blogListPage.meta.description', h1: { az: 'Blog', en: 'Blog' } },
+  ];
+  let staticOk = 0;
+  for (const lang of LANGS) {
+    for (const sp of STATIC_PAGES) {
+      try {
+        const title = tr(lang, sp.titleKey);
+        const desc = tr(lang, sp.descKey);
+        let html = injectStaticRoot(template, simpleSeoContent({ h1: sp.h1[lang], desc, lang }));
+        html = finalizePage(html, { lang, pathAz: sp.pathAz, title, desc });
+        writePage(distFile(lang, sp.pathAz.slice(1)), html);
+        staticOk++;
+        console.log(`  ✅ ${pathFor(sp.pathAz, lang)}`);
+      } catch (err) {
+        console.error(`  ❌ [${lang}] ${sp.pathAz} — ${err.message}`);
+      }
+    }
+  }
+  console.log(`📄 ${staticOk}/${STATIC_PAGES.length * LANGS.length} statik səhifə HTML-i yaradıldı\n`);
 
   // ── Blog yazılarını prerender et (Sanity-dən dinamik) ─────────────────────
   const blogPosts = await client.fetch(`
@@ -694,9 +874,37 @@ async function run() {
   }
   console.log(`📰 ${blogOk}/${blogPosts.length} blog yazısı HTML-i yaradıldı`);
   console.log('');
+
+  // ── Yekun yoxlama: səssiz uğursuzluğa YOL YOXDUR ──────────────────────────
+  // (Əvvəl bu skript xəta verəndə "uğurlu" çıxırdı — nəticədə heç bir HTML
+  // yaranmadan həftələrlə dərc olunurdu.)
+  const problems = [];
+  const mustContain = (file, needle) => {
+    try {
+      if (!readFileSync(file, 'utf-8').includes(needle)) problems.push(`${file}: "${needle}" tapılmadı`);
+    } catch {
+      problems.push(`${file}: fayl yaradılmayıb`);
+    }
+  };
+  mustContain('dist/index.html', 'data-seo-shell');
+  mustContain('dist/index.html', 'hreflang="en"');
+  mustContain('dist/en/index.html', '<html lang="en">');
+  mustContain('dist/en/index.html', `<link rel="canonical" href="${SITE}/en"`);
+  const expectedProducts = products.length * LANGS.length;
+  if (ok / expectedProducts < 0.95) problems.push(`məhsul səhifələri: ${ok}/${expectedProducts}`);
+  const expectedCats = activeCategories.length * LANGS.length;
+  if (expectedCats > 0 && catOk / expectedCats < 0.95) problems.push(`kateqoriya səhifələri: ${catOk}/${expectedCats}`);
+  if (problems.length) {
+    throw new Error(`Yekun yoxlama uğursuz:\n   - ${problems.join('\n   - ')}`);
+  }
+  console.log('✅ SEO yekun yoxlama keçdi (AZ+EN ana səhifə, hreflang, məhsul və kateqoriya HTML-ləri)\n');
 }
 
 run().catch((err) => {
-  console.error('\n⚠️  inject-seo uğursuz (əsas build saxlanılır):', err.message || err);
-  process.exit(0);
+  console.error('\n❌ inject-seo UĞURSUZ OLDU:', err.message || err);
+  if (process.env.SEO_SOFT_FAIL === '1') {
+    console.error('⚠️  SEO_SOFT_FAIL=1 olduğu üçün build davam edir (YALNIZ təcili hal üçün; sonra düzəlt!).');
+    process.exit(0);
+  }
+  process.exit(1);
 });
