@@ -6,28 +6,30 @@ Ravio 2024-cü ildən Bakıda fəaliyyət göstərən onlayn hədiyyə mağazas�
 
 ## Nə satırıq
 
-### Qolbaqlar (19.90₼ - 59.90₼)
+> Qiymətlər AZN ilə, saytda göstərilən cari satış qiymətləridir (son yoxlama: 2026-10-04). Dəqiq qiymət üçün məhsul səhifəsinə baxın.
+
+### Qolbaqlar (9.99₼ - 24.90₼)
 - Lazer yazılı metal qolbaq — ad, tarix, koordinat yazılır
 - Dəri qolbaq — fərdi yazı ilə
 - Polad qolbaq — paslanmaz, davamlı
 
-### Təsbehlər (29.90₼ - 79.90₼)
+### Təsbehlər (31.25₼ - 64.99₼)
 - Təbii əqiq daşlı təsbeh — lazer yazılı
 - Hematit daşlı təsbeh — fərdi adla
 - Riyolit daşlı təsbeh
 - Saç ilə hazırlanmış fərdi təsbeh
 
-### Domino Dəsti (25.90₼ - 89₼)
+### Domino Dəsti (27.49₼)
 - Lazer qravirəli domino — hədiyyə qutusunda
 - Kişi üçün fərdi domino dəsti
 
-### Boyunbağılar (15.90₼ - 49.95₼)
+### Boyunbağılar (19.90₼ - 26.25₼)
 - Açılan boyunbağı — ad yazılır
 - Lotus boyunbağı
 - Melek boyunbağı
 - Polad boyunbağı
 
-### Breloklar (11.90₼ - 34.99₼)
+### Breloklar (16.90₼ - 25.49₼)
 - Lazer yazılı brelok
 - Lipa nömrəli brelok
 - Şəkilli asılqan brelok
@@ -43,8 +45,8 @@ Ravio 2024-cü ildən Bakıda fəaliyyət göstərən onlayn hədiyyə mağazas�
 
 ### Hədiyyə Qutuları
 - Sadə qutu: pulsuz (standart qablaşdırma)
-- Orta qutu: 9.90₼ (fərqli hədiyyəlik qutu)
-- Premium qutu: 16.99₼ (hədiyyəlik qutu + bağlama + qeyd kartı)
+- Orta qutu: 10₼ (fərqli hədiyyəlik qutu)
+- Premium qutu: 17₼ (hədiyyəlik qutu + bağlama + qeyd kartı)
 
 ## Çatdırılma
 
@@ -91,11 +93,13 @@ və ya kart ilə — çatdırılma zamanı.
 - [Bütün məhsullar](https://ravio.az/mehsullar)
 - [Qolbaqlar](https://ravio.az/mehsullar/qolbaqlar)
 - [Təsbehlər](https://ravio.az/mehsullar/tesbehler)
-- [Domino dəstləri](https://ravio.az/mehsullar/domino)
-- [Hədiyyəlik qutular](https://ravio.az/mehsullar/hediyelik_qutular)
+- [Boyunbağılar](https://ravio.az/mehsullar/boyunbagilar)
+- [Breloklar](https://ravio.az/mehsullar/breloklar)
+- [Alışqanlar](https://ravio.az/mehsullar/alisqanlar)
+- [Hədiyyə dəstləri](https://ravio.az/mehsullar/dest-hediyyeler)
+- [English version of the site](https://ravio.az/en)
 - [Çatdırılma məlumatı](https://ravio.az/catdirilma)
 - [Haqqımızda](https://ravio.az/haqqimizda)
-- [Əlaqə](https://ravio.az/elaqe)
 
 ## Əlaqə
 
