@@ -48,6 +48,28 @@ export const C = {
   error:       'var(--clr-error)',
 } as const;
 
+// ── Sifariş formu / səbət paleti ──────────────────────────────────────────────
+// ProductPage.tsx və CartDrawer.tsx əvvəl bu rəngləri HƏR BİRİ öz faylında təkrar yazırdı
+// (üst-üstə düşən açarlar eyni dəyərdə idi). İndi ortaq mənbədir. Bu palet yuxarıdakı C-dən
+// bilərəkdən FƏRQLİDİR (məs. border '#E5E1DB', sabit yaşıl/mavi/qırmızı) — vizual dəyişməsin deyə.
+export const FORM_COLORS = {
+  bg:       'var(--clr-bg)',
+  white:    'var(--clr-white)',
+  black:    'var(--clr-black)',
+  gray:     'var(--clr-text-sec)',
+  grayLt:   'var(--clr-text-muted)',
+  border:   '#E5E1DB',
+  orange:   'var(--clr-primary)',
+  orangeBg: '#FFF3EC',
+  orangeBd: '#FFD4B8',
+  green:    '#16A34A',
+  greenBg:  '#F0FDF4',
+  blue:     '#2563EB',
+  blueBg:   '#EFF6FF',
+  blueBd:   '#BFDBFE',
+  red:      '#DC2626',
+} as const;
+
 // ── Fontlar (Typography) ──────────────────────────────────────────────────────
 export const F = {
   /** Əsas font ailəsi — 'Inter', sans-serif */

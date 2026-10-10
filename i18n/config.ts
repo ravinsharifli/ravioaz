@@ -6,9 +6,9 @@ import en from './locales/en.json';
 // ── Dil aşkarlama ─────────────────────────────────────────────
 // Sayt strukturu: ravio.az/...  (default, Azərbaycanca)
 //                 ravio.az/en/... (İngiliscə)
-// Dil URL-dəki /en prefiksinə görə təyin olunur (App.tsx-də LanguageRouter
+// Dil URL-dəki /en prefiksinə görə təyin olunur (App.tsx → AppShell-dəki useEffect
 // bunu edir). Bura ilkin dəyər üçün sadə bir təxmin qoyuruq —
-// LanguageRouter mount olanda həmişə düzgün dili məcburi təyin edir.
+// AppShell mount olanda həmişə düzgün dili məcburi təyin edir.
 function detectInitialLang(): 'az' | 'en' {
   if (typeof window === 'undefined') return 'az';
   return window.location.pathname.startsWith('/en') ? 'en' : 'az';

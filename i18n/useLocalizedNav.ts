@@ -1,6 +1,5 @@
 import { useCallback } from 'react';
 import { useNavigate, useLocation, NavigateOptions } from 'react-router-dom';
-import i18n from './config';
 
 /**
  * Cari path-in dil prefiksini müəyyən edir.

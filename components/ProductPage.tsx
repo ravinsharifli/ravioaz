@@ -1,36 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { F } from '../tokens';
+import { F, FORM_COLORS as C } from '../tokens';
 import { ChevronLeft, ChevronRight, Upload, Minus, Plus, Check, Tag, X, ArrowLeft } from 'lucide-react';
-import { Product, CartItem, Coupon } from '../types';
+import { Product, CartItem, Coupon, BoxOption } from '../types';
 import ProductReviews from './ProductReviews';
-import ZoomableImage from './ZoomableImage.tsx';
+import ZoomableImage from './ZoomableImage';
 import { toWebP, toSrcSet } from '../lib/image';
 import { BULK_DISCOUNT_PER_UNIT, getColorSwatchBackground, FONT_STYLES } from '../constants/defaults';
 import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
 import { getLangFromPath } from '../i18n/useLocalizedNav';
-import { localizedProductName, localizedProductDescription, localizedColorName } from '../lib/productLocale';
+import { localizedProductDescription, localizedColorName } from '../lib/productLocale';
 import { getProductH1 } from '../lib/productMeta';
 
 const FONT = F.sans;
-
-const C = {
-  bg:       'var(--clr-bg)',
-  white:    'var(--clr-white)',
-  black:    'var(--clr-black)',
-  gray:     'var(--clr-text-sec)',
-  grayLt:   'var(--clr-text-muted)',
-  border:   '#E5E1DB',
-  orange:   'var(--clr-primary)',
-  orangeBg: '#FFF3EC',
-  orangeBd: '#FFD4B8',
-  green:    '#16A34A',
-  greenBg:  '#F0FDF4',
-  blue:     '#2563EB',
-  blueBg:   '#EFF6FF',
-  blueBd:   '#BFDBFE',
-  red:      '#DC2626',
-};
 
 /**
  * Müştəri şəklini yükləmədən əvvəl brauzerdə kiçildir (max 2000px, JPEG ~85%).
@@ -86,12 +68,9 @@ const Sec: React.FC<{ children: React.ReactNode; highlight?: boolean; last?: boo
   }}>{children}</div>
 );
 
-interface BoxOption { id: string; name: string; desc?: string; price: number; imageUrl?: string | null; isActive?: boolean; }
-
 interface ProductPageProps {
   product: Product;
   initialData?: CartItem;
-  boxes: BoxOption[];
   coupons?: Coupon[];
   bulkDiscountPerUnit?: number;
   onBack: () => void;
@@ -99,12 +78,11 @@ interface ProductPageProps {
 }
 
 const ProductPage: React.FC<ProductPageProps> = ({
-  product, initialData, boxes, coupons = [], bulkDiscountPerUnit = BULK_DISCOUNT_PER_UNIT, onBack, onAddToCart,
+  product, initialData, coupons = [], bulkDiscountPerUnit = BULK_DISCOUNT_PER_UNIT, onBack, onAddToCart,
 }) => {
   const { t } = useTranslation();
   const location = useLocation();
   const lang = getLangFromPath(location.pathname);
-  const displayName = localizedProductName(product, lang);
   const displayDescription = localizedProductDescription(product, lang);
 
   const variants = product.variants || [];
@@ -144,8 +122,8 @@ const ProductPage: React.FC<ProductPageProps> = ({
   const [bulkNoticeDismissed, setBulkNoticeDismissed] = useState(false);
 
   // YALNIZ bu məhsula Sanity-də əlavə olunmuş qutular istifadə olunur.
-  // Ümumi/default qutu siyahısına (DEFAULT_BOXES) HEÇ VAXT geri qayıtmır —
-  // konkret məhsulda qutu şəkli/qiyməti yüklənməyibsə, sual heç göstərilmir.
+  // Ümumi/default qutu siyahısına HEÇ VAXT geri qayıtmır — konkret məhsulda
+  // qutu şəkli/qiyməti yüklənməyibsə, sual heç göstərilmir.
   const effectiveBoxes: BoxOption[] = (product as any).customBoxOptions || [];
   const [boxId, setBoxId] = useState<string>(initialData?.boxType ?? effectiveBoxes[0]?.id ?? '');
   const [wantsDifferentBox, setWantsDifferentBox] = useState<boolean>(

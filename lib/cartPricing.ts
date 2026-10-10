@@ -15,7 +15,6 @@ import { BULK_DISCOUNT_PER_UNIT } from '../constants/defaults';
 export function recalcCartItemForQuantity(
   item: CartItem,
   newQuantity: number,
-  product: Product | undefined,
   coupons: Coupon[],
   bulkDiscountPerUnit: number = BULK_DISCOUNT_PER_UNIT,
 ): CartItem {

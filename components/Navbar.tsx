@@ -12,14 +12,8 @@ import AudienceDropdown from './AudienceDropdown';
 
 interface NavbarProps {
   cartCount: number;
-  onLogoClick: () => void;
   onCartClick: () => void;
-  onAboutClick: () => void;
-  onContactClick: () => void;
-  onDeliveryClick: () => void;
-  onProductsClick: () => void;
   products?: Product[];
-  onViewProduct?: (product: Product) => void;
   audienceCategories?: AudienceCategory[];
 }
 

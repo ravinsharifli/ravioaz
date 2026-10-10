@@ -1,21 +1,8 @@
-// blogPost.js
+// schemas/blogPost.js
 // Blog yazıları. Nəşr/gizlətmə Sanity-nin öz Publish/Unpublish mexanizmi ilə
 // idarə olunur (product.js-də olduğu kimi) — ayrıca "aktiv" sahəsinə ehtiyac yoxdur.
 
-const azSlugify = (input) =>
-  input
-    .toLowerCase()
-    .replace(/ə/g, 'e')
-    .replace(/ı/g, 'i')
-    .replace(/ö/g, 'o')
-    .replace(/ü/g, 'u')
-    .replace(/ğ/g, 'g')
-    .replace(/ş/g, 's')
-    .replace(/ç/g, 'c')
-    .replace(/[^a-z0-9\s-]/g, '')
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-')
-    .slice(0, 96);
+import { makeSlugify } from './slugify'
 
 export default {
   name: 'blogPost',
@@ -39,7 +26,7 @@ export default {
       title: '🔗 URL',
       type: 'slug',
       description: '"Generate" düyməsinə bas — avtomatik yaranır. Sayt bunu /blog/... linkində istifadə edir.',
-      options: { source: 'title', maxLength: 96, slugify: azSlugify },
+      options: { source: 'title', maxLength: 96, slugify: makeSlugify(96) },
       validation: (Rule) => Rule.required(),
     },
     {

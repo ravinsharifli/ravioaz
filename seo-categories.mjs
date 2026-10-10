@@ -1,6 +1,8 @@
 // seo-categories.mjs
-// Kateqoriya əlavə etmək üçün yalnız bu faylı redaktə et.
-// inject-seo.mjs və generate-sitemap.mjs hər ikisi buradan oxuyur.
+// Kateqoriya SEO mətnlərinin (başlıq, təsvir, H1) TƏK mənbəyi. Yeni kateqoriya üçün
+// əl ilə yazılmış mətn istəyirsənsə, yalnız bu faylı redaktə et.
+// Bunu oxuyanlar: inject-seo.mjs (build zamanı prerender) və lib/categorySeo.ts (brauzer).
+// (generate-sitemap.mjs bunu işlətmir — sitemap kateqoriyaları birbaşa Sanity-dən götürür.)
 
 export const CATEGORY_PAGES = [
   {

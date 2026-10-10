@@ -1,4 +1,3 @@
-﻿import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { C, F } from '../../tokens';
@@ -11,7 +10,6 @@ import LoadingGrid from './LoadingGrid';
 
 export default function CatalogLayout({
   activeSlug,
-  activeCategory,
   categories,
   categoryNameMap,
   products,
@@ -20,7 +18,6 @@ export default function CatalogLayout({
   openProduct,
 }: {
   activeSlug: string | null;
-  activeCategory: string | null;
   categories: string[];
   categoryNameMap?: Record<string, string>;
   products: Product[];

@@ -1,4 +1,3 @@
-import React from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -40,7 +39,6 @@ export default function ProductsPage({ categories, categoryNameMap, products, lo
       <div style={{ padding: '0 24px 48px', maxWidth: 1280, margin: '0 auto' }}>
         <CatalogLayout
           activeSlug={null}
-          activeCategory={null}
           categories={categories}
           categoryNameMap={categoryNameMap}
           products={products}

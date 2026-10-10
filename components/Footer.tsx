@@ -2,16 +2,9 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { C, F } from '../tokens';
 import { Instagram, Phone, MapPin } from 'lucide-react';
-import { PHONE_DISPLAY } from '../constants';
+import { PHONE_DISPLAY } from '../constants/contact';
 import { useTranslation } from 'react-i18next';
 import { getLangFromPath, withLangPrefix } from '../i18n/useLocalizedNav';
-
-interface FooterProps {
-  onProductsClick?: () => void;
-  onDeliveryClick?: () => void;
-  onAboutClick?: () => void;
-  onContactClick?: () => void;
-}
 
 const TikTokIcon = () => (
   <svg viewBox="0 0 24 24" fill="currentColor" width="15" height="15">
@@ -19,7 +12,7 @@ const TikTokIcon = () => (
   </svg>
 );
 
-const Footer: React.FC<FooterProps> = () => {
+const Footer: React.FC = () => {
   const { t } = useTranslation();
   const location = useLocation();
   const lang = getLangFromPath(location.pathname);

@@ -6,6 +6,7 @@
 //    Hər build-də "bu gün" yazmaq Google-un lastmod-a inamını azaldır.
 import { createClient } from '@sanity/client';
 import { writeFileSync } from 'fs';
+import { toCategorySlug } from './lib/slug.mjs';
 
 const client = createClient({
   projectId: 'w7scii42',
@@ -29,16 +30,6 @@ function escapeXml(str) {
 function buildImageUrl(url) {
   if (!url) return null;
   return `${url}?w=1200&amp;h=630&amp;fit=crop&amp;auto=format`;
-}
-
-/** lib/categorySlug.ts-dəki toCategorySlug ilə eyni qayda (kateqoriya adı → URL) */
-function toCategorySlug(name) {
-  return String(name || '')
-    .toLowerCase()
-    .replace(/ə/g, 'e').replace(/ö/g, 'o').replace(/ü/g, 'u')
-    .replace(/ı/g, 'i').replace(/ğ/g, 'g').replace(/ş/g, 's')
-    .replace(/ç/g, 'c').replace(/\s+/g, '-')
-    .replace(/[^a-z0-9-]/g, '');
 }
 
 // p = Azərbaycanca yol ('' = ana səhifə, '/mehsullar', '/mehsullar/slug' ...)
@@ -107,9 +98,12 @@ async function generateSitemap() {
   const emptyCats = categoryDocs.filter(c => c?.name && !(c.count > 0)).map(c => c.name);
   console.log(`📂 ${categorySlugs.length} məhsullu kateqoriya` + (emptyCats.length ? ` (boş, çıxarıldı: ${emptyCats.join(', ')})` : ''));
 
-  // "Kimə alırsan?" bölmələri — Sanity-dən dinamik
+  // "Kimə alırsan?" bölmələri — Sanity-dən dinamik.
+  // Heç bir məhsul bağlanmayıb? Sitemap-ə düşmür (boş səhifə Google üçün zəif siqnaldır —
+  // kateqoriyalarla eyni qayda). Məhsul bağlayan kimi növbəti build-də avtomatik əlavə olunur.
   const audienceCategories = await client.fetch(
-    `*[_type == "audienceCategory" && isActive != false && defined(slug.current)]{
+    `*[_type == "audienceCategory" && isActive != false && defined(slug.current)
+       && count(*[_type == "product" && references(^._id)]) > 0]{
       "slug": slug.current
     }`
   );

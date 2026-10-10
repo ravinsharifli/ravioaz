@@ -1,13 +1,8 @@
 import { Product } from '../types';
+import { toCategorySlug } from './slug.mjs';
 
-export function toCategorySlug(name: string): string {
-  return name
-    .toLowerCase()
-    .replace(/ə/g, 'e').replace(/ö/g, 'o').replace(/ü/g, 'u')
-    .replace(/ı/g, 'i').replace(/ğ/g, 'g').replace(/ş/g, 's')
-    .replace(/ç/g, 'c').replace(/\s+/g, '-')
-    .replace(/[^a-z0-9-]/g, '');
-}
+// Bu funksiya build skriptləri ilə ORTAQDIR (lib/slug.mjs) — burada təkrar yazma.
+export { toCategorySlug };
 
 export function fromCategorySlug(slug: string, categories: string[]): string | null {
   return categories.find((cat) => toCategorySlug(cat) === slug) ?? null;

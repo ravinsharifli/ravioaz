@@ -1,6 +1,6 @@
 // Bu endpoint WhatsApp sifariş mesajında göstərilən məhsul şəkli linkini
 // "təmizləyir": müştəri/istehsalçı ravio.az/api/img?f=... görür, cdn.sanity.io
-// və layihə ID-si heç görünmür. lib/CartDrawer.tsx-dəki toCleanImageUrl() bu
+// və layihə ID-si heç görünmür. components/CartDrawer.tsx-dəki toCleanImageUrl() bu
 // linki qurur, bura gələndə əsl Sanity CDN ünvanına 302 ilə yönləndirir.
 //
 // TƏHLÜKƏSİZLİK QEYDİ: "f" parametri sərt formata (hash-eninxhündürlük.uzantı)

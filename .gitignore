@@ -1,4 +1,4 @@
-# Logs
+# Loglar
 logs
 *.log
 npm-debug.log*
@@ -7,12 +7,21 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Asılılıqlar və build nəticəsi
 node_modules
 dist
 dist-ssr
+
+# Gizli açarlar / lokal konfiqurasiya (BUNLARI HEÇ VAXT GitHub-a göndərmə)
+.env
+.env.*
 *.local
 
-# Editor directories and files
+# Sanity Studio və Vercel-in lokal keş qovluqları (əvvəl .sanity/ səhvən repoya düşmüşdü)
+.sanity
+.vercel
+
+# Redaktor faylları
 .vscode/*
 !.vscode/extensions.json
 .idea
@@ -22,11 +31,3 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-.vercel
-.sanity
-.env*.local
-.env
-.env.local
-node_modules/
-dist/
-.env*

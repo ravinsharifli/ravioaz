@@ -1,3 +1,5 @@
+import { makeSlugify } from './slugify'
+
 export default {
   name: 'product',
   title: 'Məhsul',
@@ -17,20 +19,7 @@ export default {
       options: {
         source: 'name',
         maxLength: 96,
-        slugify: input =>
-          input
-            .toLowerCase()
-            .replace(/ə/g, 'e')
-            .replace(/ı/g, 'i')
-            .replace(/ö/g, 'o')
-            .replace(/ü/g, 'u')
-            .replace(/ğ/g, 'g')
-            .replace(/ş/g, 's')
-            .replace(/ç/g, 'c')
-            .replace(/[^a-z0-9\s-]/g, '')
-            .replace(/\s+/g, '-')
-            .replace(/-+/g, '-')
-            .slice(0, 96),
+        slugify: makeSlugify(96),
       },
       validation: Rule => Rule.required(),
     },

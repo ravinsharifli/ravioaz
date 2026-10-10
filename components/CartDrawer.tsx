@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { X, Trash2, ShoppingBag, ArrowRight, Edit3, ChevronLeft, Minus, Plus } from 'lucide-react';
 import { CartItem, MetroSchedule, Coupon, Product } from '../types';
-import { F } from '../tokens';
-import { WHATSAPP_NUMBER } from '../constants';
+import { F, FORM_COLORS as C } from '../tokens';
+import { WHATSAPP_NUMBER } from '../constants/contact';
 import { FONT_STYLES } from '../constants/defaults';
 import { toWebP } from '../lib/image';
 import { getMaxQuantityForItem } from '../lib/cartPricing';
@@ -13,19 +13,6 @@ import { localizedProductName, localizedColorName } from '../lib/productLocale';
 import '../styles/cart-drawer.css';
 
 const FONT = F.sans;
-
-const C = {
-  bg: 'var(--clr-bg)',
-  white: 'var(--clr-white)',
-  black: 'var(--clr-black)',
-  gray: 'var(--clr-text-sec)',
-  grayLt: 'var(--clr-text-muted)',
-  border: '#E5E1DB',
-  orange: 'var(--clr-primary)',
-  green: '#16A34A',
-  red: '#DC2626',
-  blue: '#2563EB',
-};
 
 const MONTHS_AZ = [
   'Yanvar',

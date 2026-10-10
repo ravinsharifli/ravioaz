@@ -29,8 +29,6 @@ export default defineConfig({
           if (!id.includes('node_modules')) return;
           if (id.includes('lucide-react'))  return 'vendor-icons';
           if (id.includes('react-helmet'))  return 'vendor-helmet';
-          if (id.includes('@sanity/image-url')) return 'vendor-sanity-image';
-          if (id.includes('@sanity') || id.includes('/sanity/')) return 'vendor-sanity';
           if (id.includes('react-router'))  return 'vendor-router';
           if (id.includes('react-dom'))     return 'vendor-react-dom';
           if (id.includes('/react/') || id.includes('scheduler')) return 'vendor-react';

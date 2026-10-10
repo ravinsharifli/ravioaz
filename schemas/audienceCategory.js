@@ -1,10 +1,12 @@
-// audienceCategory.js
+// schemas/audienceCategory.js
 // "Kimə alırsan?" menyusundakı bölmələr (Qadınlar üçün, Kişilər üçün,
 // Sevgililər üçün cüt hədiyyə, Korporativ hədiyyə və s.)
 //
 // Tam sərbəst idarə olunur: istədiyin qədər əlavə et, sil, yenidən adlandır —
-// heç bir kod dəyişikliyi lazım deyil. Hər məhsulda "product.js" sənədindəki
+// heç bir kod dəyişikliyi lazım deyil. Hər məhsulda "schemas/product.js" sənədindəki
 // "🎯 Kimə aiddir?" sahəsindən bu bölmələrə bağlanır.
+
+import { makeSlugify } from './slugify'
 
 export default {
   name: 'audienceCategory',
@@ -32,20 +34,7 @@ export default {
       options: {
         source: 'name',
         maxLength: 60,
-        slugify: (input) =>
-          input
-            .toLowerCase()
-            .replace(/ə/g, 'e')
-            .replace(/ı/g, 'i')
-            .replace(/ö/g, 'o')
-            .replace(/ü/g, 'u')
-            .replace(/ğ/g, 'g')
-            .replace(/ş/g, 's')
-            .replace(/ç/g, 'c')
-            .replace(/[^a-z0-9\s-]/g, '')
-            .replace(/\s+/g, '-')
-            .replace(/-+/g, '-')
-            .slice(0, 60),
+        slugify: makeSlugify(60),
       },
       validation: (Rule) => Rule.required(),
     },

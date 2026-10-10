@@ -1,4 +1,3 @@
-﻿import React from 'react';
 import { C } from '../../tokens';
 
 export default function LoadingGrid() {

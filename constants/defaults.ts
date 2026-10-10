@@ -89,11 +89,6 @@ export function getColorSwatchBackground(colorName?: string): string {
   return lookupColor(trimmed) ?? DEFAULT_COLOR_HEX;
 }
 
-/** @deprecated getColorSwatchBackground istifadə et — 2-rəngli adları da düzgün göstərir. */
-export function getColorHex(colorName?: string): string {
-  return getColorSwatchBackground(colorName);
-}
-
 export const DEFAULT_METRO: MetroSchedule = {
   stations: [
     {
@@ -114,12 +109,6 @@ export const DEFAULT_METRO: MetroSchedule = {
     },
   ],
 };
-
-export const DEFAULT_BOXES = [
-  { id: 'simple', name: 'Sadə qutu', price: 0, desc: 'Standart qablaşdırma', isActive: true, imageUrl: null },
-  { id: 'premium', name: 'Orta qutu', price: 10, desc: 'Lent + köpük yastıq', isActive: true, imageUrl: null },
-  { id: 'gift', name: 'Premium qutu', price: 17, desc: 'Bağlama + qeyd kartı', isActive: true, imageUrl: null },
-];
 
 export const PROMO_SLIDES: HeroSlide[] = [
   {

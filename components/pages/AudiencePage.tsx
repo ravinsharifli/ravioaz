@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useLocation, useParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';

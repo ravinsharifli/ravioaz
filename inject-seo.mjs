@@ -14,6 +14,7 @@ import { createClient } from '@sanity/client';
 import { readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { join, dirname } from 'path';
 import { CATEGORY_PAGES } from './seo-categories.mjs';
+import { toCategorySlug } from './lib/slug.mjs';
 
 // ── Sanity client ─────────────────────────────────────────────
 const client = createClient({
@@ -59,6 +60,16 @@ function shortDescription(value) {
   const safeCut = lastSpace > 100 ? cut.slice(0, lastSpace) : cut;
 
   return `${safeCut}…`;
+}
+
+/**
+ * Sanity-də "🔍 Qısa təsvir" (seoDescription) doldurulubsa və ən azı 20 simvoldursa onu qaytarır
+ * (160 simvoldan uzundursa kəsir). lib/productMeta.ts → getProductMetaDescription ilə eyni qayda.
+ */
+function customMetaDescription(value) {
+  const text = String(value || '').trim();
+  if (text.length < 20) return null;
+  return text.length > 160 ? `${text.slice(0, 157)}...` : text;
 }
 
 /** Sanity asset URL-inə ölçü parametrləri əlavə et */
@@ -178,7 +189,7 @@ function homeSeoContent(lang = 'az') {
 }
 
 /** Məhsul səhifəsinin Google bot üçün ilkin məzmunu */
-function productSeoContent({ name, desc, image, price, slug, lang = 'az' }) {
+function productSeoContent({ name, h1 = name, desc, image, price, slug, lang = 'az' }) {
   const T = SHELL_TEXT[lang];
   const imageHtml = image
     ? `
@@ -203,7 +214,7 @@ function productSeoContent({ name, desc, image, price, slug, lang = 'az' }) {
       </nav>
 
       <article>
-        <h1>${esc(name)}</h1>
+        <h1>${esc(h1)}</h1>
         ${imageHtml}
         <p>${esc(desc)}</p>
         ${priceHtml}
@@ -331,8 +342,7 @@ function injectProductSchema(html, product) {
     }
   }
 
-  const tag = `\n  <script type="application/ld+json">${JSON.stringify(schema)}</script>`;
-  return html.replace('</head>', `${tag}\n</head>`);
+  return html.replace('</head>', `${jsonLdTag(schema)}\n</head>`);
 }
 
 /**
@@ -391,16 +401,6 @@ function urlFor(pathAz, lang) {
   return `${SITE}${pathFor(pathAz, lang)}`;
 }
 
-/** lib/categorySlug.ts-dəki toCategorySlug-un eynisi (kateqoriya adı → URL slug) */
-function toCategorySlug(name) {
-  return String(name || '')
-    .toLowerCase()
-    .replace(/ə/g, 'e').replace(/ö/g, 'o').replace(/ü/g, 'u')
-    .replace(/ı/g, 'i').replace(/ğ/g, 'g').replace(/ş/g, 's')
-    .replace(/ç/g, 'c').replace(/\s+/g, '-')
-    .replace(/[^a-z0-9-]/g, '');
-}
-
 /** hreflang: hər dil səhifəsi digər dilin qarşılığına və x-default-a (AZ) işarə edir */
 function hreflangTags(pathAz) {
   const az = urlFor(pathAz, 'az');
@@ -446,6 +446,24 @@ function jsonLdTag(schema) {
   return `\n  <script type="application/ld+json">${JSON.stringify(schema)}</script>`;
 }
 
+/** Ana səhifənin tam URL-i (AZ: https://ravio.az, EN: https://ravio.az/en) */
+const homeUrl = (lang) => (lang === 'en' ? `${SITE}/en` : SITE);
+
+/** CollectionPage + BreadcrumbList (kateqoriya və "Kimə alırsan?" səhifələri üçün ortaq) */
+function collectionPageSchema({ name, description, url, crumbs }) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name,
+    description,
+    url,
+    breadcrumb: {
+      '@type': 'BreadcrumbList',
+      itemListElement: crumbs.map((c, i) => ({ '@type': 'ListItem', position: i + 1, name: c.name, item: c.item })),
+    },
+  };
+}
+
 // ── Əsas funksiya ─────────────────────────────────────────────
 async function run() {
   console.log('\n🚀 inject-seo: başladı...\n');
@@ -458,6 +476,9 @@ async function run() {
       "slug": slug.current,
       description,
       descriptionEn,
+      seoTitle,
+      seoDescription,
+      h1Override,
       "firstImageUrl": variants[0].images[0].asset->url,
       "price": coalesce(variants[0].discountPrice, variants[0].price),
       "variantPrices": variants[]{ price, discountPrice, inStock }
@@ -500,10 +521,11 @@ async function run() {
     }
   `);
 
-  // Ana səhifə grid-i bestSellerOrder asc sırası ilə göstərir (ProductGrid.tsx,
-  // App.tsx PRODUCTS_QUERY) — grid-in İLK kartı budur.
+  // Ana səhifə grid-i məhsulları ad üzrə (name asc) sıralayır — lib/sanityProduct.ts →
+  // PRODUCTS_QUERY ilə EYNİ qayda olmalıdır. Grid-in İLK kartı LCP namizədidir.
+  // (Əvvəl burada sxemdən silinmiş bestSellerOrder sahəsi işlənirdi — preload səhv şəkilə düşürdü.)
   const firstGridProductRaw = await client.fetch(`
-    *[_type == "product"] | order(bestSellerOrder asc) [0]{
+    *[_type == "product"] | order(name asc) [0]{
       "firstImageUrl": variants[0].images[0].asset->url,
       name,
       nameEn
@@ -634,13 +656,20 @@ async function run() {
     for (const p of products) {
       try {
         const cleanName = cleanBrandSuffix(lang === 'en' ? (p.nameEn || p.name) : p.name);
-        const title = brandTitle(cleanName);
+        // Sanity-dəki "🔍 SEO" sahələri (AZ) — lib/productMeta.ts ilə EYNİ qayda. Əvvəl prerender
+        // bunları nəzərə almırdı: Google/WhatsApp/Facebook ilkin HTML-də köhnə, avtomatik başlığı görürdü.
+        const customTitle = lang === 'az' && p.seoTitle && p.seoTitle.trim() ? p.seoTitle.trim() : null;
+        const title = customTitle ?? brandTitle(cleanName);
+        const customH1 = lang === 'az' && p.h1Override && p.h1Override.trim() ? p.h1Override.trim() : null;
+        const h1 = customH1 ?? cleanName;
+        const customDesc = lang === 'az' ? customMetaDescription(p.seoDescription) : null;
         const rawSource = lang === 'en' ? p.descriptionEn : p.description;
-        const rawDesc = rawSource
-          ? shortDescription(rawSource)
-          : lang === 'en'
-            ? `${cleanName} — personalized gift from Ravio. Free delivery across Azerbaijan.`
-            : `${cleanName} — Ravio-dan fərdi hədiyyə. Bütün Azərbaycana ödənişsiz çatdırılma.`;
+        const rawDesc = customDesc
+          ?? (rawSource
+            ? shortDescription(rawSource)
+            : lang === 'en'
+              ? `${cleanName} — personalized gift from Ravio. Free delivery across Azerbaijan.`
+              : `${cleanName} — Ravio-dan fərdi hədiyyə. Bütün Azərbaycana ödənişsiz çatdırılma.`);
         const pathAz = `/mehsullar/${p.slug}`;
         const pageUrl = urlFor(pathAz, lang);
         const image = ogImage(p.firstImageUrl);
@@ -649,6 +678,7 @@ async function run() {
           template,
           productSeoContent({
             name: cleanName,
+            h1,
             desc: rawDesc,
             image: p.firstImageUrl,
             price: p.price,
@@ -730,21 +760,16 @@ async function run() {
         html = finalizePage(html, { lang, pathAz, title, desc });
 
         // Kateqoriya üçün BreadcrumbList + CollectionPage schema
-        html = html.replace('</head>', `${jsonLdTag({
-          '@context': 'https://schema.org',
-          '@type': 'CollectionPage',
+        html = html.replace('</head>', `${jsonLdTag(collectionPageSchema({
           name: h1,
           description: desc,
           url: catUrl,
-          breadcrumb: {
-            '@type': 'BreadcrumbList',
-            itemListElement: [
-              { '@type': 'ListItem', position: 1, name: 'Ravio', item: lang === 'en' ? `${SITE}/en` : SITE },
-              { '@type': 'ListItem', position: 2, name: SHELL_TEXT[lang].products, item: urlFor('/mehsullar', lang) },
-              { '@type': 'ListItem', position: 3, name: h1, item: catUrl },
-            ],
-          },
-        })}\n</head>`);
+          crumbs: [
+            { name: 'Ravio', item: homeUrl(lang) },
+            { name: SHELL_TEXT[lang].products, item: urlFor('/mehsullar', lang) },
+            { name: h1, item: catUrl },
+          ],
+        }))}\n</head>`);
 
         writePage(distFile(lang, 'mehsullar', cat.slug), html);
         catOk++;
@@ -759,8 +784,11 @@ async function run() {
   if (fail > 0) console.warn(`⚠️  ${fail} səhifə zamanı xəta baş verdi`);
 
   // ── "Kimə alırsan?" səhifələri (Sanity-dən dinamik, AZ + EN) ─────────────
+  // Məhsul bağlanmamış bölmələr üçün statik səhifə YARADILMIR (boş səhifə = zəif siqnal;
+  // sitemap ilə eyni qayda).
   const audienceCategories = await client.fetch(`
-    *[_type == "audienceCategory" && isActive != false && defined(slug.current)] | order(order asc, name asc) {
+    *[_type == "audienceCategory" && isActive != false && defined(slug.current)
+      && count(*[_type == "product" && references(^._id)]) > 0] | order(order asc, name asc) {
       name, nameEn, "slug": slug.current
     }
   `);
@@ -777,20 +805,15 @@ async function run() {
 
         let html = injectStaticRoot(template, simpleSeoContent({ h1: acName, desc: acDesc, lang }));
         html = finalizePage(html, { lang, pathAz, title: acTitle, desc: acDesc });
-        html = html.replace('</head>', `${jsonLdTag({
-          '@context': 'https://schema.org',
-          '@type': 'CollectionPage',
+        html = html.replace('</head>', `${jsonLdTag(collectionPageSchema({
           name: acName,
           description: acDesc,
           url: acUrl,
-          breadcrumb: {
-            '@type': 'BreadcrumbList',
-            itemListElement: [
-              { '@type': 'ListItem', position: 1, name: 'Ravio', item: lang === 'en' ? `${SITE}/en` : SITE },
-              { '@type': 'ListItem', position: 2, name: acName, item: acUrl },
-            ],
-          },
-        })}\n</head>`);
+          crumbs: [
+            { name: 'Ravio', item: homeUrl(lang) },
+            { name: acName, item: acUrl },
+          ],
+        }))}\n</head>`);
 
         writePage(distFile(lang, 'kime', ac.slug), html);
         audOk++;
@@ -861,8 +884,7 @@ async function run() {
         publisher: { '@type': 'Organization', name: 'Ravio', logo: { '@type': 'ImageObject', url: 'https://ravio.az/og-ravio.png' } },
         mainEntityOfPage: postUrl,
       };
-      const schemaTag = `\n  <script type="application/ld+json">${JSON.stringify(schema)}</script>`;
-      html = html.replace('</head>', `${schemaTag}\n</head>`);
+      html = html.replace('</head>', `${jsonLdTag(schema)}\n</head>`);
 
       mkdirSync(`dist/blog/${post.slug}`, { recursive: true });
       writeFileSync(`dist/blog/${post.slug}/index.html`, html, 'utf-8');

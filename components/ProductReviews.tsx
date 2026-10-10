@@ -1,4 +1,3 @@
-import React from 'react';
 import { Star } from 'lucide-react';
 import { C, F } from '../tokens';
 import { CustomerReview } from '../types';

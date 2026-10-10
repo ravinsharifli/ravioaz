@@ -11,9 +11,8 @@ import { SINGLE_PRODUCT_QUERY, mapSanityProduct } from '../../lib/sanityProduct'
 import { getProductPriceRange } from '../../lib/productPrice';
 import { getProductMetaDescription, getProductSeoTitle } from '../../lib/productMeta';
 import { localizedProductName, localizedCategoryName } from '../../lib/productLocale';
-import { DEFAULT_BOXES } from '../../constants/defaults';
 import { SITE_URL } from '../../constants/seo';
-import { getLangFromPath, withLangPrefix, useLocalizedNav } from '../../i18n/useLocalizedNav';
+import { withLangPrefix, useLocalizedNav } from '../../i18n/useLocalizedNav';
 import CatalogLayout from '../catalog/CatalogLayout';
 import LoadingGrid from '../catalog/LoadingGrid';
 import NotFound from './NotFound';
@@ -155,7 +154,6 @@ export default function SlugPage({
         </div>
         <CatalogLayout
           activeSlug={slug}
-          activeCategory={matchedCategory}
           categories={categories}
           categoryNameMap={categoryNameMap}
           products={products}
@@ -267,7 +265,6 @@ export default function SlugPage({
         <ProductPage
           product={currentProduct}
           initialData={editItem?.productId === currentProduct.id ? editItem : undefined}
-          boxes={DEFAULT_BOXES}
           coupons={currentProduct.coupons || []}
           bulkDiscountPerUnit={bulkDiscountPerUnit}
           onBack={() => navigate('/mehsullar')}

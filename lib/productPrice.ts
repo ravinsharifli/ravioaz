@@ -1,4 +1,4 @@
-﻿import { Product } from '../types';
+import { Product } from '../types';
 
 export function getProductPriceRange(product: Product) {
   const variants = product.variants || [];

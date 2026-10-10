@@ -10,7 +10,7 @@ import { recalcCartItemForQuantity } from './lib/cartPricing';
 import { DEFAULT_METRO, BULK_DISCOUNT_PER_UNIT } from './constants/defaults';
 import { useTranslation } from 'react-i18next';
 import './i18n/config';
-import { useLocalizedNav, getLangFromPath } from './i18n/useLocalizedNav';
+import { useLocalizedNav } from './i18n/useLocalizedNav';
 
 import Navbar from './components/Navbar';
 import PWAInstallBanner from './components/PWAInstallBanner';
@@ -171,12 +171,12 @@ function AppShell() {
   // düsturla (bax: lib/cartPricing.ts) yenidən hesablanır ki, yekun məbləğ həmişə
   // göstərilən sayla üst-üstə düşsün.
   const handleUpdateQuantity = useCallback((cartId: string, quantity: number) => {
-    setCart((prev) => prev.map((item) => {
-      if (item.cartId !== cartId) return item;
-      const product = products.find((p) => p.id === item.productId);
-      return recalcCartItemForQuantity(item, quantity, product, allCoupons, bulkDiscountPerUnit);
-    }));
-  }, [products, allCoupons]);
+    setCart((prev) => prev.map((item) =>
+      item.cartId === cartId
+        ? recalcCartItemForQuantity(item, quantity, allCoupons, bulkDiscountPerUnit)
+        : item
+    ));
+  }, [allCoupons, bulkDiscountPerUnit]);
 
   const handleEdit = (item: CartItem) => {
     const p = products.find((prod) => prod.id === item.productId);
@@ -208,6 +208,79 @@ function AppShell() {
     }
   };
 
+  // Bir dilin bütün səhifə marşrutları. prefix: '' (AZ) və ya '/en' (EN).
+  // Sanity-də nameEn/descriptionEn dolduruqca məhsul adları İngiliscə görünür
+  // (bax: lib/productLocale.ts — boşdursa Azərbaycanca ada geri düşür).
+  const pageRoutes = (prefix: '' | '/en') => (
+    <>
+      <Route
+        path={prefix || '/'}
+        element={
+          <HomePage
+            visible={visible}
+            reelPosts={reelPosts}
+            heroSlides={heroSlides}
+            categories={categories}
+            categoryNameMap={categoryNameMap}
+            filteredProducts={filteredProducts}
+            loading={loading}
+            activeCategory={activeCategory}
+            setActiveCategory={setActiveCategory}
+            goToProducts={goToProducts}
+            openProduct={openProduct}
+            campaignBanner={campaignBanner}
+            featuredProduct={featuredProduct}
+            featuredProductBadge={featuredProductBadge}
+          />
+        }
+      />
+      <Route
+        path={`${prefix}/mehsullar`}
+        element={
+          <ProductsPage
+            categories={categories}
+            categoryNameMap={categoryNameMap}
+            products={products}
+            loading={loading}
+            openProduct={openProduct}
+          />
+        }
+      />
+      <Route
+        path={`${prefix}/mehsullar/:slug`}
+        element={
+          <SlugPage
+            products={products}
+            loading={loading}
+            categories={categories}
+            categoryNameMap={categoryNameMap}
+            setActiveCategory={setActiveCategory}
+            openProduct={openProduct}
+            onAddToCart={handleProductAddToCart}
+            bulkDiscountPerUnit={bulkDiscountPerUnit}
+          />
+        }
+      />
+      <Route
+        path={`${prefix}/kime/:slug`}
+        element={
+          <AudiencePage
+            audienceCategories={audienceCategories}
+            products={products}
+            loading={loading}
+            openProduct={openProduct}
+          />
+        }
+      />
+      <Route path={`${prefix}/haqqimizda`} element={<AboutUs />} />
+      {/* köhnə /elaqe linki — ayrıca əlaqə səhifəsi yoxdur, ana səhifəyə yönləndirilir */}
+      <Route path={`${prefix}/elaqe`} element={<Navigate to={prefix || '/'} replace />} />
+      <Route path={`${prefix}/blog`} element={<BlogListPage />} />
+      <Route path={`${prefix}/blog/:slug`} element={<BlogPostPage />} />
+      <Route path={`${prefix}/catdirilma`} element={<DeliveryInfo />} />
+    </>
+  );
+
   return (
     <div style={{ minHeight: '100vh', background: C.bg, fontFamily: F.sans, color: C.black }}>
       <a
@@ -238,166 +311,24 @@ function AppShell() {
 
       <Navbar
         cartCount={cartCount}
-        onLogoClick={() => navigate('/')}
         onCartClick={() => setCartOpen(true)}
-        onAboutClick={() => navigate('/haqqimizda')}
-        onContactClick={() => navigate('/elaqe')}
-        onDeliveryClick={() => navigate('/catdirilma')}
-        onProductsClick={() => goToProducts(null)}
         products={products}
-        onViewProduct={openProduct}
         audienceCategories={audienceCategories}
       />
 
       <main id="main-content">
       <Suspense fallback={<div style={{minHeight:'60vh'}} />}>
         <Routes>
-          {/* ── Azərbaycanca (default, prefikssiz) ── */}
-          <Route
-            path="/"
-            element={
-              <HomePage
-                visible={visible}
-                reelPosts={reelPosts}
-                heroSlides={heroSlides}
-                categories={categories}
-                categoryNameMap={categoryNameMap}
-                filteredProducts={filteredProducts}
-                loading={loading}
-                activeCategory={activeCategory}
-                setActiveCategory={setActiveCategory}
-                goToProducts={goToProducts}
-                openProduct={openProduct}
-                campaignBanner={campaignBanner}
-                featuredProduct={featuredProduct}
-                featuredProductBadge={featuredProductBadge}
-              />
-            }
-          />
-          <Route
-            path="/mehsullar"
-            element={
-              <ProductsPage
-                categories={categories}
-                categoryNameMap={categoryNameMap}
-                products={products}
-                loading={loading}
-                openProduct={openProduct}
-              />
-            }
-          />
-          <Route
-            path="/mehsullar/:slug"
-            element={
-              <SlugPage
-                products={products}
-                loading={loading}
-                categories={categories}
-                categoryNameMap={categoryNameMap}
-                setActiveCategory={setActiveCategory}
-                openProduct={openProduct}
-                onAddToCart={handleProductAddToCart}
-                bulkDiscountPerUnit={bulkDiscountPerUnit}
-              />
-            }
-          />
-          <Route
-            path="/kime/:slug"
-            element={
-              <AudiencePage
-                audienceCategories={audienceCategories}
-                products={products}
-                loading={loading}
-                openProduct={openProduct}
-              />
-            }
-          />
-          <Route path="/haqqimizda" element={<AboutUs />} />
-          <Route path="/elaqe" element={<Navigate to="/" replace />} />
-          <Route path="/blog" element={<BlogListPage />} />
-          <Route path="/blog/:slug" element={<BlogPostPage />} />
-          <Route path="/catdirilma" element={<DeliveryInfo />} />
-
-          {/* ── İngiliscə (/en prefiksli) — eyni komponentlər, ayrı URL ──
-              Sanity-də nameEn/descriptionEn dolduruqca məhsul adları/təsvirləri
-              avtomatik İngiliscə görünəcək (bax: lib/productLocale.ts coalesce
-              məntiqi — lib/sanityProduct.ts sorğu ilə çəkir, productLocale seçir). */}
-          <Route
-            path="/en"
-            element={
-              <HomePage
-                visible={visible}
-                reelPosts={reelPosts}
-                heroSlides={heroSlides}
-                categories={categories}
-                categoryNameMap={categoryNameMap}
-                filteredProducts={filteredProducts}
-                loading={loading}
-                activeCategory={activeCategory}
-                setActiveCategory={setActiveCategory}
-                goToProducts={goToProducts}
-                openProduct={openProduct}
-                campaignBanner={campaignBanner}
-                featuredProduct={featuredProduct}
-                featuredProductBadge={featuredProductBadge}
-              />
-            }
-          />
-          <Route
-            path="/en/mehsullar"
-            element={
-              <ProductsPage
-                categories={categories}
-                categoryNameMap={categoryNameMap}
-                products={products}
-                loading={loading}
-                openProduct={openProduct}
-              />
-            }
-          />
-          <Route
-            path="/en/mehsullar/:slug"
-            element={
-              <SlugPage
-                products={products}
-                loading={loading}
-                categories={categories}
-                categoryNameMap={categoryNameMap}
-                setActiveCategory={setActiveCategory}
-                openProduct={openProduct}
-                onAddToCart={handleProductAddToCart}
-                bulkDiscountPerUnit={bulkDiscountPerUnit}
-              />
-            }
-          />
-          <Route
-            path="/en/kime/:slug"
-            element={
-              <AudiencePage
-                audienceCategories={audienceCategories}
-                products={products}
-                loading={loading}
-                openProduct={openProduct}
-              />
-            }
-          />
-          <Route path="/en/haqqimizda" element={<AboutUs />} />
-          <Route path="/en/elaqe" element={<Navigate to="/en" replace />} />
-          <Route path="/en/blog" element={<BlogListPage />} />
-          <Route path="/en/blog/:slug" element={<BlogPostPage />} />
-          <Route path="/en/catdirilma" element={<DeliveryInfo />} />
-
+          {/* Azərbaycanca (default, prefikssiz) və İngiliscə (/en prefiksli) EYNİ komponentlərdir —
+              yalnız URL prefiksi fərqlənir. Əvvəl hər marşrut iki dəfə yazılırdı. */}
+          {pageRoutes('')}
+          {pageRoutes('/en')}
           <Route path="*" element={<NotFound onHome={() => navigate('/')} />} />
         </Routes>
         </Suspense>
       </main>
 
-      <Footer
-        onProductsClick={() => goToProducts(null)}
-        onDeliveryClick={() => navigate('/catdirilma')}
-        onAboutClick={() => navigate('/haqqimizda')}
-        onContactClick={() => navigate('/elaqe')}
-      />
+      <Footer />
 
       <Suspense fallback={null}>
         <CartDrawer
