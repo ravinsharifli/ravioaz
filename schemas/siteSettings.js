@@ -26,6 +26,17 @@ export default {
   type: 'document',
   __experimental_actions: ['update', 'publish'],
 
+  fieldsets: [
+    {
+      name: 'pricing',
+      title: '🧮 Qiymət kalkulyatoru — xərclər və qaydalar',
+      description:
+        'Məhsulun içindəki qiymət kalkulyatoru bu rəqəmlərdən istifadə edir. Xərclərin dəyişəndə yalnız buranı dəyiş. ' +
+        'DİQQƏT: bu sənəd saytın açıq API-sindən oxuna bilər, ona görə burada alış qiymətlərini yazma — yalnız ümumi xərcləri.',
+      options: { collapsible: true, collapsed: true },
+    },
+  ],
+
   fields: [
 
     {
@@ -371,6 +382,75 @@ export default {
           };
         },
       },
+    },
+
+
+    // ── QİYMƏT KALKULYATORU TƏNZİMLƏMƏLƏRİ ─────────────────────────
+    {
+      name: 'pricingCourier',
+      title: 'Kuryer xərci (₼, hər məhsula)',
+      type: 'number',
+      fieldset: 'pricing',
+      initialValue: 5,
+      validation: Rule => Rule.min(0),
+    },
+    {
+      name: 'pricingPackaging',
+      title: 'Qablaşdırma xərci (₼, hər məhsula)',
+      type: 'number',
+      fieldset: 'pricing',
+      initialValue: 1,
+      validation: Rule => Rule.min(0),
+    },
+    {
+      name: 'pricingAidPct',
+      title: 'Heyvanlara yardım (%) — müştərinin ödədiyi məbləğdən',
+      type: 'number',
+      fieldset: 'pricing',
+      initialValue: 5,
+      validation: Rule => Rule.min(0).max(50),
+    },
+    {
+      name: 'pricingCustomerPct',
+      title: 'Müştəri endirimi (%) — ən böyüyü (daimi müştəri)',
+      type: 'number',
+      fieldset: 'pricing',
+      description: 'Saytda daimi müştəri 20%, yeni müştəri 10%. Burada ƏN BÖYÜYÜ yazılır ki, kiçiyi də avtomatik təhlükəsiz olsun.',
+      initialValue: 20,
+      validation: Rule => Rule.min(0).max(90),
+    },
+    {
+      name: 'pricingCampaignPct',
+      title: 'Kampaniya ehtiyatı (%) — planlaşdırılan ən böyük kampaniya endirimi',
+      type: 'number',
+      fieldset: 'pricing',
+      description: 'Qiymət elə qurulur ki, bu qədər kampaniya endirimi + müştəri endirimi birlikdə olsa da qazanc azalmasın. Artırsan qiymətlər qalxır.',
+      initialValue: 20,
+      validation: Rule => Rule.min(0).max(80),
+    },
+    {
+      name: 'pricingDisplayPct',
+      title: 'Üstü cızılmış qiymətdəki görünən endirim (%)',
+      type: 'number',
+      fieldset: 'pricing',
+      description: 'Üstü cızılmış qiymət endirimli qiymətdən bu qədər yuxarı qoyulur (saytda "−20%" kimi görünür). 0 yazsan fərq olmur.',
+      initialValue: 20,
+      validation: Rule => Rule.min(0).max(60),
+    },
+    {
+      name: 'pricingEnding',
+      title: 'Qiymətin sonu',
+      type: 'string',
+      fieldset: 'pricing',
+      options: {
+        list: [
+          { title: 'x.90 (məs. 24.90)', value: '0.9' },
+          { title: 'x.99 (məs. 24.99)', value: '0.99' },
+          { title: 'Tam rəqəm (məs. 25)', value: '0' },
+        ],
+        layout: 'radio',
+      },
+      initialValue: '0.9',
     },
 
   ],

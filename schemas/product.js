@@ -1,4 +1,5 @@
 import { makeSlugify } from './slugify'
+import { VariantPricingInput } from './pricing/VariantPricingInput'
 
 export default {
   name: 'product',
@@ -119,6 +120,7 @@ export default {
       of: [
         {
           type: 'object',
+          components: { input: VariantPricingInput },
           fields: [
             {
               name: 'modelName',
@@ -182,20 +184,15 @@ export default {
             {
               name: 'price',
               title: 'Əsas qiymət (AZN)',
+              description: 'Yuxarıdakı kalkulyator alış qiymətindən avtomatik doldurur. İstəsən əllə də dəyişə bilərsən.',
               type: 'number',
               validation: Rule => Rule.required().min(0),
             },
             {
               name: 'discountPrice',
               title: 'Endirimli qiymət (AZN) - məcburi deyil',
+              description: 'Saytda müştərinin gördüyü qiymət. Kalkulyator avtomatik doldurur, əllə də dəyişə bilərsən.',
               type: 'number',
-            },
-            {
-              name: 'costPrice',
-              title: '🔒 Alış qiyməti (₼) — DAXİLİ, saytda görünmür',
-              type: 'number',
-              description: 'YALNIZ CEO/idarəetmə üçün. Bu sahə frontend kodunda istifadə olunmur və müştəriyə göstərilmir — yalnız qiymət hesablaması üçündür.',
-              validation: Rule => Rule.min(0),
             },
             {
               name: 'inStock',
@@ -212,21 +209,16 @@ export default {
               inStock: 'inStock',
               price: 'price',
               discountPrice: 'discountPrice',
-              costPrice: 'costPrice',
               media: 'images.0'
             },
-            prepare({ modelName, colorName, inStock, price, discountPrice, costPrice, media }) {
+            prepare({ modelName, colorName, inStock, price, discountPrice, media }) {
               const model = modelName || '-';
               const color = colorName ? `● ${colorName}` : '-';
               const stockBadge = inStock === false ? '❌ Bitib' : '✅ Stokda';
               const priceText = discountPrice ? `${discountPrice} AZN` : `${price} AZN`;
-              const effectivePrice = discountPrice || price;
-              const marginBadge = (costPrice != null && effectivePrice != null)
-                ? ` | 🔒 Qazanc: ${(effectivePrice - costPrice).toFixed(2)}₼`
-                : '';
               return {
                 title: `${model} | ${color}`,
-                subtitle: `${priceText} | ${stockBadge}${marginBadge}`,
+                subtitle: `${priceText} | ${stockBadge}`,
                 media
               }
             }
