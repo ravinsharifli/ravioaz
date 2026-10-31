@@ -64,6 +64,43 @@ function azDateStr(date: Date): string {
   return `${String(date.getDate()).padStart(2, '0')} ${MONTHS_AZ[date.getMonth()]} ${date.getFullYear()}`;
 }
 
+// Sanity-də metro günü həftənin günü kimi saxlanır (məs. "Çərşənbə").
+// Müştəriyə və WhatsApp mesajına isə YALNIZ real tarix (məs. "05 Noyabr 2026") çıxır.
+const WEEKDAY_INDEX: Record<string, number> = {
+  'Bazar': 0,
+  'Bazar ertəsi': 1,
+  'Çərşənbə axşamı': 2,
+  'Çərşənbə': 3,
+  'Cümə axşamı': 4,
+  'Cümə': 5,
+  'Şənbə': 6,
+};
+const WEEKDAY_NAMES_BY_INDEX = ['Bazar', 'Bazar ertəsi', 'Çərşənbə axşamı', 'Çərşənbə', 'Cümə axşamı', 'Cümə', 'Şənbə'];
+const METRO_DATES_PER_WEEKDAY = 4;
+
+// Verilmiş həftə günü üçün ən yaxın tarixləri qaytarır (minimum tarixdən başlayaraq).
+function getUpcomingDatesForWeekday(weekdayName: string, count: number): Date[] {
+  const target = WEEKDAY_INDEX[weekdayName];
+  if (target === undefined) return [];
+  const first = getMinDeliveryDate();
+  while (first.getDay() !== target) first.setDate(first.getDate() + 1);
+  return Array.from({ length: count }, (_, i) => {
+    const d = new Date(first);
+    d.setDate(first.getDate() + i * 7);
+    return d;
+  });
+}
+
+function toDateKey(date: Date): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
+function fromDateKey(key: string): Date | null {
+  const m = key.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) return null;
+  return new Date(parseInt(m[1], 10), parseInt(m[2], 10) - 1, parseInt(m[3], 10));
+}
+
 interface CartDrawerProps {
   isOpen: boolean;
   onClose: () => void;
@@ -210,14 +247,21 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
   const [kurMonth, setKurMonth] = useState('');
   const [kurYear, setKurYear] = useState(String(new Date().getFullYear()));
   const [metro, setMetro] = useState('');
-  const [metroDay, setMetroDay] = useState('');
+  const [metroDate, setMetroDate] = useState(''); // "YYYY-MM-DD"
   const [metroTime, setMetroTime] = useState('');
 
   if (!isOpen) return null;
 
   const stations = (metroSchedule?.stations ?? []).filter((station) => station.isActive !== false);
   const selectedStation = stations.find((station) => station.name === metro);
-  const metroDays = (selectedStation?.daySchedules ?? []).map((day) => day.day);
+  // Stansiyanın hər aktiv həftə günü üçün real tarixlər, tarix sırası ilə
+  const metroDateOptions = (selectedStation?.daySchedules ?? [])
+    .flatMap((day) => getUpcomingDatesForWeekday(day.day, METRO_DATES_PER_WEEKDAY))
+    .sort((a, b) => a.getTime() - b.getTime())
+    .map((date) => ({ key: toDateKey(date), label: azDateStr(date), date }));
+  const selectedMetroDateObj = metroDate ? fromDateKey(metroDate) : null;
+  // Seçilmiş tarixin həftə günü — yalnız Sanity cədvəlindən saatları tapmaq üçün (müştəriyə göstərilmir)
+  const metroDay = selectedMetroDateObj ? WEEKDAY_NAMES_BY_INDEX[selectedMetroDateObj.getDay()] : '';
   const selectedMetroSchedule = selectedStation?.daySchedules?.find((day) => day.day === metroDay);
   const metroTimes = selectedMetroSchedule?.allDayOpen
     ? ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00']
@@ -250,7 +294,9 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
 
   const birthDate = bdDay && bdMonth && bdYear ? `${bdDay} ${bdMonth} ${bdYear}` : 'Bildirilməyib';
   const deliveryLabel = delivery === 'metro' ? 'Metro' : delivery === 'post' ? 'Poçt' : 'Ünvana çatdırılma';
-  const deliveryDate = delivery === 'metro' ? metroDay : `${kurDay} ${kurMonth} ${kurYear}`;
+  const deliveryDate = delivery === 'metro'
+    ? (selectedMetroDateObj ? azDateStr(selectedMetroDateObj) : '')
+    : `${kurDay} ${kurMonth} ${kurYear}`;
   const deliveryTime = delivery === 'metro' ? metroTime : 'Gün ərzində';
   const deliveryPlace = delivery === 'metro' ? metro : address;
 
@@ -269,7 +315,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
     phone.trim().length > 0 &&
     deliveryDateValid &&
     (delivery === 'metro'
-      ? metro.trim().length > 0 && metroDay.trim().length > 0 && metroTime.trim().length > 0
+      ? metro.trim().length > 0 && metroDate.trim().length > 0 && metroTime.trim().length > 0
       : address.trim().length > 0 && kurDay.trim().length > 0 && kurMonth.trim().length > 0 && kurYear.trim().length > 0);
 
   function makeOrderNumber(date: Date) {
@@ -279,19 +325,27 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
   function buildMessage(orderNumber: string) {
     const fullItemsText = items.map((item, index) => {
       const imageUrl = toCleanImageUrl(item.images?.[0]);
-      return [
+      // Hər məhsul 3 ayrı qrupdan ibarətdir, qruplar arasında bir boş sətir olur:
+      // 1) əsas məlumat  2) yazı və xüsusi qeydlər (önəmli)  3) məhsul şəkli
+      const mainBlock = [
         `MƏHSUL ${index + 1}`,
         `- Ad: ${item.productName}`,
         `- Model: ${item.modelName}`,
         `- Rəng: ${item.colorName}`,
         `- Say: ${item.quantity} ədəd`,
         item.boxType && item.boxType !== 'simple' ? `- Qablaşdırma: ${item.boxType}` : '',
+      ].filter(Boolean).join('\n');
+
+      const customBlock = [
         item.customText ? `- Yazı: ${item.customText}` : '',
         item.customText && item.printFontId ? `- Yazı forması: ${FONT_STYLES.find(f => f.id === item.printFontId)?.name ?? ''}` : '',
         item.printNote ? `- Əlavə qeyd: ${item.printNote}` : '',
         item.specialRequest ? `- Xüsusi istək: ${item.specialRequest}` : '',
-        imageUrl ? `- Məhsul şəkli: ${imageUrl}` : '',
       ].filter(Boolean).join('\n');
+
+      const imageBlock = imageUrl ? `- Məhsul şəkli: ${imageUrl}` : '';
+
+      return [mainBlock, customBlock, imageBlock].filter(Boolean).join('\n\n');
     }).join('\n\n');
 
     const priceLines: string[] = [
@@ -699,7 +753,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                     aria-label={t('cartDrawer.selectMetroStation')}
                     onChange={(event) => {
                       setMetro(event.target.value);
-                      setMetroDay('');
+                      setMetroDate('');
                       setMetroTime('');
                     }}
                     style={{ width: '100%', background: C.white, border: `1px solid ${C.border}`, borderRadius: 8, padding: 12, marginBottom: 10, fontFamily: FONT }}
@@ -712,17 +766,21 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
 
                   <Label>{t('cartDrawer.day')}</Label>
                   <select
-                    value={metroDay}
+                    value={metroDate}
                     aria-label={t('cartDrawer.selectDay')}
                     onChange={(event) => {
-                      setMetroDay(event.target.value);
+                      setMetroDate(event.target.value);
                       setMetroTime('');
                     }}
                     style={{ width: '100%', background: C.white, border: `1px solid ${C.border}`, borderRadius: 8, padding: 12, marginBottom: 10, fontFamily: FONT }}
                   >
                     <option value="">{t('cartDrawer.selectDay')}</option>
-                    {metroDays.map((day) => (
-                      <option key={day} value={day}>{day}</option>
+                    {metroDateOptions.map((option) => (
+                      <option key={option.key} value={option.key}>
+                        {lang === 'en'
+                          ? `${String(option.date.getDate()).padStart(2, '0')} ${MONTHS_EN[option.date.getMonth()]} ${option.date.getFullYear()}`
+                          : option.label}
+                      </option>
                     ))}
                   </select>
 
