@@ -189,12 +189,14 @@ const Select: React.FC<{
     onChange={(event) => onChange(event.target.value)}
     style={{
       width: '100%',
+      minWidth: 0,
       background: C.white,
       border: `1px solid ${C.border}`,
       borderRadius: 8,
-      padding: '12px 10px',
+      padding: '12px 6px',
       color: value ? C.black : C.grayLt,
       fontSize: 13,
+      textOverflow: 'ellipsis',
       fontFamily: FONT,
       outline: 'none',
       boxSizing: 'border-box',
@@ -755,7 +757,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                     style={{ marginBottom: 10 }}
                   />
                   <Label>{t('cartDrawer.deliveryDay')}</Label>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1fr', gap: 8 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1.8fr) minmax(0, 1.1fr)', gap: 6 }}>
                     <Select value={kurDay} onChange={setKurDay} options={DAYS_LIST} placeholder={t('cartDrawer.day')} />
                     <Select value={kurMonth} onChange={setKurMonth} options={MONTHS_AZ} getLabel={monthLabel} placeholder={t('cartDrawer.month')} />
                     <Select value={kurYear} onChange={setKurYear} options={ORDER_YEARS} placeholder={t('cartDrawer.year')} />
@@ -832,7 +834,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                 <Input value={custName} aria-label={t('cartDrawer.yourName')} onChange={(event) => setCustName(event.target.value)} placeholder={t('cartDrawer.yourName')} autoComplete="name" style={{ marginBottom: 10 }} />
                 <Input value={phone} aria-label={t('cartDrawer.phoneNumber')} onChange={(event) => setPhone(event.target.value)} placeholder={t('cartDrawer.phonePlaceholder')} type="tel" autoComplete="tel" style={{ marginBottom: 10 }} />
                 <Label>{t('cartDrawer.birthDate')}</Label>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1fr', gap: 8 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1.8fr) minmax(0, 1.1fr)', gap: 6 }}>
                   <Select value={bdDay} onChange={setBdDay} options={DAYS_LIST} placeholder={t('cartDrawer.day')} />
                   <Select value={bdMonth} onChange={setBdMonth} options={MONTHS_AZ} getLabel={monthLabel} placeholder={t('cartDrawer.month')} />
                   <Select value={bdYear} onChange={setBdYear} options={BIRTH_YEARS} placeholder={t('cartDrawer.year')} />

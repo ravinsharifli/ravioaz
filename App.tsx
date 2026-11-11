@@ -56,6 +56,11 @@ function AppShell() {
   const [visible, setVisible] = useState(true);
   const [settings, setSettings] = useState<any>(null);
 
+  // Tətbiq ekrana çıxdı: robot mətnini (data-seo-shell) "hazır" kimi işarələ — skeleton gizlənir
+  useEffect(() => {
+    document.getElementById('root')?.removeAttribute('data-seo-shell');
+  }, []);
+
   useEffect(() => {
     try {
       localStorage.setItem('ravio_cart', JSON.stringify(cart));

@@ -142,8 +142,12 @@
       .ravio-skel-nav{height:60px;background:#FFFFFF;border-bottom:1px solid #EDEBE7;
         display:flex;align-items:center;padding:0 20px}
       .ravio-skel-logo{width:38px;height:38px;border-radius:8px;background:#FF6A00}
-      /* React #root-a məzmun yazan kimi skeleton dərhal gizlənir — JS lazım deyil */
-      #root:not(:empty) ~ #ravio-skeleton{display:none}
+      /* Axtarış robotları üçün hazır mətn (data-seo-shell) DOM-da qalır, amma gözlə görünmür —
+         əks halda React yüklənənə qədər ağ ekranda böyük başlıq yazısı görünürdü. */
+      #root[data-seo-shell] > main{position:absolute;width:1px;height:1px;margin:0;padding:0;
+        overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+      /* Real tətbiq mount olub data-seo-shell atributu silinəndə skeleton gizlənir */
+      #root:not([data-seo-shell]):not(:empty) ~ #ravio-skeleton{display:none}
       /* INJECT_SEO:SKELETON_PRODUCT_CSS_SLOT */
     </style>
     <script type="module" src="/index.tsx"></script>
