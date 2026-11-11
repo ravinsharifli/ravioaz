@@ -322,7 +322,24 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
     return `RV-${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, '0')}${String(date.getDate()).padStart(2, '0')}-${String(date.getHours()).padStart(2, '0')}${String(date.getMinutes()).padStart(2, '0')}${String(date.getSeconds()).padStart(2, '0')}`;
   }
 
-  function buildMessage(orderNumber: string) {
+  // WhatsApp mesajının başlığı üçün tarix: "11 Noy 2026"
+  // (Daxili orderNumber — RV-YYYYMMDD-HHMMSS — izləmə/dublikat qoruması üçün olduğu kimi qalır)
+  const MONTHS_SHORT_AZ = ['Yan', 'Fev', 'Mar', 'Apr', 'May', 'İyn', 'İyl', 'Avq', 'Sen', 'Okt', 'Noy', 'Dek'];
+  function makeOrderTitle(date: Date) {
+    return `Ravio - ${date.getDate()} ${MONTHS_SHORT_AZ[date.getMonth()]} ${date.getFullYear()}`;
+  }
+
+  function buildMessage(orderNumber: string, orderTitle: string) {
+    // Cəmi neçə ədəd məhsul var (sayları toplayırıq) — 2 və daha çoxdursa istehsalçıya qeyd əlavə olunur
+    const totalUnits = items.reduce((sum, item) => sum + (item.quantity || 1), 0);
+    const producerNote = totalUnits > 1
+      ? [
+          'İSTEHSALÇI ÜÇÜN QEYD',
+          `- Cəmi ${totalUnits} məhsul var. Hər məhsul ayrı şəxsə veriləcək.`,
+          '- Zəhmət olmasa hər məhsul ayrı qutu və ayrı paketdə hazırlansın.',
+        ].join('\n')
+      : '';
+
     const fullItemsText = items.map((item, index) => {
       const imageUrl = toCleanImageUrl(item.images?.[0]);
       // Hər məhsul 3 ayrı qrupdan ibarətdir, qruplar arasında bir boş sətir olur:
@@ -333,7 +350,6 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
         `- Model: ${item.modelName}`,
         `- Rəng: ${item.colorName}`,
         `- Say: ${item.quantity} ədəd`,
-        item.boxType && item.boxType !== 'simple' ? `- Qablaşdırma: ${item.boxType}` : '',
       ].filter(Boolean).join('\n');
 
       const customBlock = [
@@ -360,10 +376,11 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
     priceLines.push(`- Qalıq: ${money(remaining)}`);
 
     return [
-      `SİFARİŞ: ${orderNumber}`,
+      `SİFARİŞ: ${orderTitle}`,
       '',
       fullItemsText,
       '',
+      ...(producerNote ? [producerNote, ''] : []),
       '─────────────────',
       'ÇATDIRILMA',
       `- Növ: ${deliveryLabel}`,
@@ -389,7 +406,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
 
     const now = new Date();
     const orderNumber = makeOrderNumber(now);
-    const message = buildMessage(orderNumber);
+    const message = buildMessage(orderNumber, makeOrderTitle(now));
 
     // VACİB: WhatsApp pəncərəsi klikin İÇİNDƏ, HEÇ bir gözləmə (await/fetch) olmadan,
     // dərhal açılır. Əvvəlki versiyada bu sətir server sorğusundan (Sanity-yə yazıdan)
@@ -804,7 +821,6 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                 <Input value={custName} aria-label={t('cartDrawer.yourName')} onChange={(event) => setCustName(event.target.value)} placeholder={t('cartDrawer.yourName')} autoComplete="name" style={{ marginBottom: 10 }} />
                 <Input value={phone} aria-label={t('cartDrawer.phoneNumber')} onChange={(event) => setPhone(event.target.value)} placeholder={t('cartDrawer.phonePlaceholder')} type="tel" autoComplete="tel" style={{ marginBottom: 10 }} />
                 <Label>{t('cartDrawer.birthDate')}</Label>
-                <p style={{ margin: '0 0 8px', fontSize: 11, color: 'var(--clr-text-muted)', lineHeight: 1.5 }}>{t('cartDrawer.birthdayNote')}</p>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1fr', gap: 8 }}>
                   <Select value={bdDay} onChange={setBdDay} options={DAYS_LIST} placeholder={t('cartDrawer.day')} />
                   <Select value={bdMonth} onChange={setBdMonth} options={MONTHS_AZ} getLabel={monthLabel} placeholder={t('cartDrawer.month')} />
