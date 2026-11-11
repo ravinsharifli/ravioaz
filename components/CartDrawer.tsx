@@ -378,7 +378,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
     priceLines.push(`- Qalıq: ${money(remaining)}`);
 
     return [
-      `SİFARİŞ: ${orderTitle} | ${orderNumber}`,
+      `SİFARİŞ: ${orderTitle}`,
       '',
       fullItemsText,
       '',
