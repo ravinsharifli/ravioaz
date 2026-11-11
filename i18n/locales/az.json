@@ -307,6 +307,7 @@
     "twoSidedNote": "✓ İki tərəfli çap: həm yazı, həm şəkil məhsula işlənəcək.",
     "enterYourText": "Yazınızı daxil edin",
     "textPlaceholder": "Məs: Aysu & Elvin, 14.02.2024",
+    "backBtn": "Geri qayıt",
     "multiTextPlaceholder": "Hər sətirdə bir yazı:\nAysel\nMurad\nNigar",
     "multiTextHint": "Hər ədəd üçün ayrı yazı lazımdırsa, hər sətirə bir yazı yazın (Enter ilə yeni sətir).",
     "multiTextCount": "{{lines}} yazı / {{qty}} ədəd",

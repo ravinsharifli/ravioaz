@@ -307,6 +307,7 @@
     "twoSidedNote": "✓ Two-sided engraving: both text and image will be applied.",
     "enterYourText": "Enter your text",
     "textPlaceholder": "e.g. Aysu & Elvin, 14.02.2024",
+    "backBtn": "Back",
     "multiTextPlaceholder": "One text per line:\nAysel\nMurad\nNigar",
     "multiTextHint": "If each item needs its own text, write one text per line (press Enter for a new line).",
     "multiTextCount": "{{lines}} texts / {{qty}} items",

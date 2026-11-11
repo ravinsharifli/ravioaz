@@ -1,11 +1,11 @@
 import React, { Suspense, useEffect, useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { useParams, useLocation } from 'react-router-dom';
+import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { C, F } from '../../tokens';
 import { client } from '../../sanityclient';
 import { Product, CartItem } from '../../types';
-import { fromCategorySlug, findProductBySlug } from '../../lib/categorySlug';
+import { fromCategorySlug, findProductBySlug, toCategorySlug } from '../../lib/categorySlug';
 import { CATEGORY_SEO } from '../../lib/categorySeo';
 import { SINGLE_PRODUCT_QUERY, mapSanityProduct } from '../../lib/sanityProduct';
 import { getProductPriceRange } from '../../lib/productPrice';
@@ -43,6 +43,7 @@ export default function SlugPage({
   const { slug: rawSlug = '' } = useParams<{ slug: string }>();
   const slug = decodeURIComponent(rawSlug).trim();
   const { navigate, lang } = useLocalizedNav();
+  const rawNavigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation();
   const editItem = (location.state as { editItem?: CartItem } | null)?.editItem;
@@ -267,7 +268,16 @@ export default function SlugPage({
           initialData={editItem?.productId === currentProduct.id ? editItem : undefined}
           coupons={currentProduct.coupons || []}
           bulkDiscountPerUnit={bulkDiscountPerUnit}
-          onBack={() => navigate('/mehsullar')}
+          onBack={() => {
+            // Geri: istifadəçi saytın daxilindən gəlibsə (məs. kateqoriya səhifəsindən) — dəqiq
+            // ora qayıt. Birbaşa linklə (Google, WhatsApp) gəlibsə — məhsulun öz kateqoriyasına.
+            const idx = (window.history.state as { idx?: number } | null)?.idx ?? 0;
+            if (idx > 0) {
+              rawNavigate(-1);
+              return;
+            }
+            navigate(currentProduct.category ? `/mehsullar/${toCategorySlug(currentProduct.category)}` : '/mehsullar');
+          }}
           onAddToCart={onAddToCart}
         />
       </Suspense>

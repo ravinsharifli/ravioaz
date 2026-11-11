@@ -381,7 +381,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
           }}
         >
           <ArrowLeft size={16} />
-          Bütün məhsullara qayıt
+          {t('productPage.backBtn')}
         </button>
 
         <div className="ravio-page-grid">
