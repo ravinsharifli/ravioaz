@@ -132,6 +132,7 @@ export interface CartItem {
   deliveryDetails: string;
   bulkDiscountAmount?: number;
   boxType?: string;
+  boxName?: string;
   boxPrice?: number;
   couponCode?: string;
   couponDiscount?: number;

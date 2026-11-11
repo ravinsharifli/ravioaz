@@ -322,11 +322,11 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
     return `RV-${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, '0')}${String(date.getDate()).padStart(2, '0')}-${String(date.getHours()).padStart(2, '0')}${String(date.getMinutes()).padStart(2, '0')}${String(date.getSeconds()).padStart(2, '0')}`;
   }
 
-  // WhatsApp mesajının başlığı üçün tarix: "11 Noy 2026"
+  // WhatsApp mesajının başlığı üçün tarix-saat kodu: "11.11.26-08:35:12"
   // (Daxili orderNumber — RV-YYYYMMDD-HHMMSS — izləmə/dublikat qoruması üçün olduğu kimi qalır)
-  const MONTHS_SHORT_AZ = ['Yan', 'Fev', 'Mar', 'Apr', 'May', 'İyn', 'İyl', 'Avq', 'Sen', 'Okt', 'Noy', 'Dek'];
   function makeOrderTitle(date: Date) {
-    return `Ravio - ${date.getDate()} ${MONTHS_SHORT_AZ[date.getMonth()]} ${date.getFullYear()}`;
+    const p2 = (n: number) => String(n).padStart(2, '0');
+    return `Ravio - ${p2(date.getDate())}.${p2(date.getMonth() + 1)}.${String(date.getFullYear()).slice(-2)}-${p2(date.getHours())}:${p2(date.getMinutes())}:${p2(date.getSeconds())}`;
   }
 
   function buildMessage(orderNumber: string, orderTitle: string) {
@@ -350,6 +350,8 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
         `- Model: ${item.modelName}`,
         `- Rəng: ${item.colorName}`,
         `- Say: ${item.quantity} ədəd`,
+        // Qutu yalnız müştəri standartdan fərqli qutu seçibsə yazılır
+        item.boxName ? `- Qutu: ${item.boxName}` : '',
       ].filter(Boolean).join('\n');
 
       const customBlock = [
@@ -376,7 +378,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
     priceLines.push(`- Qalıq: ${money(remaining)}`);
 
     return [
-      `SİFARİŞ: ${orderTitle}`,
+      `SİFARİŞ: ${orderTitle} | ${orderNumber}`,
       '',
       fullItemsText,
       '',

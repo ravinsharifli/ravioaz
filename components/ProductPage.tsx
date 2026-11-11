@@ -124,8 +124,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
   // YALNIZ bu məhsula Sanity-də əlavə olunmuş qutular istifadə olunur.
   // Ümumi/default qutu siyahısına HEÇ VAXT geri qayıtmır — konkret məhsulda
   // qutu şəkli/qiyməti yüklənməyibsə, sual heç göstərilmir.
-  // Qablaşdırma seçimi saytdan çıxarılıb (istehsalçı üçün qeyd sifariş mesajında avtomatik yazılır)
-  const effectiveBoxes: BoxOption[] = [];
+  const effectiveBoxes: BoxOption[] = (product as any).customBoxOptions || [];
   const [boxId, setBoxId] = useState<string>(initialData?.boxType ?? effectiveBoxes[0]?.id ?? '');
   const [wantsDifferentBox, setWantsDifferentBox] = useState<boolean>(
     !!initialData?.boxType && initialData.boxType !== effectiveBoxes[0]?.id
@@ -297,6 +296,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
       deliveryDetails:      '',
       bulkDiscountAmount:   bulkDiscTotal,
       boxType:              boxId,
+      boxName:              showBox ? box?.name : undefined,
       boxPrice:             boxFee,
       couponCode:           appliedCoupon?.code,
       couponDiscount:       couponDiscount > 0 ? couponDiscount : undefined,
