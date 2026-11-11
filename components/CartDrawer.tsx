@@ -125,6 +125,15 @@ function money(value: number): string {
   return `${value.toFixed(2)} ₼`;
 }
 
+// Yazı: tək yazıdırsa əvvəlki kimi "- Yazı: ...", çox sətirlidirsə nömrələnmiş siyahı:
+// YAZILAR (30):\n1. Aysel\n2. Murad ...
+function formatCustomText(text?: string): string {
+  if (!text || !text.trim()) return '';
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+  if (lines.length <= 1) return `- Yazı: ${lines[0] ?? ''}`;
+  return [`- YAZILAR (${lines.length}):`, ...lines.map((l, i) => `${i + 1}. ${l}`)].join('\n');
+}
+
 function openWhatsAppMessage(message: string) {
   window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`, '_blank');
 }
@@ -355,7 +364,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
       ].filter(Boolean).join('\n');
 
       const customBlock = [
-        item.customText ? `- Yazı: ${item.customText}` : '',
+        formatCustomText(item.customText),
         item.customText && item.printFontId ? `- Yazı forması: ${FONT_STYLES.find(f => f.id === item.printFontId)?.name ?? ''}` : '',
         item.printNote ? `- Əlavə qeyd: ${item.printNote}` : '',
         item.specialRequest ? `- Xüsusi istək: ${item.specialRequest}` : '',
@@ -550,7 +559,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                       {item.customText && (() => {
                         const f = FONT_STYLES.find(fs => fs.id === item.printFontId);
                         return (
-                          <div style={{ fontSize: 11, color: C.blue, background: '#EFF6FF', borderRadius: 6, padding: '4px 8px', display: 'inline-block', marginBottom: 6 }}>
+                          <div style={{ fontSize: 11, color: C.blue, background: '#EFF6FF', borderRadius: 6, padding: '4px 8px', display: 'inline-block', marginBottom: 6, whiteSpace: 'pre-line', maxHeight: 120, overflowY: 'auto', maxWidth: '100%' }}>
                             <span style={{ fontFamily: f?.family, fontStyle: f?.italic ? 'italic' : 'normal', fontSize: 13 }}>
                               {item.customText}
                             </span>

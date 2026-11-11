@@ -829,9 +829,9 @@ const ProductPage: React.FC<ProductPageProps> = ({
               <textarea
                 value={printText}
                 onChange={e => setPrintText(e.target.value)}
-                maxLength={300}
-                rows={3}
-                placeholder={t('productPage.textPlaceholder')}
+                maxLength={qty > 1 ? 1500 : 300}
+                rows={qty > 1 ? 6 : 3}
+                placeholder={qty > 1 ? t('productPage.multiTextPlaceholder') : t('productPage.textPlaceholder')}
                 style={{
                   width: '100%', background: C.white, border: `1px solid ${C.border}`,
                   borderRadius: 8, padding: '11px 14px', color: C.black,
@@ -845,8 +845,26 @@ const ProductPage: React.FC<ProductPageProps> = ({
                 onFocus={e => e.currentTarget.style.borderColor = C.blue}
                 onBlur={e => e.currentTarget.style.borderColor = C.border}
               />
+              {qty > 1 && (() => {
+                const lines = printText.split('\n').map(l => l.trim()).filter(Boolean).length;
+                const mismatch = lines > 1 && lines !== qty;
+                return (
+                  <div style={{ marginTop: 6, fontFamily: FONT }}>
+                    <p style={{ margin: '0 0 4px', fontSize: 12, color: C.gray, lineHeight: 1.5 }}>{t('productPage.multiTextHint')}</p>
+                    {lines > 0 && (
+                      <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: mismatch ? '#B45309' : C.gray }}>
+                        {lines === 1
+                          ? t('productPage.multiTextSame', { qty })
+                          : mismatch
+                            ? t('productPage.multiTextMismatch', { lines, qty })
+                            : `✓ ${t('productPage.multiTextCount', { lines, qty })}`}
+                      </p>
+                    )}
+                  </div>
+                );
+              })()}
               <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 5 }}>
-                <span style={{ fontSize: 11, color: C.grayLt, fontFamily: FONT }}>{printText.length}/300</span>
+                <span style={{ fontSize: 11, color: C.grayLt, fontFamily: FONT }}>{printText.length}/{qty > 1 ? 1500 : 300}</span>
               </div>
 
               {/* Yazı forması — hər düymə öz şriftinin ADINI öz şriftində göstərir.
