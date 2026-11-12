@@ -103,6 +103,10 @@
       "f6": {
         "q": "Sifarişi ləğv etmək olurmu?",
         "a": "Lazer yazısı başlamazdan əvvəl ləğv mümkündür. Başlandıqdan sonra ləğv qəbul edilmir. Çünki özəl hazırlanan məhsul başqa müştərilərə satıla bilməz."
+      },
+      "f7": {
+        "q": "Çatdırılma vaxtını sonradan dəyişmək olarmı?",
+        "a": "Bəli. Sifarişi göndərdiyiniz WhatsApp söhbətində sifariş nömrəsini və yeni tarix/saatı yazmaq kifayətdir. Dəyişiklik məhsul yola düşməzdən əvvəl mümkündür. Sifariş göndərildikdən sonra səbət səhifəsində də “Çatdırılma vaxtını dəyiş” düyməsi görünür."
       }
     }
   },
@@ -219,6 +223,8 @@
     "close": "Səbəti bağla",
     "title": "Səbətim",
     "emptyText": "Səbətiniz boşdur",
+    "changeDeliveryText": "Sifarişiniz ({{order}}) göndərilib. Çatdırılma vaxtını dəyişmək istəyirsiniz?",
+    "changeDeliveryCta": "Çatdırılma vaxtını dəyiş",
     "browseCta": "Məhsullara bax",
     "itemQtyLabel": "sayı",
     "maxQty": "maks.",
@@ -318,7 +324,7 @@
     "additionalNotePlaceholder": "Məs: hərflər bir az kiçik olsun",
     "addImageLabel": "Şəkil əlavə et",
     "freeLabel": "— ödənişsiz",
-    "imageUploadHint": "Portret, eskiz, logo və ya QR kod üçün şəkil göndərin — məhsula çap ediləcək.",
+    "imageUploadHint": "Portret, eskiz, logo və ya QR kod üçün 3 şəkilə qədər göndərin — məhsula çap ediləcək.",
     "clickToChooseImage": "Şəkil seçmək üçün bura basın",
     "imageFormatHint": "JPG, PNG, WEBP · Maks. 5 MB",
     "uploading": "Şəkil yüklənir...",
@@ -337,6 +343,8 @@
     "uploadTooLarge": "Şəkil 20 MB-dan böyük olmamalıdır",
     "uploadFailed": "Şəkil yüklənmədi, yenidən cəhd edin",
     "previewAlt": "Önizləmə",
+    "uploadMaxImages": "Ən çox {{count}} şəkil yükləmək olar",
+    "addAnotherImage": "Daha bir şəkil əlavə et ({{current}}/{{max}})",
     "uploadedAlt": "Yüklənmiş şəkil"
   },
   "home": {

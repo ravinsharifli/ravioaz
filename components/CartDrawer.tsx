@@ -134,6 +134,17 @@ function formatCustomText(text?: string): string {
   return [`- YAZILAR (${lines.length}):`, ...lines.map((l, i) => `${i + 1}. ${l}`)].join('\n');
 }
 
+// Son göndərilən sifariş (7 gün ərzində) — çatdırılma vaxtını dəyişmək üçün
+function readLastOrder(): { title: string } | null {
+  try {
+    const raw = localStorage.getItem('ravio_last_order');
+    if (!raw) return null;
+    const o = JSON.parse(raw);
+    if (!o?.title || Date.now() - Number(o.ts) > 7 * 24 * 3600 * 1000) return null;
+    return { title: String(o.title) };
+  } catch { return null; }
+}
+
 function openWhatsAppMessage(message: string) {
   window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`, '_blank');
 }
@@ -369,7 +380,9 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
         formatCustomText(item.customText),
         item.customText && item.printFontId ? `- Yazı forması: ${FONT_STYLES.find(f => f.id === item.printFontId)?.name ?? ''}` : '',
         item.printNote ? `- Əlavə qeyd: ${item.printNote}` : '',
-        item.specialRequest ? `- Xüsusi istək: ${item.specialRequest}` : '',
+        item.specialRequest
+          ? (item.specialRequest.includes('\n') ? `- Xüsusi istək:\n${item.specialRequest}` : `- Xüsusi istək: ${item.specialRequest}`)
+          : '',
       ].filter(Boolean).join('\n');
 
       const imageBlock = imageUrl ? `- Məhsul şəkli: ${imageUrl}` : '';
@@ -453,6 +466,8 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
     }
     try {
       localStorage.setItem('ravio_has_ordered', '1');
+      // Çatdırılma vaxtını sonradan dəyişmək üçün (7 gün saxlanılır)
+      localStorage.setItem('ravio_last_order', JSON.stringify({ title: makeOrderTitle(now), ts: now.getTime() }));
     } catch {}
 
     // Server-side Meta Purchase hadisəsi (reklam izləməsinin dəqiqliyi üçün) —
@@ -478,6 +493,8 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
     onClose();
     setIsSubmitting(false);
   }
+
+  const lastOrder = items.length === 0 ? readLastOrder() : null;
 
   return (
     <div
@@ -536,6 +553,17 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
             >
               {t('cartDrawer.browseCta')}
             </button>
+            {lastOrder && (
+              <div style={{ marginTop: 8, padding: 16, border: `1px solid ${C.border}`, borderRadius: 10, background: C.white, textAlign: 'center', maxWidth: 320 }}>
+                <p style={{ fontSize: 13, color: C.gray, margin: '0 0 10px', lineHeight: 1.5 }}>{t('cartDrawer.changeDeliveryText', { order: lastOrder.title })}</p>
+                <button
+                  onClick={() => openWhatsAppMessage(`Salam, ${lastOrder.title} nömrəli sifarişimin çatdırılma vaxtını dəyişmək istəyirəm.\nYeni tarix/saat: `)}
+                  style={{ padding: '10px 20px', background: C.white, color: C.orange, border: `1.5px solid ${C.orange}`, borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: FONT }}
+                >
+                  {t('cartDrawer.changeDeliveryCta')}
+                </button>
+              </div>
+            )}
           </div>
         )}
 

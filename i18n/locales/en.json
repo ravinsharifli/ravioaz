@@ -103,6 +103,10 @@
       "f6": {
         "q": "Can I cancel my order?",
         "a": "Cancellation is possible before laser engraving begins. Once engraving has started, cancellation isn't possible — a personalized item can't be resold to another customer."
+      },
+      "f7": {
+        "q": "Can I change the delivery time after ordering?",
+        "a": "Yes. Reply in the same WhatsApp chat you ordered from with your order number and the new date/time. Changes are possible before the item is dispatched. After you place an order, a “Change delivery time” button also appears in your cart."
       }
     }
   },
@@ -219,6 +223,8 @@
     "close": "Close cart",
     "title": "My Cart",
     "emptyText": "Your cart is empty",
+    "changeDeliveryText": "Your order ({{order}}) was sent. Want to change the delivery time?",
+    "changeDeliveryCta": "Change delivery time",
     "browseCta": "Browse products",
     "itemQtyLabel": "quantity",
     "maxQty": "max.",
@@ -318,7 +324,7 @@
     "additionalNotePlaceholder": "e.g. make the letters a bit smaller",
     "addImageLabel": "Add image engraving",
     "freeLabel": "— free",
-    "imageUploadHint": "Send a portrait, sketch, logo, or QR code to have it engraved on the product.",
+    "imageUploadHint": "Send up to 3 images (portrait, sketch, logo, or QR code) to have them engraved on the product.",
     "clickToChooseImage": "Click here to choose an image",
     "imageFormatHint": "JPG, PNG, WEBP · Max 5 MB",
     "uploading": "Uploading image...",
@@ -337,6 +343,8 @@
     "uploadTooLarge": "The image must be smaller than 20 MB",
     "uploadFailed": "Image upload failed, please try again",
     "previewAlt": "Preview",
+    "uploadMaxImages": "You can upload up to {{count}} images",
+    "addAnotherImage": "Add another image ({{current}}/{{max}})",
     "uploadedAlt": "Uploaded image"
   },
   "home": {

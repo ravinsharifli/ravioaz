@@ -106,9 +106,13 @@ const ProductPage: React.FC<ProductPageProps> = ({
   const [qty,        setQty]        = useState(initialData?.quantity ?? 1);
   const [printText,  setPrintText]  = useState(initialData?.customText ?? '');
 
-  const [uploadedImgUrl,     setUploadedImgUrl]     = useState<string | null>(null);
-  const [uploadedImgPreview, setUploadedImgPreview] = useState<string | null>(null);
-  const [uploadLoading,      setUploadLoading]      = useState(false);
+  // Bir məhsula 3-ə qədər şəkil yüklənə bilər (hər biri ayrıca imgbb linki)
+  const MAX_IMAGES = 3;
+  const [uploadedImgs, setUploadedImgs] = useState<{ id: string; preview: string; url: string | null }[]>(() =>
+    (initialData?.specialRequest?.match(/https?:\/\/\S+/g) ?? []).slice(0, 3).map((url, i) => ({ id: `init${i}`, preview: url, url }))
+  );
+  const [uploadingCount,     setUploadingCount]     = useState(0);
+  const uploadLoading = uploadingCount > 0;
   const [uploadError,        setUploadError]        = useState('');
   const [addedToCart,        setAddedToCart]        = useState(false);
 
@@ -242,33 +246,47 @@ const ProductPage: React.FC<ProductPageProps> = ({
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > 20 * 1024 * 1024) { setUploadError(t('productPage.uploadTooLarge')); return; }
-    setUploadError('');
-    setUploadLoading(true);
-    const localPreview = URL.createObjectURL(file);
-    setUploadedImgPreview(localPreview);
-    try {
-      // Əvvəlcə brauzerdə kiçildirik, sonra ÖZ server funksiyamıza göndəririk (/api/upload-image).
-      // imgbb açarı artıq brauzerə düşmür.
-      const base64 = await compressImageToBase64(file);
-      const response = await fetch('/api/upload-image', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image: base64 }),
-      });
-      if (!response.ok) throw new Error('upload failed');
-      const data = await response.json();
-      if (data?.ok && data.url) { setUploadedImgUrl(data.url); setUploadLoading(false); }
-      else throw new Error('upload failed');
-    } catch {
-      setUploadedImgPreview(null); setUploadedImgUrl(null);
-      setUploadLoading(false); setUploadError(t('productPage.uploadFailed'));
+    const files = Array.from(e.target.files ?? []);
+    e.target.value = ''; // eyni faylı yenidən seçmək mümkün olsun
+    if (!files.length) return;
+    const room = MAX_IMAGES - uploadedImgs.length;
+    const chosen = files.slice(0, Math.max(room, 0));
+    if (!chosen.length) return;
+    setUploadError(files.length > room ? t('productPage.uploadMaxImages', { count: MAX_IMAGES }) : '');
+    // Ardıcıl yükləyirik (server tərəfdə dəqiqədə limit var, paralel yükləmə limiti aşa bilər)
+    for (const file of chosen) {
+      if (file.size > 20 * 1024 * 1024) { setUploadError(t('productPage.uploadTooLarge')); continue; }
+      const id = Math.random().toString(36).slice(2, 9);
+      const preview = URL.createObjectURL(file);
+      setUploadedImgs(prev => [...prev, { id, preview, url: null }]);
+      setUploadingCount(c => c + 1);
+      try {
+        const base64 = await compressImageToBase64(file);
+        const response = await fetch('/api/upload-image', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image: base64 }),
+        });
+        if (!response.ok) throw new Error('upload failed');
+        const data = await response.json();
+        if (!(data?.ok && data.url)) throw new Error('upload failed');
+        setUploadedImgs(prev => prev.map(im => im.id === id ? { ...im, url: data.url } : im));
+      } catch {
+        setUploadedImgs(prev => prev.filter(im => im.id !== id));
+        setUploadError(t('productPage.uploadFailed'));
+      } finally {
+        setUploadingCount(c => c - 1);
+      }
     }
   };
 
-  const handleRemoveImage = () => { setUploadedImgUrl(null); setUploadedImgPreview(null); setUploadError(''); };
+  const handleRemoveImage = (id: string) => { setUploadedImgs(prev => prev.filter(im => im.id !== id)); setUploadError(''); };
+
+  const readyImageUrls = uploadedImgs.filter(im => im.url).map(im => im.url as string);
+  // 1 şəkil: "Müştəri şəkli: link" (köhnə format); 2+ şəkil: hər biri ayrı sətirdə
+  const specialRequestText = readyImageUrls.length === 1
+    ? `Müştəri şəkli: ${readyImageUrls[0]}`
+    : readyImageUrls.map((u, i) => `Müştəri şəkli ${i + 1}: ${u}`).join('\n');
 
   const handleAddToCart = () => {
     if (uploadLoading) return;
@@ -286,7 +304,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
       customText:           printText,
       printFontId:          printText.trim() ? fontStyle : undefined,
       printNote:            printNote.trim() || undefined,
-      specialRequest:       uploadedImgUrl ? `Müştəri şəkli: ${uploadedImgUrl}` : '',
+      specialRequest:       specialRequestText,
       customerName:         '',
       phone:                '',
       birthDate:            '',
@@ -301,7 +319,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
       couponCode:           appliedCoupon?.code,
       couponDiscount:       couponDiscount > 0 ? couponDiscount : undefined,
       customerDiscount:     customerDisc > 0 ? customerDisc : undefined,
-      hasQrCode:            !!uploadedImgUrl,
+      hasQrCode:            readyImageUrls.length > 0,
       deliveryMethod:       'kuryer' as any,
       finalTotal:           finalPrice,
       behAmount:            Math.ceil(finalPrice * 0.5),
@@ -956,43 +974,44 @@ const ProductPage: React.FC<ProductPageProps> = ({
                 {t('productPage.imageUploadHint')}
               </div>
 
-              {!uploadedImgPreview && !uploadLoading && (
+              {uploadedImgs.length > 0 && (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 10 }}>
+                  {uploadedImgs.map(im => (
+                    <div key={im.id} style={{ position: 'relative' }}>
+                      <img src={im.preview} alt={t('productPage.uploadedAlt')} style={{ width: '100%', aspectRatio: '1 / 1', objectFit: 'cover', borderRadius: 8, background: C.bg, border: `1px solid ${im.url ? C.green : C.blueBd}`, opacity: im.url ? 1 : 0.5 }} />
+                      {im.url ? (
+                        <button type="button" onClick={() => handleRemoveImage(im.id)} aria-label="×" style={{ position: 'absolute', top: 4, right: 4, background: 'rgba(0,0,0,0.55)', border: 'none', borderRadius: '50%', width: 24, height: 24, color: C.white, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <X size={12} />
+                        </button>
+                      ) : (
+                        <svg width="22" height="22" viewBox="0 0 18 18" style={{ position: 'absolute', top: '50%', left: '50%', marginTop: -11, marginLeft: -11, animation: 'ravio-spin 0.8s linear infinite' }}>
+                          <circle cx="9" cy="9" r="7" fill="none" stroke={C.blueBd} strokeWidth="2.5" />
+                          <path d="M9 2 A7 7 0 0 1 16 9" fill="none" stroke={C.blue} strokeWidth="2.5" strokeLinecap="round" />
+                        </svg>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {uploadedImgs.length < MAX_IMAGES && (
                 <label style={{
                   display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', gap: 8,
                   padding: '20px', border: `1.5px dashed ${C.border}`, borderRadius: 10, cursor: 'pointer', background: C.bg,
                 }}>
                   <Upload size={20} color={C.grayLt} />
-                  <span style={{ fontSize: 13, color: C.gray }}>{t('productPage.clickToChooseImage')}</span>
+                  <span style={{ fontSize: 13, color: C.gray }}>
+                    {uploadedImgs.length === 0 ? t('productPage.clickToChooseImage') : t('productPage.addAnotherImage', { current: uploadedImgs.length, max: MAX_IMAGES })}
+                  </span>
                   <span style={{ fontSize: 11, color: C.grayLt }}>{t('productPage.imageFormatHint')}</span>
-                  <input type="file" accept="image/jpeg,image/png,image/webp" style={{ display: 'none' }} onChange={handleImageUpload} />
+                  <input type="file" multiple accept="image/jpeg,image/png,image/webp" style={{ display: 'none' }} onChange={handleImageUpload} />
                 </label>
               )}
 
-              {uploadLoading && (
-                <div style={{ display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', gap: 12, padding: '24px', border: `1.5px dashed ${C.blueBd}`, borderRadius: 10, background: C.blueBg }}>
-                  {uploadedImgPreview && (
-                    <img src={uploadedImgPreview} alt={t('productPage.previewAlt')} style={{ width: '100%', maxHeight: 120, objectFit: 'contain', borderRadius: 8, opacity: 0.6 }} />
-                  )}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <svg width="18" height="18" viewBox="0 0 18 18" style={{ animation: 'ravio-spin 0.8s linear infinite' }}>
-                      <circle cx="9" cy="9" r="7" fill="none" stroke={C.blueBd} strokeWidth="2.5" />
-                      <path d="M9 2 A7 7 0 0 1 16 9" fill="none" stroke={C.blue} strokeWidth="2.5" strokeLinecap="round" />
-                    </svg>
-                    <span style={{ fontSize: 13, color: C.blue, fontWeight: 600 }}>{t('productPage.uploading')}</span>
-                  </div>
-                </div>
-              )}
-
-              {uploadedImgPreview && !uploadLoading && uploadedImgUrl && (
-                <div style={{ position: 'relative' }}>
-                  <img src={uploadedImgPreview} alt={t('productPage.uploadedAlt')} style={{ width: '100%', height: 160, objectFit: 'contain', borderRadius: 8, background: C.bg, border: `1px solid ${C.green}` }} />
-                  <button onClick={handleRemoveImage} style={{ position: 'absolute', top: 8, right: 8, background: 'rgba(0,0,0,0.55)', border: 'none', borderRadius: '50%', width: 28, height: 28, color: C.white, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <X size={14} />
-                  </button>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 8, padding: '8px 12px', background: C.greenBg, border: '1px solid #BBF7D0', borderRadius: 8 }}>
-                    <Check size={14} color={C.green} strokeWidth={2.5} />
-                    <span style={{ fontSize: 12, color: C.green, fontWeight: 600 }}>{t('productPage.imageReady')}</span>
-                  </div>
+              {readyImageUrls.length > 0 && !uploadLoading && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 8, padding: '8px 12px', background: C.greenBg, border: '1px solid #BBF7D0', borderRadius: 8 }}>
+                  <Check size={14} color={C.green} strokeWidth={2.5} />
+                  <span style={{ fontSize: 12, color: C.green, fontWeight: 600 }}>{t('productPage.imageReady')}</span>
                 </div>
               )}
 

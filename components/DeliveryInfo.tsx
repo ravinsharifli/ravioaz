@@ -29,7 +29,7 @@ const DeliveryInfo: React.FC<DeliveryInfoProps> = () => {
   ] as const;
 
   const steps = ['s1', 's2', 's3', 's4'] as const;
-  const faqs = ['f1', 'f2', 'f3', 'f4', 'f5', 'f6'] as const;
+  const faqs = ['f1', 'f2', 'f3', 'f4', 'f5', 'f6', 'f7'] as const;
 
   return (
     <div style={{ maxWidth: 1280, margin: '0 auto', padding: 'clamp(48px,6vw,80px) clamp(16px,3vw,32px)', fontFamily: FONT }}>
