@@ -225,12 +225,52 @@ function productSeoContent({ name, h1 = name, desc, image, price, slug, lang = '
   `;
 }
 
-/** Kateqoriya və məhsullar səhifəsi üçün ilkin məzmun */
-function simpleSeoContent({ h1, desc, lang = 'az' }) {
+/** Siyahı səhifələri üçün məhsul elementi: dilə uyğun ad, link və qiymət */
+function toListItem(p, lang) {
+  const name = lang === 'en' ? (p.nameEn && p.nameEn.trim()) || p.name : p.name;
+  return {
+    name,
+    url: urlFor(`/mehsullar/${p.slug}`, lang),
+    path: pathFor(`/mehsullar/${p.slug}`, lang),
+    price: p.price,
+  };
+}
+
+/** Məhsul siyahısı (robotlar üçün): hər məhsul ad + real link + qiymət */
+function productListHtml(items, lang) {
+  if (!items || !items.length) return '';
+  const T = SHELL_TEXT[lang];
+  const rows = items
+    .map((it) => {
+      const price = it.price ? ` — ${T.price}: ${esc(it.price)} AZN` : '';
+      return `<li><a href="${it.path}">${esc(it.name)}</a>${price}</li>`;
+    })
+    .join('');
+  return `<ul>${rows}</ul>`;
+}
+
+/** ItemList JSON-LD: siyahı səhifəsindəki məhsulların sıralı siyahısı */
+function itemListSchema(items) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    numberOfItems: items.length,
+    itemListElement: items.map((it, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      url: it.url,
+      name: it.name,
+    })),
+  };
+}
+
+/** Kateqoriya və məhsullar səhifəsi üçün ilkin məzmun (items verilərsə məhsul siyahısı ilə) */
+function simpleSeoContent({ h1, desc, lang = 'az', items = [] }) {
   return `
     <main style="max-width:1280px;margin:0 auto;padding:32px 16px;font-family:Inter,Arial,sans-serif">
       <h1>${esc(h1)}</h1>
       <p>${esc(desc)}</p>
+      ${productListHtml(items, lang)}
       <a href="${pathFor('/mehsullar', lang)}">${SHELL_TEXT[lang].viewAll}</a>
     </main>
   `;
@@ -481,7 +521,9 @@ async function run() {
       h1Override,
       "firstImageUrl": variants[0].images[0].asset->url,
       "price": coalesce(variants[0].discountPrice, variants[0].price),
-      "variantPrices": variants[]{ price, discountPrice, inStock }
+      "variantPrices": variants[]{ price, discountPrice, inStock },
+      "categoryName": category->name,
+      "audienceSlugs": audienceCategories[]->slug.current
     }
   `);
 
@@ -722,6 +764,7 @@ async function run() {
   for (const lang of LANGS) {
     try {
       const desc = tr(lang, 'productsPage.meta.description');
+      const allItems = products.map((p) => toListItem(p, lang));
       let html = injectStaticRoot(
         template,
         simpleSeoContent({
@@ -730,9 +773,11 @@ async function run() {
             : 'Fərdi Hədiyyələr və Lazer Yazılı Məhsullar',
           desc,
           lang,
+          items: allItems,
         }),
       );
       html = finalizePage(html, { lang, pathAz: '/mehsullar', title: tr(lang, 'productsPage.meta.title'), desc });
+      html = html.replace('</head>', `${jsonLdTag(itemListSchema(allItems))}\n</head>`);
       writePage(distFile(lang, 'mehsullar'), html);
       console.log(`  ✅ ${pathFor('/mehsullar', lang)} (siyahı səhifəsi)`);
     } catch (err) {
@@ -756,8 +801,13 @@ async function run() {
         const desc = lang === 'az' && seo ? seo.desc : `${label} — ${tr(lang, 'slugPage.categoryDescSuffix')}`;
         const h1 = lang === 'az' && seo ? seo.h1 : label;
 
-        let html = injectStaticRoot(template, simpleSeoContent({ h1, desc, lang }));
+        const catItems = products
+          .filter((p) => p.categoryName && toCategorySlug(p.categoryName) === cat.slug)
+          .map((p) => toListItem(p, lang));
+
+        let html = injectStaticRoot(template, simpleSeoContent({ h1, desc, lang, items: catItems }));
         html = finalizePage(html, { lang, pathAz, title, desc });
+        if (catItems.length) html = html.replace('</head>', `${jsonLdTag(itemListSchema(catItems))}\n</head>`);
 
         // Kateqoriya üçün BreadcrumbList + CollectionPage schema
         html = html.replace('</head>', `${jsonLdTag(collectionPageSchema({
@@ -803,8 +853,13 @@ async function run() {
         const acTitle = tr(lang, 'audiencePage.metaTitleTemplate', { name: acName });
         const acDesc = tr(lang, 'audiencePage.metaDescriptionTemplate', { name: acName });
 
-        let html = injectStaticRoot(template, simpleSeoContent({ h1: acName, desc: acDesc, lang }));
+        const audItems = products
+          .filter((p) => Array.isArray(p.audienceSlugs) && p.audienceSlugs.includes(ac.slug))
+          .map((p) => toListItem(p, lang));
+
+        let html = injectStaticRoot(template, simpleSeoContent({ h1: acName, desc: acDesc, lang, items: audItems }));
         html = finalizePage(html, { lang, pathAz, title: acTitle, desc: acDesc });
+        if (audItems.length) html = html.replace('</head>', `${jsonLdTag(itemListSchema(audItems))}\n</head>`);
         html = html.replace('</head>', `${jsonLdTag(collectionPageSchema({
           name: acName,
           description: acDesc,
@@ -912,6 +967,9 @@ async function run() {
   mustContain('dist/index.html', 'hreflang="en"');
   mustContain('dist/en/index.html', '<html lang="en">');
   mustContain('dist/en/index.html', `<link rel="canonical" href="${SITE}/en"`);
+  // Siyahı səhifələrinin ilkin HTML-ində məhsul linkləri olmalıdır (robotlar üçün)
+  mustContain('dist/mehsullar/index.html', `href="/mehsullar/${products[0].slug}"`);
+  mustContain('dist/en/mehsullar/index.html', `href="/en/mehsullar/${products[0].slug}"`);
   const expectedProducts = products.length * LANGS.length;
   if (ok / expectedProducts < 0.95) problems.push(`məhsul səhifələri: ${ok}/${expectedProducts}`);
   const expectedCats = activeCategories.length * LANGS.length;
