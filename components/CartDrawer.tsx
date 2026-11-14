@@ -332,9 +332,12 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
   })();
   const deliveryDateValid = delivery === 'metro' || (selectedDeliveryDate !== null && selectedDeliveryDate >= minDeliveryDate);
 
+  // Yalnız +994XXXXXXXXX (13 simvol) və ya 0XXXXXXXXX (10 rəqəm); boşluq/tire yoxdur
+  const phoneValid = /^(\+994\d{9}|0\d{9})$/.test(phone);
+
   const checkoutValid =
     custName.trim().length > 0 &&
-    phone.trim().length > 0 &&
+    phoneValid &&
     deliveryDateValid &&
     (delivery === 'metro'
       ? metro.trim().length > 0 && metroDate.trim().length > 0 && metroTime.trim().length > 0
@@ -369,6 +372,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
         formatCustomText(item.customText),
         item.customText && item.printFontId ? `- Yazı forması: ${FONT_STYLES.find(f => f.id === item.printFontId)?.name ?? ''}` : '',
         item.printNote ? `- Əlavə qeyd: ${item.printNote}` : '',
+        index === 0 ? producerNote : '', // "Cəmi N məhsul var" — Əlavə qeyddən sonra, bir dəfə
       ].filter(Boolean).join('\n');
 
       // 2) Link qrupu: qutu şəkli (yalnız fərqli qutu seçilibsə), müştəri şəkli, məhsul şəkli
@@ -408,14 +412,13 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
     return [
       `SİFARİŞ: ${orderTitle}`,
       '',
-      ...(producerNote ? [producerNote, ''] : []),
       producerItemsText,
       '',
       '═════ ÇATDIRILMA ═════',
+      `- Metod: ${deliveryLabel}`,
       `- Müştəri: ${custName}`,
       `- Əlaqə: ${phone}`,
       `- ${delivery === 'metro' ? 'Metro' : 'Ünvan'}: ${deliveryPlace}`,
-      `- Metod: ${deliveryLabel}`,
       `- Tarix: ${deliveryDate}`,
       `- Saat: ${deliveryTime}`,
       `- Doğum tarixi: ${birthDate}`,
@@ -861,7 +864,10 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
               <Section>
                 <Label>{t('cartDrawer.contactInfo')}</Label>
                 <Input value={custName} aria-label={t('cartDrawer.yourName')} onChange={(event) => setCustName(event.target.value)} placeholder={t('cartDrawer.yourName')} autoComplete="name" style={{ marginBottom: 10 }} />
-                <Input value={phone} aria-label={t('cartDrawer.phoneNumber')} onChange={(event) => setPhone(event.target.value)} placeholder={t('cartDrawer.phonePlaceholder')} type="tel" autoComplete="tel" style={{ marginBottom: 10 }} />
+                <Input value={phone} aria-label={t('cartDrawer.phoneNumber')} onChange={(event) => setPhone(event.target.value.replace(/[^\d+]/g, '').replace(/(?!^)\+/g, '').slice(0, 13))} placeholder={t('cartDrawer.phonePlaceholder')} type="tel" inputMode="tel" autoComplete="tel" style={{ marginBottom: phone && !phoneValid ? 4 : 10 }} />
+                {phone && !phoneValid && (
+                  <p style={{ fontSize: 12, color: C.red, margin: '0 0 10px' }}>{t('cartDrawer.phoneInvalid')}</p>
+                )}
                 <Label>{t('cartDrawer.birthDate')}</Label>
                 <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1.8fr) minmax(0, 1.1fr)', gap: 6 }}>
                   <Select value={bdDay} onChange={setBdDay} options={DAYS_LIST} placeholder={t('cartDrawer.day')} />
