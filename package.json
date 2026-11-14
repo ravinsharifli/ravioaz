@@ -8,7 +8,7 @@
     "build": "node generate-sitemap.mjs && vite build && node inject-seo.mjs",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "test": "node scripts/api-guard.test.mjs",
+    "test": "node scripts/api-guard.test.mjs && node scripts/telegram.test.mjs",
     "studio": "sanity dev",
     "studio:deploy": "sanity deploy"
   },
