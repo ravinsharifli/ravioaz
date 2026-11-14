@@ -139,8 +139,10 @@ async function handleOrder(chatId, text) {
   for (const p of products) {
     // Şəkilləri və kodu hər məhsul üçün BİR dəfə hazırlayırıq, ədədlər üçün təkrar istifadə edirik
     const file = p.productImage ? productImageFile(p.productImage) : null;
-    const [productImg, lookup, ...customerImgs] = await Promise.all([
+    const boxFile = p.boxImage ? productImageFile(p.boxImage) : null;
+    const [productImg, boxImg, lookup, ...customerImgs] = await Promise.all([
       file ? download(sanityImageUrl(file)) : null,
+      boxFile ? download(sanityImageUrl(boxFile)) : null,
       file ? lookupProduct(file) : null,
       ...p.customerPhotos
         .filter(isCustomerPhotoUrl)
@@ -150,6 +152,7 @@ async function handleOrder(chatId, text) {
 
     const images = [];
     if (file) images.push({ url: sanityImageUrl(file), ...(productImg || {}) });
+    if (boxFile) images.push({ url: sanityImageUrl(boxFile), ...(boxImg || {}) });
     images.push(...customerImgs);
 
     const code = lookup?._id ? lookup._id.replace(/^drafts\./, '').slice(0, 8) : '';

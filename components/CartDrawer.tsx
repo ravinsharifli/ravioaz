@@ -354,40 +354,44 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
   function buildMessage(orderNumber: string, orderTitle: string) {
     // Cəmi neçə ədəd məhsul var (sayları toplayırıq) — 2 və daha çoxdursa istehsalçıya qeyd əlavə olunur
     const totalUnits = items.reduce((sum, item) => sum + (item.quantity || 1), 0);
+    // İSTEHSALÇI hissəsi: yalnız istehsalçıya lazım olanlar — yazı, yazı tipi və linklər.
+    // Telefon, ünvan, qiymət bu hissədə YOXDUR (Telegram botu da yalnız bu hissəni oxuyur).
     const producerNote = totalUnits > 1
-      ? [
-          'İSTEHSALÇI ÜÇÜN QEYD',
-          `- Cəmi ${totalUnits} məhsul var. Hər məhsul ayrı şəxsə veriləcək.`,
-          '- Zəhmət olmasa hər məhsul ayrı qutu və ayrı paketdə hazırlansın.',
-        ].join('\n')
+      ? `- Cəmi ${totalUnits} məhsul var. Hər məhsul ayrı qutu və ayrı paketdə hazırlansın.`
       : '';
 
-    const fullItemsText = items.map((item, index) => {
-      const imageUrl = toCleanImageUrl(item.images?.[0]);
-      // Hər məhsul 3 ayrı qrupdan ibarətdir, qruplar arasında bir boş sətir olur:
-      // 1) əsas məlumat  2) yazı və xüsusi qeydlər (önəmli)  3) məhsul şəkli
-      const mainBlock = [
-        `MƏHSUL ${index + 1}`,
-        `- Ad: ${item.productName}`,
-        `- Model: ${item.modelName}`,
-        `- Rəng: ${item.colorName}`,
-        `- Say: ${item.quantity} ədəd`,
-        // Qutu yalnız müştəri standartdan fərqli qutu seçibsə yazılır
-        item.boxName ? `- Qutu: ${item.boxName}` : '',
-      ].filter(Boolean).join('\n');
+    const producerItemsText = items.map((item, index) => {
+      // Məhsul şəkli: ravio.az/api/img linki (məhsulun özünü göstərir)
+      const productUrl = toCleanImageUrl(item.images?.[0]);
 
-      const customBlock = [
+      // 1) Yazı qrupu: yazı + yazı tipi (+ varsa yazı barədə əlavə qeyd)
+      const textBlock = [
         formatCustomText(item.customText),
         item.customText && item.printFontId ? `- Yazı forması: ${FONT_STYLES.find(f => f.id === item.printFontId)?.name ?? ''}` : '',
         item.printNote ? `- Əlavə qeyd: ${item.printNote}` : '',
-        item.specialRequest
-          ? (item.specialRequest.includes('\n') ? `- Xüsusi istək:\n${item.specialRequest}` : `- Xüsusi istək: ${item.specialRequest}`)
-          : '',
       ].filter(Boolean).join('\n');
 
-      const imageBlock = imageUrl ? `- Məhsul şəkli: ${imageUrl}` : '';
+      // 2) Link qrupu: qutu şəkli (yalnız fərqli qutu seçilibsə), müştəri şəkli, məhsul şəkli
+      const boxLine = item.boxName
+        ? (item.boxImageUrl
+            ? `- Qutu şəkli: ${toCleanImageUrl(item.boxImageUrl)}`
+            : `- Qutu: ${item.boxName}`) // qutunun şəkli yoxdursa adı yazılır ki, məlumat itməsin
+        : '';
+      const customerPhotoUrls = (item.specialRequest?.match(/https?:\/\/\S+/g) ?? []);
+      const customerPhotoLines = customerPhotoUrls.map((u, i) =>
+        customerPhotoUrls.length === 1 ? `- Müştəri şəkli: ${u}` : `- Müştəri şəkli ${i + 1}: ${u}`);
+      const linkBlock = [
+        boxLine,
+        ...customerPhotoLines,
+        productUrl ? `- Məhsul şəkli: ${productUrl}` : '',
+      ].filter(Boolean).join('\n');
 
-      return [mainBlock, customBlock, imageBlock].filter(Boolean).join('\n\n');
+      // Say yalnız 1-dən çoxdursa yazılır (bot default olaraq 1 ədəd qəbul edir)
+      const qtyLine = item.quantity > 1 ? `- Say: ${item.quantity} ədəd` : '';
+
+      // Yazı qrupu ilə link qrupu arasında düz 1 boş sətir
+      return [`MƏHSUL ${index + 1}`, qtyLine].filter(Boolean).join('\n')
+        + '\n' + [textBlock, linkBlock].filter(Boolean).join('\n\n');
     }).join('\n\n');
 
     const priceLines: string[] = [
@@ -404,19 +408,18 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
     return [
       `SİFARİŞ: ${orderTitle}`,
       '',
-      fullItemsText,
+      '═════ İSTEHSALÇI ÜÇÜN ═════',
+      ...(producerNote ? [producerNote] : []),
       '',
-      ...(producerNote ? [producerNote, ''] : []),
-      '─────────────────',
-      'ÇATDIRILMA',
-      `- Növ: ${deliveryLabel}`,
+      producerItemsText,
+      '',
+      '═════ ÇATDIRILMA ═════',
+      `- Müştəri: ${custName}`,
+      `- Əlaqə: ${phone}`,
       `- Ünvan/Metro: ${deliveryPlace}`,
+      `- Metod: ${deliveryLabel}`,
       `- Tarix: ${deliveryDate}`,
       `- Saat: ${deliveryTime}`,
-      '',
-      'MÜŞTƏRİ',
-      `- Ad: ${custName}`,
-      `- Telefon: ${phone}`,
       `- Doğum tarixi: ${birthDate}`,
       '',
       '─────────────────',

@@ -45,6 +45,27 @@ ok('parser(3): 2 müştəri şəkli', o.products[0].customerPhotos.length === 2,
 ok('parser(3): ikinci məhsul', o.products[1].name === 'Pulqabı' && o.products[1].texts[0] === 'Elnur', JSON.stringify(o.products[1]));
 ok('parser: boş/yad mətn → 0 məhsul', parseOrder('salam necəsən').products.length === 0);
 
+// 4) YENİ format: "İSTEHSALÇI ÜÇÜN" / "ÇATDIRILMA" başlıqları, qutu şəkli linki, adsız/modelsiz məhsul
+const BOX = 'https://ravio.az/api/img?f=2f46efee0f1f1d5a0e4b1c0f96fc5df742369a41-800x800.jpg';
+const NEW = [
+  'SİFARİŞ: Ravio - 14.11.26-18:14:07', '',
+  '═════ İSTEHSALÇI ÜÇÜN ═════', '',
+  'MƏHSUL 1', '- Yazı: Seni sevirem', '- Yazı forması: Times New Roman İtalic', '',
+  `- Qutu şəkli: ${BOX}`, `- Müştəri şəkli: ${CUST}`, `- Məhsul şəkli: ${IMG}`, '',
+  '═════ ÇATDIRILMA ═════', '- Müştəri: Ravin', '- Əlaqə: 0558603040', '- Ünvan/Metro: Yasamal rayonu', '- Metod: Ünvana çatdırılma', '- Tarix: 17 Noyabr 2026', '- Saat: Gün ərzində', '',
+  '─────────────────', 'MƏBLƏĞ', '- Yekun məbləğ: 28.33 ₼',
+].join('\n');
+o = parseOrder(NEW); p = o.products[0];
+ok('yeni format: başlıq və 1 məhsul', o.title === 'Ravio - 14.11.26-18:14:07' && o.products.length === 1, JSON.stringify(o));
+ok('yeni format: yazı + yazı tipi', p.texts[0] === 'Seni sevirem' && p.font === 'Times New Roman İtalic', JSON.stringify([p.texts, p.font]));
+ok('yeni format: qutu/müştəri/məhsul şəkli linkləri', p.boxImage === BOX && p.customerPhotos[0] === CUST && p.productImage === IMG, JSON.stringify(p));
+ok('yeni format: say verilməyib → 1', p.qty === 1, p.qty);
+ok('yeni format: çatdırılma məlumatı məhsula qarışmayıb', !JSON.stringify(p).includes('0558603040') && !JSON.stringify(p).includes('Yasamal') && !JSON.stringify(p).includes('Ravin'), JSON.stringify(p));
+const NEW2 = NEW.replace('MƏHSUL 1', 'MƏHSUL 1\n- Say: 3 ədəd');
+ok('yeni format: Say: 3 → qty 3', parseOrder(NEW2).products[0].qty === 3);
+const NEWFLAT = NEW.replace(/\n+/g, ' ');
+ok('yeni format: bir sətirdə birləşmiş forma da oxunur', parseOrder(NEWFLAT).products[0].boxImage === BOX && parseOrder(NEWFLAT).products[0].texts[0] === 'Seni sevirem', JSON.stringify(parseOrder(NEWFLAT).products[0]));
+
 // ── Handler ──
 process.env.TELEGRAM_BOT_TOKEN = 'TESTTOKEN'; process.env.TELEGRAM_WEBHOOK_SECRET = 'sirr123'; process.env.TELEGRAM_OWNER_ID = '111';
 const tgCalls = []; const outside = [];
@@ -93,6 +114,11 @@ r = await send(MULTI);
 ok('2 məhsul: 2 albom, birincidə 3 şəkil (1 məhsul + 2 müştəri)', tgCalls.length === 2 && JSON.parse(tgCalls[0].fields.media).length === 3, JSON.stringify(tgCalls.map(c => c.method)));
 const c3 = JSON.parse(tgCalls[0].fields.media)[0].caption;
 ok('2 məhsul: çoxlu yazılar və qeyd görünür, "—" model gizlədilir', c3.includes('1. <b>Ata</b>') && c3.includes('2. <b>Anam</b>') && c3.includes('Monotype Corsiva') && !c3.includes('Model') && c3.includes('Məhsul 1/2'), c3);
+
+r = await send(NEW);
+ok('yeni format: albom 3 şəkil (məhsul + qutu + müştəri)', tgCalls.length === 1 && tgCalls[0].method === 'sendMediaGroup' && JSON.parse(tgCalls[0].fields.media).length === 3 && tgCalls[0].fileCount === 3, JSON.stringify(tgCalls.map(c => [c.method, c.fileCount])));
+const cn = JSON.parse(tgCalls[0].fields.media)[0].caption;
+ok('yeni format: başlıqda yazı/tip/qutu qeydi var, telefon/ünvan/qiymət yoxdur', cn.includes('Seni sevirem') && cn.includes('Times New Roman İtalic') && cn.includes('Qutu: fərqli') && !/0558603040|Yasamal|28\.33|Ravin/.test(cn), cn);
 
 r = await send('salam necəsən'); ok('mənasız mətn → izahat mesajı', tgCalls.length === 1 && tgCalls[0].method === 'sendMessage' && tgCalls[0].fields.text.includes('tapılmadı'));
 r = await send(ONE.replace(CUST, 'https://evil.example/x.jpg'));

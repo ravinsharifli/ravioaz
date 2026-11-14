@@ -315,6 +315,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
       bulkDiscountAmount:   bulkDiscTotal,
       boxType:              boxId,
       boxName:              showBox ? box?.name : undefined,
+      boxImageUrl:          showBox ? (box?.imageUrl || undefined) : undefined,
       boxPrice:             boxFee,
       couponCode:           appliedCoupon?.code,
       couponDiscount:       couponDiscount > 0 ? couponDiscount : undefined,
