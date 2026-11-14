@@ -355,7 +355,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
     // Cəmi neçə ədəd məhsul var (sayları toplayırıq) — 2 və daha çoxdursa istehsalçıya qeyd əlavə olunur
     const totalUnits = items.reduce((sum, item) => sum + (item.quantity || 1), 0);
     // İSTEHSALÇI hissəsi: yalnız istehsalçıya lazım olanlar — yazı, yazı tipi və linklər.
-    // Telefon, ünvan, qiymət bu hissədə YOXDUR (Telegram botu da yalnız bu hissəni oxuyur).
+    // Telefon, ünvan, qiymət bu hissədə YOXDUR.
     const producerNote = totalUnits > 1
       ? `- Cəmi ${totalUnits} məhsul var. Hər məhsul ayrı qutu və ayrı paketdə hazırlansın.`
       : '';
