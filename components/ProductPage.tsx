@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { F, FORM_COLORS as C } from '../tokens';
 import { ChevronLeft, ChevronRight, Upload, Minus, Plus, Check, Tag, X, ArrowLeft } from 'lucide-react';
 import { Product, CartItem, Coupon, BoxOption } from '../types';
@@ -105,6 +105,8 @@ const ProductPage: React.FC<ProductPageProps> = ({
   const [variantIdx, setVariantIdx] = useState(initialData?.variantIndex ?? 0);
   const [qty,        setQty]        = useState(initialData?.quantity ?? 1);
   const [printText,  setPrintText]  = useState(initialData?.customText ?? '');
+  // Yazı qutusu yazdıqca böyüyür (az yazıda yığcam, çox yazıda hündürlüyü avtomatik artır)
+  const printTextRef = useRef<HTMLTextAreaElement>(null);
 
   // Bir məhsula 3-ə qədər şəkil yüklənə bilər (hər biri ayrıca imgbb linki)
   const MAX_IMAGES = 3;
@@ -167,6 +169,13 @@ const ProductPage: React.FC<ProductPageProps> = ({
   }, [product.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const variant  = variants[variantIdx] || variants[0];
+  useLayoutEffect(() => {
+    const el = printTextRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${el.scrollHeight + 2}px`;
+  }, [printText, fontStyle, qty, wantsText]);
+
   if (!variant) return null;
 
   // ── Model / Rəng seçimi üçün unikal siyahılar ──────────────────
@@ -846,10 +855,11 @@ const ProductPage: React.FC<ProductPageProps> = ({
             <Sec>
               <Label>{t('productPage.enterYourText')}</Label>
               <textarea
+                ref={printTextRef}
                 value={printText}
                 onChange={e => setPrintText(e.target.value)}
                 maxLength={qty > 1 ? 1500 : 300}
-                rows={qty > 1 ? 6 : 3}
+                rows={1}
                 placeholder={qty > 1 ? t('productPage.multiTextPlaceholder') : t('productPage.textPlaceholder')}
                 style={{
                   width: '100%', background: C.white, border: `1px solid ${C.border}`,
@@ -857,7 +867,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
                   fontFamily: selectedFont.family,
                   fontStyle: selectedFont.italic ? 'italic' : 'normal',
                   outline: 'none', boxSizing: 'border-box' as const,
-                  resize: 'vertical' as const, minHeight: 90,
+                  resize: 'none' as const, overflow: 'hidden', minHeight: 56,
                   fontSize: fontStyle === 'script' ? 22 : 18,
                   lineHeight: 1.4,
                 } as React.CSSProperties}
