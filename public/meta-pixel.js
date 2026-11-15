@@ -10,9 +10,13 @@ n.queue=[];}(window, document,'script',
 'https://connect.facebook.net/en_US/fbevents.js');
 
 var pixelInited = false;
+// App.tsx bu bayraqdan istifadə edir: Pixel hələ başlamayıbsa SPA PageView göndərilmir
+// (initPixel öz PageView-unu cari səhifə üçün göndərəcək) → ikiqat sayma olmur.
+window.__pixelInited = false;
 function initPixel() {
   if (pixelInited) return;
   pixelInited = true;
+  window.__pixelInited = true;
   var t = document.createElement('script');
   t.async = true;
   t.src = 'https://connect.facebook.net/en_US/fbevents.js';

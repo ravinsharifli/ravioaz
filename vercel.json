@@ -90,7 +90,7 @@
       ]
     },
     {
-      "source": "/(.*\\.js|.*\\.css|.*\\.woff2|.*\\.woff|.*\\.ttf)",
+      "source": "/((?!(?:ga-init|meta-pixel|sw-register|sw)\\.js$).*\\.js|.*\\.css|.*\\.woff2|.*\\.woff|.*\\.ttf)",
       "headers": [
         {
           "key": "Cache-Control",
