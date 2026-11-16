@@ -27,6 +27,8 @@ const AudiencePage = React.lazy(() => import('./components/pages/AudiencePage'))
 const NotFound    = React.lazy(() => import('./components/pages/NotFound'));
 
 const CartDrawer = React.lazy(() => import('./components/CartDrawer'));
+// AI köməkçi: səhifə yükləməsini ləngitməsin deyə ayrıca chunk kimi, boş vaxtda yüklənir
+const ChatWidget = React.lazy(() => import('./components/ChatWidget'));
 
 function AppShell() {
   const { navigate, lang } = useLocalizedNav();
@@ -55,6 +57,19 @@ function AppShell() {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [visible, setVisible] = useState(true);
   const [settings, setSettings] = useState<any>(null);
+  const [chatReady, setChatReady] = useState(false);
+
+  // AI köməkçini yalnız səhifə boşaldıqdan sonra yüklə (PageSpeed-ə təsir etməsin)
+  useEffect(() => {
+    const w = window as any;
+    const start = () => setChatReady(true);
+    if (typeof w.requestIdleCallback === 'function') {
+      const id = w.requestIdleCallback(start, { timeout: 4000 });
+      return () => w.cancelIdleCallback?.(id);
+    }
+    const id = window.setTimeout(start, 2500);
+    return () => window.clearTimeout(id);
+  }, []);
 
   // Tətbiq ekrana çıxdı: robot mətnini (data-seo-shell) "hazır" kimi işarələ — skeleton gizlənir
   useEffect(() => {
@@ -355,6 +370,12 @@ function AppShell() {
       </Suspense>
 
       <PWAInstallBanner />
+
+      {chatReady && (
+        <Suspense fallback={null}>
+          <ChatWidget />
+        </Suspense>
+      )}
     </div>
   );
 }
