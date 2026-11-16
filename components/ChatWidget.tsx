@@ -17,6 +17,7 @@ const TEXTS = {
     hello: 'Salam! Mən Ravio köməkçisiyəm. Hədiyyə seçimi, qiymət, çatdırılma barədə soruşa bilərsiniz.',
     placeholder: 'Sualınızı yazın...',
     send: 'Göndər',
+    view: 'Məhsula bax',
     chips: ['Kişiyə hədiyyə tövsiyə et', 'Çatdırılma necədir?', '30 manata qədər nə var?'],
     busy: 'Hazırda çoxlu sual var. Bir neçə saniyə sonra yenidən yazın.',
     error: 'Cavab almaq alınmadı. Zəhmət olmasa yenidən cəhd edin.',
@@ -29,6 +30,7 @@ const TEXTS = {
     hello: 'Hi! I am the Ravio assistant. Ask me about gift ideas, prices or delivery.',
     placeholder: 'Type your question...',
     send: 'Send',
+    view: 'View product',
     chips: ['Gift idea for a man', 'How does delivery work?', 'What is under 30 AZN?'],
     busy: 'Many questions right now. Please try again in a few seconds.',
     error: 'Could not get a reply. Please try again.',
@@ -38,30 +40,62 @@ const TEXTS = {
 // Cavabdakı ravio.az linklərini sayt daxilində açılan linklərə çevirir.
 const LINK_RE = /(https?:\/\/(?:www\.)?ravio\.az)?(\/(?:en\/)?(?:mehsullar|kime|catdirilma|haqqimizda)[A-Za-z0-9\-_/]*)/g;
 
-function renderText(text: string, onLink: (path: string) => void): ReactNode[] {
+// Cavabdakı **qalın** işarələrini və ravio.az linklərini göstərir.
+function renderInline(line: string, onLink: (path: string) => void, linkLabel: string, keyBase: string): ReactNode[] {
   const out: ReactNode[] = [];
-  let last = 0;
-  let m: RegExpExecArray | null;
-  LINK_RE.lastIndex = 0;
-  while ((m = LINK_RE.exec(text)) !== null) {
-    if (m.index > last) out.push(text.slice(last, m.index));
-    const path = m[2].replace(/\/$/, '');
+  const parts = line.split(/(\*\*[^*]+\*\*)/g);
+  parts.forEach((part, pi) => {
+    const bold = part.startsWith('**') && part.endsWith('**') && part.length > 4;
+    const plain = bold ? part.slice(2, -2) : part.replace(/\*/g, '');
+    const nodes: ReactNode[] = [];
+    let last = 0;
+    let m: RegExpExecArray | null;
+    LINK_RE.lastIndex = 0;
+    while ((m = LINK_RE.exec(plain)) !== null) {
+      if (m.index > last) nodes.push(plain.slice(last, m.index));
+      const path = m[2].replace(/\/$/, '');
+      nodes.push(
+        <a
+          key={`${keyBase}-${pi}-${m.index}`}
+          href={path}
+          onClick={(e) => {
+            e.preventDefault();
+            onLink(path);
+          }}
+          style={{ color: C.primaryText, textDecoration: 'underline', fontWeight: 600 }}
+        >
+          {linkLabel}
+        </a>
+      );
+      last = m.index + m[0].length;
+    }
+    if (last < plain.length) nodes.push(plain.slice(last));
+    out.push(bold ? <strong key={`${keyBase}-b${pi}`}>{nodes}</strong> : <span key={`${keyBase}-s${pi}`}>{nodes}</span>);
+  });
+  return out;
+}
+
+// Cavabı səliqəli bloklara bölür: hər siyahı sətri ayrıca, aralarında məsafə ilə.
+function renderText(text: string, onLink: (path: string) => void, linkLabel: string): ReactNode[] {
+  const lines = text.replace(/\r/g, '').split('\n');
+  const out: ReactNode[] = [];
+  let prevBlank = false;
+  lines.forEach((raw, i) => {
+    const trimmed = raw.trim();
+    if (!trimmed) {
+      prevBlank = true;
+      return;
+    }
+    const isItem = /^([*\-•]|\d+[.)])\s+/.test(trimmed);
+    const content = trimmed.replace(/^#+\s*/, '').replace(/^([*\-•])\s+/, '• ');
+    const marginTop = out.length === 0 ? 0 : isItem || prevBlank ? 12 : 3;
     out.push(
-      <a
-        key={m.index}
-        href={path}
-        onClick={(e) => {
-          e.preventDefault();
-          onLink(path);
-        }}
-        style={{ color: C.primaryText, textDecoration: 'underline', fontWeight: 600 }}
-      >
-        {path.split('/').filter(Boolean).pop() || path}
-      </a>
+      <div key={i} style={{ marginTop }}>
+        {renderInline(content, onLink, linkLabel, String(i))}
+      </div>
     );
-    last = m.index + m[0].length;
-  }
-  if (last < text.length) out.push(text.slice(last));
+    prevBlank = false;
+  });
   return out;
 }
 
@@ -256,7 +290,7 @@ export default function ChatWidget() {
 
             {messages.map((m, i) => (
               <Bubble key={i} role={m.role}>
-                {m.role === 'assistant' ? renderText(m.text, goTo) : m.text}
+                {m.role === 'assistant' ? renderText(m.text, goTo, t.view) : m.text}
               </Bubble>
             ))}
 
