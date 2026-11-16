@@ -1,70 +1,81 @@
 # Ravio — Bakıda Onlayn Hədiyyə Mağazası
 
-> Azərbaycanın aparıcı fərdi hədiyyə brendidir. Lazer texnologiyası ilə hər məhsula ad, tarix, mesaj və şəkil həkk edilir.
+> Ravio — lazer texnologiyası ilə hər məhsula ad, tarix, mesaj və şəkil həkk edən fərdi hədiyyə mağazasıdır. Bakıda yerləşir, Bütün Azərbaycana ödənişsiz çatdırılma edir.
 
-Ravio 2024-cü ildən Bakıda fəaliyyət göstərən onlayn hədiyyə mağazasıdır. Hər məhsul fərdi sifarişlə hazırlanır. Müştəri öz adını, tarixini, mesajını və ya şəklini seçir — Ravio onu lazer texnologiyası ilə məhsula həkk edir.
+Ravio 2024-cü ildən Bakıda fəaliyyət göstərən onlayn hədiyyə mağazasıdır. Hər məhsul fərdi sifarişlə hazırlanır. Müştəri öz adını, tarixini, mesajını və ya şəklini seçir — Ravio onu lazer texnologiyası ilə məhsula həkk edir. Saytda hazırda 90-dan çox məhsul var.
 
 ## Nə satırıq
 
-> Qiymətlər AZN ilə, saytda göstərilən cari satış qiymətləridir (son yoxlama: 2026-10-04). Dəqiq qiymət üçün məhsul səhifəsinə baxın.
+> Qiymətlər AZN ilə, saytda göstərilən cari satış qiymətləridir (son yoxlama: 2026-11-16). Dəqiq qiymət və variantlar üçün məhsul səhifəsinə baxın.
 
-### Qolbaqlar (9.99₼ - 24.90₼)
-- Lazer yazılı metal qolbaq — ad, tarix, koordinat yazılır
-- Dəri qolbaq — fərdi yazı ilə
-- Polad qolbaq — paslanmaz, davamlı
+### Qolbaqlar (9.99₼ - 34.90₼)
+- Lazer yazılı polad qolbaq — ad, tarix, koordinat yazılır
+- Cütlüklər üçün qolbaqlar (İtalyan, Nomi, düyün modelləri)
+- Hərfli, gözlü, qəpikli və premium (Rolex modelli) qolbaqlar
 
 ### Təsbehlər (31.25₼ - 64.99₼)
-- Təbii əqiq daşlı təsbeh — lazer yazılı
-- Hematit daşlı təsbeh — fərdi adla
-- Riyolit daşlı təsbeh
-- Saç ilə hazırlanmış fərdi təsbeh
+- Təbii əqiq, aslangöz, hematit, riyolit və dalmatian daşlı təsbehlər
+- Polad başlıqda lazer yazısı və ya hərf
+- Saç teli ilə xatirə təsbehi
 
-### Domino Dəsti (27.49₼)
-- Lazer qravirəli domino — hədiyyə qutusunda
-- Kişi üçün fərdi domino dəsti
-
-### Boyunbağılar (19.90₼ - 26.25₼)
-- Açılan boyunbağı — ad yazılır
-- Lotus boyunbağı
-- Melek boyunbağı
-- Polad boyunbağı
+### Boyunbağılar (19.90₼ - 55.90₼)
+- Polad boyunbağılar (dairə, oval, ürək, künye, düzbucaqlı) — lazer yazılı
+- Açılan madalyon boyunbağılar — içərisinə foto
+- Mələk, lotus, swan, tısbağa, təyyarə modelləri
 
 ### Breloklar (16.90₼ - 25.49₼)
-- Lazer yazılı brelok
-- Lipa nömrəli brelok
-- Şəkilli asılqan brelok
+- Lazer yazılı polad və dəri brelok
+- Lipa, kvadrat və gözlü modellər
 
-### Digər Məhsullar
-- Mezun lentləri — sinif sifarişi (toplu endirim)
-- Zippo alışqan — lazerlə oyma işləri
-- Casio saat — içərisinə və qolbaq hissəsinə yazı
-- Fincan — sublim basqı ilə fərdi şəkil
-- Hoodie və köynək — DTF basqı ilə fərdi çap
-- Premium qələm dəsti
-- Maşın üçün ətir
+### Alışqanlar (16.90₼ - 37.49₼)
+- Zippo alışqan — lazerlə oyma
+- USB plazma və elektrik alışqanlar
+- Saatlı, qızılı çərçivəli və əjdaha formalı modellər
+
+### Pulqabılar (18.49₼ - 35.90₼)
+- Qara kişi pulqabısı — fərdi lazer yazı ilə
+
+### Saatlar (31.49₼ - 39.90₼)
+- Casio saat — qolbaq hissəsinə yazı
+
+### Dəst Hədiyyələr (27.49₼ - 61.90₼)
+- Kişilər üçün: pulqabı, saat, alışqan, qolbaq, kəmər və brelok kombinasiyaları
+- Qadınlar üçün: swan boyunbağı, saat, güzgü, fincan dəstləri
+- Domino dəsti — hədiyyə qutusunda
+
+### Avto Aksessuarlar (24.90₼ - 35.90₼)
+- Şəxsi yazılı lipa nömrə
+- Yazılı asılqan və maşın ətirləri
+
+### Foto Çərçivələr (14.90₼ - 18.75₼)
+- A4, A5 və A6 ölçülərdə divar çərçivələri
+
+### Geyim (28.75₼ - 43.75₼)
+- Fərdi yazılı hoodie və köynək
+
+### Digər Hədiyyələr (4.90₼ - 29.99₼)
+- Məzun lentləri — sinif sifarişi (toplu endirim)
+- Fərdi şəkilli fincan, yazılı güzgü, premium qələm dəstləri
 
 ### Hədiyyə Qutuları
-- Sadə qutu: pulsuz (standart qablaşdırma)
-- Orta qutu: 10₼ (fərqli hədiyyəlik qutu)
-- Premium qutu: 17₼ (hədiyyəlik qutu + bağlama + qeyd kartı)
+- Sadə qutu: ödənişsiz (standart qablaşdırma)
+- Orta və premium qutu: məhsula görə dəyişir (təxminən 6.49₼ - 14.90₼)
+- Seçim məhsul səhifəsində göstərilir
 
 ## Çatdırılma
 
-Bütün çatdırılma növləri tamamilə ödənişsizdir.
+Bütün çatdırılma növləri ödənişsizdir, Bütün Azərbaycana.
 
-- **Kuryer (Ödənişsiz):** Bakı, Abşeron və Sumqayıt ərazisinə ünvana çatdırılır
-- **Metrodaxili (Ödənişsiz):** Bakı metrosunun istənilən stansiyasında — xüsusi vaxt ilə çatdırılır
-- **Azərpoçt (Ödənişsiz):** Azərbaycanın istənilən bölgəsinə poçt vasitəsilə göndərilir
+- **Kuryer (ödənişsiz):** Bakı, Xırdalan, Məsazır, Sumqayıt və Lökbatan ərazisinə ünvana çatdırılır
+- **Metro görüşü (ödənişsiz):** Bakı metrosunun istənilən stansiyasında, müştərinin seçdiyi vaxtda
+- **Azərpoçt (ödənişsiz):** Azərbaycanın bütün bölgələrinə poçt vasitəsilə
 - Hazırlıq və çatdırılma müddəti: 1–3 gün ərzində
 - Sifariş WhatsApp vasitəsilə verilir
 
-## Toplu Sifariş
+## Endirimlər
 
-10 ədəd və daha çox sifarişlər üçün xüsusi endirim tətbiq edilir.
-- Məzun lentləri (sinif sifarişi)
-- Korporativ hədiyyələr
-- Toy və nişan hədiyyələri
-- Ad günü sifarişləri
+- 2 və daha çox ədəd sifarişdə hər ədədə 1₼ endirim avtomatik tətbiq olunur
+- 10 ədəd və daha çox toplu sifarişlər üçün xüsusi endirim var: məzun lentləri, korporativ, toy və nişan, ad günü sifarişləri
 
 ## Tez-tez Soruşulan Suallar
 
@@ -78,7 +89,7 @@ Azərbaycan, rus, ingilis, ərəb əlifbası — istənilən dil dəstəklənir.
 Xeyr. Lazer yazısı materialın içinə işlənir — silinmir, solmur, rəngi dəyişmir.
 
 **Şəkil də yazıla bilərmi?**
-Bəli. Foto, logo, imza, QR kod — lazer ilə istənilən şəkli məhsula həkk etmək mümkündür.
+Bəli. Foto, logo, imza, QR kod — lazer ilə istənilən şəkli məhsula həkk etmək mümkündür (məhsula görə dəyişir).
 
 **Minimum sifariş nə qədərdir?**
 Minimum 1 ədəd. Toplu sifarişlər üçün endirim var.
@@ -86,6 +97,9 @@ Minimum 1 ədəd. Toplu sifarişlər üçün endirim var.
 **Ödəniş necə aparılır?**
 Hissəli olaraq. Özəl hədiyyələr olduğu üçün ilkin ödəniş olunur. Qalan hissə isə nağd
 və ya kart ilə — çatdırılma zamanı.
+
+**Sifarişi necə verirəm?**
+Saytda məhsulu seçib səbətə əlavə edin, sifariş WhatsApp-a göndərilir. Ravio təsdiqləyir və hazırlamağa başlayır.
 
 ## Səhifələr
 
@@ -96,16 +110,23 @@ və ya kart ilə — çatdırılma zamanı.
 - [Boyunbağılar](https://ravio.az/mehsullar/boyunbagilar)
 - [Breloklar](https://ravio.az/mehsullar/breloklar)
 - [Alışqanlar](https://ravio.az/mehsullar/alisqanlar)
-- [Hədiyyə dəstləri](https://ravio.az/mehsullar/dest-hediyyeler)
-- [English version of the site](https://ravio.az/en)
-- [Çatdırılma məlumatı](https://ravio.az/catdirilma)
+- [Pulqabılar](https://ravio.az/mehsullar/pulqabi)
+- [Saatlar](https://ravio.az/mehsullar/saatlar)
+- [Dəst hədiyyələr](https://ravio.az/mehsullar/dest-hediyyeler)
+- [Avto aksessuarlar](https://ravio.az/mehsullar/avto-aksessuarlar)
+- [Foto çərçivələr](https://ravio.az/mehsullar/foto-cerciveler)
+- [Geyim](https://ravio.az/mehsullar/geyim)
+- [Digər hədiyyələr](https://ravio.az/mehsullar/diger-hediyyeler)
+- [Kişilər üçün hədiyyə](https://ravio.az/kime/kisiler-ucun-hediyye)
+- [Qadınlar üçün hədiyyə](https://ravio.az/kime/qadinlar-ucun-hediyye)
+- [Ataya hədiyyə](https://ravio.az/kime/ataya-hediyye)
+- [Dostlara hədiyyə](https://ravio.az/kime/dostlara-hediyye)
+- [Sevgililər üçün cüt hədiyyə](https://ravio.az/kime/sevgililer-ucun-cut-hediyye)
+- [Çatdırılma](https://ravio.az/catdirilma)
 - [Haqqımızda](https://ravio.az/haqqimizda)
+- [English version of the site](https://ravio.az/en)
 
 ## Əlaqə
 
-- [Sayt](https://ravio.az)
-- [WhatsApp](https://wa.me/994519831483)
-- [Instagram](https://www.instagram.com/ravio.az)
-- [TikTok](https://www.tiktok.com/@ravio.az)
-- Telefon: +994519831483
-- Ünvan: Bakı, Azərbaycan
+- WhatsApp: +994519831483
+- Instagram: @ravio.az
