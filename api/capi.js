@@ -1,5 +1,5 @@
 import { sendMetaEvent } from '../lib/metaCapi.js'
-import { isAllowedOrigin, rateLimited, parseBody, cleanPhone, ALLOWED_EVENTS } from '../lib/apiGuard.js'
+import { isAllowedOrigin, rateLimited, parseBody, cleanPhone, ALLOWED_EVENTS, ORDER_NUMBER_RE } from '../lib/apiGuard.js'
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -15,7 +15,7 @@ export default async function handler(req, res) {
 
   try {
     const body = parseBody(req)
-    const { event, phone } = body || {}
+    const { event, phone, eventId, value, contentIds } = body || {}
 
     if (!event) {
       return res.status(400).json({ error: 'event is required' })
@@ -24,7 +24,22 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'event not allowed' })
     }
 
-    await sendMetaEvent(String(event), req, cleanPhone(phone))
+    // İxtiyari sahələr — "Lead" kimi hadisələr üçün (CartDrawer.tsx handleWhatsApp)
+    const extra = {}
+    if (eventId !== undefined) {
+      if (!ORDER_NUMBER_RE.test(String(eventId))) return res.status(400).json({ error: 'bad eventId' })
+      extra.eventId = String(eventId)
+    }
+    if (value !== undefined) {
+      const v = Number(value)
+      if (!Number.isFinite(v) || v < 0 || v > 5000) return res.status(400).json({ error: 'bad value' })
+      extra.value = v
+    }
+    if (Array.isArray(contentIds)) {
+      extra.contentIds = contentIds.slice(0, 30).map((x) => String(x).slice(0, 100)).filter(Boolean)
+    }
+
+    await sendMetaEvent(String(event), req, cleanPhone(phone), extra)
     res.status(200).json({ ok: true })
   } catch (error) {
     console.error('CAPI endpoint xətası:', error)

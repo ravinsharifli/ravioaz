@@ -5,6 +5,7 @@ import product from './product'
 import siteSettings from './siteSettings'
 import audienceCategory from './audienceCategory'
 import blogPost from './blogPost'
+import order from './order'
 
 export const schemaTypes = [
   category,
@@ -12,4 +13,5 @@ export const schemaTypes = [
   siteSettings,
   audienceCategory,
   blogPost,
+  order,
 ]

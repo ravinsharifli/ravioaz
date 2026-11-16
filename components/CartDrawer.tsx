@@ -7,6 +7,7 @@ import { WHATSAPP_NUMBER } from '../constants/contact';
 import { FONT_STYLES } from '../constants/defaults';
 import { toWebP } from '../lib/image';
 import { getMaxQuantityForItem } from '../lib/cartPricing';
+import { getUtm } from '../lib/utm';
 import { useTranslation } from 'react-i18next';
 import { getLangFromPath } from '../i18n/useLocalizedNav';
 import { localizedProductName, localizedColorName } from '../lib/productLocale';
@@ -238,7 +239,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
   onClearCart,
   metroSchedule,
 }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const location = useLocation();
   const lang = getLangFromPath(location.pathname);
   // Yalnız SƏBƏTİN GÖRÜNTÜSÜ üçün — WhatsApp mesajı və Meta CAPI item_name
@@ -445,23 +446,21 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
     // istəyir. Məhz müştərinin "3 dəfə təsdiq etmək" problemi buradan yaranırdı.
     openWhatsAppMessage(message);
 
-    // GA4 purchase
+    // ── Reklam siqnalı: "Lead" — sifariş mesajı WhatsApp-a göndərildi. HƏLƏ SATIŞ DEYİL
+    // (beh təsdiqlənməyib). Əvvəl burada "Purchase" göndərilirdi: müştəri mesajı göndərməsə də,
+    // beh ödəməsə də "satış" sayılırdı, Meta/GA rəqəmləri şişirdilirdi və reklam alqoritmi
+    // yanlış siqnaldan öyrənirdi. Real "Purchase" yalnız beh təsdiqləndikdən sonra, SERVER
+    // tərəfindən göndərilməlidir (api/track-purchase.js — gizli açarla qorunur).
     if (typeof (window as any).trackEvent !== 'undefined') {
-      (window as any).trackEvent('purchase', {
-        transaction_id: orderNumber,
+      (window as any).trackEvent('generate_lead', {
         value: grandTotal,
         currency: 'AZN',
-        items: items.map(item => ({
-          item_id: item.productId,
-          item_name: item.productName,
-          price: item.discountPrice ?? item.price,
-          quantity: item.quantity,
-        })),
+        lead_source: 'whatsapp_order',
+        order_number: orderNumber,
       });
     }
-    // Meta Pixel Purchase (brauzer tərəfi)
     if (typeof (window as any).fbq !== 'undefined') {
-      (window as any).fbq('track', 'Purchase', {
+      (window as any).fbq('track', 'Lead', {
         value: grandTotal,
         currency: 'AZN',
         content_ids: items.map(i => i.productId),
@@ -474,23 +473,50 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
       localStorage.setItem('ravio_last_order', JSON.stringify({ title: makeOrderTitle(now), ts: now.getTime() }));
     } catch {}
 
-    // Server-side Meta Purchase hadisəsi (reklam izləməsinin dəqiqliyi üçün) —
-    // Sanity-yə HEÇ NƏ yazılmır, sadəcə Meta-ya bildiriş göndərilir. Nəticəsini
-    // gözləmirik ki, müştərinin WhatsApp keçidinə görə ən kiçik gecikmə belə olmasın.
-    fetch('/api/track-purchase', {
+    // Aşağıdakı iki sorğu WhatsApp açıldıqdan SONRA, gözlənilmədən gedir (keepalive — səhifə
+    // bağlansa belə tamamlanır). Uğursuz olsalar müştəriyə heç bir təsir etmir.
+    // 1) Server-side Meta "Lead" (Pixel ilə eyni event_id → Meta dublikatı bir hadisə sayır)
+    fetch('/api/capi', {
       method: 'POST',
+      keepalive: true,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        event: 'Lead',
+        eventId: orderNumber,
+        value: grandTotal,
+        contentIds: items.map(i => i.productId),
+        phone,
+      }),
+    }).catch((err) => console.error('Lead izləmə sorğusu uğursuz oldu (sifarişə təsiri yoxdur):', err));
+
+    // 2) Sifariş qeydi (api/order.js): məbləğ serverdə Sanity qiymətləri ilə yenidən hesablanır.
+    // Ad, telefon, ünvan, doğum tarixi və şəkillər GÖNDƏRİLMİR/SAXLANMIR (telefon yalnız
+    // serverdə hash-lənir) — Sanity dataset-i public olduğu üçün şəxsi məlumat orada olmamalıdır.
+    fetch('/api/order', {
+      method: 'POST',
+      keepalive: true,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         orderNumber,
-        value: grandTotal,
+        lang: i18n?.language?.startsWith('en') ? 'en' : 'az',
+        clientTotal: grandTotal,
+        delivery,
+        deliveryDate,
+        utm: getUtm(),
         phone,
-        items: items.map(item => ({
-          productId: item.productId,
-          quantity: item.quantity,
-          unitPrice: item.discountPrice ?? item.price,
+        items: items.map(i => ({
+          productId: i.productId,
+          variantIndex: i.variantIndex,
+          quantity: i.quantity,
+          boxId: i.boxName ? i.boxType : null,
+          couponCode: i.couponCode || null,
+          customerType: i.customerType,
+          hasCustomText: Boolean(i.customText && i.customText.trim()),
+          hasPhoto: Boolean(i.hasQrCode),
+          clientTotal: getItemSubtotal(i),
         })),
       }),
-    }).catch((err) => console.error('Purchase izləmə sorğusu uğursuz oldu (sifarişə təsiri yoxdur):', err));
+    }).catch((err) => console.error('Sifariş qeydi sorğusu uğursuz oldu (sifarişə təsiri yoxdur):', err));
 
     onClearCart?.();
     setIsCheckingOut(false);

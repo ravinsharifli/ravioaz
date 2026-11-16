@@ -1,24 +1,41 @@
+import crypto from 'crypto'
 import { sendMetaPurchaseEvent } from '../lib/metaCapi.js'
 import {
-  isAllowedOrigin, rateLimited, parseBody, validatePurchase, sanitizeItems, cleanPhone,
+  rateLimited, parseBody, validatePurchase, sanitizeItems, cleanPhone,
 } from '../lib/apiGuard.js'
 
 // Bu endpoint HEÇ NƏYİ Sanity-də saxlamır. Yeganə işi — Meta-ya server-side
-// Purchase hadisəsi göndərməkdir (reklam optimallaşdırması üçün, brauzerdəki fbq
-// Pixel hadisəsinə əlavə olaraq, event_id ilə dublikat sayılmasın deyə).
-// Sifariş artıq göndəriləndə WhatsApp-a göndərilib — bu sorğunun uğursuz olması
-// müştəriyə heç bir təsir etmir.
+// "Purchase" (REAL SATIŞ) hadisəsi göndərməkdir.
 //
-// Qoruma (lib/apiGuard.js): yalnız ravio.az mənşəyi, sorğu limiti, sərt sahə yoxlaması.
-// Əvvəl bu endpoint hər kəsə açıq idi — kimsə saxta "Purchase" göndərib Meta
+// DİQQƏT — artıq BRAUZERDƏN çağırılmır. Əvvəl sifariş WhatsApp düyməsinə basılan an buradan
+// "Purchase" göndərilirdi; bu, hələ ödəniş/beh olmayan sorğunu "satış" kimi saydırırdı və
+// reklam rəqəmlərini şişirdirdi. İndi brauzer "Lead" göndərir (/api/capi).
+// "Purchase" yalnız beh TƏSDİQLƏNDİKDƏN sonra, server-to-server çağırılmalıdır
+// (məs. Make.com və ya Sanity webhook-u sifarişin statusu "Beh ödənildi" olanda).
+//
+// Qoruma: sorğu başlığında gizli açar tələb olunur — x-ravio-secret: <PURCHASE_WEBHOOK_SECRET>
+// (Vercel → Environment Variables). Açar quraşdırılmayıbsa endpoint bağlıdır (503).
+// Əvvəlki "Origin" yoxlaması curl ilə asanlıqla saxtalaşdırılırdı — saxta "Purchase" Meta
 // reklam statistikasını korlaya bilərdi.
+function checkSecret(req) {
+  const expected = process.env.PURCHASE_WEBHOOK_SECRET
+  if (!expected) return 'disabled'
+  const got = Buffer.from(String(req?.headers?.['x-ravio-secret'] || ''))
+  const want = Buffer.from(expected)
+  return got.length === want.length && crypto.timingSafeEqual(got, want) ? 'ok' : 'denied'
+}
+
 const recentOrders = new Map() // orderNumber -> vaxt (best-effort dublikat qoruması)
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Only POST allowed' })
   }
-  if (!isAllowedOrigin(req)) {
+  const auth = checkSecret(req)
+  if (auth === 'disabled') {
+    return res.status(503).json({ ok: false, error: 'Disabled: PURCHASE_WEBHOOK_SECRET is not configured' })
+  }
+  if (auth !== 'ok') {
     return res.status(403).json({ ok: false, error: 'Forbidden' })
   }
   if (rateLimited(req, 'track-purchase', 10)) {
