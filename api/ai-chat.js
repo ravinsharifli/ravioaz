@@ -17,7 +17,8 @@ import { isAllowedOrigin, rateLimited, parseBody } from '../lib/apiGuard.js'
 const PROJECT_ID = 'w7scii42'
 const DATASET = 'production'
 const API_VERSION = '2026-02-09'
-const GEMINI_MODEL = 'gemini-flash-latest'
+// Əsas model yüklü olanda (503/429) ehtiyat model işə düşür
+const GEMINI_MODELS = ['gemini-flash-latest', 'gemini-flash-lite-latest', 'gemini-2.5-flash']
 
 const MAX_MESSAGES = 10
 const MAX_CHARS = 600
@@ -133,31 +134,44 @@ export default async function handler(req, res) {
       catalog = '(kataloq müvəqqəti əlçatan deyil — dəqiq qiymət bilmədiyini de, ümumi aralıqları kateqoriya məlumatından ver)'
     }
 
-    const r = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
-        body: JSON.stringify({
-          systemInstruction: { parts: [{ text: buildSystemPrompt(catalog, lang) }] },
-          contents: history.map((m) => ({ role: m.role, parts: [{ text: m.text }] })),
-          generationConfig: { temperature: 0.4, maxOutputTokens: 1200 },
-        }),
-      }
-    )
+    const payload = JSON.stringify({
+      systemInstruction: { parts: [{ text: buildSystemPrompt(catalog, lang) }] },
+      contents: history.map((m) => ({ role: m.role, parts: [{ text: m.text }] })),
+      generationConfig: { temperature: 0.4, maxOutputTokens: 1200 },
+    })
 
-    if (r.status === 429) return res.status(429).json({ error: 'busy' })
-    if (!r.ok) {
-      console.error('AI chat: Gemini xətası', r.status)
-      return res.status(502).json({ error: 'upstream' })
+    let reply = ''
+    let lastStatus = 0
+    for (const model of GEMINI_MODELS) {
+      try {
+        const r = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+            body: payload,
+            signal: AbortSignal.timeout(6000),
+          }
+        )
+        lastStatus = r.status
+        if (!r.ok) {
+          const errText = (await r.text().catch(() => '')).slice(0, 300)
+          console.error(`AI chat: ${model} xətası ${r.status} ${errText}`)
+          continue // növbəti modeli yoxla
+        }
+        const data = await r.json()
+        reply = (data?.candidates?.[0]?.content?.parts || [])
+          .map((p) => p?.text || '')
+          .join('')
+          .trim()
+        if (reply) break
+        console.error(`AI chat: ${model} boş cavab`)
+      } catch (e) {
+        console.error(`AI chat: ${model} çağırışı alınmadı: ${e?.message}`)
+      }
     }
 
-    const data = await r.json()
-    const reply = (data?.candidates?.[0]?.content?.parts || [])
-      .map((p) => p?.text || '')
-      .join('')
-      .trim()
-    if (!reply) return res.status(502).json({ error: 'empty' })
+    if (!reply) return res.status(lastStatus === 429 ? 429 : 502).json({ error: lastStatus === 429 ? 'busy' : 'upstream' })
 
     res.setHeader('Cache-Control', 'no-store')
     return res.status(200).json({ reply })
