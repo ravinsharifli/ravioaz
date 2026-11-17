@@ -9,7 +9,7 @@ import { BULK_DISCOUNT_PER_UNIT, getColorSwatchBackground, FONT_STYLES } from '.
 import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
 import { getLangFromPath } from '../i18n/useLocalizedNav';
-import { localizedProductDescription, localizedColorName } from '../lib/productLocale';
+import { localizedProductDescription, localizedColorName, localizedProductName } from '../lib/productLocale';
 import { getProductH1 } from '../lib/productMeta';
 
 const FONT = F.sans;
@@ -431,7 +431,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
                     srcSet={toSrcSet(allImages[imgIdx]?.url ?? '', [240, 480, 720], 80)}
                     sizes="(max-width: 640px) 90vw, (max-width: 1280px) 50vw, 640px"
                     zoomSrc={toWebP(allImages[imgIdx]?.url ?? '', 1400, 85)}
-                    alt={product.name}
+                    alt={localizedProductName(product, lang)}
                     loading="eager"
                     fetchPriority="high"
                     onError={e => { (e.target as HTMLImageElement).src = 'https://placehold.co/600x600/F5F2EC/AAAAAA?text=Şəkil+yoxdur'; }}

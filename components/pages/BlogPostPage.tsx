@@ -121,7 +121,7 @@ export default function BlogPostPage() {
   const body = lang === 'en' && post.bodyEn && post.bodyEn.length > 0 ? post.bodyEn : post.body;
   const metaTitle = post.seoTitle || `${title} | Ravio Blog`;
   const metaDescription = post.seoDescription || excerpt;
-  const canonicalUrl = `${SITE_URL}${withLangPrefix(`/blog/${post.slug}`, lang)}`;
+  const canonicalUrl = `${SITE_URL}/blog/${post.slug}`;
   const dateStr = post.publishedAt
     ? new Date(post.publishedAt).toLocaleDateString(lang === 'en' ? 'en-GB' : 'az-AZ', { year: 'numeric', month: 'long', day: 'numeric' })
     : '';
@@ -142,6 +142,7 @@ export default function BlogPostPage() {
     <>
       <Helmet>
         <title>{metaTitle}</title>
+        <meta name="robots" content="noindex, follow" />
         <meta name="description" content={metaDescription} />
         <link rel="canonical" href={canonicalUrl} />
         <meta property="og:title" content={metaTitle} />

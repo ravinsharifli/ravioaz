@@ -73,7 +73,10 @@ const Navbar: React.FC<NavbarProps> = ({
   }, [searchOpen]);
 
   const results = query.trim().length > 1
-    ? products.filter(p => p.name.toLowerCase().includes(query.toLowerCase())).slice(0, 6)
+    ? products.filter(p => {
+    const q = query.toLowerCase();
+    return p.name.toLowerCase().includes(q) || (p.nameEn || '').toLowerCase().includes(q);
+  }).slice(0, 6)
     : [];
 
   const navLinks = [
@@ -254,7 +257,7 @@ const Navbar: React.FC<NavbarProps> = ({
                   </div>
                 ) : (
                   <div style={{ padding: '16px', textAlign: 'center' as const, color: '#767676', fontSize: 12 }}>
-                    Axtar...
+                    {t('nav.searchPlaceholder')}
                   </div>
                 )}
               </div>

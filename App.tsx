@@ -21,6 +21,7 @@ const BlogListPage = React.lazy(() => import('./components/pages/BlogListPage'))
 const BlogPostPage = React.lazy(() => import('./components/pages/BlogPostPage'));
 const DeliveryInfo = React.lazy(() => import('./components/DeliveryInfo'));
 import Footer from './components/Footer';
+import DocumentLang from './components/DocumentLang';
 const ProductsPage = React.lazy(() => import('./components/pages/ProductsPage'));
 const SlugPage    = React.lazy(() => import('./components/pages/SlugPage'));
 const AudiencePage = React.lazy(() => import('./components/pages/AudiencePage'));
@@ -313,6 +314,7 @@ function AppShell() {
 
   return (
     <div style={{ minHeight: '100vh', background: C.bg, fontFamily: F.sans, color: C.black }}>
+      <DocumentLang />
       <a
         href="#main-content"
         style={{

@@ -191,5 +191,5 @@ ${blocks.join('\n')}
 generateSitemap().catch((err) => {
   // Build dayanmır (köhnə public/sitemap.xml qalır), amma xəta GÖRÜNMƏLİDİR
   console.error('❌ Sitemap generasiya UĞURSUZ — köhnə public/sitemap.xml saxlanıldı:', err.message || err);
-  process.exit(0);
+  process.exit(1);
 });

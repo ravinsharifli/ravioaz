@@ -609,18 +609,7 @@ async function run() {
         )
       );
     }
-
-    if (heroSettings?.heroImage) {
-      preloadTags.push(
-        lcpPreloadTag(
-          heroSettings.heroImage,
-          '(max-width: 640px) 100vw, (max-width: 1280px) 45vw, 420px',
-          [400, 640, 900],
-          'auto'
-        )
-      );
-    }
-
+    
     let homeHtml = injectStaticRoot(template, homeSeoContent(homeLang));
 
     if (preloadTags.length) {

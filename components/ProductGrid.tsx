@@ -5,7 +5,7 @@ import { C, F } from '../tokens';
 import { ShoppingBag, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Product } from '../types';
 import { toWebP, toSrcSet } from '../lib/image';
-import { getLangFromPath } from '../i18n/useLocalizedNav';
+import { getLangFromPath, withLangPrefix } from '../i18n/useLocalizedNav';
 import { localizedProductName, localizedCategoryName } from '../lib/productLocale';
 
 interface ProductGridProps {
@@ -131,7 +131,7 @@ const Card: React.FC<CardProps> = ({
 
   // ── SEO: <a> tag işlədirik ki Google hər məhsul URL-ini tapa bilsin ──
   // onClick-də e.preventDefault() linki açmır, modal açır (istifadəçi üçün eyni)
-  const productUrl = product.slug ? `/mehsullar/${product.slug}` : '#';
+  const productUrl = product.slug ? withLangPrefix(`/mehsullar/${product.slug}`, lang) : '#';
 
   return (
     <a
@@ -159,8 +159,8 @@ const Card: React.FC<CardProps> = ({
       >
         {images.length > 0 ? (
           <img
-           src={toWebP(images[imgIdx], 360, 70)}
-           srcSet={toSrcSet(images[imgIdx], [240, 360, 480], 70)}
+           src={toWebP(images[imgIdx], 480, 80)}
+           srcSet={toSrcSet(images[imgIdx], [240, 480, 720], 80)}
            sizes="(max-width: 400px) 45vw, (max-width: 900px) 45vw, (max-width: 1200px) 30vw, 25vw"
            alt={`${displayName} — ${t('productGrid.altSuffix')} | Ravio`}
            loading={cardIndex < 4 ? 'eager' : 'lazy'}
