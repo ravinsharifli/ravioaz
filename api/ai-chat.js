@@ -30,7 +30,12 @@ const DATASET = 'production'
 const API_VERSION = '2026-02-09'
 // Əsas model yüklü olanda (503/429) ehtiyat model işə düşür.
 // (gemini-2.5-flash Google tərəfindən bağlanıb — 404 verir, ona görə siyahıda yoxdur.)
-const GEMINI_MODELS = ['gemini-flash-latest', 'gemini-flash-lite-latest']
+const GEMINI_MODELS = ['gemini-3.8-flash', 'gemini-flash-latest', 'gemini-flash-lite-latest']
+
+// Gemini 3.x modellərində "düşünmə" standart olaraq orta səviyyədədir və cavab 15-20 san çəkir.
+// Real vaxt söhbət üçün "low" kifayətdir (Google sənədi: ən aşağı gecikmə). Yalnız bu modeldə dəstəklənir.
+const THINKING_MODELS = new Set(['gemini-3.8-flash'])
+const thinkingFor = (model) => (THINKING_MODELS.has(model) ? { thinkingLevel: 'low' } : undefined)
 
 // Vercel funksiyası maksimum 60 san işləyir (vercel.json). Ümumi büdcə 52 san:
 // Context rejimi ən çoxu 26 san alır, qalan vaxt ehtiyat rejimə qalır.
@@ -166,6 +171,7 @@ async function answerWithContext({ apiKey, token, history, lang, deadline }) {
           temperature: 0.3,
           maxOutputTokens: 1200,
           stopWhen: stepCountIs(6),
+          providerOptions: thinkingFor(model) ? { google: { thinkingConfig: thinkingFor(model) } } : undefined,
           abortSignal: AbortSignal.timeout(Math.min(left, 20000)),
         })
         if (text && text.trim()) return text.trim()
@@ -189,11 +195,18 @@ async function answerWithCatalog({ apiKey, history, lang, deadline }) {
     console.error('AI chat: kataloq oxunmadı:', e?.message)
     catalog = '(kataloq müvəqqəti əlçatan deyil — dəqiq qiymət bilmədiyini de, ümumi aralıqları kateqoriya məlumatından ver)'
   }
-  const payload = JSON.stringify({
-    systemInstruction: { parts: [{ text: buildSystemPrompt(catalog, lang) }] },
-    contents: history.map((m) => ({ role: m.role, parts: [{ text: m.text }] })),
-    generationConfig: { temperature: 0.4, maxOutputTokens: 1200 },
-  })
+  const systemInstruction = { parts: [{ text: buildSystemPrompt(catalog, lang) }] }
+  const contents = history.map((m) => ({ role: m.role, parts: [{ text: m.text }] }))
+  const payloadFor = (model) =>
+    JSON.stringify({
+      systemInstruction,
+      contents,
+      generationConfig: {
+        temperature: 0.4,
+        maxOutputTokens: 1200,
+        ...(thinkingFor(model) ? { thinkingConfig: thinkingFor(model) } : {}),
+      },
+    })
   let lastStatus = 0
   // Hər model üçün 2 cəhd: Gemini "high demand" (503) verəndə 1.5 san gözləyib təkrar yoxlayırıq.
   for (const model of GEMINI_MODELS) {
@@ -204,7 +217,7 @@ async function answerWithCatalog({ apiKey, history, lang, deadline }) {
         const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
-          body: payload,
+          body: payloadFor(model),
           signal: AbortSignal.timeout(Math.min(left, 15000)),
         })
         lastStatus = r.status
