@@ -442,5 +442,21 @@
     "prevSlide": "Previous slide",
     "nextSlide": "Next slide",
     "slideLabel": "Slide {{n}}"
+  },
+  "charity": {
+    "eyebrow": "Transparency",
+    "title": "Our share for stray animals",
+    "total": "Given so far",
+    "asOf": "Last updated: {{date}}",
+    "recipient": "Given to: {{name}}",
+    "proof": "Receipts and photos",
+    "strip": "🐾 5% of every sale goes to stray animals — {{amount}} ₼ given so far"
+  },
+  "homeReviews": {
+    "eyebrow": "Customer reviews",
+    "title": "What our customers say",
+    "summary": "{{avg}} / 5 · {{count}} reviews",
+    "forProduct": "Product: {{name}}",
+    "photoAlt": "Photo sent by {{name}}"
   }
 }

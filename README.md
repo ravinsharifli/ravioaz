@@ -12,7 +12,7 @@ Lazer yazılı fərdi hədiyyələr mağazası — https://ravio.az
 | `npm run dev` | Saytı lokal açır (http://localhost:3000) |
 | `npm run build` | Sitemap → Vite build → hər səhifə üçün hazır SEO HTML (Vercel bunu özü işlədir) |
 | `npm run typecheck` | TypeScript xətalarını yoxlayır — **hər dəyişiklikdən sonra işlət** |
-| `npm test` | `api/` qoruma testləri (26 test) |
+| `npm test` | `api/` qoruma testləri + sifariş qeydi və qiymət düsturu testləri (66 yoxlama) |
 | `npm run studio` | Sanity Studio-nu lokal açır |
 | `npm run studio:deploy` | Studio-nu (sxem dəyişiklikləri daxil) yayımlayır |
 
@@ -24,8 +24,8 @@ components/            Səhifə və komponentlər (pages/, home/, catalog/)
 lib/                   Qiymət, səbət, SEO, Sanity sorğuları, ortaq köməkçilər
 constants/             contact.ts (WhatsApp nömrəsi), defaults.ts, seo.ts
 i18n/                  az.json / en.json (açar sayı bərabər olmalıdır)
-schemas/               Sanity sxemləri: product, category, siteSettings, audienceCategory, blogPost
-api/                   Vercel serverless: şəkil yükləmə, Meta CAPI, satış izləmə
+schemas/               Sanity sxemləri: product, category, siteSettings, audienceCategory, blogPost, order
+api/                   Vercel serverless: şəkil yükləmə, Meta CAPI (Lead), sifariş qeydi, satış izləmə (Purchase — bağlıdır)
 public/                Statik fayllar (sw.js, robots.txt, llms.txt, pricing.md, sitemap.xml ...)
 generate-sitemap.mjs   Build addımı 1: sitemap.xml (Sanity-dən)
 inject-seo.mjs         Build addımı 3: hər məhsul/kateqoriya üçün hazır SEO HTML
@@ -47,14 +47,36 @@ ilə build davam etdirilə bilər (sonra mütləq düzəlt).
 |---|---|
 | `IMGBB_API_KEY` | Müştərinin yüklədiyi şəkil (`api/upload-image.js`) |
 | `META_CAPI_TOKEN` | Meta Conversions API (`api/capi.js`, `api/track-purchase.js`) |
+| `SANITY_WRITE_TOKEN` | Sifariş qeydi (`api/order.js`). Sanity → API → Tokens → "Editor" səlahiyyətli token. **Olmasa sifariş qeydi yazılmır** (sifariş axınına təsiri yoxdur) |
+| `ORDER_HASH_SECRET` | *İstəyə bağlı.* Telefon hash-i üçün gizli söz. Boşdursa `SANITY_WRITE_TOKEN` istifadə olunur. Sonradan dəyişmə — köhnə hash-lər uyğun gəlməz |
+| `PURCHASE_WEBHOOK_SECRET` | *İstəyə bağlı.* `api/track-purchase.js` (real "Purchase") yalnız bu açarla (`x-ravio-secret` başlığı) açılır. **Boşdursa endpoint bağlıdır (503)** |
 | `META_TEST_EVENT_CODE` | *İstəyə bağlı.* Yalnız test zamanı; bitəndə sil |
+
+## Reklam siqnalı və sifariş qeydi
+
+- **WhatsApp düyməsinə basılanda "Purchase" YOX, "Lead" göndərilir** (GA4 `generate_lead`, Meta Pixel `Lead`,
+  server-side `/api/capi` — hamısı eyni `event_id` = sifariş nömrəsi ilə, dublikat sayılmır). Çünki bu an hələ
+  beh ödənilməyib. Real **"Purchase"** yalnız beh təsdiqlənəndən sonra `api/track-purchase.js` ilə, **server-to-server**
+  göndərilməlidir (Make.com və ya Sanity webhook; `x-ravio-secret` başlığı ilə). Brauzerdən çağırıla bilməz.
+- **Sifariş qeydi (`api/order.js`)** WhatsApp açıldıqdan SONRA, gözlənilmədən çağırılır; uğursuz olsa sifarişə təsiri yoxdur.
+  Məbləği Sanity-dəki real qiymətlərlə yenidən hesablayır (`lib/orderPricing.js` — brauzerdəki səbətlə EYNİ funksiya),
+  fərq varsa `totalsMismatch` işarələyir. Studio-da **Sifarişlər** bölməsində görünür (statusu siz yeniləyirsiniz).
+- **Məxfilik qaydası:** Sanity dataset-i **public**-dir (sayt məlumatı apicdn-dən oxuyur) — orada yazılan hər şey
+  internetdən oxuna bilər. Ona görə sifariş qeydinə **ad, telefon, ünvan, doğum tarixi, şəkil YAZILMIR**; telefon
+  yalnız bərpa edilə bilməyən HMAC hash kimi saxlanır. Bu qaydanı pozma.
+- **Quraşdırma (bir dəfə):** (1) Sanity → API → Tokens → "Editor" token yarat; (2) Vercel → Environment Variables →
+  `SANITY_WRITE_TOKEN` (Production + Preview) əlavə et və yenidən deploy et; (3) `npm run studio:deploy`.
+- **Xeyriyyə sayğacı və rəylər:** Studio → Sayt tənzimləmələri → *🐾 Xeyriyyə sayğacı* (məbləğ, tarix, qəbz şəkilləri).
+  Məbləğ boşdursa sayt heç nə göstərmir. Ana səhifədəki rəy bölməsi məhsullardakı REAL rəylərdən oxuyur
+  (3-dən az rəy varsa görünmür).
 
 ## Dəyişiklik edəndə nələri yeniləmək lazımdır
 
 - **Yeni kateqoriya (öz SEO mətni ilə):** `seo-categories.mjs` + Sanity-də kateqoriya.
 - **Telefon / WhatsApp nömrəsi:** `constants/contact.ts` + `index.html` (LocalBusiness) + `public/llms.txt` + `public/pricing.md` + `i18n/locales/*.json`.
 - **Sanity sxemi dəyişdi:** `npm run studio:deploy` (MCP və ya GitHub vasitəsilə yayılmır).
-- **Sayt faylları dəyişdi (şəkil, ikon):** `public/sw.js` içində 3 keş adındakı versiyanı artır (`ravio-v9` → `v10`).
+- **Sayt faylları dəyişdi (şəkil, ikon):** `public/sw.js` içində 3 keş adındakı versiyanı artır (hazırda `v10` → `v11`).
+- **`public/ga-init.js` və ya `public/meta-pixel.js` dəyişdi:** `index.html`-dəki `?v=2` rəqəmini artır (köhnə brauzer keşini yarmaq üçün).
 - **Yeni mətn əlavə etdin:** həm `az.json`, həm `en.json`-a EYNİ açarla yaz.
 
 ## Bilərəkdən belə saxlananlar (silməyin)

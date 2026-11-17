@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -12,6 +12,10 @@ import UnifiedHeroCarousel from '../home/UnifiedHeroCarousel';
 import PromoRow, { CampaignBannerData } from '../home/PromoRow';
 import ProductGrid from '../ProductGrid';
 import LoadingGrid from '../catalog/LoadingGrid';
+
+// Əlavə bölmələr ayrıca yüklənir (ilk yükləməni ağırlaşdırmasın) — məlumat yoxdursa heç nə göstərmirlər
+const HomeReviews = React.lazy(() => import('../home/HomeReviews'));
+const CharityImpact = React.lazy(() => import('../home/CharityImpact'));
 
 interface HomePageProps {
   visible: boolean;
@@ -308,6 +312,13 @@ export default function HomePage({
           </div>
         </div>
       </section>
+
+      {!loading && (
+        <Suspense fallback={null}>
+          <HomeReviews />
+          <CharityImpact variant="strip" />
+        </Suspense>
+      )}
     </div>
   );
 }

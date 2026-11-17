@@ -442,5 +442,21 @@
     "prevSlide": "Əvvəlki slayd",
     "nextSlide": "Növbəti slayd",
     "slideLabel": "{{n}}-ci slayd"
+  },
+  "charity": {
+    "eyebrow": "Şəffaflıq",
+    "title": "Küçə heyvanlarına ayrılan pay",
+    "total": "İndiyədək ayrılıb",
+    "asOf": "Son yenilənmə: {{date}}",
+    "recipient": "Verilib: {{name}}",
+    "proof": "Qəbz və fotolar",
+    "strip": "🐾 Hər satışın 5%-i küçə heyvanlarına gedir — indiyədək {{amount}} ₼ ayrılıb"
+  },
+  "homeReviews": {
+    "eyebrow": "Müştəri rəyləri",
+    "title": "Müştərilərimiz nə deyir?",
+    "summary": "{{avg}} / 5 · {{count}} rəy",
+    "forProduct": "Məhsul: {{name}}",
+    "photoAlt": "{{name}} adlı müştərinin göndərdiyi şəkil"
   }
 }

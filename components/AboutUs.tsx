@@ -4,6 +4,7 @@ import { Helmet } from 'react-helmet-async';
 import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
 import { getLangFromPath, withLangPrefix } from '../i18n/useLocalizedNav';
+import CharityImpact from './home/CharityImpact';
 
 const FONT = F.sans;
 const C = {
@@ -111,6 +112,9 @@ const AboutUs: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* ── Xeyriyyə sayğacı (Sanity-də məbləğ varsa görünür) ── */}
+      <CharityImpact variant="card" />
 
       {/* ── Proses ───────────────────────────────────────── */}
       <div style={{ background: C.white, padding: 'clamp(40px,6vw,80px) clamp(20px,5vw,48px)' }}>
