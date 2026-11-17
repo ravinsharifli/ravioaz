@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Suspense, useCallback, useMemo, startTransition } from 'react';
+import React, { useState, useEffect, useRef, Suspense, useCallback, useMemo, startTransition } from 'react';
 import { C, F } from './tokens';
 import { BrowserRouter, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { client } from './sanityclient';
@@ -112,19 +112,29 @@ function AppShell() {
       });
   }, []);
 
+  const firstRouteRef = useRef(true);
   useEffect(() => {
     window.scrollTo(0, 0);
     // SPA route dəyişikliyi — GA4 + Meta-ya yeni page_view göndər
     // React Router hər /mehsullar/slug keçidini brauzer yenilənməsi kimi görmür,
-    // ona görə biz bunu əl ilə bildirməliyik
-    if (typeof (window as any).gtag !== 'undefined') {
-      (window as any).gtag('event', 'page_view', {
+    // ona görə biz bunu əl ilə bildirməliyik.
+    // İLK açılış istisnadır: GA4 (config → send_page_view) və Meta Pixel (init → PageView)
+    // ilk səhifəni özləri sayır; burada da göndərsək ilk səhifə iki dəfə sayılırdı.
+    if (firstRouteRef.current) {
+      firstRouteRef.current = false;
+      return;
+    }
+    const w = window as any;
+    // Skript hələ yüklənməyibsə (flag === false) onun öz ilk PageView-u cari səhifəni sayacaq.
+    // Köhnə keşlənmiş skriptdə flag yoxdur (undefined) → əvvəlki davranış saxlanılır.
+    if (typeof w.gtag === 'function' && w.__gaInited !== false) {
+      w.gtag('event', 'page_view', {
         page_title: document.title,
         page_location: window.location.href,
       });
     }
-    if (typeof (window as any).fbq !== 'undefined') {
-      (window as any).fbq('track', 'PageView');
+    if (typeof w.fbq === 'function' && w.__pixelInited !== false) {
+      w.fbq('track', 'PageView');
     }
   }, [location.pathname]);
 

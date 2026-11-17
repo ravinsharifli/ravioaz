@@ -453,5 +453,37 @@ export default {
       initialValue: '0.9',
     },
 
+    {
+      name: 'charityStats',
+      title: '🐾 Xeyriyyə sayğacı (küçə heyvanları)',
+      type: 'object',
+      description: 'Saytda "Hər satışın 5%-i küçə heyvanlarına" vədinin şəffaf hesabatı (Haqqımızda səhifəsi + ana səhifədə zolaq). Rəqəmi və tarixi SİZ yeniləyirsiniz. "İndiyədək ayrılan məbləğ" boş və ya 0 olarsa, sayt heç nə göstərmir. YALNIZ real rəqəm yazın.',
+      options: { collapsible: true, collapsed: true },
+      fields: [
+        { name: 'totalAmount', title: '💰 İndiyədək ayrılan məbləğ (₼)', type: 'number', validation: Rule => Rule.min(0) },
+        { name: 'asOfDate', title: '📅 Son yenilənmə tarixi', type: 'date' },
+        { name: 'recipient', title: '🏠 Kimə/hara verilib (AZ)', type: 'string', description: 'Məs: sığınacağın və ya təşkilatın real adı.' },
+        { name: 'recipientEn', title: '🏠 Kimə/hara verilib (EN)', type: 'string' },
+        { name: 'note', title: '📝 Qısa qeyd (AZ)', type: 'text', rows: 2 },
+        { name: 'noteEn', title: '📝 Qısa qeyd (EN)', type: 'text', rows: 2 },
+        {
+          name: 'proofPhotos',
+          title: '🧾 Qəbz / foto sübut (maks. 6)',
+          type: 'array',
+          of: [
+            {
+              type: 'image',
+              options: { hotspot: true },
+              fields: [
+                { name: 'caption', type: 'string', title: 'Şəkil altı yazı (AZ)' },
+                { name: 'captionEn', type: 'string', title: 'Şəkil altı yazı (EN)' },
+              ],
+            },
+          ],
+          validation: Rule => Rule.max(6),
+        },
+      ],
+    },
+
   ],
 };

@@ -2,11 +2,15 @@
 // gtag/js skripti indi buradan yüklənir — index.html-dən silinib
 window.dataLayer = window.dataLayer || [];
 function gtag() { dataLayer.push(arguments); }
+// App.tsx bu bayraqdan istifadə edir: GA hələ başlamayıbsa SPA page_view göndərilmir
+// (ilk page_view config-in send_page_view-u ilə gedəcək) → ikiqat sayma olmur.
+window.__gaInited = false;
 
 var gaInited = false;
 function loadGAScript() {
   if (gaInited) return;
   gaInited = true;
+  window.__gaInited = true;
 
   // VACİB SIRA: js/config əmrləri dataLayer-ə DƏRHAL (sinxron) yazılır —
   // skriptin yüklənməsini gözləmir. Çünki gtag.js yükləndikdə dataLayer-i

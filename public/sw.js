@@ -1,7 +1,9 @@
-// Ravio Service Worker v9 — naviqasiya uğursuz olanda ağ ekran əvəzinə keşlənmiş tətbiq qabığı göstərilir
-const CACHE_NAME    = 'ravio-v9';
-const IMG_CACHE     = 'ravio-img-v9';
-const SANITY_CACHE  = 'ravio-sanity-v9';
+// Ravio Service Worker v10 — naviqasiya uğursuz olanda ağ ekran əvəzinə keşlənmiş tətbiq qabığı göstərilir
+// v10: Sanity API (apicdn) sorğuları səhvən "şəkil" qaydasına düşürdü (substring uyğunluğu) və heç vaxt
+// yenilənməyən cache-first ilə verilirdi → köhnə qiymət/stok görünə bilərdi. İndi dəqiq host müqayisəsi var.
+const CACHE_NAME    = 'ravio-v10';
+const IMG_CACHE     = 'ravio-img-v10';
+const SANITY_CACHE  = 'ravio-sanity-v10';
 
 const STATIC_SHELL = [
   '/',
@@ -37,7 +39,12 @@ const ANALYTICS_HOSTS = [
   'connect.facebook.net', 'facebook.com',
   'va.vercel-scripts.com', 'vitals.vercel-insights.com',
 ];
-const SANITY_API_HOSTS = ['api.sanity.io', 'w7scii42.api.sanity.io'];
+// Sanity MƏLUMAT API-si: <layihə>.api.sanity.io və <layihə>.apicdn.sanity.io (qiymət, stok, kampaniya).
+// DİQQƏT: 'apicdn.sanity.io' sətri 'cdn.sanity.io' ilə bitir. Ona görə substring (includes) YOX,
+// dəqiq host müqayisəsi istifadə olunur — əks halda API cavabları şəkil kimi həmişəlik keşlənir.
+const isSanityApiHost   = (h) => h === 'api.sanity.io'    || h.endsWith('.api.sanity.io')
+                              || h === 'apicdn.sanity.io' || h.endsWith('.apicdn.sanity.io');
+const isSanityImageHost = (h) => h === 'cdn.sanity.io';
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
@@ -50,14 +57,15 @@ self.addEventListener('fetch', (event) => {
   // 1b. Öz saytımızdakı analitika skriptləri — həmişə server-dən təzə gəlsin
   if (url.origin === self.location.origin && (url.pathname === '/meta-pixel.js' || url.pathname === '/ga-init.js')) return;
 
-  // 2. Sanity API sorğuları — network-first, 5s timeout
-  if (SANITY_API_HOSTS.some((h) => url.hostname.includes(h))) {
+  // 2. Sanity API sorğuları — network-first, 5s timeout (online olanda HƏMİŞƏ təzə məlumat)
+  if (isSanityApiHost(url.hostname)) {
     event.respondWith(networkFirst(event.request, SANITY_CACHE, 5000));
     return;
   }
 
-  // 3. Sanity CDN şəkilləri — cache-first, 7 gün
-  if (url.hostname.includes('cdn.sanity.io')) {
+  // 3. Sanity CDN şəkilləri — cache-first. Şəkil URL-ləri məzmuna görə unikaldır (asset id),
+  // şəkil dəyişəndə URL də dəyişir — ona görə uzunmüddətli keş təhlükəsizdir.
+  if (isSanityImageHost(url.hostname)) {
     event.respondWith(cacheFirst(event.request, IMG_CACHE));
     return;
   }

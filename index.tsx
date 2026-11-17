@@ -3,6 +3,10 @@ import { createRoot, hydrateRoot } from 'react-dom/client';
 import { HelmetProvider } from 'react-helmet-async';
 import './styles/global.css';
 import App from './App';
+import { captureUtm } from './lib/utm';
+
+// Reklam mənbəyi (utm_*, fbclid, gclid) — sifariş qeydində "hansı kampaniyadan" görünsün
+captureUtm();
 
 // Təhlükəsizlik toru: əgər lazy-load olunan səhifə (məs. məhsul kartı klikləndikdə) köhnə
 // keşdən qalma, artıq mövcud olmayan JS faylını axtarırsa (yeni deploy-dan sonra hash dəyişib),

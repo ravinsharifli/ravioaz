@@ -123,11 +123,12 @@
     <!-- Inter şrifti: yerli saxlanılır (self-hosted), Azərbaycan hərfləri daxil -->
     <link rel="preload" as="font" type="font/woff2" href="/fonts/Inter-Regular.woff2" crossorigin />
 
-    <!-- Google Analytics — ga-init.js interaksiyadan/4s sonra gtag/js-i özü yükləyir -->
-    <script src="/ga-init.js" defer></script>
+    <!-- Google Analytics — ga-init.js ilk interaksiyada və ya brauzer boşalanda (maks. 12s) gtag/js-i özü yükləyir.
+         ?v= : skript dəyişəndə rəqəmi artırın (köhnə brauzer keşini yarmaq üçün). -->
+    <script src="/ga-init.js?v=2" defer></script>
 
-    <!-- Meta Pixel — səhifə yüklənəndən 3s sonra başlayır, LCP-yə mane olmur -->
-    <script src="/meta-pixel.js" defer></script>
+    <!-- Meta Pixel — eyni məntiq (ilk interaksiya / boş vaxt), LCP-yə mane olmur -->
+    <script src="/meta-pixel.js?v=2" defer></script>
 
   </head>
   <body>

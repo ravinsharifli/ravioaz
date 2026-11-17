@@ -50,6 +50,7 @@ export default function SlugPage({
 
   const [fetchedProduct, setFetchedProduct] = useState<Product | null>(null);
   const [fetchingProduct, setFetchingProduct] = useState(false);
+  const [fetchFailed, setFetchFailed] = useState(false);
 
   const listProduct = useMemo(
     () => (slug ? findProductBySlug(products, slug) : undefined),
@@ -72,12 +73,14 @@ export default function SlugPage({
     if (!slug || listProduct || isSlugACategory) {
       setFetchedProduct(null);
       setFetchingProduct(false);
+      setFetchFailed(false);
       return;
     }
     if (loading) return;
 
     let cancelled = false;
     setFetchingProduct(true);
+    setFetchFailed(false);
 
     client
       .fetch(SINGLE_PRODUCT_QUERY, { slug })
@@ -87,7 +90,10 @@ export default function SlugPage({
       })
       .catch((err) => {
         console.error('[Sanity] Məhsul yüklənmədi:', slug, err);
-        if (!cancelled) setFetchedProduct(null);
+        if (!cancelled) {
+          setFetchedProduct(null);
+          setFetchFailed(true);
+        }
       })
       .finally(() => {
         if (!cancelled) setFetchingProduct(false);
@@ -188,7 +194,7 @@ export default function SlugPage({
   }
 
   if (!currentProduct) {
-    return <NotFound onHome={() => navigate('/mehsullar')} />;
+    return <NotFound onHome={() => navigate('/mehsullar')} noindex={!fetchFailed} />;
   }
 
   return (

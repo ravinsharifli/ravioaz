@@ -27,6 +27,14 @@ export default defineConfig({
                 S.documentTypeList('category').title('Kateqoriyalar')
               ),
 
+            S.listItem()
+              .title('Sifarişlər')
+              .child(
+                S.documentTypeList('order')
+                  .title('Sifarişlər')
+                  .defaultOrdering([{ field: 'createdAt', direction: 'desc' }])
+              ),
+
             S.divider(),
 
             S.listItem()
