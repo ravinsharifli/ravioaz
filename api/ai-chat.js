@@ -28,8 +28,15 @@ const CONTEXT_MCP_URL =
 const PROJECT_ID = 'w7scii42'
 const DATASET = 'production'
 const API_VERSION = '2026-02-09'
-// Əsas model yüklü olanda (503/429) ehtiyat model işə düşür
+// Əsas model yüklü olanda (503/429) ehtiyat model işə düşür.
+// (gemini-2.5-flash Google tərəfindən bağlanıb — 404 verir, ona görə siyahıda yoxdur.)
 const GEMINI_MODELS = ['gemini-flash-latest', 'gemini-flash-lite-latest']
+
+// Vercel funksiyası maksimum 60 san işləyir (vercel.json). Ümumi büdcə 52 san:
+// Context rejimi ən çoxu 26 san alır, qalan vaxt ehtiyat rejimə qalır.
+const TOTAL_BUDGET_MS = 52_000
+const CONTEXT_BUDGET_MS = 26_000
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 
 const MAX_MESSAGES = 10
 const MAX_CHARS = 600
@@ -135,7 +142,7 @@ async function fetchInitialContext(token) {
   return null
 }
 
-async function answerWithContext({ apiKey, token, history, lang }) {
+async function answerWithContext({ apiKey, token, history, lang, deadline }) {
   const google = createGoogleGenerativeAI({ apiKey })
   const [mcpClient, initialContext] = await Promise.all([
     createMCPClient({ transport: { type: 'http', url: CONTEXT_MCP_URL, headers: { Authorization: `Bearer ${token}` } } }),
@@ -148,6 +155,8 @@ async function answerWithContext({ apiKey, token, history, lang }) {
     const messages = history.map((m) => ({ role: m.role === 'model' ? 'assistant' : 'user', content: m.text }))
 
     for (const model of GEMINI_MODELS) {
+      const left = deadline - Date.now()
+      if (left < 4000) break
       try {
         const { text } = await generateText({
           model: google(model),
@@ -157,7 +166,7 @@ async function answerWithContext({ apiKey, token, history, lang }) {
           temperature: 0.3,
           maxOutputTokens: 1200,
           stopWhen: stepCountIs(6),
-          abortSignal: AbortSignal.timeout(25000),
+          abortSignal: AbortSignal.timeout(Math.min(left, 20000)),
         })
         if (text && text.trim()) return text.trim()
         console.error(`AI chat (context): ${model} boş cavab`)
@@ -172,7 +181,7 @@ async function answerWithContext({ apiKey, token, history, lang }) {
 }
 
 // ── Ehtiyat: kataloq mətni ilə birbaşa Gemini ────────────────────────────────
-async function answerWithCatalog({ apiKey, history, lang }) {
+async function answerWithCatalog({ apiKey, history, lang, deadline }) {
   let catalog = ''
   try {
     catalog = await getCatalogText()
@@ -186,25 +195,37 @@ async function answerWithCatalog({ apiKey, history, lang }) {
     generationConfig: { temperature: 0.4, maxOutputTokens: 1200 },
   })
   let lastStatus = 0
+  // Hər model üçün 2 cəhd: Gemini "high demand" (503) verəndə 1.5 san gözləyib təkrar yoxlayırıq.
   for (const model of GEMINI_MODELS) {
-    try {
-      const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
-        body: payload,
-        signal: AbortSignal.timeout(20000),
-      })
-      lastStatus = r.status
-      if (!r.ok) {
-        console.error(`AI chat: ${model} xətası ${r.status} ${(await r.text().catch(() => '')).slice(0, 300)}`)
-        continue
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      const left = deadline - Date.now()
+      if (left < 3000) return { reply: '', lastStatus }
+      try {
+        const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+          body: payload,
+          signal: AbortSignal.timeout(Math.min(left, 15000)),
+        })
+        lastStatus = r.status
+        if (!r.ok) {
+          console.error(`AI chat: ${model} xətası ${r.status} ${(await r.text().catch(() => '')).slice(0, 300)}`)
+          // 503/429 müvəqqətidir — təkrar yoxla; 404 və s. üçün növbəti modelə keç
+          if ((r.status === 503 || r.status === 429) && attempt === 1) {
+            await sleep(1500)
+            continue
+          }
+          break
+        }
+        const data = await r.json()
+        const reply = (data?.candidates?.[0]?.content?.parts || []).map((p) => p?.text || '').join('').trim()
+        if (reply) return { reply, lastStatus }
+        console.error(`AI chat: ${model} boş cavab`)
+        break
+      } catch (e) {
+        console.error(`AI chat: ${model} çağırışı alınmadı: ${e?.message}`)
+        if (attempt === 1) await sleep(1000)
       }
-      const data = await r.json()
-      const reply = (data?.candidates?.[0]?.content?.parts || []).map((p) => p?.text || '').join('').trim()
-      if (reply) return { reply, lastStatus }
-      console.error(`AI chat: ${model} boş cavab`)
-    } catch (e) {
-      console.error(`AI chat: ${model} çağırışı alınmadı: ${e?.message}`)
     }
   }
   return { reply: '', lastStatus }
@@ -228,6 +249,9 @@ export default async function handler(req, res) {
   }
   const lang = body?.lang === 'en' ? 'en' : 'az'
 
+  const startedAt = Date.now()
+  const deadline = startedAt + TOTAL_BUDGET_MS
+
   try {
     let reply = ''
     let lastStatus = 0
@@ -235,14 +259,22 @@ export default async function handler(req, res) {
     const ctxToken = process.env.SANITY_ORGANIZATION_TOKEN
     if (ctxToken) {
       try {
-        reply = await answerWithContext({ apiKey, token: ctxToken, history, lang })
+        // Context rejimi ilişsə belə (MCP qoşulması və s.) ehtiyat rejimə vaxt qalsın
+        reply = await Promise.race([
+          answerWithContext({ apiKey, token: ctxToken, history, lang, deadline: startedAt + CONTEXT_BUDGET_MS }),
+          sleep(CONTEXT_BUDGET_MS).then(() => {
+            throw new Error('context vaxtı bitdi')
+          }),
+        ])
       } catch (e) {
         console.error('AI chat (context) uğursuz, ehtiyat rejimə keçilir:', String(e?.message).slice(0, 300))
       }
+    } else {
+      console.error('AI chat: SANITY_ORGANIZATION_TOKEN yoxdur, ehtiyat rejim işləyir')
     }
 
     if (!reply) {
-      const fb = await answerWithCatalog({ apiKey, history, lang })
+      const fb = await answerWithCatalog({ apiKey, history, lang, deadline })
       reply = fb.reply
       lastStatus = fb.lastStatus
     }
