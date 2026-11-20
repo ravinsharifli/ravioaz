@@ -138,11 +138,15 @@ export default function BlogPostPage() {
     mainEntityOfPage: canonicalUrl,
   };
 
+  // EN nüsxə AZ yazının dublikatıdır (canonical AZ-ə baxır) — yalnız o indekslənmir.
+  // AZ yazılar MÜTLƏQ indekslənməlidir (əvvəl noindex bütün yazılara şərtsiz qoyulmuşdu).
+  const noindexThisCopy = lang === 'en';
+
   return (
     <>
       <Helmet>
         <title>{metaTitle}</title>
-        <meta name="robots" content="noindex, follow" />
+        {noindexThisCopy && <meta name="robots" content="noindex, follow" />}
         <meta name="description" content={metaDescription} />
         <link rel="canonical" href={canonicalUrl} />
         <meta property="og:title" content={metaTitle} />
