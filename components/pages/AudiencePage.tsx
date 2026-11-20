@@ -56,8 +56,12 @@ export default function AudiencePage({ audienceCategories, products, loading, op
   }
 
   const name = current ? localizedAudienceName(current, lang) : '';
-  const metaTitle = t('audiencePage.metaTitleTemplate', { name });
-  const metaDescription = t('audiencePage.metaDescriptionTemplate', { name });
+  // Sanity-də yazılmış səhifə mətni (boşdursa heç nə göstərilmir). EN səhifədə AZ mətn göstərilmir.
+  const introText = ((lang === 'en' ? current?.descriptionEn : current?.description) || '').trim();
+  const introParagraphs = introText ? introText.split(/\n{2,}/).map((s) => s.trim()).filter(Boolean) : [];
+  // Google başlığı/təsviri: Sanity-dəki sahə (yalnız AZ), boşdursa avtomatik şablon.
+  const metaTitle = (lang === 'az' && current?.seoTitle?.trim()) || t('audiencePage.metaTitleTemplate', { name });
+  const metaDescription = (lang === 'az' && current?.seoDescription?.trim()) || t('audiencePage.metaDescriptionTemplate', { name });
   const canonicalUrl = `${SITE_URL}${withLangPrefix(`/kime/${slug}`, lang)}`;
 
   return (
@@ -71,6 +75,13 @@ export default function AudiencePage({ audienceCategories, products, loading, op
         <h1 style={{ fontSize: 28, fontWeight: 700, margin: '0 0 8px', fontFamily: F.sans, color: C.black }}>
           {name || '\u00A0'}
         </h1>
+        {introParagraphs.length > 0 && (
+          <div style={{ maxWidth: 760, margin: '0 0 12px' }}>
+            {introParagraphs.map((p, i) => (
+              <p key={i} style={{ color: C.textSec, margin: '0 0 10px', fontSize: 15, lineHeight: 1.65 }}>{p}</p>
+            ))}
+          </div>
+        )}
         <p style={{ color: C.textSec, margin: 0, fontSize: 14 }}>
           {loading ? t('productsPage.loading') : t('productsPage.countSuffix', { count: filteredProducts.length })}
         </p>

@@ -265,11 +265,15 @@ function itemListSchema(items) {
 }
 
 /** Kateqoriya və məhsullar səhifəsi üçün ilkin məzmun (items verilərsə məhsul siyahısı ilə) */
-function simpleSeoContent({ h1, desc, lang = 'az', items = [] }) {
+function simpleSeoContent({ h1, desc, lang = 'az', items = [], paragraphs = [] }) {
+  // paragraphs verilibsə (redaktə olunan səhifə mətni) onlar göstərilir, yoxsa əvvəlki kimi tək desc abzası.
+  const body = paragraphs.length
+    ? paragraphs.map((p) => `<p>${esc(p)}</p>`).join('\n      ')
+    : `<p>${esc(desc)}</p>`;
   return `
     <main style="max-width:1280px;margin:0 auto;padding:32px 16px;font-family:Inter,Arial,sans-serif">
       <h1>${esc(h1)}</h1>
-      <p>${esc(desc)}</p>
+      ${body}
       ${productListHtml(items, lang)}
       <a href="${pathFor('/mehsullar', lang)}">${SHELL_TEXT[lang].viewAll}</a>
     </main>
@@ -828,7 +832,7 @@ async function run() {
   const audienceCategories = await client.fetch(`
     *[_type == "audienceCategory" && isActive != false && defined(slug.current)
       && count(*[_type == "product" && references(^._id)]) > 0] | order(order asc, name asc) {
-      name, nameEn, "slug": slug.current
+      name, nameEn, description, descriptionEn, seoTitle, seoDescription, "slug": slug.current
     }
   `);
 
@@ -839,14 +843,17 @@ async function run() {
         const pathAz = `/kime/${ac.slug}`;
         const acUrl = urlFor(pathAz, lang);
         const acName = lang === 'en' ? (ac.nameEn || ac.name) : ac.name;
-        const acTitle = tr(lang, 'audiencePage.metaTitleTemplate', { name: acName });
-        const acDesc = tr(lang, 'audiencePage.metaDescriptionTemplate', { name: acName });
+        // Sanity-dəki Google başlığı/təsviri (yalnız AZ); boşdursa avtomatik şablon — AudiencePage.tsx ilə EYNİ qayda.
+        const acTitle = (lang === 'az' && ac.seoTitle && ac.seoTitle.trim()) || tr(lang, 'audiencePage.metaTitleTemplate', { name: acName });
+        const acDesc = (lang === 'az' && ac.seoDescription && ac.seoDescription.trim()) || tr(lang, 'audiencePage.metaDescriptionTemplate', { name: acName });
+        const acIntro = ((lang === 'en' ? ac.descriptionEn : ac.description) || '').trim();
+        const acParagraphs = acIntro ? acIntro.split(/\n{2,}/).map((s) => s.trim()).filter(Boolean) : [];
 
         const audItems = products
           .filter((p) => Array.isArray(p.audienceSlugs) && p.audienceSlugs.includes(ac.slug))
           .map((p) => toListItem(p, lang));
 
-        let html = injectStaticRoot(template, simpleSeoContent({ h1: acName, desc: acDesc, lang, items: audItems }));
+        let html = injectStaticRoot(template, simpleSeoContent({ h1: acName, desc: acDesc, lang, items: audItems, paragraphs: acParagraphs }));
         html = finalizePage(html, { lang, pathAz, title: acTitle, desc: acDesc });
         if (audItems.length) html = html.replace('</head>', `${jsonLdTag(itemListSchema(audItems))}\n</head>`);
         html = html.replace('</head>', `${jsonLdTag(collectionPageSchema({

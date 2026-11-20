@@ -32,7 +32,7 @@ export const SETTINGS_QUERY = `*[_type == "siteSettings"][0]{
   bulkDiscountPerUnit,
   "categoryTranslations": *[_type == "category"]{ name, nameEn },
   "audienceCategories": *[_type == "audienceCategory" && isActive != false] | order(order asc, name asc) {
-    name, nameEn, "slug": slug.current
+    name, nameEn, description, descriptionEn, seoTitle, seoDescription, "slug": slug.current
   },
   "metroSchedule": {
     "stations": metroSchedule[]{

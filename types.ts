@@ -54,6 +54,12 @@ export interface AudienceCategory {
   name: string;
   nameEn?: string;
   slug: string;
+  /** Səhifə mətni (paraqraflar boş sətirlə ayrılır). Boşdursa səhifədə göstərilmir. */
+  description?: string;
+  descriptionEn?: string;
+  /** Google başlığı / təsviri (yalnız AZ; boşdursa avtomatik şablon). */
+  seoTitle?: string;
+  seoDescription?: string;
 }
 
 // ── Blog ─────────────────────────────────────────────────────
