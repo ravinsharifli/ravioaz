@@ -73,7 +73,7 @@ ilə build davam etdirilə bilər (sonra mütləq düzəlt).
 ## Dəyişiklik edəndə nələri yeniləmək lazımdır
 
 - **Yeni kateqoriya (öz SEO mətni ilə):** `seo-categories.mjs` + Sanity-də kateqoriya.
-- **Telefon / WhatsApp nömrəsi:** `constants/contact.ts` + `index.html` (LocalBusiness) + `public/llms.txt` + `public/pricing.md` + `i18n/locales/*.json`.
+- **Telefon / WhatsApp nömrəsi:** `constants/contact.ts` + `index.html` (OnlineStore) + `public/llms.txt` + `public/pricing.md` + `i18n/locales/*.json`.
 - **Sanity sxemi dəyişdi:** `npm run studio:deploy` (MCP və ya GitHub vasitəsilə yayılmır).
 - **Sayt faylları dəyişdi (şəkil, ikon):** `public/sw.js` içində 3 keş adındakı versiyanı artır (hazırda `v10` → `v11`).
 - **`public/ga-init.js` və ya `public/meta-pixel.js` dəyişdi:** `index.html`-dəki `?v=2` rəqəmini artır (köhnə brauzer keşini yarmaq üçün).

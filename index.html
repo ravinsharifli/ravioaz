@@ -63,30 +63,25 @@
     <meta name="twitter:description" content="Lazer yazılı qolbaq, fərdi təsbeh, domino və giftbox. Bütün Azərbaycana ödənişsiz çatdırılma." />
     <meta name="twitter:image" content="https://ravio.az/og-ravio.png" />
 
-    <!-- Schema: LocalBusiness -->
+    <!-- Schema: OnlineStore. Satış yalnız sayt, Instagram və TikTok üzərindən gedir (fiziki mağaza YOXDUR),
+         ona görə geo, iş saatları və priceRange (fiziki məkana aid xassələr) qəsdən yoxdur. -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
-      "@type": "LocalBusiness",
+      "@type": "OnlineStore",
+      "@id": "https://ravio.az/#organization",
       "name": "Ravio",
       "url": "https://ravio.az",
-      "logo": "https://ravio.az/og-ravio.png",
+      "logo": "https://ravio.az/icon-512.png",
       "image": "https://ravio.az/og-ravio.png",
-      "description": "Bakıda fərdi hədiyyə mağazası. Lazer yazılı qolbaq, fərdi təsbeh, domino və giftbox. Hər məhsul sizin üçün özəl hazırlanır.",
-      "priceRange": "5₼ - 70₼",
+      "description": "Bakıda fərdi hədiyyə onlayn mağazası. Lazer yazılı qolbaq, fərdi təsbeh, domino və giftbox. Hər məhsul sizin üçün özəl hazırlanır.",
       "telephone": "+994519831483",
       "address": {
         "@type": "PostalAddress",
         "addressLocality": "Bakı",
-        "addressRegion": "Bakı",
         "addressCountry": "AZ"
       },
-      "geo": {
-        "@type": "GeoCoordinates",
-        "latitude": 40.4093,
-        "longitude": 49.8671
-      },
-      "openingHours": "Mo-Su 09:00-21:00",
+      "areaServed": { "@type": "Country", "name": "Azerbaijan" },
       "contactPoint": {
         "@type": "ContactPoint",
         "telephone": "+994519831483",
@@ -108,7 +103,8 @@
       "@type": "WebSite",
       "name": "Ravio",
       "url": "https://ravio.az",
-      "description": "Bakıda fərdi hədiyyə mağazası. Lazer yazılı qolbaq, fərdi təsbeh, domino və giftbox.",
+      "description": "Bakıda fərdi hədiyyə onlayn mağazası. Lazer yazılı qolbaq, fərdi təsbeh, domino və giftbox.",
+      "publisher": { "@id": "https://ravio.az/#organization" },
       "inLanguage": "az"
     }
     </script>

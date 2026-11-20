@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { C, F } from '../../tokens';
 import { Product, ReelPost } from '../../types';
-import { OG_IMAGE, SITE_URL } from '../../constants/seo';
+import { LOGO_IMAGE, OG_IMAGE, SITE_URL } from '../../constants/seo';
 import { getLangFromPath, withLangPrefix } from '../../i18n/useLocalizedNav';
 import { localizedCategoryName } from '../../lib/productLocale';
 import InfoStrips from '../home/InfoStrips';
@@ -84,16 +84,13 @@ export default function HomePage({
         <script type="application/ld+json">
           {JSON.stringify({
             '@context': 'https://schema.org',
-            '@type': 'Organization',
+            // index.html-dəki OnlineStore ilə EYNİ varlıq (eyni @id) — burada yalnız dilə görə təsvir verilir.
+            '@type': 'OnlineStore',
+            '@id': `${SITE_URL}/#organization`,
             name: 'Ravio',
             url: SITE_URL,
-            logo: OG_IMAGE,
+            logo: LOGO_IMAGE,
             description: metaDescription,
-            contactPoint: {
-              '@type': 'ContactPoint',
-              contactType: 'customer service',
-              availableLanguage: ['Azerbaijani', 'English'],
-            },
             areaServed: { '@type': 'Country', name: 'Azerbaijan' },
           })}
         </script>
