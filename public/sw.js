@@ -1,8 +1,10 @@
-// Ravio Service Worker v11 — naviqasiya uğursuz olanda ağ ekran əvəzinə keşlənmiş tətbiq qabığı göstərilir
+// Ravio Service Worker v12 — naviqasiya uğursuz olanda ağ ekran əvəzinə keşlənmiş tətbiq qabığı göstərilir
+// v12: İngilis versiya (/en) dayandırıldı — köhnə keşlənmiş /en səhifələri təmizlənsin. Yalnız əsas keş adı v12-yə
+// qaldırıldı; şəkil və Sanity keşləri v11 qalır ki, istifadəçilər şəkilləri yenidən yükləməsin.
 // v11: bir komponent silindi — köhnə keşlənmiş JS faylları təmizlənsin (keş adları v11-ə qaldırıldı).
 // v10: Sanity API (apicdn) sorğuları səhvən "şəkil" qaydasına düşürdü (substring uyğunluğu) və heç vaxt
 // yenilənməyən cache-first ilə verilirdi → köhnə qiymət/stok görünə bilərdi. İndi dəqiq host müqayisəsi var.
-const CACHE_NAME    = 'ravio-v11';
+const CACHE_NAME    = 'ravio-v12';
 const IMG_CACHE     = 'ravio-img-v11';
 const SANITY_CACHE  = 'ravio-sanity-v11';
 

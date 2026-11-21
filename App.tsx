@@ -11,6 +11,7 @@ import { DEFAULT_METRO, BULK_DISCOUNT_PER_UNIT } from './constants/defaults';
 import { useTranslation } from 'react-i18next';
 import './i18n/config';
 import { useLocalizedNav } from './i18n/useLocalizedNav';
+import { ENGLISH_ENABLED } from './lib/features.mjs';
 
 import Navbar from './components/Navbar';
 import PWAInstallBanner from './components/PWAInstallBanner';
@@ -22,6 +23,7 @@ const BlogPostPage = React.lazy(() => import('./components/pages/BlogPostPage'))
 const DeliveryInfo = React.lazy(() => import('./components/DeliveryInfo'));
 import Footer from './components/Footer';
 import DocumentLang from './components/DocumentLang';
+import EnglishPausedRedirect from './components/EnglishPausedRedirect';
 const ProductsPage = React.lazy(() => import('./components/pages/ProductsPage'));
 const SlugPage    = React.lazy(() => import('./components/pages/SlugPage'));
 const AudiencePage = React.lazy(() => import('./components/pages/AudiencePage'));
@@ -339,7 +341,11 @@ function AppShell() {
           {/* Azərbaycanca (default, prefikssiz) və İngiliscə (/en prefiksli) EYNİ komponentlərdir —
               yalnız URL prefiksi fərqlənir. Əvvəl hər marşrut iki dəfə yazılırdı. */}
           {pageRoutes('')}
-          {pageRoutes('/en')}
+          {/* İngilis versiya (lib/features.mjs → ENGLISH_ENABLED) dayandırılıbsa /en/... marşrutları qurulmur;
+              əvəzinə Azərbaycanca ekvivalentə yönləndirilir (əsas daimi yönləndirmə vercel.json-dadır). */}
+          {ENGLISH_ENABLED
+            ? pageRoutes('/en')
+            : <Route path="/en/*" element={<EnglishPausedRedirect />} />}
           <Route path="*" element={<NotFound onHome={() => navigate('/')} />} />
         </Routes>
         </Suspense>

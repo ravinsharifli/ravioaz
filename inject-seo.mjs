@@ -11,10 +11,11 @@
  */
 
 import { createClient } from '@sanity/client';
-import { readFileSync, writeFileSync, mkdirSync } from 'fs';
+import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { CATEGORY_PAGES } from './seo-categories.mjs';
 import { toCategorySlug } from './lib/slug.mjs';
+import { ENGLISH_ENABLED } from './lib/features.mjs';
 
 // ── Sanity client ─────────────────────────────────────────────
 const client = createClient({
@@ -423,7 +424,8 @@ function inlineMainCss(html, distDir = 'dist') {
 
 // ── Çoxdilli (AZ/EN) köməkçilər ───────────────────────────────
 const SITE = 'https://ravio.az';
-const LANGS = ['az', 'en'];
+// İngilis versiya dayandırılıbsa (lib/features.mjs) yalnız AZ HTML-ləri yaradılır — dist/en/ yaranmır.
+const LANGS = ENGLISH_ENABLED ? ['az', 'en'] : ['az'];
 const LOCALES = {
   az: JSON.parse(readFileSync('i18n/locales/az.json', 'utf-8')),
   en: JSON.parse(readFileSync('i18n/locales/en.json', 'utf-8')),
@@ -450,7 +452,8 @@ function hreflangTags(pathAz) {
   const az = urlFor(pathAz, 'az');
   return [
     `<link rel="alternate" hreflang="az" href="${az}" />`,
-    `<link rel="alternate" hreflang="en" href="${urlFor(pathAz, 'en')}" />`,
+    // EN alternativi yalnız İngilis versiya açıq olanda (lib/features.mjs)
+    ...(ENGLISH_ENABLED ? [`<link rel="alternate" hreflang="en" href="${urlFor(pathAz, 'en')}" />`] : []),
     `<link rel="alternate" hreflang="x-default" href="${az}" />`,
   ].join('\n  ');
 }
@@ -533,7 +536,7 @@ async function run() {
 
   console.log(`📦 ${products.length} məhsul tapıldı\n`);
   const missingEn = products.filter((p) => !(p.nameEn && p.nameEn.trim()) || !(p.descriptionEn && p.descriptionEn.trim()));
-  if (missingEn.length) {
+  if (ENGLISH_ENABLED && missingEn.length) {
     console.warn(`⚠️  ${missingEn.length} məhsulun İngilis tərcüməsi (nameEn/descriptionEn) yoxdur — EN səhifədə Azərbaycanca mətn görünəcək:`);
     missingEn.slice(0, 15).forEach((p) => console.warn(`    - ${p.slug}`));
   }
@@ -959,13 +962,29 @@ async function run() {
       problems.push(`${file}: fayl yaradılmayıb`);
     }
   };
+  const mustNotContain = (file, needle) => {
+    try {
+      if (readFileSync(file, 'utf-8').includes(needle)) problems.push(`${file}: "${needle}" olmamalıdır`);
+    } catch {
+      problems.push(`${file}: fayl yaradılmayıb`);
+    }
+  };
   mustContain('dist/index.html', 'data-seo-shell');
-  mustContain('dist/index.html', 'hreflang="en"');
-  mustContain('dist/en/index.html', '<html lang="en">');
-  mustContain('dist/en/index.html', `<link rel="canonical" href="${SITE}/en"`);
+  mustContain('dist/index.html', 'hreflang="az"');
+  if (ENGLISH_ENABLED) {
+    mustContain('dist/index.html', 'hreflang="en"');
+    mustContain('dist/en/index.html', '<html lang="en">');
+    mustContain('dist/en/index.html', `<link rel="canonical" href="${SITE}/en"`);
+  } else {
+    // İngilis versiya dayandırılıb: nə /en HTML-i, nə də EN hreflang qalmamalıdır
+    if (existsSync('dist/en')) problems.push('dist/en mövcuddur — İngilis versiya dayandırılıb, olmamalıdır');
+    mustNotContain('dist/index.html', 'hreflang="en"');
+  }
   // Siyahı səhifələrinin ilkin HTML-ində məhsul linkləri olmalıdır (robotlar üçün)
   mustContain('dist/mehsullar/index.html', `href="/mehsullar/${products[0].slug}"`);
-  mustContain('dist/en/mehsullar/index.html', `href="/en/mehsullar/${products[0].slug}"`);
+  if (ENGLISH_ENABLED) {
+    mustContain('dist/en/mehsullar/index.html', `href="/en/mehsullar/${products[0].slug}"`);
+  }
   const expectedProducts = products.length * LANGS.length;
   if (ok / expectedProducts < 0.95) problems.push(`məhsul səhifələri: ${ok}/${expectedProducts}`);
   const expectedCats = activeCategories.length * LANGS.length;
@@ -973,7 +992,7 @@ async function run() {
   if (problems.length) {
     throw new Error(`Yekun yoxlama uğursuz:\n   - ${problems.join('\n   - ')}`);
   }
-  console.log('✅ SEO yekun yoxlama keçdi (AZ+EN ana səhifə, hreflang, məhsul və kateqoriya HTML-ləri)\n');
+  console.log('✅ SEO yekun yoxlama keçdi (' + (ENGLISH_ENABLED ? 'AZ+EN' : 'yalnız AZ') + ' ana səhifə, hreflang, məhsul və kateqoriya HTML-ləri)\n');
 }
 
 run().catch((err) => {

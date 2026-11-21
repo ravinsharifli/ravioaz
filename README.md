@@ -34,12 +34,32 @@ seo-categories.mjs     Kateqoriya SEO mətnlərinin TƏK mənbəyi
 
 ## Build necə işləyir
 
-`generate-sitemap.mjs` → `vite build` → `inject-seo.mjs`.
+`scripts/check-english-toggle.mjs` (açar yoxlaması) → `generate-sitemap.mjs` → `vite build` → `inject-seo.mjs`.
 
 Son addım Sanity-dən məlumatı oxuyub hər səhifənin başlıq / təsvir / JSON-LD məlumatını **hazır HTML-ə** yazır.
 Google, WhatsApp və Facebook önizləmələri çox vaxt JavaScript işlətmir — yalnız bu ilkin HTML-i görürlər.
 `inject-seo.mjs` uğursuz olarsa build dayanır və köhnə sayt canlı qalır. Yalnız təcili halda `SEO_SOFT_FAIL=1`
 ilə build davam etdirilə bilər (sonra mütləq düzəlt).
+
+## İngilis versiya (`/en`) — hazırda DAYANDIRILIB
+
+Qərar (21 noyabr 2026): əvvəlcə Azərbaycan bazarına və Azərbaycanca məzmuna fokuslanırıq. İngilis versiya **silinməyib**, söndürülüb.
+
+| Nə | Vəziyyət |
+|---|---|
+| `ravio.az/en` və `/en/...` | Azərbaycanca ekvivalentə daimi (308) yönləndirilir — `vercel.json` (ehtiyat: `components/EnglishPausedRedirect.tsx`) |
+| `sitemap.xml`, hreflang | Yalnız Azərbaycan (`az` + `x-default`); `/en` HTML-ləri build-də yaradılmır |
+| AZ/EN dil düyməsi | Gizlidir (Navbar) |
+| İngilis kod və tərcümələr | Toxunulmayıb: `i18n/locales/en.json`, `/en` marşrutları, Sanity-dəki `nameEn` / `descriptionEn` və s. |
+
+**Yenidən açmaq üçün (3 addım):**
+
+1. `lib/features.mjs` → `ENGLISH_ENABLED = true`
+2. `vercel.json` → `"redirects"` blokundakı iki `/en` yönləndirməsini silin
+3. `public/llms.txt` → İngilis versiya sətrini qaytarın: `- [English version of the site](https://ravio.az/en)`
+
+Bunlardan biri unudulsa `npm run build` (`scripts/check-english-toggle.mjs`) dayanır və nəyin çatışmadığını yazır.
+Açdıqdan sonra Search Console-da sitemap-i yenidən göndərin.
 
 ## Vercel-də lazım olan gizli dəyişənlər (Settings → Environment Variables)
 

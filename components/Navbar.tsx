@@ -7,6 +7,7 @@ import { Product, AudienceCategory } from '../types';
 import { toWebP } from '../lib/image';
 import { useTranslation } from 'react-i18next';
 import { getLangFromPath, withLangPrefix } from '../i18n/useLocalizedNav';
+import { ENGLISH_ENABLED } from '../lib/features.mjs';
 import { localizedAudienceName } from '../lib/productLocale';
 import AudienceDropdown from './AudienceDropdown';
 
@@ -140,7 +141,8 @@ const Navbar: React.FC<NavbarProps> = ({
 
           {/* Right icons */}
           <div ref={searchRef} style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, position: 'relative' }}>
-            {/* Language switcher */}
+            {/* Language switcher — İngilis versiya dayandırılıb: gizlidir (lib/features.mjs) */}
+            {ENGLISH_ENABLED && (
             <Link
               to={otherLangPath}
               aria-label={otherLang === 'en' ? 'Switch to English' : 'Azərbaycan dilinə keç'}
@@ -157,6 +159,7 @@ const Navbar: React.FC<NavbarProps> = ({
               <Globe size={13} />
               {otherLang === 'en' ? 'EN' : 'AZ'}
             </Link>
+            )}
 
             {/* Search button */}
             <button onClick={() => { setSearchOpen(v => !v); setQuery(''); }}
@@ -367,6 +370,7 @@ const Navbar: React.FC<NavbarProps> = ({
                 }}
               >{link.label}</Link>
             ))}
+            {ENGLISH_ENABLED && (
             <Link
               to={otherLangPath}
               onClick={() => setMenuOpen(false)}
@@ -379,6 +383,7 @@ const Navbar: React.FC<NavbarProps> = ({
                 textDecoration: 'none',
               }}
             ><Globe size={16} /> {otherLang === 'en' ? 'English' : 'Azərbaycan dili'}</Link>
+            )}
             <Link
               to={withLangPrefix('/mehsullar', lang)}
               onClick={() => setMenuOpen(false)}

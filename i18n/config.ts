@@ -2,6 +2,7 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import az from './locales/az.json';
 import en from './locales/en.json';
+import { ENGLISH_ENABLED } from '../lib/features.mjs';
 
 // ── Dil aşkarlama ─────────────────────────────────────────────
 // Sayt strukturu: ravio.az/...  (default, Azərbaycanca)
@@ -10,7 +11,8 @@ import en from './locales/en.json';
 // bunu edir). Bura ilkin dəyər üçün sadə bir təxmin qoyuruq —
 // AppShell mount olanda həmişə düzgün dili məcburi təyin edir.
 function detectInitialLang(): 'az' | 'en' {
-  if (typeof window === 'undefined') return 'az';
+  // İngilis versiya dayandırılıb (lib/features.mjs) → həmişə Azərbaycanca
+  if (typeof window === 'undefined' || !ENGLISH_ENABLED) return 'az';
   return window.location.pathname.startsWith('/en') ? 'en' : 'az';
 }
 

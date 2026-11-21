@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { useNavigate, useLocation, NavigateOptions } from 'react-router-dom';
+import { ENGLISH_ENABLED } from '../lib/features.mjs';
 
 /**
  * Cari path-in dil prefiksini müəyyən edir.
@@ -7,6 +8,8 @@ import { useNavigate, useLocation, NavigateOptions } from 'react-router-dom';
  * "/mehsullar/xyz"    → "az"
  */
 export function getLangFromPath(pathname: string): 'az' | 'en' {
+  // İngilis versiya dayandırılıb (lib/features.mjs) → bütün sayt Azərbaycan dilindədir
+  if (!ENGLISH_ENABLED) return 'az';
   return pathname.startsWith('/en/') || pathname === '/en' ? 'en' : 'az';
 }
 

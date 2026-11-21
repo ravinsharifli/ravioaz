@@ -1,4 +1,6 @@
-// generate-sitemap.mjs — v3
+// generate-sitemap.mjs — v4
+// v4: İngilis versiya dayandırılanda (lib/features.mjs → ENGLISH_ENABLED = false) sitemap-də YALNIZ AZ URL-lər
+//     olur və hreflang yalnız az + x-default-dir. ENGLISH_ENABLED = true olsa v3 davranışı qayıdır (AZ+EN cütləri).
 // Dəyişikliklər (v2 → v3):
 //  • AZ + EN URL-ləri, hər cütdə hreflang (xhtml:link) — İngilis səhifələr Google-a görünür
 //  • Məhsulu olmayan kateqoriyalar sitemap-ə düşmür (boş səhifə = zəif siqnal)
@@ -7,6 +9,7 @@
 import { createClient } from '@sanity/client';
 import { writeFileSync } from 'fs';
 import { toCategorySlug } from './lib/slug.mjs';
+import { ENGLISH_ENABLED } from './lib/features.mjs';
 
 const client = createClient({
   projectId: 'w7scii42',
@@ -37,9 +40,13 @@ const locAz = (p) => `${BASE_URL}${p === '' ? '/' : p}`;
 const locEn = (p) => `${BASE_URL}${p === '' || p === '/' ? '/en' : `/en${p}`}`;
 
 function altLinks(p) {
+  // EN alternativi yalnız İngilis versiya açıq olanda (lib/features.mjs)
+  const enLink = ENGLISH_ENABLED
+    ? `
+    <xhtml:link rel="alternate" hreflang="en" href="${locEn(p)}" />`
+    : '';
   return `
-    <xhtml:link rel="alternate" hreflang="az" href="${locAz(p)}" />
-    <xhtml:link rel="alternate" hreflang="en" href="${locEn(p)}" />
+    <xhtml:link rel="alternate" hreflang="az" href="${locAz(p)}" />${enLink}
     <xhtml:link rel="alternate" hreflang="x-default" href="${locAz(p)}" />`;
 }
 
@@ -54,10 +61,10 @@ function urlXml({ loc, p, lastmod, changefreq, priority, extra = '', bilingual =
 
 /** Bir səhifənin AZ və EN URL bloklarını qaytarır (hər ikisi bütün alternativləri göstərir) */
 function pairXml({ p, lastmod, changefreq, priority, images = '' }) {
-  return [
-    urlXml({ loc: locAz(p), p, lastmod, changefreq, priority, extra: images }),
-    urlXml({ loc: locEn(p), p, lastmod, changefreq, priority }),
-  ].join('\n');
+  const az = urlXml({ loc: locAz(p), p, lastmod, changefreq, priority, extra: images });
+  // İngilis versiya dayandırılıbsa yalnız AZ URL bloku (lib/features.mjs)
+  if (!ENGLISH_ENABLED) return az;
+  return [az, urlXml({ loc: locEn(p), p, lastmod, changefreq, priority })].join('\n');
 }
 
 async function generateSitemap() {
@@ -185,7 +192,7 @@ ${blocks.join('\n')}
   writeFileSync('public/sitemap.xml', xml, 'utf-8');
 
   const total = (xml.match(/<url>/g) || []).length;
-  console.log(`✅ Sitemap yazıldı: ${total} URL (AZ+EN, ${withImages} məhsulda şəkil teqi var)`);
+  console.log(`✅ Sitemap yazıldı: ${total} URL (${ENGLISH_ENABLED ? 'AZ+EN' : 'yalnız AZ'}, ${withImages} məhsulda şəkil teqi var)`);
 }
 
 generateSitemap().catch((err) => {
