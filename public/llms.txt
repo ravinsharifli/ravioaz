@@ -1,12 +1,16 @@
 # Ravio — Bakıda Onlayn Hədiyyə Mağazası
 
-> Ravio — lazer texnologiyası ilə hər məhsula ad, tarix, mesaj və şəkil həkk edən fərdi hədiyyə mağazasıdır. Bakıda yerləşir, Bütün Azərbaycana ödənişsiz çatdırılma edir.
+> Ravio — lazer texnologiyası ilə hər məhsula ad, tarix, mesaj və şəkil həkk edən fərdi hədiyyə mağazasıdır. Bakıda yerləşir, yalnız onlayn satış edir (fiziki mağaza yoxdur) və bütün Azərbaycana ödənişsiz çatdırılma edir.
 
 Ravio 2024-cü ildən Bakıda fəaliyyət göstərən onlayn hədiyyə mağazasıdır. Hər məhsul fərdi sifarişlə hazırlanır. Müştəri öz adını, tarixini, mesajını və ya şəklini seçir — Ravio onu lazer texnologiyası ilə məhsula həkk edir. Saytda hazırda 90-dan çox məhsul var.
 
+Satış kanalları: ravio.az saytı, Instagram (@ravio.az) və TikTok (@ravio.az). Fiziki mağaza yoxdur, bütün sifarişlər onlayn qəbul edilir.
+
+Material: metal aksesuarlar (qolbaq, boyunbağı, brelok, alışqan və s.) polad materialdandır. Gümüş (925) məhsul satılmır — məhsul adlarındakı "gümüşü" yalnız rəng adıdır.
+
 ## Nə satırıq
 
-> Qiymətlər AZN ilə, saytda göstərilən cari satış qiymətləridir (son yoxlama: 2026-11-16). Dəqiq qiymət və variantlar üçün məhsul səhifəsinə baxın.
+> Qiymətlər AZN ilə, saytda göstərilən cari satış qiymətləridir (son yoxlama: 2026-11-21). Dəqiq qiymət və variantlar üçün məhsul səhifəsinə baxın.
 
 ### Qolbaqlar (9.99₼ - 34.90₼)
 - Lazer yazılı polad qolbaq — ad, tarix, koordinat yazılır
@@ -95,7 +99,7 @@ Bəli. Foto, logo, imza, QR kod — lazer ilə istənilən şəkli məhsula hək
 Minimum 1 ədəd. Toplu sifarişlər üçün endirim var.
 
 **Ödəniş necə aparılır?**
-Hissəli olaraq. Özəl hədiyyələr olduğu üçün ilkin ödəniş olunur. Qalan hissə isə nağd
+Hissəli olaraq. Məhsullar sifarişlə hazırlandığı üçün 50% ilkin ödəniş (beh) alınır. Qalan hissə isə nağd
 və ya kart ilə — çatdırılma zamanı.
 
 **Sifarişi necə verirəm?**
@@ -124,8 +128,12 @@ Saytda məhsulu seçib səbətə əlavə edin, sifariş WhatsApp-a göndərilir.
 - [Sevgililər üçün cüt hədiyyə](https://ravio.az/kime/sevgililer-ucun-cut-hediyye)
 - [Çatdırılma](https://ravio.az/catdirilma)
 - [Haqqımızda](https://ravio.az/haqqimizda)
+- [Qiymət siyahısı (pricing.md)](https://ravio.az/pricing.md)
+- [Bütün məhsulların tam siyahısı (llms-full.txt)](https://ravio.az/llms-full.txt)
+- [Sitemap](https://ravio.az/sitemap.xml)
 
 ## Əlaqə
 
 - WhatsApp: +994519831483
-- Instagram: @ravio.az
+- Instagram: @ravio.az (https://www.instagram.com/ravio.az)
+- TikTok: @ravio.az (https://www.tiktok.com/@ravio.az)

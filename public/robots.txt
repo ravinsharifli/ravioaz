@@ -1,25 +1,35 @@
+# Ravio — robots.txt
+# Qayda: Google/Bing/Yandex kimi axtarış robotları "*" blokuna tabedir.
+# DİQQƏT: robot ona AD ilə yazılmış blok tapırsa, "*" blokunu TAMAMİLƏ nəzərə almır.
+# Ona görə aşağıdakı süni intellekt (AI) botları blokunda da /studio və /api/ qadağası TƏKRAR yazılıb.
+
 User-agent: *
 Allow: /
 Disallow: /studio
 Disallow: /api/
 Disallow: /pricing.md
 
+# Süni intellekt botları — ChatGPT, Gemini, Claude, Perplexity, Apple, Meta və s.
+# Məqsəd: AI alətləri Ravio-nu tövsiyə edə bilsin (məhsul, qiymət, çatdırılma məlumatını oxuya bilsinlər).
+# pricing.md və llms.txt, llms-full.txt faylları məhz onlar üçündür — ona görə burada açıqdır.
 User-agent: GPTBot
-Allow: /
-
+User-agent: OAI-SearchBot
 User-agent: ChatGPT-User
-Allow: /
-
-User-agent: PerplexityBot
-Allow: /
-
-User-agent: ClaudeBot
-Allow: /
-
-User-agent: anthropic-ai
-Allow: /
-
 User-agent: Google-Extended
+User-agent: ClaudeBot
+User-agent: Claude-SearchBot
+User-agent: Claude-User
+User-agent: anthropic-ai
+User-agent: PerplexityBot
+User-agent: Perplexity-User
+User-agent: Applebot-Extended
+User-agent: Meta-ExternalAgent
+User-agent: DuckAssistBot
+User-agent: MistralAI-User
+User-agent: CCBot
+User-agent: Amazonbot
 Allow: /
+Disallow: /studio
+Disallow: /api/
 
 Sitemap: https://ravio.az/sitemap.xml

@@ -2,7 +2,7 @@
 
 ## Məhsul Qiymətləri
 
-Qiymətlər AZN ilə, saytda göstərilən cari satış qiymətləridir (son yoxlama: 2026-11-16).
+Qiymətlər AZN ilə, saytda göstərilən cari satış qiymətləridir (son yoxlama: 2026-11-21).
 
 - Qolbaqlar: 9.99₼ – 34.90₼
 - Təsbehlər: 31.25₼ – 64.99₼

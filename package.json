@@ -5,11 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "node scripts/check-english-toggle.mjs && node generate-sitemap.mjs && vite build && node inject-seo.mjs",
+    "build": "node scripts/check-english-toggle.mjs && node generate-sitemap.mjs && node generate-llms.mjs && vite build && node inject-seo.mjs",
     "check:english": "node scripts/check-english-toggle.mjs",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "test": "node scripts/api-guard.test.mjs && node scripts/order.test.mjs",
+    "test": "node scripts/api-guard.test.mjs && node scripts/order.test.mjs && node scripts/llms.test.mjs",
     "studio": "sanity dev",
     "studio:deploy": "sanity deploy"
   },
