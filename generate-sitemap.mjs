@@ -132,6 +132,7 @@ async function generateSitemap() {
     { p: '/mehsullar',  priority: '0.9', changefreq: 'weekly'  },
     { p: '/catdirilma', priority: '0.8', changefreq: 'monthly' },
     { p: '/haqqimizda', priority: '0.7', changefreq: 'monthly' },
+    { p: '/qaydalar',   priority: '0.5', changefreq: 'yearly'  },
   ];
   for (const sp of staticPages) blocks.push(pairXml(sp));
 

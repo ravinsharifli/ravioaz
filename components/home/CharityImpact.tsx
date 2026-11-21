@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { C } from '../../tokens';
 import { useCharityStats } from '../../lib/siteExtras';
 
-// Xeyriyyə sayğacı: "Hər satışın 5%-i küçə heyvanlarına" vədinin şəffaf hesabatı.
+// Xeyriyyə sayğacı: "Aylıq gəlirin 5%-i küçə heyvanlarına" vədinin şəffaf hesabatı.
 // Rəqəm, tarix və sübut şəkilləri Sanity-dən gəlir (Sayt tənzimləmələri → 🐾 Xeyriyyə sayğacı).
 // Məbləğ boş/0-dırsa komponent HEÇ NƏ göstərmir.
 // variant="strip" — ana səhifədə nazik zolaq; variant="card" — Haqqımızda səhifəsində tam blok.

@@ -113,9 +113,9 @@ export const DEFAULT_METRO: MetroSchedule = {
 export const PROMO_SLIDES: HeroSlide[] = [
   {
     type: 'promo',
-    label: '🐾 Hər alışda bir heyvan doyur',
-    title: 'Satışın 5%-i küçə heyvanlarına gedir.',
-    subtitle: 'Hər sifarişlə bir küçə heyvanı yemlənir, isti yuva, müalicə görür. Sənin hədiyyən — onların qayğısıdır.',
+    label: '🐾 Hər ay küçə heyvanlarına yardım',
+    title: 'Aylıq gəlirin 5%-i küçə heyvanlarına gedir.',
+    subtitle: 'Hər ay gəlirimizin 5%-i küçə heyvanlarının yemlənməsinə, müalicəsinə və sığınacağına gedir. Sənin hədiyyən — onların qayğısıdır.',
     ctaText: 'Kataloqa bax →',
     bg: 'linear-gradient(135deg, #0f2a30 0%, #1a6678 100%)',
   },

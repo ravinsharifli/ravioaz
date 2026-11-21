@@ -21,7 +21,8 @@
     "cartItemsSuffix": "{{count}} items",
     "closeMenu": "Close menu",
     "openMenu": "Open menu",
-    "startOrder": "Start an order"
+    "startOrder": "Start an order",
+    "terms": "Terms"
   },
   "footer": {
     "tagline": "Laser engraving, personalized prayer beads, steel bracelets. Every piece is made just for you.",
@@ -137,11 +138,11 @@
   },
   "about": {
     "seoTitle": "About Us | Ravio",
-    "seoDesc": "Ravio — a Baku-based shop for personalized gifts. Laser engraving, free delivery, 5% of every sale goes to stray animals. Every item is made specially for you.",
+    "seoDesc": "Ravio — a Baku-based shop for personalized gifts. Laser engraving, free delivery, 5% of our monthly revenue goes to stray animals. Every item is made specially for you.",
     "eyebrow": "About Us",
     "heroTitle1": "Buying a gift —",
     "heroTitle2": "is doing two good deeds.",
-    "heroBody": "Ravio is a personalized gift shop based in Baku. Every item is laser-engraved to order. 5% of every sale goes toward stray animals. Delivery is completely free.",
+    "heroBody": "Ravio is a personalized gift shop based in Baku. Every item is laser-engraved to order. 5% of our monthly revenue goes toward stray animals. Delivery is completely free.",
     "pillarsEyebrow": "Our 3 principles",
     "pillarsTitle": "Why Ravio?",
     "pillars": {
@@ -154,8 +155,8 @@
       },
       "p2": {
         "label": "Animal welfare philosophy",
-        "title": "5% of every sale to stray animals",
-        "body": "5% of every gift you buy automatically goes toward feeding, treating, and sheltering stray animals. This isn't a promotion — it's built into how our business works. When you buy a gift for someone you love, you're also doing good for someone else.",
+        "title": "5% of monthly revenue to stray animals",
+        "body": "At the end of every month, 5% of our monthly revenue goes toward feeding, treating, and sheltering stray animals. This isn't a promotion — it's built into how our business works. When you buy a gift for someone you love, you're also doing good for someone else.",
         "stat1": "of every sale",
         "stat2": "ongoing commitment"
       },
@@ -192,7 +193,7 @@
       }
     },
     "ctaTitle": "Order your first gift",
-    "ctaBody": "Free delivery · Laser engraving · Every purchase helps animals in need",
+    "ctaBody": "Free delivery · Laser engraving · 5% of monthly revenue helps animals",
     "ctaButton": "Browse the catalog →"
   },
   "notFound": {
@@ -355,8 +356,8 @@
         "desc": "Courier, metro, post — completely free"
       },
       "charity": {
-        "title": "5% of every sale helps street animals",
-        "desc": "Every purchase helps save a life"
+        "title": "5% of monthly revenue helps street animals",
+        "desc": "Every purchase contributes to this support"
       },
       "engraving": {
         "title": "Every gift, personally yours",
@@ -450,7 +451,7 @@
     "asOf": "Last updated: {{date}}",
     "recipient": "Given to: {{name}}",
     "proof": "Receipts and photos",
-    "strip": "🐾 5% of every sale goes to stray animals — {{amount}} ₼ given so far"
+    "strip": "🐾 5% of our monthly revenue goes to stray animals — {{amount}} ₼ given so far"
   },
   "homeReviews": {
     "eyebrow": "Customer reviews",
@@ -458,5 +459,42 @@
     "summary": "{{avg}} / 5 · {{count}} reviews",
     "forProduct": "Product: {{name}}",
     "photoAlt": "Photo sent by {{name}}"
+  },
+  "terms": {
+    "seoTitle": "Order terms, replacement and privacy | Ravio",
+    "seoDesc": "Every Ravio product is laser-engraved to order with the text and font you choose. Returns, replacement, payment, delivery and privacy rules.",
+    "eyebrow": "Terms",
+    "title": "Order terms and privacy",
+    "intro": "Every Ravio product is made only for you, laser-engraved with the text and font you choose. Please read these terms before ordering.",
+    "sections": {
+      "s1": {
+        "title": "Custom orders",
+        "body": "All products sold at Ravio are made to order. The customer chooses the text (name, date, message) and the font on the site, and may add a photo. Once the choice is confirmed, the product is laser-engraved with exactly that text."
+      },
+      "s2": {
+        "title": "Check your text",
+        "body": "Because the text and font are chosen by the customer, please check the letters, numbers and date carefully before sending the order. Once production starts, it may not be possible to change the text."
+      },
+      "s3": {
+        "title": "Returns and refunds",
+        "body": "Each product is made for a specific customer with the text they chose, so it cannot be sold to anyone else. For this reason, finished products are not returned or refunded. For example, a bracelet engraved with a name the customer chose cannot later be sold to another person."
+      },
+      "s4": {
+        "title": "If the mistake is ours",
+        "body": "If the problem comes from us (the engraving differs from the order, a spelling mistake in the engraving, or a material defect), the product is remade and delivered to you. To report it, contact us on WhatsApp after receiving the product and send a photo of the problem."
+      },
+      "s5": {
+        "title": "Payment",
+        "body": "Because products are made to order, a 50% deposit is taken when the order is confirmed. The remainder is paid in cash or by card on delivery. The order is sent from the site to WhatsApp, and production starts after Ravio confirms it."
+      },
+      "s6": {
+        "title": "Delivery and gift",
+        "body": "Delivery across Azerbaijan is free: courier, metro meetup and Azerpost. Preparation and delivery take 1–3 days. Every product comes with a small perfume as a gift. If you order a gift box or buy 3–4 products at once, you also receive a 20–30 ml perfume as a gift."
+      },
+      "s7": {
+        "title": "Privacy",
+        "body": "Orders are placed via WhatsApp, so your name, phone and address are sent to us in the order message. The order record does not store name, phone, address or photo. The phone number is stored only as an irreversible hash. A photo you upload is stored by an external image hosting service so we can make your product. The site measures visits and ad results with Google Analytics and Meta Pixel. For any questions, message us on WhatsApp."
+      }
+    }
   }
 }

@@ -81,6 +81,12 @@ Bütün çatdırılma növləri ödənişsizdir, Bütün Azərbaycana.
 - 2 və daha çox ədəd sifarişdə hər ədədə 1₼ endirim avtomatik tətbiq olunur
 - 10 ədəd və daha çox toplu sifarişlər üçün xüsusi endirim var: məzun lentləri, korporativ, toy və nişan, ad günü sifarişləri
 
+## Hədiyyələr və xeyriyyə
+
+- Hər məhsulla kiçik ətir hədiyyə edilir
+- Hədiyyə qutusu sifariş etdikdə və ya 3–4 məhsulu eyni anda aldıqda 20–30 ml ətir də hədiyyə olunur
+- Aylıq gəlirin 5%-i küçə heyvanlarına yönəldilir
+
 ## Tez-tez Soruşulan Suallar
 
 **Bakıda lazer hədiyyə haradan almaq olar?**
@@ -101,6 +107,12 @@ Minimum 1 ədəd. Toplu sifarişlər üçün endirim var.
 **Ödəniş necə aparılır?**
 Hissəli olaraq. Məhsullar sifarişlə hazırlandığı üçün 50% ilkin ödəniş (beh) alınır. Qalan hissə isə nağd
 və ya kart ilə — çatdırılma zamanı.
+
+**Məhsulu geri qaytarmaq olarmı?**
+Xeyr. Hər məhsul müştərinin seçdiyi yazı və şriftlə lazer ilə fərdi hazırlandığı üçün başqasına satıla bilmir, ona görə geri qaytarılmır. Səhv bizdən olarsa (yazı sifarişdəki kimi deyil, material nöqsanı), məhsul yenidən hazırlanır və təqdim edilir. Ətraflı: https://ravio.az/qaydalar
+
+**Yazını və şrifti özüm seçə bilərəmmi?**
+Bəli. Məhsul səhifəsində yazını yazır və yazı şriftini seçirsiniz, sifarişdən sonra məhsul həmin yazı ilə hazırlanır.
 
 **Sifarişi necə verirəm?**
 Saytda məhsulu seçib səbətə əlavə edin, sifariş WhatsApp-a göndərilir. Ravio təsdiqləyir və hazırlamağa başlayır.
@@ -128,6 +140,12 @@ Saytda məhsulu seçib səbətə əlavə edin, sifariş WhatsApp-a göndərilir.
 - [Sevgililər üçün cüt hədiyyə](https://ravio.az/kime/sevgililer-ucun-cut-hediyye)
 - [Çatdırılma](https://ravio.az/catdirilma)
 - [Haqqımızda](https://ravio.az/haqqimizda)
+- [Sifariş şərtləri, dəyişdirmə və məxfilik](https://ravio.az/qaydalar)
+- [Ad gününə nə hədiyyə almaq olar?](https://ravio.az/blog/ad-gunune-ne-hediyye-almaq-olar)
+- [Sevgiliyə nə hədiyyə almaq olar?](https://ravio.az/blog/sevgiliye-ne-hediyye-almaq-olar)
+- [Qolbağa nə yazdırmaq olar?](https://ravio.az/blog/qolbaga-ne-yazdirmaq-olar)
+- [Hədiyyə qutusu seçimi](https://ravio.az/blog/hediyye-qutusu-secimi)
+- [Tələbələr üçün hədiyyə və metroda çatdırılma](https://ravio.az/blog/telebeler-ucun-hediyye-metro-catdirilma)
 - [Qiymət siyahısı (pricing.md)](https://ravio.az/pricing.md)
 - [Bütün məhsulların tam siyahısı (llms-full.txt)](https://ravio.az/llms-full.txt)
 - [Sitemap](https://ravio.az/sitemap.xml)

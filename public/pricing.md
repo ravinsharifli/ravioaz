@@ -37,6 +37,13 @@ Bütün çatdırılma növləri ödənişsizdir, Bütün Azərbaycana.
 - 10+ ədəd: xüsusi endirim tətbiq edilir
 - Korporativ sifarişlər qəbul edilir
 
+## Hədiyyə və qaytarılma
+
+- Hər məhsulla kiçik ətir hədiyyə edilir
+- Hədiyyə qutusu və ya 3–4 məhsul sifarişində 20–30 ml ətir də hədiyyə olunur
+- Hər məhsul fərdi yazı ilə hazırlandığı üçün geri qaytarılmır; səhv bizdən olarsa yenidən hazırlanır (https://ravio.az/qaydalar)
+- Aylıq gəlirin 5%-i küçə heyvanlarına yönəldilir
+
 ## Əlaqə
 
 - WhatsApp: +994519831483

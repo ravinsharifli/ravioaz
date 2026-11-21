@@ -884,6 +884,8 @@ async function run() {
   const STATIC_PAGES = [
     { pathAz: '/haqqimizda', titleKey: 'about.seoTitle', descKey: 'about.seoDesc', h1: { az: 'Haqqımızda', en: 'About Us' } },
     { pathAz: '/catdirilma', titleKey: 'delivery.seoTitle', descKey: 'delivery.seoDesc', h1: { az: 'Çatdırılma', en: 'Delivery' } },
+    { pathAz: '/qaydalar', titleKey: 'terms.seoTitle', descKey: 'terms.seoDesc', h1: { az: 'Sifariş şərtləri və məxfilik', en: 'Order terms and privacy' },
+      paragraphKeys: ['terms.intro', ...['s1','s2','s3','s4','s5','s6','s7'].flatMap((s) => [`terms.sections.${s}.title`, `terms.sections.${s}.body`])] },
     { pathAz: '/blog', titleKey: 'blogListPage.meta.title', descKey: 'blogListPage.meta.description', h1: { az: 'Blog', en: 'Blog' } },
   ];
   let staticOk = 0;
@@ -892,7 +894,7 @@ async function run() {
       try {
         const title = tr(lang, sp.titleKey);
         const desc = tr(lang, sp.descKey);
-        let html = injectStaticRoot(template, simpleSeoContent({ h1: sp.h1[lang], desc, lang }));
+        let html = injectStaticRoot(template, simpleSeoContent({ h1: sp.h1[lang], desc, lang, paragraphs: (sp.paragraphKeys || []).map((k) => tr(lang, k)) }));
         html = finalizePage(html, { lang, pathAz: sp.pathAz, title, desc });
         writePage(distFile(lang, sp.pathAz.slice(1)), html);
         staticOk++;

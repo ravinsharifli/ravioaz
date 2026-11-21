@@ -21,7 +21,8 @@
     "cartItemsSuffix": "{{count}} məhsul",
     "closeMenu": "Menyu bağla",
     "openMenu": "Menyu aç",
-    "startOrder": "Sifarişə başla"
+    "startOrder": "Sifarişə başla",
+    "terms": "Qaydalar"
   },
   "footer": {
     "tagline": "Lazer yazı, fərdi təsbeh, polad qolbaq. Hər məhsul yalnız sənin üçün hazırlanır.",
@@ -137,11 +138,11 @@
   },
   "about": {
     "seoTitle": "Haqqımızda | Ravio",
-    "seoDesc": "Ravio — Bakıda fərdi hədiyyələr hazırlayan onlayn mağaza. Lazer yazısı, ödənişsiz çatdırılma, satışın 5%-i küçə heyvanlarına. Hər məhsul sizin üçün xüsusi hazırlanır.",
+    "seoDesc": "Ravio — Bakıda fərdi hədiyyələr hazırlayan onlayn mağaza. Lazer yazısı, ödənişsiz çatdırılma, aylıq gəlirin 5%-i küçə heyvanlarına. Hər məhsul sizin üçün xüsusi hazırlanır.",
     "eyebrow": "Haqqımızda",
     "heroTitle1": "Bir hədiyyə almaq —",
     "heroTitle2": "iki yaxşılıq etməkdir.",
-    "heroBody": "Ravio Bakıda fəaliyyət göstərən fərdi hədiyyə mağazasıdır. Hər məhsul sifariş əsasında lazer ilə yazılır. Hər satışın 5%-i küçə heyvanlarına yönəlir. Çatdırılma tamamilə ödənişsizdir.",
+    "heroBody": "Ravio Bakıda fəaliyyət göstərən fərdi hədiyyə mağazasıdır. Hər məhsul sifariş əsasında lazer ilə yazılır. Aylıq gəlirimizin 5%-i küçə heyvanlarına yönəlir. Çatdırılma tamamilə ödənişsizdir.",
     "pillarsEyebrow": "Bizim 3 prinsipimiz",
     "pillarsTitle": "Niyə məhz Ravio?",
     "pillars": {
@@ -154,8 +155,8 @@
       },
       "p2": {
         "label": "Heyvan qayğısı strategiyası",
-        "title": "Satışın 5%-i küçə heyvanlarına",
-        "body": "Hər aldığın hədiyyənin 5%-i avtomatik olaraq küçə heyvanlarının yemlənməsinə, müalicəsinə və sığınacağına yönəlir. Bu şərt deyil, reklam deyil — biznesmizin quruluşuna işlənmiş bir öhdəlikdir. Sənin sevdiyinə hədiyyə alarkən bir başqasına da yaxşılıq etmiş olursan.",
+        "title": "Aylıq gəlirin 5%-i küçə heyvanlarına",
+        "body": "Hər ayın sonunda aylıq gəlirimizin 5%-i küçə heyvanlarının yemlənməsinə, müalicəsinə və sığınacağına yönəlir. Bu şərt deyil, reklam deyil — biznesmizin quruluşuna işlənmiş bir öhdəlikdir. Sənin sevdiyinə hədiyyə alarkən bir başqasına da yaxşılıq etmiş olursan.",
         "stat1": "hər satışdan",
         "stat2": "davamlı öhdəlik"
       },
@@ -192,7 +193,7 @@
       }
     },
     "ctaTitle": "İlk hədiyyəni sifariş et",
-    "ctaBody": "Ödənişsiz çatdırılma · Lazer yazı · Hər alışda heyvanlara yaxşılıq",
+    "ctaBody": "Ödənişsiz çatdırılma · Lazer yazı · Aylıq gəlirin 5%-i heyvanlara",
     "ctaButton": "Kataloqa bax →"
   },
   "notFound": {
@@ -355,8 +356,8 @@
         "desc": "Kuryer, metro, poçt — tamamilə ödənişsiz"
       },
       "charity": {
-        "title": "Satışın 5%-i küçə heyvanlarına",
-        "desc": "Hər alışınla bir həyat xilas edilir"
+        "title": "Aylıq gəlirin 5%-i küçə heyvanlarına",
+        "desc": "Hər alışınla bu yardıma töhfə verirsən"
       },
       "engraving": {
         "title": "Hər hədiyyə sənin adınla",
@@ -450,7 +451,7 @@
     "asOf": "Son yenilənmə: {{date}}",
     "recipient": "Verilib: {{name}}",
     "proof": "Qəbz və fotolar",
-    "strip": "🐾 Hər satışın 5%-i küçə heyvanlarına gedir — indiyədək {{amount}} ₼ ayrılıb"
+    "strip": "🐾 Aylıq gəlirimizin 5%-i küçə heyvanlarına gedir — indiyədək {{amount}} ₼ ayrılıb"
   },
   "homeReviews": {
     "eyebrow": "Müştəri rəyləri",
@@ -458,5 +459,42 @@
     "summary": "{{avg}} / 5 · {{count}} rəy",
     "forProduct": "Məhsul: {{name}}",
     "photoAlt": "{{name}} adlı müştərinin göndərdiyi şəkil"
+  },
+  "terms": {
+    "seoTitle": "Sifariş şərtləri, dəyişdirmə və məxfilik | Ravio",
+    "seoDesc": "Ravio-da hər məhsul sizin seçdiyiniz yazı və şriftlə lazer ilə fərdi hazırlanır. Qaytarılma, dəyişdirmə, ödəniş, çatdırılma və məxfilik qaydaları.",
+    "eyebrow": "Qaydalar",
+    "title": "Sifariş şərtləri və məxfilik",
+    "intro": "Ravio-da hər məhsul yalnız sizin üçün, seçdiyiniz yazı və şriftlə lazer vasitəsilə hazırlanır. Sifariş verməzdən əvvəl bu qaydalarla tanış olun.",
+    "sections": {
+      "s1": {
+        "title": "Fərdi sifariş",
+        "body": "Ravio-da satılan bütün məhsullar sifariş əsasında hazırlanır. Müştəri məhsulun üzərinə yazılacaq mətni (ad, tarix, mesaj) və yazı şriftini saytda özü seçir, istəyərsə şəkil əlavə edir. Seçim təsdiqləndikdən sonra məhsul lazer ilə həmin yazı ilə hazırlanır."
+      },
+      "s2": {
+        "title": "Yazının yoxlanılması",
+        "body": "Yazı və şrift müştəri tərəfindən seçildiyi üçün sifarişi göndərməzdən əvvəl hərflərə, rəqəmlərə və tarixə diqqətlə baxın. Hazırlıq başlayandan sonra yazını dəyişmək mümkün olmaya bilər."
+      },
+      "s3": {
+        "title": "Qaytarılma və pulun geri ödənilməsi",
+        "body": "Hər məhsul konkret müştəri üçün, onun seçdiyi yazı ilə hazırlandığı üçün başqa müştəriyə satıla bilmir. Buna görə hazır məhsul geri qaytarılmır və pulu geri ödənilmir. Məsələn, üzərində müştərinin seçdiyi ad yazılmış qolbaq sonradan başqasına satıla bilməz."
+      },
+      "s4": {
+        "title": "Bizim səhvimiz olduqda",
+        "body": "Əgər səhv bizdən qaynaqlanırsa (yazı sifarişdəki kimi deyil, yazıda hərf səhvi, material nöqsanı), məhsul yenidən hazırlanır və sizə təqdim edilir. Bunun üçün məhsulu aldıqdan sonra WhatsApp-da bizimlə əlaqə saxlayın və problemin şəklini göndərin."
+      },
+      "s5": {
+        "title": "Ödəniş",
+        "body": "Məhsullar sifarişlə hazırlandığı üçün sifariş təsdiqlənərkən 50% ilkin ödəniş (beh) alınır. Qalan hissə nağd və ya kart ilə çatdırılma zamanı ödənilir. Sifariş saytdan WhatsApp-a göndərilir, Ravio təsdiqləyəndən sonra hazırlıq başlayır."
+      },
+      "s6": {
+        "title": "Çatdırılma və hədiyyə",
+        "body": "Bütün Azərbaycana çatdırılma ödənişsizdir: kuryer, metro görüşü və Azərpoçt. Hazırlıq və çatdırılma 1–3 gün çəkir. Hər məhsulla kiçik ətir hədiyyə edilir. Hədiyyə qutusu sifariş etdikdə və ya 3–4 məhsulu eyni anda aldıqda 20–30 ml ətir də hədiyyə olunur."
+      },
+      "s7": {
+        "title": "Məxfilik",
+        "body": "Sifariş WhatsApp vasitəsilə qəbul edilir, ona görə adınız, telefonunuz və ünvanınız sifariş mesajında bizə göndərilir. Sifariş qeydində ad, telefon, ünvan və şəkil saxlanılmır. Telefon nömrəsi yalnız bərpa edilə bilməyən şifrələnmiş (hash) formada saxlanılır. Yüklədiyiniz şəkil məhsulun hazırlanması üçün xarici şəkil yükləmə xidmətində saxlanılır. Sayt Google Analytics və Meta Pixel ilə ziyarət statistikasını və reklam nəticələrini ölçür. Suallarınız üçün WhatsApp-da bizə yazın."
+      }
+    }
   }
 }

@@ -63,6 +63,7 @@ const Footer: React.FC = () => {
               { label: t('nav.delivery'), href: withLangPrefix('/catdirilma', lang) },
               { label: t('nav.about'), href: withLangPrefix('/haqqimizda', lang) },
               { label: t('nav.blog'), href: withLangPrefix('/blog', lang) },
+              { label: t('nav.terms'), href: withLangPrefix('/qaydalar', lang) },
             ].map((link, i) => (
               <div key={i} style={{ marginBottom: 12 }}>
                 <Link to={link.href} style={{

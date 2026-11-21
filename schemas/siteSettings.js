@@ -457,7 +457,7 @@ export default {
       name: 'charityStats',
       title: '🐾 Xeyriyyə sayğacı (küçə heyvanları)',
       type: 'object',
-      description: 'Saytda "Hər satışın 5%-i küçə heyvanlarına" vədinin şəffaf hesabatı (Haqqımızda səhifəsi + ana səhifədə zolaq). Rəqəmi və tarixi SİZ yeniləyirsiniz. "İndiyədək ayrılan məbləğ" boş və ya 0 olarsa, sayt heç nə göstərmir. YALNIZ real rəqəm yazın.',
+      description: 'Saytda "Aylıq gəlirin 5%-i küçə heyvanlarına" vədinin şəffaf hesabatı (Haqqımızda səhifəsi + ana səhifədə zolaq). Rəqəmi və tarixi SİZ yeniləyirsiniz. "İndiyədək ayrılan məbləğ" boş və ya 0 olarsa, sayt heç nə göstərmir. YALNIZ real rəqəm yazın.',
       options: { collapsible: true, collapsed: true },
       fields: [
         { name: 'totalAmount', title: '💰 İndiyədək ayrılan məbləğ (₼)', type: 'number', validation: Rule => Rule.min(0) },

@@ -21,6 +21,7 @@ const AboutUs     = React.lazy(() => import('./components/AboutUs'));
 const BlogListPage = React.lazy(() => import('./components/pages/BlogListPage'));
 const BlogPostPage = React.lazy(() => import('./components/pages/BlogPostPage'));
 const DeliveryInfo = React.lazy(() => import('./components/DeliveryInfo'));
+const TermsPage = React.lazy(() => import('./components/TermsPage'));
 import Footer from './components/Footer';
 import DocumentLang from './components/DocumentLang';
 import EnglishPausedRedirect from './components/EnglishPausedRedirect';
@@ -296,6 +297,7 @@ function AppShell() {
       <Route path={`${prefix}/blog`} element={<BlogListPage />} />
       <Route path={`${prefix}/blog/:slug`} element={<BlogPostPage />} />
       <Route path={`${prefix}/catdirilma`} element={<DeliveryInfo />} />
+      <Route path={`${prefix}/qaydalar`} element={<TermsPage />} />
     </>
   );
 
