@@ -49,3 +49,4 @@ Bütün çatdırılma növləri ödənişsizdir, Bütün Azərbaycana.
 - WhatsApp: +994519831483
 - Sayt: https://ravio.az
 - Instagram: @ravio.az
+- Tiktok : @ravio.az
