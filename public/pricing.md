@@ -26,9 +26,9 @@ Qiymətlər AZN ilə, saytda göstərilən cari satış qiymətləridir (son yox
 
 Bütün çatdırılma növləri ödənişsizdir, Bütün Azərbaycana.
 
-- Kuryer (Bakı, Xırdalan, Məsazır, Sumqayıt, Lökbatan): ödənişsiz
+- Kuryer (Bakı və Sumqayıt): ödənişsiz
 - Metro görüşü (istənilən Bakı metro stansiyası): ödənişsiz
-- Azərpoçt (Azərbaycanın bütün bölgələri): ödənişsiz
+- Poçt və ya Expargo kargo (Azərbaycanın bütün rayonları, təxminən 2–3 gün): ödənişsiz
 - Hazırlanma müddəti: 1–3 iş günü
 
 ## Endirimlər

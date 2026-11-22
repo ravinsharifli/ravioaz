@@ -29,8 +29,8 @@
     "linksTitle": "Keçidlər",
     "deliveryTitle": "Çatdırılma",
     "deliveryMetro": "Metrodaxili — Ödənişsiz",
-    "deliveryCity": "Bakı, Abşeron və Sumqayıt — Ödənişsiz",
-    "deliveryRegions": "Regionlara Azərpoçt ilə — Ödənişsiz",
+    "deliveryCity": "Bakı və Sumqayıt (kuryer) — Ödənişsiz",
+    "deliveryRegions": "Rayonlara poçt və ya Expargo kargo ilə — Ödənişsiz",
     "deliverySpeed": "1–3 günə hazırlanır və çatdırılır",
     "contactTitle": "Əlaqə",
     "contactAddress": "Bakı, Azərbaycan",
@@ -39,15 +39,15 @@
   },
   "delivery": {
     "seoTitle": "Çatdırılma | Ravio",
-    "seoDesc": "Ravio çatdırılma: Bütün Azərbaycana ödənişsiz çatdırılma. Bakıya kuryer, bölgələrə Azərpoçt, metro stansiyasına görüş — hamısı tamamilə ödənişsizdir.",
+    "seoDesc": "Ravio çatdırılma: Bütün Azərbaycana ödənişsiz çatdırılma. Bakı və Sumqayıta kuryer, rayonlara poçt və ya Expargo kargo (2–3 gün), metro görüşü — çatdırılma tamamilə ödənişsizdir.",
     "eyebrow": "Çatdırılma",
     "title": "Bütün Azərbaycana. Ödənişsiz.",
-    "intro": "Bütün Azərbaycana çatdırılma tamamilə ödənişsizdir. Kuryer, metrodaxili çatdırılma, Azərpoçt — fərqi yoxdur, heç bir əlavə ödəniş tutulmur. Çünki hədiyyəniz zamanında çatmalıdır.",
+    "intro": "Bütün Azərbaycana çatdırılma tamamilə ödənişsizdir. Kuryer, poçt və ya Expargo kargo, metrodaxili çatdırılma — fərqi yoxdur, heç bir əlavə ödəniş tutulmur. Çünki hədiyyəniz zamanında çatmalıdır.",
     "options": {
       "courier": {
         "title": "Kuryer çatdırılması",
         "badge": "Ödənişsiz",
-        "desc": "Bakı, Abşeron və Sumqayıt ərazisinə çatdırılır. Sifariş 3 gün ərzində hazırlanır və çatdırılır."
+        "desc": "Bakı və Sumqayıt şəhərlərinə ünvana kuryer ilə çatdırılır. Sifariş 1–3 gün ərzində hazırlanır və çatdırılır."
       },
       "metro": {
         "title": "Özəl metrodaxili çatdırılma",
@@ -55,9 +55,9 @@
         "desc": "Bakı metrosunun istənilən stansiyasına çatdırılır — tamamilə ödənişsiz. Sizin üçün xüsusi vaxt ayrılır, istədiyiniz gün və saatda."
       },
       "regions": {
-        "title": "Azərpoçt (Bölgələr)",
+        "title": "Poçt və ya Expargo kargo (Rayonlar)",
         "badge": "Ödənişsiz",
-        "desc": "Azərpoçt vasitəsilə Azərbaycanın istənilən bölgəsinə çatdırılır — tamamilə ödənişsizdir."
+        "desc": "Poçt və ya Expargo kargo şirkəti ilə Azərbaycanın istənilən rayonuna göndərilir və təxminən 2–3 günə çatır — tamamilə ödənişsizdir."
       }
     },
     "processTitle": "Hazırlıq prosesi",
@@ -83,7 +83,7 @@
     "faqs": {
       "f1": {
         "q": "Çatdırılma ödənişsizdir?",
-        "a": "Bəli, bütün çatdırılma növləri tamamilə ödənişsizdir. Kuryer (Bakı, Abşeron və Sumqayıt), metrodaxili çatdırılma (istənilən stansiya) və Azərpoçt (bütün bölgələr) — hamısı ödənişsizdir."
+        "a": "Bəli, bütün çatdırılma növləri tamamilə ödənişsizdir. Kuryer (Bakı və Sumqayıt), metrodaxili çatdırılma (istənilən stansiya) və rayonlara poçt və ya Expargo kargo — hamısı ödənişsizdir."
       },
       "f2": {
         "q": "Kuryer nə vaxt çatdırır?",
@@ -95,7 +95,7 @@
       },
       "f4": {
         "q": "Bölgələrə çatdırılma necədir?",
-        "a": "Bakı xaricindəki bütün bölgələrə Azərpoçt vasitəsilə göndərilir. Çatdırılma tamamilə ödənişsizdir. Poçt şöbəsindən götürmə üçün bildiriş alacaqsınız."
+        "a": "Bakı və Sumqayıt xaricindəki bütün rayonlara poçt və ya Expargo kargo şirkəti ilə göndərilir. Çatdırılma tamamilə ödənişsizdir və təxminən 2–3 günə çatır."
       },
       "f5": {
         "q": "Sifariş nə qədər müddətdə hazır olur?",
@@ -149,7 +149,7 @@
       "p1": {
         "label": "Çatdırılma strategiyası",
         "title": "Bütün Azərbaycana ödənişsiz",
-        "body": "Çatdırılma haqqı almırıq — nə Bakıda, nə Sumqayıtda, nə də ölkənin hər hansı guşəsində. Kuryer, metro görüşü, Azərpoçt — üç kanal, hamısı ödənişsiz. Çünki bir hədiyyə seçib sonra çatdırılma haqqıyla üzləşmək həmin hədiyyənin sevincini əlindən alır.",
+        "body": "Çatdırılma haqqı almırıq — nə Bakıda, nə Sumqayıtda, nə də ölkənin hər hansı guşəsində. Kuryer, metro görüşü, poçt və ya Expargo kargo — hamısı ödənişsiz. Çünki bir hədiyyə seçib sonra çatdırılma haqqıyla üzləşmək həmin hədiyyənin sevincini əlindən alır.",
         "stat1": "çatdırılma kanalı",
         "stat2": "çatdırılma haqqı"
       },
@@ -189,7 +189,7 @@
       },
       "s5": {
         "title": "Qapınıza gəlir",
-        "desc": "Kuryer, metro, Azərpoçt — tamamilə ödənişsiz."
+        "desc": "Kuryer, metro, poçt və ya Expargo kargo — tamamilə ödənişsiz."
       }
     },
     "ctaTitle": "İlk hədiyyəni sifariş et",
@@ -265,8 +265,8 @@
     "courierNote": "Bakı və ətrafı",
     "metroNote": "İstənilən stansiya",
     "postNote": "Bütün Azərbaycan",
-    "courierDesc": "🛵 Bakı, Abşeron və Sumqayıt ərazisinə çatdırılır. Tamamilə ödənişsizdir.",
-    "postDesc": "📮 Azərpoçt vasitəsilə Azərbaycanın istənilən bölgəsinə. Ödənişsiz.",
+    "courierDesc": "🛵 Bakı və Sumqayıt şəhərlərinə kuryer ilə çatdırılır. Tamamilə ödənişsizdir.",
+    "postDesc": "📮 Poçt və ya Expargo kargo şirkəti ilə Azərbaycanın istənilən rayonuna (2–3 gün). Ödənişsiz.",
     "cityAndAddress": "Şəhər və ünvan",
     "postAddressPlaceholder": "Şəhər, poçt indeksi, ünvan",
     "streetAddressPlaceholder": "Məhəllə, küçə, bina nömrəsi",
@@ -489,7 +489,7 @@
       },
       "s6": {
         "title": "Çatdırılma və hədiyyə",
-        "body": "Bütün Azərbaycana çatdırılma ödənişsizdir: kuryer, metro görüşü və Azərpoçt. Hazırlıq və çatdırılma 1–3 gün çəkir. Hər məhsulla kiçik ətir hədiyyə edilir. Hədiyyə qutusu sifariş etdikdə və ya 3–4 məhsulu eyni anda aldıqda 20–30 ml ətir də hədiyyə olunur."
+        "body": "Bütün Azərbaycana çatdırılma ödənişsizdir: Bakı və Sumqayıta kuryer, rayonlara poçt və ya Expargo kargo (təxminən 2–3 gün) və metro görüşü. Hazırlıq 1–3 gün çəkir. Hər məhsulla kiçik ətir hədiyyə edilir. Hədiyyə qutusu sifariş etdikdə və ya 3–4 məhsulu eyni anda aldıqda 20–30 ml ətir də hədiyyə olunur."
       },
       "s7": {
         "title": "Məxfilik",

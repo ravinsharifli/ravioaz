@@ -29,8 +29,8 @@
     "linksTitle": "Links",
     "deliveryTitle": "Delivery",
     "deliveryMetro": "Metro station meetup — Free",
-    "deliveryCity": "Baku, Absheron & Sumgait — Free",
-    "deliveryRegions": "Regions via Azerpost — Free",
+    "deliveryCity": "Baku & Sumgait (courier) — Free",
+    "deliveryRegions": "Regions via post or Expargo cargo — Free",
     "deliverySpeed": "Made and delivered in 1–3 days",
     "contactTitle": "Contact",
     "contactAddress": "Baku, Azerbaijan",
@@ -39,15 +39,15 @@
   },
   "delivery": {
     "seoTitle": "Delivery | Ravio",
-    "seoDesc": "Ravio delivery: free delivery across Azerbaijan. Courier in Baku, Azerpost to the regions, metro station meetup — all completely free.",
+    "seoDesc": "Ravio delivery: free delivery across Azerbaijan. Courier in Baku and Sumgait, post or Expargo cargo to the regions (2–3 days), metro meetup — delivery is completely free.",
     "eyebrow": "Delivery",
     "title": "Across Azerbaijan. Free.",
-    "intro": "Delivery anywhere in Azerbaijan is completely free. Courier, metro meetup, Azerpost — it doesn't matter, there's never an extra charge. Because your gift should arrive on time.",
+    "intro": "Delivery anywhere in Azerbaijan is completely free. Courier, post or Expargo cargo, metro meetup — it doesn't matter, there's never an extra charge. Because your gift should arrive on time.",
     "options": {
       "courier": {
         "title": "Courier delivery",
         "badge": "Free",
-        "desc": "Delivered within Baku, Absheron and Sumgait. Orders are prepared and delivered within 3 days."
+        "desc": "Delivered by courier to Baku and Sumgait. Orders are prepared and delivered within 1–3 days."
       },
       "metro": {
         "title": "Metro station meetup",
@@ -55,9 +55,9 @@
         "desc": "Delivered to any Baku metro station — completely free. A dedicated time slot is arranged for you, on the day and hour that suits you."
       },
       "regions": {
-        "title": "Azerpost (Regions)",
+        "title": "Post or Expargo cargo (Regions)",
         "badge": "Free",
-        "desc": "Delivered to any region of Azerbaijan via Azerpost — completely free."
+        "desc": "Sent to any region of Azerbaijan by post or the Expargo cargo company and arrives in about 2–3 days — completely free."
       }
     },
     "processTitle": "How we prepare your order",
@@ -83,7 +83,7 @@
     "faqs": {
       "f1": {
         "q": "Is delivery free?",
-        "a": "Yes, every delivery method is completely free. Courier (Baku, Absheron and Sumgait), metro station meetup (any station), and Azerpost (all regions) — all free of charge."
+        "a": "Yes, every delivery method is completely free. Courier (Baku and Sumgait), metro station meetup (any station), and post or Expargo cargo to the regions — all free of charge."
       },
       "f2": {
         "q": "When does the courier deliver?",
@@ -95,7 +95,7 @@
       },
       "f4": {
         "q": "How does delivery to the regions work?",
-        "a": "Everything outside Baku is shipped via Azerpost. Delivery is completely free. You'll receive a notification to pick it up from your local post office."
+        "a": "Everything outside Baku and Sumgait is shipped by post or the Expargo cargo company. Delivery is completely free and takes about 2–3 days."
       },
       "f5": {
         "q": "How long does an order take to prepare?",
@@ -149,7 +149,7 @@
       "p1": {
         "label": "Delivery philosophy",
         "title": "Free across Azerbaijan",
-        "body": "We don't charge for delivery — not in Baku, not in Sumgait, not anywhere in the country. Courier, metro meetup, Azerpost — three channels, all free. Because choosing a gift and then facing a delivery fee takes away the joy of that gift.",
+        "body": "We don't charge for delivery — not in Baku, not in Sumgait, not anywhere in the country. Courier, metro meetup, post or Expargo cargo — all free. Because choosing a gift and then facing a delivery fee takes away the joy of that gift.",
         "stat1": "delivery channels",
         "stat2": "delivery fee"
       },
@@ -189,7 +189,7 @@
       },
       "s5": {
         "title": "It reaches your door",
-        "desc": "Courier, metro, Azerpost — all completely free."
+        "desc": "Courier, metro, post or Expargo cargo — all completely free."
       }
     },
     "ctaTitle": "Order your first gift",
@@ -265,8 +265,8 @@
     "courierNote": "Baku and surroundings",
     "metroNote": "Any station",
     "postNote": "All of Azerbaijan",
-    "courierDesc": "🛵 Delivered within Baku, Absheron and Sumgait. Completely free.",
-    "postDesc": "📮 Delivered anywhere in Azerbaijan via Azerpost. Free.",
+    "courierDesc": "🛵 Delivered by courier to Baku and Sumgait. Completely free.",
+    "postDesc": "📮 Sent anywhere in Azerbaijan by post or Expargo cargo (2–3 days). Free.",
     "cityAndAddress": "City and address",
     "postAddressPlaceholder": "City, postal code, address",
     "streetAddressPlaceholder": "Neighborhood, street, building number",
@@ -489,7 +489,7 @@
       },
       "s6": {
         "title": "Delivery and gift",
-        "body": "Delivery across Azerbaijan is free: courier, metro meetup and Azerpost. Preparation and delivery take 1–3 days. Every product comes with a small perfume as a gift. If you order a gift box or buy 3–4 products at once, you also receive a 20–30 ml perfume as a gift."
+        "body": "Delivery across Azerbaijan is free: courier in Baku and Sumgait, post or Expargo cargo to the regions (about 2–3 days) and metro meetup. Preparation takes 1–3 days. Every product comes with a small perfume as a gift. If you order a gift box or buy 3–4 products at once, you also receive a 20–30 ml perfume as a gift."
       },
       "s7": {
         "title": "Privacy",

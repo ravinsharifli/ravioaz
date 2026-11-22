@@ -35,6 +35,20 @@ export default defineConfig({
                   .defaultOrdering([{ field: 'createdAt', direction: 'desc' }])
               ),
 
+            S.listItem()
+              .title('📰 Blog yazıları')
+              .child(
+                S.documentTypeList('blogPost')
+                  .title('Blog yazıları')
+                  .defaultOrdering([{ field: '_updatedAt', direction: 'desc' }])
+              ),
+
+            S.listItem()
+              .title('Kimə hədiyyə (kateqoriyalar)')
+              .child(
+                S.documentTypeList('audienceCategory').title('Kimə hədiyyə (kateqoriyalar)')
+              ),
+
             S.divider(),
 
             S.listItem()
