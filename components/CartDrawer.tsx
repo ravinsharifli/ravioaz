@@ -1001,6 +1001,12 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
               >
                 {t('cartDrawer.sendViaWhatsApp')}
               </button>
+              <p style={{ fontSize: 12, color: C.grayLt, textAlign: 'center' as const, lineHeight: 1.5, margin: '10px 0 0' }}>
+                {t('cartDrawer.returnNote')}{' '}
+                <a href={lang === 'en' ? '/en/qaydalar' : '/qaydalar'} target="_blank" rel="noopener noreferrer" style={{ color: C.orange, fontWeight: 600, textDecoration: 'underline' }}>
+                  {t('cartDrawer.returnLink')}
+                </a>
+              </p>
             </div>
           </>
         )}

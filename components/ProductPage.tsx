@@ -1162,6 +1162,12 @@ const ProductPage: React.FC<ProductPageProps> = ({
                     ? t('productPage.uploadingShort')
                     : t('productPage.addToCartButton')}
               </button>
+              <p style={{ fontSize: 12, color: C.grayLt, textAlign: 'center' as const, lineHeight: 1.5, margin: '10px 0 0' }}>
+                {t('productPage.returnNote')}{' '}
+                <a href={lang === 'en' ? '/en/qaydalar' : '/qaydalar'} target="_blank" rel="noopener noreferrer" style={{ color: C.orange, fontWeight: 600, textDecoration: 'underline' }}>
+                  {t('productPage.returnLink')}
+                </a>
+              </p>
             </div>
 
           </div>{/* /detail col */}

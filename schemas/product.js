@@ -49,12 +49,14 @@ export default {
       name: 'nameEn',
       title: '🇬🇧 Name (English)',
       type: 'string',
+      fieldset: 'english',
       description: 'İngilis versiyasında (ravio.az/en) göstərilir. Boş qalarsa, Azərbaycanca ad göstərilir.',
     },
     {
       name: 'descriptionEn',
       title: '🇬🇧 Description (English)',
       type: 'text',
+      fieldset: 'english',
       description: 'İngilis versiyasında (ravio.az/en) göstərilir. Boş qalarsa, Azərbaycanca təsvir göstərilir.',
     },
 
@@ -416,6 +418,12 @@ export default {
   ],
 
   fieldsets: [
+    {
+      name: 'english',
+      title: '🇬🇧 English (hazırda istifadə olunmur)',
+      description: 'İngilis versiyası dayandırılıb — bu sahələri doldurmaq məcburi deyil.',
+      options: { collapsible: true, collapsed: true },
+    },
     {
       name: 'seo',
       title: '🔍 SEO (Google üçün)',

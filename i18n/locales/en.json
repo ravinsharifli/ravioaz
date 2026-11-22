@@ -219,6 +219,8 @@
     "total": "Total"
   },
   "cartDrawer": {
+    "returnNote": "Made to order, so products cannot be returned. If the mistake is ours, we remake it.",
+    "returnLink": "Terms",
     "ariaLabel": "Shopping cart",
     "back": "Go back",
     "close": "Close cart",
@@ -283,6 +285,8 @@
     "customerNewLabel": "New customer (−10%)"
   },
   "productPage": {
+    "returnNote": "Made to order, so products cannot be returned. If the mistake is ours, we remake it.",
+    "returnLink": "Terms",
     "prevImage": "Previous image",
     "nextImage": "Next image",
     "noImage": "No image",
@@ -396,7 +400,7 @@
     },
     "title": "All Products",
     "loading": "Loading...",
-    "countSuffix": "{{count}} products · Free delivery"
+    "countSuffix": "{{count}} products"
   },
   "audiencePage": {
     "metaTitleTemplate": "{{name}} — Gift Ideas | Ravio",

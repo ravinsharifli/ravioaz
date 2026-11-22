@@ -219,6 +219,8 @@
     "total": "Cəmi"
   },
   "cartDrawer": {
+    "returnNote": "Fərdi hazırlandığı üçün məhsul geri qaytarılmır. Səhv bizdən olarsa, yenidən hazırlayırıq.",
+    "returnLink": "Qaydalar",
     "ariaLabel": "Alış-veriş səbəti",
     "back": "Geri qayıt",
     "close": "Səbəti bağla",
@@ -283,6 +285,8 @@
     "customerNewLabel": "Yeni müştəri (−10%)"
   },
   "productPage": {
+    "returnNote": "Fərdi hazırlandığı üçün məhsul geri qaytarılmır. Səhv bizdən olarsa, yenidən hazırlayırıq.",
+    "returnLink": "Qaydalar",
     "prevImage": "Əvvəlki şəkil",
     "nextImage": "Növbəti şəkil",
     "noImage": "Şəkil yoxdur",
@@ -396,7 +400,7 @@
     },
     "title": "Bütün məhsullar",
     "loading": "Yüklənir...",
-    "countSuffix": "{{count}} məhsul · Ödənişsiz çatdırılma"
+    "countSuffix": "{{count}} məhsul"
   },
   "audiencePage": {
     "metaTitleTemplate": "{{name}} — Hədiyyə Seçimləri | Ravio",

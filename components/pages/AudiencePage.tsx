@@ -82,7 +82,7 @@ export default function AudiencePage({ audienceCategories, products, loading, op
             ))}
           </div>
         )}
-        <p style={{ color: C.textSec, margin: 0, fontSize: 14 }}>
+        <p style={{ color: C.textSec, margin: '0 0 20px', fontSize: 14 }}>
           {loading ? t('productsPage.loading') : t('productsPage.countSuffix', { count: filteredProducts.length })}
         </p>
       </div>

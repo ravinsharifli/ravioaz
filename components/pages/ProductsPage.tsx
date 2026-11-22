@@ -32,7 +32,7 @@ export default function ProductsPage({ categories, categoryNameMap, products, lo
         <h1 style={{ fontSize: 28, fontWeight: 700, margin: '0 0 8px', fontFamily: F.sans }}>
           {t('productsPage.title')}
         </h1>
-        <p style={{ color: C.textSec, margin: 0, fontSize: 14 }}>
+        <p style={{ color: C.textSec, margin: '0 0 20px', fontSize: 14 }}>
           {loading ? t('productsPage.loading') : t('productsPage.countSuffix', { count: products.length })}
         </p>
       </div>
