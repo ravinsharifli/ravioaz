@@ -144,10 +144,8 @@ const ProductPage: React.FC<ProductPageProps> = ({
   );
   const selectedFont = FONT_STYLES.find(f => f.id === fontStyle) ?? FONT_STYLES[0];
   const [printNote, setPrintNote] = useState<string>(initialData?.printNote ?? '');
-  // Cüt/çox ədədli sifarişdə 2-ci, 3-cü... ədədin rəngi (variant indeksi). Seçilməyibsə əsas rəngə düşür.
-  const [extraIdxs, setExtraIdxs] = useState<number[]>(
-    () => (initialData?.units ?? []).slice(1).map(u => u.variantIndex)
-  );
+  // Cüt sifariş (say = 2): 2-ci ədədin rəngi (variant indeksi) — 1-ci ədədin rəngindən TAM MÜSTƏQİLDİR.
+  const [secondIdx, setSecondIdx] = useState<number | null>(initialData?.units?.[1]?.variantIndex ?? null);
 
   // view_item — məhsul səhifəsi açıldıqda GA4 + Meta-ya göndər
   // NOT: Bu useEffect mütləq conditional return-dan ƏVVƏL gəlməlidir (React Hooks qaydası)
@@ -180,6 +178,11 @@ const ProductPage: React.FC<ProductPageProps> = ({
     el.style.height = `${el.scrollHeight + 2}px`;
   }, [printText, fontStyle, qty, wantsText]);
 
+  // Say 2 olduqda 2-ci ədədin rəngi həmin anda 1-cinin rəngi ilə başlayır, bundan sonra ayrıca dəyişir
+  useEffect(() => {
+    if (qty === 2 && secondIdx === null) setSecondIdx(variantIdx);
+  }, [qty]); // eslint-disable-line react-hooks/exhaustive-deps
+
   if (!variant) return null;
 
   // ── Model / Rəng seçimi üçün unikal siyahılar ──────────────────
@@ -203,25 +206,27 @@ const ProductPage: React.FC<ProductPageProps> = ({
   // ── Hər ədəd üçün ayrıca rəng (məs. 1 gümüşü + 1 qızılı) ────────
   // Yalnız əsas variantla EYNİ qiymətli və stokda olan rənglər təklif olunur — beləliklə
   // server tərəfdəki qiymət hesabı (əsas variantdan) heç vaxt pozulmur.
-  const MAX_PER_UNIT_COLORS = 10;
   const sameDisplayPrice = (a: typeof variant, b: typeof variant) =>
     (a.discountPrice ?? a.price) === (b.discountPrice ?? b.price) && a.price === b.price;
   const unitColorOptions = colorVariants.filter(({ v, i }) =>
     i === variantIdx || (v.inStock !== false && sameDisplayPrice(v, variant)));
-  const perUnitColors = hasMultipleColors && qty >= 2 && qty <= MAX_PER_UNIT_COLORS && unitColorOptions.length > 1;
-  // Uzunluğu qty-1: 2-ci...qty-ci ədədlərin həqiqi rəngi (yararsızdırsa əsas rəngə düşür)
-  const extraResolved: number[] = Array.from({ length: Math.max(qty - 1, 0) }, (_, k) => {
-    const x = extraIdxs[k];
-    return x !== undefined && unitColorOptions.some(o => o.i === x) ? x : variantIdx;
-  });
+  const perUnitColors = hasMultipleColors && qty === 2 && unitColorOptions.length > 1;
+  // 2-ci ədədin həqiqi rəngi (seçim artıq mümkün deyilsə — məs. model/qiymət dəyişib — əsas rəngə düşür)
+  const secondResolved = secondIdx !== null && unitColorOptions.some(o => o.i === secondIdx) ? secondIdx : variantIdx;
+  const extraResolved: number[] = qty === 2 ? [secondResolved] : [];
 
-  function setExtraColor(k: number, vIdx: number) {
-    const next = extraResolved.slice();
-    next[k] = vIdx;
-    setExtraIdxs(next);
+  function setExtraColor(_k: number, vIdx: number) {
+    setSecondIdx(vIdx);
   }
 
   // Rəng dairələri — həm əsas (1-ci ədəd), həm də əlavə ədədlər üçün eyni görünüş
+  // "1-ci ədəd: Gümüş rəngli" — səliqəli, kiçik hərflərlə (böyük hərf deyil)
+  const UnitLabel = ({ n, color }: { n: number; color: string }) => (
+    <p style={{ margin: '0 0 8px', fontSize: 13, fontWeight: 600, color: C.gray, fontFamily: FONT }}>
+      {t('productPage.unitN', { n })}: <span style={{ color: C.black }}>{color}</span>
+    </p>
+  );
+
   const renderSwatches = (
     selIdx: number,
     options: { v: typeof variant; i: number }[],
@@ -776,19 +781,15 @@ const ProductPage: React.FC<ProductPageProps> = ({
 
                 {hasMultipleColors && (
                   <div>
-                    <Label>
-                      {perUnitColors ? t('productPage.unitN', { n: 1 }) + ' — ' : ''}{t('productPage.color')}
-                      <span style={{ color: C.black, textTransform: 'none' as const, letterSpacing: 0, fontWeight: 600 }}>{localizedColorName(variant.colorName, lang)}</span>
-                    </Label>
+                    {perUnitColors
+                      ? <UnitLabel n={1} color={localizedColorName(variant.colorName, lang)} />
+                      : <Label>{t('productPage.color')}<span style={{ color: C.black, textTransform: 'none' as const, letterSpacing: 0, fontWeight: 600 }}>{localizedColorName(variant.colorName, lang)}</span></Label>}
                     {renderSwatches(variantIdx, colorVariants, selectVariant)}
 
                     {/* Cüt sifariş: 2-ci, 3-cü... ədəd üçün ayrıca rəng */}
                     {perUnitColors && extraResolved.map((vIdx, k) => (
                       <div key={k} style={{ marginTop: 14 }}>
-                        <Label>
-                          {t('productPage.unitN', { n: k + 2 })} — {t('productPage.color')}
-                          <span style={{ color: C.black, textTransform: 'none' as const, letterSpacing: 0, fontWeight: 600 }}>{localizedColorName(variants[vIdx]?.colorName, lang)}</span>
-                        </Label>
+                        <UnitLabel n={k + 2} color={localizedColorName(variants[vIdx]?.colorName, lang)} />
                         {renderSwatches(vIdx, unitColorOptions, (i) => setExtraColor(k, i))}
                       </div>
                     ))}
