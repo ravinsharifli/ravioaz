@@ -113,6 +113,13 @@ export interface Coupon {
   discountValue: number; // ₼ məbləği (sabit endirim)
 }
 
+/** Cüt/çox ədədli sifarişdə hər ədədin öz rəngi (yalnız rənglər fərqli seçiləndə doldurulur). */
+export interface CartUnit {
+  variantIndex: number;
+  colorName: string;
+  image?: string;
+}
+
 export interface CartItem {
   cartId: string;
   productId: string;
@@ -120,6 +127,8 @@ export interface CartItem {
   variantIndex: number;
   modelName: string;
   colorName: string;
+  /** Hər ədədin rəngi (units[0] = əsas seçim). Yalnız rənglər qarışıq olduqda mövcuddur. */
+  units?: CartUnit[];
   images: string[];
   price: number;
   discountPrice?: number;

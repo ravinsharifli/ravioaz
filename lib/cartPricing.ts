@@ -1,6 +1,7 @@
 import { Product, CartItem, Coupon } from '../types';
 import { BULK_DISCOUNT_PER_UNIT } from '../constants/defaults';
 import { computeLine } from './orderPricing.js';
+import { resizeUnits } from './unitColors';
 
 /**
  * Səbətdə məhsulun sayı (quantity) birbaşa dəyişdirildikdə bütün qiymətə bağlı
@@ -35,6 +36,7 @@ export function recalcCartItemForQuantity(
 
   return {
     ...item,
+    units: resizeUnits(item, line.quantity),
     quantity: line.quantity,
     bulkDiscountAmount: line.bulkDiscTotal,
     customerDiscount: line.customerDisc > 0 ? line.customerDisc : undefined,

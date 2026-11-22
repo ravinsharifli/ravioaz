@@ -7,6 +7,7 @@ import { WHATSAPP_NUMBER } from '../constants/contact';
 import { FONT_STYLES } from '../constants/defaults';
 import { toWebP } from '../lib/image';
 import { getMaxQuantityForItem } from '../lib/cartPricing';
+import { hasMixedColors, colorSummary } from '../lib/unitColors';
 import { getUtm } from '../lib/utm';
 import { useTranslation } from 'react-i18next';
 import { getLangFromPath } from '../i18n/useLocalizedNav';
@@ -385,10 +386,18 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
       const customerPhotoUrls = (item.specialRequest?.match(/https?:\/\/\S+/g) ?? []);
       const customerPhotoLines = customerPhotoUrls.map((u, i) =>
         customerPhotoUrls.length === 1 ? `- Müştəri şəkli: ${u}` : `- Müştəri şəkli ${i + 1}: ${u}`);
+      // Qarışıq rəng (məs. 1 gümüşü + 1 qızılı): hər ədədin öz rəngi və öz şəkli ayrıca yazılır
+      const mixedUnits = hasMixedColors(item) && item.units ? item.units : null;
+      const productLines = mixedUnits
+        ? mixedUnits.map((u, k) => {
+            const url = toCleanImageUrl(u.image);
+            return `- ${k + 1}-ci ədəd (${u.colorName}): ${url || '—'}`;
+          })
+        : [productUrl ? `- Məhsul şəkli: ${productUrl}` : ''];
       const linkBlock = [
         boxLine,
         ...customerPhotoLines,
-        productUrl ? `- Məhsul şəkli: ${productUrl}` : '',
+        ...productLines,
       ].filter(Boolean).join('\n');
 
       // Say yalnız 1-dən çoxdursa yazılır (bot default olaraq 1 ədəd qəbul edir)
@@ -614,7 +623,12 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 14, fontWeight: 700, color: C.black, marginBottom: 3 }}>{displayProductName(item)}</div>
                       <div style={{ fontSize: 12, color: C.gray, marginBottom: 6 }}>
-                        {[item.modelName, localizedColorName(item.colorName, lang)].filter(Boolean).join(' · ')}
+                        {[
+                          item.modelName,
+                          hasMixedColors(item) && item.units
+                            ? colorSummary(item.units, (c) => localizedColorName(c, lang))
+                            : localizedColorName(item.colorName, lang),
+                        ].filter(Boolean).join(' · ')}
                       </div>
                       {item.customText && (() => {
                         const f = FONT_STYLES.find(fs => fs.id === item.printFontId);

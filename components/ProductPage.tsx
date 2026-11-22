@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { F, FORM_COLORS as C } from '../tokens';
 import { ChevronLeft, ChevronRight, Upload, Minus, Plus, Check, Tag, X, ArrowLeft } from 'lucide-react';
-import { Product, CartItem, Coupon, BoxOption } from '../types';
+import { Product, CartItem, CartUnit, Coupon, BoxOption } from '../types';
 import ProductReviews from './ProductReviews';
 import ZoomableImage from './ZoomableImage';
 import { toWebP, toSrcSet } from '../lib/image';
@@ -144,6 +144,10 @@ const ProductPage: React.FC<ProductPageProps> = ({
   );
   const selectedFont = FONT_STYLES.find(f => f.id === fontStyle) ?? FONT_STYLES[0];
   const [printNote, setPrintNote] = useState<string>(initialData?.printNote ?? '');
+  // Cüt/çox ədədli sifarişdə 2-ci, 3-cü... ədədin rəngi (variant indeksi). Seçilməyibsə əsas rəngə düşür.
+  const [extraIdxs, setExtraIdxs] = useState<number[]>(
+    () => (initialData?.units ?? []).slice(1).map(u => u.variantIndex)
+  );
 
   // view_item — məhsul səhifəsi açıldıqda GA4 + Meta-ya göndər
   // NOT: Bu useEffect mütləq conditional return-dan ƏVVƏL gəlməlidir (React Hooks qaydası)
@@ -195,6 +199,80 @@ const ProductPage: React.FC<ProductPageProps> = ({
 
   const hasMultipleColors = colorVariants.length > 1
     && colorVariants.some(({ v }) => (v.colorName || '').trim());
+
+  // ── Hər ədəd üçün ayrıca rəng (məs. 1 gümüşü + 1 qızılı) ────────
+  // Yalnız əsas variantla EYNİ qiymətli və stokda olan rənglər təklif olunur — beləliklə
+  // server tərəfdəki qiymət hesabı (əsas variantdan) heç vaxt pozulmur.
+  const MAX_PER_UNIT_COLORS = 10;
+  const sameDisplayPrice = (a: typeof variant, b: typeof variant) =>
+    (a.discountPrice ?? a.price) === (b.discountPrice ?? b.price) && a.price === b.price;
+  const unitColorOptions = colorVariants.filter(({ v, i }) =>
+    i === variantIdx || (v.inStock !== false && sameDisplayPrice(v, variant)));
+  const perUnitColors = hasMultipleColors && qty >= 2 && qty <= MAX_PER_UNIT_COLORS && unitColorOptions.length > 1;
+  // Uzunluğu qty-1: 2-ci...qty-ci ədədlərin həqiqi rəngi (yararsızdırsa əsas rəngə düşür)
+  const extraResolved: number[] = Array.from({ length: Math.max(qty - 1, 0) }, (_, k) => {
+    const x = extraIdxs[k];
+    return x !== undefined && unitColorOptions.some(o => o.i === x) ? x : variantIdx;
+  });
+
+  function setExtraColor(k: number, vIdx: number) {
+    const next = extraResolved.slice();
+    next[k] = vIdx;
+    setExtraIdxs(next);
+  }
+
+  // Rəng dairələri — həm əsas (1-ci ədəd), həm də əlavə ədədlər üçün eyni görünüş
+  const renderSwatches = (
+    selIdx: number,
+    options: { v: typeof variant; i: number }[],
+    onPick: (i: number) => void,
+  ) => (
+    <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 8 }}>
+      {options.map(({ v, i }) => {
+        const oos = v.inStock === false;
+        const sel = selIdx === i;
+        const swatch = getColorSwatchBackground(v.colorName);
+        return (
+          <button
+            key={i}
+            type="button"
+            onClick={() => !oos && onPick(i)}
+            disabled={oos}
+            aria-label={localizedColorName(v.colorName, lang) || `${t('productPage.colorAriaFallback')} ${i + 1}`}
+            aria-pressed={sel}
+            title={localizedColorName(v.colorName, lang)}
+            style={{
+              width: 24, height: 24, borderRadius: '50%', padding: 0,
+              cursor: oos ? 'not-allowed' : 'pointer',
+              background: swatch,
+              border: `1px solid ${C.border}`,
+              opacity: oos ? 0.35 : 1,
+              position: 'relative' as const,
+              transition: 'box-shadow 0.15s',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: sel ? `0 0 0 2px ${C.white}, 0 0 0 3px ${C.black}` : 'none',
+            }}
+          >
+            {sel && !oos && (
+              <Check
+                size={11}
+                strokeWidth={3.5}
+                color={isLightColor(swatch) ? C.black : C.white}
+              />
+            )}
+            {oos && (
+              <span style={{
+                position: 'absolute' as const, inset: 0, display: 'flex',
+                alignItems: 'center', justifyContent: 'center',
+              }}>
+                <span style={{ width: '120%', height: 1.5, background: C.red, transform: 'rotate(45deg)' }} />
+              </span>
+            )}
+          </button>
+        );
+      })}
+    </div>
+  );
 
   function selectVariant(i: number) {
     const v = variants[i];
@@ -299,6 +377,16 @@ const ProductPage: React.FC<ProductPageProps> = ({
 
   const handleAddToCart = () => {
     if (uploadLoading) return;
+    // Hər ədədin rəngi — yalnız fərqli rəng seçilibsə yazılır (əks halda köhnə davranış)
+    const unitIdxs = perUnitColors ? [variantIdx, ...extraResolved] : [];
+    const mixed = unitIdxs.some(i => i !== variantIdx);
+    const units: CartUnit[] | undefined = mixed
+      ? unitIdxs.map(i => ({
+          variantIndex: i,
+          colorName: variants[i]?.colorName || '—',
+          image: variants[i]?.images?.[0],
+        }))
+      : undefined;
     const item: CartItem = {
       cartId:               initialData?.cartId || Math.random().toString(36).substr(2, 9),
       productId:            product.id,
@@ -306,6 +394,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
       variantIndex:         variantIdx,
       modelName:            variant.modelName || '—',
       colorName:            variant.colorName || '—',
+      units,
       images:               variant.images || [],
       price:                origPrice,
       discountPrice:        variant.discountPrice,
@@ -687,52 +776,22 @@ const ProductPage: React.FC<ProductPageProps> = ({
 
                 {hasMultipleColors && (
                   <div>
-                    <Label>{t('productPage.color')}<span style={{ color: C.black, textTransform: 'none' as const, letterSpacing: 0, fontWeight: 600 }}>{localizedColorName(variant.colorName, lang)}</span></Label>
-                    <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 8 }}>
-                      {colorVariants.map(({ v, i }) => {
-                        const oos = v.inStock === false;
-                        const sel = variantIdx === i;
-                        const swatch = getColorSwatchBackground(v.colorName);
-                        return (
-                          <button
-                            key={i}
-                            type="button"
-                            onClick={() => !oos && selectVariant(i)}
-                            disabled={oos}
-                            aria-label={localizedColorName(v.colorName, lang) || `${t('productPage.colorAriaFallback')} ${i + 1}`}
-                            aria-pressed={sel}
-                            title={localizedColorName(v.colorName, lang)}
-                            style={{
-                              width: 24, height: 24, borderRadius: '50%', padding: 0,
-                              cursor: oos ? 'not-allowed' : 'pointer',
-                              background: swatch,
-                              border: `1px solid ${C.border}`,
-                              opacity: oos ? 0.35 : 1,
-                              position: 'relative' as const,
-                              transition: 'box-shadow 0.15s',
-                              display: 'flex', alignItems: 'center', justifyContent: 'center',
-                              boxShadow: sel ? `0 0 0 2px ${C.white}, 0 0 0 3px ${C.black}` : 'none',
-                            }}
-                          >
-                            {sel && !oos && (
-                              <Check
-                                size={11}
-                                strokeWidth={3.5}
-                                color={isLightColor(swatch) ? C.black : C.white}
-                              />
-                            )}
-                            {oos && (
-                              <span style={{
-                                position: 'absolute' as const, inset: 0, display: 'flex',
-                                alignItems: 'center', justifyContent: 'center',
-                              }}>
-                                <span style={{ width: '120%', height: 1.5, background: C.red, transform: 'rotate(45deg)' }} />
-                              </span>
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
+                    <Label>
+                      {perUnitColors ? t('productPage.unitN', { n: 1 }) + ' — ' : ''}{t('productPage.color')}
+                      <span style={{ color: C.black, textTransform: 'none' as const, letterSpacing: 0, fontWeight: 600 }}>{localizedColorName(variant.colorName, lang)}</span>
+                    </Label>
+                    {renderSwatches(variantIdx, colorVariants, selectVariant)}
+
+                    {/* Cüt sifariş: 2-ci, 3-cü... ədəd üçün ayrıca rəng */}
+                    {perUnitColors && extraResolved.map((vIdx, k) => (
+                      <div key={k} style={{ marginTop: 14 }}>
+                        <Label>
+                          {t('productPage.unitN', { n: k + 2 })} — {t('productPage.color')}
+                          <span style={{ color: C.black, textTransform: 'none' as const, letterSpacing: 0, fontWeight: 600 }}>{localizedColorName(variants[vIdx]?.colorName, lang)}</span>
+                        </Label>
+                        {renderSwatches(vIdx, unitColorOptions, (i) => setExtraColor(k, i))}
+                      </div>
+                    ))}
                   </div>
                 )}
               </Sec>
@@ -867,8 +926,9 @@ const ProductPage: React.FC<ProductPageProps> = ({
                   fontFamily: selectedFont.family,
                   fontStyle: selectedFont.italic ? 'italic' : 'normal',
                   outline: 'none', boxSizing: 'border-box' as const,
-                  resize: 'none' as const, overflow: 'hidden', minHeight: 56,
-                  fontSize: fontStyle === 'script' ? 22 : 18,
+                  resize: 'none' as const, overflow: 'hidden', minHeight: 44,
+                  // Boşdursa placeholder yığcam (qeyd qutusu kimi incə), yazdıqca seçilən şriftlə böyüyür
+                  fontSize: !printText ? 16 : fontStyle === 'script' ? 22 : 18,
                   lineHeight: 1.4,
                 } as React.CSSProperties}
                 onFocus={e => e.currentTarget.style.borderColor = C.blue}
