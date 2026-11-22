@@ -134,62 +134,6 @@ export default function HomePage({
           onProductClick={(slug) => navigate(`/mehsullar/${slug}`)}
         />
 
-        {categories.length > 0 && (
-          <div
-            style={{
-              display: 'flex',
-              gap: 8,
-              flexWrap: 'nowrap',
-              marginBottom: 24,
-              overflowX: 'auto',
-              paddingBottom: 8,
-              scrollbarWidth: 'none',
-              WebkitOverflowScrolling: 'touch',
-              msOverflowStyle: 'none',
-            }}
-          >
-            <button
-              onClick={() => setActiveCategory(null)}
-              style={{
-                padding: '7px 16px',
-                borderRadius: 100,
-                flexShrink: 0,
-                border: `1.5px solid ${!activeCategory ? C.black : C.borderMid}`,
-                background: !activeCategory ? C.black : 'transparent',
-                color: !activeCategory ? C.white : C.textSec,
-                fontSize: 12,
-                fontWeight: 600,
-                cursor: 'pointer',
-                fontFamily: F.sans,
-                whiteSpace: 'nowrap',
-              }}
-            >
-              {t('home.allCategories')}
-            </button>
-            {categories.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setActiveCategory(cat)}
-                style={{
-                  padding: '7px 16px',
-                  borderRadius: 100,
-                  flexShrink: 0,
-                  border: `1.5px solid ${activeCategory === cat ? C.black : C.borderMid}`,
-                  background: activeCategory === cat ? C.black : 'transparent',
-                  color: activeCategory === cat ? C.white : C.textSec,
-                  fontSize: 12,
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  fontFamily: F.sans,
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                {localizedCategoryName(cat, lang, categoryNameMap)}
-              </button>
-            ))}
-          </div>
-        )}
-
         {loading ? (
           <LoadingGrid />
         ) : (
