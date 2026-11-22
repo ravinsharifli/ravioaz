@@ -780,15 +780,17 @@ const ProductPage: React.FC<ProductPageProps> = ({
                 )}
 
                 {hasMultipleColors && (
-                  <div>
-                    {perUnitColors
-                      ? <UnitLabel n={1} color={localizedColorName(variant.colorName, lang)} />
-                      : <Label>{t('productPage.color')}<span style={{ color: C.black, textTransform: 'none' as const, letterSpacing: 0, fontWeight: 600 }}>{localizedColorName(variant.colorName, lang)}</span></Label>}
-                    {renderSwatches(variantIdx, colorVariants, selectVariant)}
+                  /* Cüt sifariş: 1-ci və 2-ci ədəd yan-yana (yer qənaəti); uzun rəng adı sütun daxilində sətir keçir */
+                  <div style={perUnitColors ? { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 } : undefined}>
+                    <div>
+                      {perUnitColors
+                        ? <UnitLabel n={1} color={localizedColorName(variant.colorName, lang)} />
+                        : <Label>{t('productPage.color')}<span style={{ color: C.black, textTransform: 'none' as const, letterSpacing: 0, fontWeight: 600 }}>{localizedColorName(variant.colorName, lang)}</span></Label>}
+                      {renderSwatches(variantIdx, colorVariants, selectVariant)}
+                    </div>
 
-                    {/* Cüt sifariş: 2-ci, 3-cü... ədəd üçün ayrıca rəng */}
                     {perUnitColors && extraResolved.map((vIdx, k) => (
-                      <div key={k} style={{ marginTop: 14 }}>
+                      <div key={k}>
                         <UnitLabel n={k + 2} color={localizedColorName(variants[vIdx]?.colorName, lang)} />
                         {renderSwatches(vIdx, unitColorOptions, (i) => setExtraColor(k, i))}
                       </div>
