@@ -9,7 +9,7 @@
     "check:english": "node scripts/check-english-toggle.mjs",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "test": "node scripts/api-guard.test.mjs && node scripts/order.test.mjs && node scripts/llms.test.mjs",
+    "test": "node scripts/api-guard.test.mjs && node scripts/order.test.mjs && node scripts/llms.test.mjs && node scripts/agent.test.mjs",
     "studio": "sanity dev",
     "studio:deploy": "sanity deploy"
   },
@@ -17,6 +17,7 @@
     "@portabletext/react": "^3.2.4",
     "@sanity/client": "^7.14.1",
     "@vercel/analytics": "^1.5.0",
+    "@vercel/functions": "^3.11.3",
     "i18next": "^26.3.6",
     "lucide-react": "^0.563.0",
     "react": "^19.2.4",

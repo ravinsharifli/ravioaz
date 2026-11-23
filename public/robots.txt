@@ -7,6 +7,7 @@ User-agent: *
 Allow: /
 Disallow: /studio
 Disallow: /api/
+Disallow: /_md/
 Disallow: /pricing.md
 
 # Süni intellekt botları — ChatGPT, Gemini, Claude, Perplexity, Apple, Meta və s.
@@ -31,5 +32,6 @@ User-agent: Amazonbot
 Allow: /
 Disallow: /studio
 Disallow: /api/
+Disallow: /_md/
 
 Sitemap: https://ravio.az/sitemap.xml

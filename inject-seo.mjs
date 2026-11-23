@@ -11,11 +11,13 @@
  */
 
 import { createClient } from '@sanity/client';
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
+import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync } from 'fs';
 import { join, dirname } from 'path';
 import { CATEGORY_PAGES } from './seo-categories.mjs';
 import { toCategorySlug } from './lib/slug.mjs';
 import { ENGLISH_ENABLED } from './lib/features.mjs';
+import { homeShellAz, blogListHtml, blogIntroAz, visibleTextLength } from './lib/shellContent.mjs';
+import { pageHtmlToMarkdown, mdPathForDir } from './lib/shellMarkdown.mjs';
 
 // ── Sanity client ─────────────────────────────────────────────
 const client = createClient({
@@ -152,7 +154,7 @@ const SHELL_TEXT = {
 };
 
 /** Ana səhifənin Google bot üçün ilkin məzmunu */
-function homeSeoContent(lang = 'az') {
+function homeSeoContent(lang = 'az', data = {}) {
   if (lang === 'en') {
     return `
     <main style="max-width:1280px;margin:0 auto;padding:32px 16px;font-family:Inter,Arial,sans-serif">
@@ -171,22 +173,8 @@ function homeSeoContent(lang = 'az') {
     </main>
   `;
   }
-  return `
-    <main style="max-width:1280px;margin:0 auto;padding:32px 16px;font-family:Inter,Arial,sans-serif">
-      <h1>Lazer Yazılı Qolbaq və Fərdi Hədiyyələr Bakıda — Ravio</h1>
-      <p>
-        Ravio-da lazer yazılı qolbaq, fərdi təsbeh, domino və hədiyyəlik qutular
-        sifariş edə bilərsiniz. Hər məhsul sizin üçün özəl hazırlanır.
-        Bütün Azərbaycana ödənişsiz çatdırılma və 1–3 iş günündə hazırlıq.
-      </p>
-      <nav aria-label="Məhsul kateqoriyaları">
-        <a href="/mehsullar">Bütün məhsullar</a> ·
-        <a href="/mehsullar/boyunbagilar">Lazer yazılı boyunbağılar</a> ·
-        <a href="/mehsullar/qolbaqlar">Lazer yazılı qolbaqlar</a> ·
-        <a href="/mehsullar/tesbehler">Fərdi təsbehlər</a>
-      </nav>
-    </main>
-  `;
+  // AZ: zənginləşdirilmiş məzmun lib/shellContent.mjs-dədir (≥500 simvol, kateqoriyalar, sifariş qaydası, çatdırılma, məhsul siyahısı)
+  return homeShellAz(data);
 }
 
 /** Məhsul səhifəsinin Google bot üçün ilkin məzmunu */
@@ -266,7 +254,7 @@ function itemListSchema(items) {
 }
 
 /** Kateqoriya və məhsullar səhifəsi üçün ilkin məzmun (items verilərsə məhsul siyahısı ilə) */
-function simpleSeoContent({ h1, desc, lang = 'az', items = [], paragraphs = [] }) {
+function simpleSeoContent({ h1, desc, lang = 'az', items = [], paragraphs = [], extraHtml = '' }) {
   // paragraphs verilibsə (redaktə olunan səhifə mətni) onlar göstərilir, yoxsa əvvəlki kimi tək desc abzası.
   const body = paragraphs.length
     ? paragraphs.map((p) => `<p>${esc(p)}</p>`).join('\n      ')
@@ -275,6 +263,7 @@ function simpleSeoContent({ h1, desc, lang = 'az', items = [], paragraphs = [] }
     <main style="max-width:1280px;margin:0 auto;padding:32px 16px;font-family:Inter,Arial,sans-serif">
       <h1>${esc(h1)}</h1>
       ${body}
+      ${extraHtml}
       ${productListHtml(items, lang)}
       <a href="${pathFor('/mehsullar', lang)}">${SHELL_TEXT[lang].viewAll}</a>
     </main>
@@ -617,7 +606,11 @@ async function run() {
       );
     }
     
-    let homeHtml = injectStaticRoot(template, homeSeoContent(homeLang));
+    const homeItems = [...products]
+      .sort((a, b) => String(a.name).localeCompare(String(b.name), 'az'))
+      .slice(0, 12)
+      .map((p) => toListItem(p, homeLang));
+    let homeHtml = injectStaticRoot(template, homeSeoContent(homeLang, { categories: activeCategories, items: homeItems }));
 
     if (preloadTags.length) {
       homeHtml = homeHtml.replace('</head>', `${preloadTags.join('\n')}\n</head>`);
@@ -879,11 +872,22 @@ async function run() {
   }
   console.log(`🎯 ${audOk}/${audienceCategories.length * LANGS.length} "Kimə alırsan?" HTML-i yaradıldı\n`);
 
+  // Blog yazıları: həm /blog siyahı səhifəsində (JS olmadan görünən siyahı), həm də yazı səhifələrində istifadə olunur
+  const blogPosts = await client.fetch(`
+    *[_type == "blogPost" && defined(slug.current)] | order(publishedAt desc) {
+      title, "slug": slug.current, excerpt, seoTitle, seoDescription,
+      "coverImageUrl": coverImage.asset->url, publishedAt
+    }
+  `);
+
   // ── Statik səhifələr (Haqqımızda, Çatdırılma, Blog siyahısı) — AZ + EN ──
   // Əvvəl bu səhifələrə girişdə "/" səhifəsinin canonical-ı gəlirdi (yanlış siqnal).
   const STATIC_PAGES = [
-    { pathAz: '/haqqimizda', titleKey: 'about.seoTitle', descKey: 'about.seoDesc', h1: { az: 'Haqqımızda', en: 'About Us' } },
-    { pathAz: '/catdirilma', titleKey: 'delivery.seoTitle', descKey: 'delivery.seoDesc', h1: { az: 'Çatdırılma', en: 'Delivery' } },
+    { pathAz: '/haqqimizda', titleKey: 'about.seoTitle', descKey: 'about.seoDesc', h1: { az: 'Haqqımızda', en: 'About Us' },
+      paragraphKeys: ['about.heroBody', ...['p1','p2','p3'].flatMap((p) => [`about.pillars.${p}.title`, `about.pillars.${p}.body`])] },
+    { pathAz: '/catdirilma', titleKey: 'delivery.seoTitle', descKey: 'delivery.seoDesc', h1: { az: 'Çatdırılma', en: 'Delivery' },
+      paragraphKeys: ['delivery.intro', ...['courier','metro','regions'].flatMap((o) => [`delivery.options.${o}.title`, `delivery.options.${o}.desc`]),
+        ...['f1','f2','f3','f4','f5'].flatMap((f) => [`delivery.faqs.${f}.q`, `delivery.faqs.${f}.a`])] },
     { pathAz: '/qaydalar', titleKey: 'terms.seoTitle', descKey: 'terms.seoDesc', h1: { az: 'Sifariş şərtləri və məxfilik', en: 'Order terms and privacy' },
       paragraphKeys: ['terms.intro', ...['s1','s2','s3','s4','s5','s6','s7'].flatMap((s) => [`terms.sections.${s}.title`, `terms.sections.${s}.body`])] },
     { pathAz: '/blog', titleKey: 'blogListPage.meta.title', descKey: 'blogListPage.meta.description', h1: { az: 'Blog', en: 'Blog' } },
@@ -894,7 +898,8 @@ async function run() {
       try {
         const title = tr(lang, sp.titleKey);
         const desc = tr(lang, sp.descKey);
-        let html = injectStaticRoot(template, simpleSeoContent({ h1: sp.h1[lang], desc, lang, paragraphs: (sp.paragraphKeys || []).map((k) => tr(lang, k)) }));
+        let html = injectStaticRoot(template, simpleSeoContent({ h1: sp.h1[lang], desc, lang, paragraphs: (sp.paragraphKeys || []).map((k) => tr(lang, k)),
+          extraHtml: sp.pathAz === '/blog' ? (lang === 'az' ? blogIntroAz() : '') + blogListHtml(blogPosts, (p) => pathFor(p, lang)) : '' }));
         html = finalizePage(html, { lang, pathAz: sp.pathAz, title, desc });
         writePage(distFile(lang, sp.pathAz.slice(1)), html);
         staticOk++;
@@ -907,12 +912,6 @@ async function run() {
   console.log(`📄 ${staticOk}/${STATIC_PAGES.length * LANGS.length} statik səhifə HTML-i yaradıldı\n`);
 
   // ── Blog yazılarını prerender et (Sanity-dən dinamik) ─────────────────────
-  const blogPosts = await client.fetch(`
-    *[_type == "blogPost" && defined(slug.current)] | order(publishedAt desc) {
-      title, "slug": slug.current, excerpt, seoTitle, seoDescription,
-      "coverImageUrl": coverImage.asset->url, publishedAt
-    }
-  `);
 
   let blogOk = 0;
   for (const post of blogPosts) {
@@ -953,6 +952,30 @@ async function run() {
   console.log(`📰 ${blogOk}/${blogPosts.length} blog yazısı HTML-i yaradıldı`);
   console.log('');
 
+  // ── Markdown güzgüləri (AI agentlər üçün) ────────────────────────────────
+  // Hər prerender olunmuş səhifənin robot məzmunu dist/_md/<yol>.md kimi yazılır. middleware.js,
+  // `Accept: text/markdown` istəyən sorğuya bu faylı qaytarır (HTML isə əvvəlki kimi qalır).
+  let mdOk = 0;
+  const walk = (dir, rel = '') => {
+    for (const name of readdirSync(join(dir, rel), { withFileTypes: true })) {
+      const relPath = rel ? `${rel}/${name.name}` : name.name;
+      if (name.isDirectory()) {
+        if (relPath === '_md' || relPath === 'assets' || relPath === 'fonts') continue;
+        walk(dir, relPath);
+      } else if (name.name === 'index.html') {
+        const html = readFileSync(join(dir, relPath), 'utf-8');
+        const md = pageHtmlToMarkdown(html);
+        if (!md) continue;
+        const out = join(dir, mdPathForDir(rel));
+        mkdirSync(dirname(out), { recursive: true });
+        writeFileSync(out, md, 'utf-8');
+        mdOk++;
+      }
+    }
+  };
+  walk('dist');
+  console.log(`📝 ${mdOk} Markdown güzgüsü yaradıldı (dist/_md)\n`);
+
   // ── Yekun yoxlama: səssiz uğursuzluğa YOL YOXDUR ──────────────────────────
   // (Əvvəl bu skript xəta verəndə "uğurlu" çıxırdı — nəticədə heç bir HTML
   // yaranmadan həftələrlə dərc olunurdu.)
@@ -972,6 +995,13 @@ async function run() {
     }
   };
   mustContain('dist/index.html', 'data-seo-shell');
+  mustContain('dist/_md/index.md', '# ');
+  mustContain('dist/_md/mehsullar.md', '# ');
+  {
+    // JS olmadan ana səhifədə ≥500 simvol mətn olmalıdır (agent hazırlığı yoxlaması)
+    const homeLen = visibleTextLength((readFileSync('dist/index.html', 'utf-8').match(/<div id="root" data-seo-shell>([\s\S]*?)<\/main>/) || [])[1] || '');
+    if (homeLen < 500) problems.push(`dist/index.html: JS olmadan mətn yalnız ${homeLen} simvoldur (≥500 olmalıdır)`);
+  }
   mustContain('dist/index.html', 'hreflang="az"');
   if (ENGLISH_ENABLED) {
     mustContain('dist/index.html', 'hreflang="en"');
