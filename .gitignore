@@ -31,3 +31,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Build zamanı yaradılan feed (Sanity-dən)
+public/google-feed.xml

@@ -17,6 +17,7 @@ import { CATEGORY_PAGES } from './seo-categories.mjs';
 import { toCategorySlug } from './lib/slug.mjs';
 import { ENGLISH_ENABLED } from './lib/features.mjs';
 import { homeShellAz, blogListHtml, blogIntroAz, visibleTextLength } from './lib/shellContent.mjs';
+import { faqPageSchema } from './lib/faqSchema.mjs';
 import { pageHtmlToMarkdown, mdPathForDir } from './lib/shellMarkdown.mjs';
 
 // ── Sanity client ─────────────────────────────────────────────
@@ -886,6 +887,7 @@ async function run() {
     { pathAz: '/haqqimizda', titleKey: 'about.seoTitle', descKey: 'about.seoDesc', h1: { az: 'Haqqımızda', en: 'About Us' },
       paragraphKeys: ['about.heroBody', ...['p1','p2','p3'].flatMap((p) => [`about.pillars.${p}.title`, `about.pillars.${p}.body`])] },
     { pathAz: '/catdirilma', titleKey: 'delivery.seoTitle', descKey: 'delivery.seoDesc', h1: { az: 'Çatdırılma', en: 'Delivery' },
+      faqKeys: ['f1','f2','f3','f4','f5','f6','f7'],
       paragraphKeys: ['delivery.intro', ...['courier','metro','regions'].flatMap((o) => [`delivery.options.${o}.title`, `delivery.options.${o}.desc`]),
         ...['f1','f2','f3','f4','f5'].flatMap((f) => [`delivery.faqs.${f}.q`, `delivery.faqs.${f}.a`])] },
     { pathAz: '/qaydalar', titleKey: 'terms.seoTitle', descKey: 'terms.seoDesc', h1: { az: 'Sifariş şərtləri və məxfilik', en: 'Order terms and privacy' },
@@ -901,6 +903,11 @@ async function run() {
         let html = injectStaticRoot(template, simpleSeoContent({ h1: sp.h1[lang], desc, lang, paragraphs: (sp.paragraphKeys || []).map((k) => tr(lang, k)),
           extraHtml: sp.pathAz === '/blog' ? (lang === 'az' ? blogIntroAz() : '') + blogListHtml(blogPosts, (p) => pathFor(p, lang)) : '' }));
         html = finalizePage(html, { lang, pathAz: sp.pathAz, title, desc });
+        // FAQPage sxemi: suallar səhifədə GÖRÜNƏN suallarla (DeliveryInfo.tsx) eynidir — Google yalnız görünən məzmunu qəbul edir
+        if (sp.faqKeys) {
+          const faq = faqPageSchema(sp.faqKeys.map((f) => ({ q: tr(lang, `delivery.faqs.${f}.q`), a: tr(lang, `delivery.faqs.${f}.a`) })));
+          html = html.replace('</head>', `${jsonLdTag(faq)}\n</head>`);
+        }
         writePage(distFile(lang, sp.pathAz.slice(1)), html);
         staticOk++;
         console.log(`  ✅ ${pathFor(sp.pathAz, lang)}`);
