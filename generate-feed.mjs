@@ -21,10 +21,10 @@ async function main() {
     }`,
   );
   if (!Array.isArray(products) || products.length === 0) throw new Error('Sanity 0 məhsul qaytardı — feed yazılmadı, köhnə fayl saxlanıldı');
-  const { xml, included, skipped } = buildMerchantFeed(products);
+  const { xml, included, skipped, skippedBrand } = buildMerchantFeed(products);
   if (included === 0) throw new Error('Feed-ə heç bir məhsul düşmədi — yazılmadı');
   writeFileSync('public/google-feed.xml', xml, 'utf-8');
-  console.log(`✅ google-feed.xml yazıldı: ${included} məhsul${skipped.length ? `, ${skipped.length} atlandı (qiymət/şəkil yoxdur)` : ''}`);
+  console.log(`✅ google-feed.xml yazıldı: ${included} məhsul${skipped.length ? `, ${skipped.length} atlandı (qiymət/şəkil yoxdur)` : ''}${skippedBrand.length ? `, ${skippedBrand.length} atlandı (marka adı: ${skippedBrand.join(', ')})` : ''}`);
 }
 
 main().catch((err) => {

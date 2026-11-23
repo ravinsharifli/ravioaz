@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { faqPageSchema } from '../lib/faqSchema.mjs';
-import { buildMerchantFeed } from '../lib/merchantFeed.mjs';
+import { buildMerchantFeed, RISKY_BRANDS } from '../lib/merchantFeed.mjs';
 
 let pass = 0;
 const ok = (name, cond, extra = '') => { if (!cond) { console.error(`FAIL  ${name}  ← ${extra}`); process.exitCode = 1; throw new Error(name); } pass++; console.log(`PASS  ${name}`); };
@@ -52,6 +52,23 @@ ok('Feed: link real məhsul URL-idir, brend Ravio, condition new', xml.includes(
 ok('Feed: təsvir yoxdursa ehtiyat mətn (uydurma iddia yoxdur)', xml.includes('Brelok — Ravio-dan fərdi lazer yazılı hədiyyə.') && !/gümüş|925/i.test(xml));
 ok('Feed: boş siyahı çökmür', buildMerchantFeed([]).included === 0 && buildMerchantFeed(undefined).included === 0);
 ok('Feed: uzun təsvir 5000 simvola kəsilir', buildMerchantFeed([{ name: 'A', slug: 'a', imageUrl: 'https://x/y.jpg', price: 5, description: 'söz '.repeat(3000) }]).xml.match(/<g:description>([^<]*)</)[1].length <= 5000);
+
+// ── Marka adları (Merchant Center saxta mal siyasəti) ──────────────
+{
+  const img = 'https://cdn.sanity.io/images/x.jpg';
+  const r = buildMerchantFeed([
+    { name: 'Casio Saat - Klassik', slug: 'casio', imageUrl: img, price: 38 },
+    { name: 'Zippo Alışqan', slug: 'zippo', imageUrl: img, price: 25 },
+    { name: 'Rolex Model Qolbaq', slug: 'rolex', imageUrl: img, price: 28 },
+    { name: 'Qara cüzdan', slug: 'armani-desc', description: 'Armani Exchange loqolu cüzdan', imageUrl: img, price: 55 },
+    { name: 'Kasio Saat', slug: 'kasio', imageUrl: img, price: 31 },
+    { name: 'Roleks Modeli Qolbaq', slug: 'roleks', imageUrl: img, price: 27 },
+    { name: 'Zipo Alışqan', slug: 'zipo', imageUrl: img, price: 17 },
+  ]);
+  ok('Marka: Casio/Zippo/Rolex/Armani məhsulları feed-ə düşmür', r.skippedBrand.sort().join() === 'armani-desc,casio,rolex,zippo', String(r.skippedBrand));
+  ok('Marka: respelling edilmiş adlar (Kasio, Zipo, Roleks) feed-də qalır', r.included === 3 && r.xml.includes('<g:id>kasio</g:id>') && r.xml.includes('<g:id>zipo</g:id>') && r.xml.includes('<g:id>roleks</g:id>'));
+  ok('Marka: adi sözlər pozulmur', !RISKY_BRANDS.test('Pulqabı və Qolbaq Dəsti') && !RISKY_BRANDS.test('Lazer yazılı polad qolbaq'));
+}
 
 // ── Konfiqurasiya ─────────────────────────────────────────────────
 {
