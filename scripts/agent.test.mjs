@@ -63,6 +63,17 @@ ok('404: mövcud olmayan yol → HTTP 404', r && r.status === 404, r && r.status
 ok('404: HTML cavab sayt qabığını daşıyır (React NotFound göstərsin)', (await r.text()).includes('data-seo-shell'));
 ok('404: Content-Type text/html, Vary: Accept, noindex', r.headers.get('content-type').startsWith('text/html') && r.headers.get('vary') === 'Accept' && r.headers.get('x-robots-tag') === 'noindex');
 
+{
+  // Qorunan preview / yönləndirmə: daxili sorğu başqa səhifə qaytarsa, o 404 gövdəsi OLMAMALIDIR
+  resetSlugCache();
+  const foreign = async () => ({ ok: true, headers: new Headers({ 'content-type': 'text/html' }), text: async () => '<html><body>Vercel Login</body></html>' });
+  const rf = await handleAgentRequest(req('/yoxdur', 'text/html'), { fetchFn: foreign });
+  const tf = await rf.text();
+  ok('404: yad məzmun (Vercel giriş səhifəsi) gövdəyə düşmür, minimal 404 verilir', rf.status === 404 && !tf.includes('Vercel Login') && tf.includes('404'), tf);
+  let sawManual = false;
+  await handleAgentRequest(req('/yoxdur', 'text/html'), { fetchFn: async (u, o) => { if (o && o.redirect === 'manual') sawManual = true; return foreign(); } });
+  ok('daxili sorğu redirect: manual ilə gedir', sawManual);
+}
 r = await run('/some-path-that-does-not-exist', 'text/markdown');
 let body = await r.text();
 ok('404 + Markdown: status 404', r.status === 404);
